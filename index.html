@@ -1,35 +1,560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
-    <style>
-        body {
-            color: #333333; /* Explicit body text color for readability */
-            background-color: #ffffff; /* Background color for body */
-        }
-        .card {
-            background-color: #f0f0f0; /* Slightly lightened card background */
-            border-radius: 10px;
-            padding: 10px;
-            margin: 10px 0;
-        }
-        .img-placeholder { /* Replacing placeholders with actual images */
-            display: block;
-            border-radius: 10px;
-            width: 100%; /* Consistent sizing */
-            height: auto;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Londo Technologies LTD | IT & Media Solutions</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #121212;
+      --surface: #1a1a1a;
+      --card: #242424; /* slightly lighter than before */
+      --border: #343434;
+      --text: #f4f6fb;
+      --muted: #c4ccd6;
+      --muted-2: #9aa6b2;
+      --teal: #00f2ff;
+      --teal-glow: rgba(0, 242, 255, 0.25);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* Links */
+    a { color: inherit; }
+
+    /* Navbar */
+    .navbar { border-bottom: 1px solid rgba(0,242,255,0.6); }
+    .navbar .nav-link { color: rgba(255,255,255,0.78) !important; }
+    .navbar .nav-link:hover,
+    .navbar .nav-link:focus { color: #fff !important; }
+
+    .text-teal { color: var(--teal) !important; }
+
+    .hero {
+      padding: 120px 0 80px;
+      background: radial-gradient(circle at top right, #1a2a2a, var(--bg));
+    }
+
+    .btn-teal {
+      background: var(--teal);
+      color: #0b0b0b;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 0 16px var(--teal-glow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .btn-teal:hover {
+      transform: translateY(-1px) scale(1.02);
+      background: #00d8e4;
+      box-shadow: 0 0 26px rgba(0,242,255,0.45);
+    }
+
+    .rural-badge {
+      background: rgba(0, 242, 255, 0.10);
+      border: 1px solid rgba(0,242,255,0.7);
+      color: var(--teal);
+      padding: 6px 14px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+      margin: 20px 0 0;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.88);
+    }
+
+    /* Cards */
+    .service-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      height: 100%;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+    }
+    .service-card:hover {
+      border-color: rgba(0,242,255,0.8);
+      transform: translateY(-4px);
+    }
+
+    /* Readability: override opacity-based muted text */
+    .text-muted,
+    .opacity-75,
+    .opacity-50 {
+      opacity: 1 !important;
+    }
+
+    p.lead,
+    p.opacity-75 {
+      color: var(--muted) !important;
+    }
+
+    .service-card p,
+    .service-card li,
+    section li {
+      color: rgba(255,255,255,0.92);
+    }
+
+    section ul { line-height: 1.6; }
+
+    .jump-card {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .jump-card:focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 3px;
+      border-radius: 10px;
+    }
+
+    /* Images */
+    .feature-img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.30);
+      background: #0f0f0f;
+    }
+
+    .back-top { text-decoration: none; }
+
+    footer { border-top: 1px solid rgba(255,255,255,0.12); padding: 40px 0; }
+
+    /* Make form fields readable on dark bg */
+    .form-control {
+      background: #151515;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .form-control:focus {
+      background: #151515;
+      color: var(--text);
+      border-color: rgba(0,242,255,0.8);
+      box-shadow: 0 0 0 0.2rem rgba(0,242,255,0.12);
+    }
+    select.form-control option { color: #111; }
+  </style>
 </head>
-<body>
-    <div class="card">
-        <h1>Welcome to My Website</h1>
-        <p>Some introductory text here.</p>
-        <img class="img-placeholder" src="https://via.placeholder.com/300x200" alt="Starter Image 1">
-        <p>Additional content in the card.</p>
-        <img class="img-placeholder" src="https://via.placeholder.com/300x200" alt="Starter Image 2">
+
+<body id="top">
+  <nav class="navbar navbar-dark bg-dark sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#top">LONDO <span class="text-teal">TECHNOLOGIES</span></a>
+      <div class="d-flex gap-3 align-items-center">
+        <a class="nav-link d-none d-md-inline" href="#work">What We Do</a>
+        <a class="nav-link d-none d-md-inline" href="#about">Local &amp; Family-Owned</a>
+        <a class="nav-link d-none d-md-inline" href="#contact">Contact</a>
+      </div>
     </div>
+  </nav>
+
+  <header class="hero text-center">
+    <div class="container">
+      <div class="rural-badge text-uppercase small fw-bold">Ashtabula County &amp; Surrounding Counties</div>
+      <h1 class="display-3 fw-bold mb-3">Enterprise Tech.<br /><span class="text-teal">Small-Town Support.</span></h1>
+      <p class="lead mb-4">
+        Family-owned IT, networking, media, and on-site setup—helping local businesses and residential customers stay connected.
+      </p>
+
+      <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-4">
+        <a href="#contact" class="btn btn-teal btn-lg px-5">Get Support</a>
+        <a href="#work" class="btn btn-outline-light btn-lg px-5">Explore Services</a>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+        <span class="pill">Business IT</span>
+        <span class="pill">Residential Setup</span>
+        <span class="pill">Networking</span>
+        <span class="pill">Ooma Business VoIP</span>
+        <span class="pill">Video &amp; Design</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- WHO WE SERVE -->
+  <section id="audiences" class="container my-5 py-4">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card service-card p-4 h-100">
+          <h3 class="mb-2">For <span class="text-teal">Businesses</span></h3>
+          <p class="mb-3">Reliable support, clean networks, secure systems, and solutions that scale with your team.</p>
+          <ul class="mb-0">
+            <li>Managed IT &amp; troubleshooting</li>
+            <li>Network setup, Wi‑Fi, and security hardening</li>
+            <li><strong>Business VoIP</strong> (Ooma partner)</li>
+            <li>Printed media, branding, and video production</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card service-card p-4 h-100">
+          <h3 class="mb-2">For <span class="text-teal">Residential</span> &amp; Rural Properties</h3>
+          <p class="mb-3">On-site help for home tech, Wi‑Fi coverage, PCs, and entertainment systems—done right and explained clearly.</p>
+          <ul class="mb-0">
+            <li>Home Wi‑Fi and whole-property connectivity planning</li>
+            <li>PC repair, tune-ups, and in-home setup</li>
+            <li>Home theater &amp; audio system setup</li>
+            <li>Device guidance &amp; ongoing support</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <!-- WHAT WE DO -->
+  <section id="work" class="container my-5 py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+      <div>
+        <h2 class="fw-bold mb-1">What We Do</h2>
+        <p class="mb-0" style="color: var(--muted)">Click a service to jump to details, examples, and what’s included.</p>
+      </div>
+      <a href="#contact" class="btn btn-outline-light">Request a Quote</a>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#managed-it">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">Managed IT</h4>
+            <p class="small mb-0" style="color: var(--muted)">Support, troubleshooting, and keeping systems stable and secure.</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#networking">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">Networking (Biz &amp; Home)</h4>
+            <p class="small mb-0" style="color: var(--muted)">Wi‑Fi, routers, switches, coverage planning, and clean installs.</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#voip">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">Business VoIP</h4>
+            <p class="small mb-0" style="color: var(--muted)">Ooma-based phone systems for professional calling and routing.</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#pc-repair">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">PC Repair &amp; Setup</h4>
+            <p class="small mb-0" style="color: var(--muted)">Fixes, upgrades, tune-ups, and in-home workstation setups.</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#media">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">Video Production</h4>
+            <p class="small mb-0" style="color: var(--muted)">Promos, social content, training videos, and clean edits.</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#design">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">Logo &amp; Brand Design</h4>
+            <p class="small mb-0" style="color: var(--muted)">Logos, brand refreshes, and assets ready for print &amp; web.</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#print">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">Printed Media</h4>
+            <p class="small mb-0" style="color: var(--muted)">Flyers, posters, business cards, menus, and marketing materials.</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <a class="jump-card" href="#home-av">
+          <div class="card service-card p-4">
+            <h4 class="text-teal">Home Theater &amp; Audio</h4>
+            <p class="small mb-0" style="color: var(--muted)">TV mounting guidance, speaker setups, and clean cabling.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+  </section>
+
+  <!-- ABOUT / LOCAL -->
+  <section id="about" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Local. Family-owned. Built for Rural Reality.</h2>
+        <p class="mb-3" style="color: var(--muted)">
+          We’re based in <strong>Ashtabula County</strong> and serve surrounding counties with a mix of on-site help and remote support.
+          Our goal is simple: professional results without the runaround—whether you’re running a business network or setting up tech at home.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="pill">Clear communication</span>
+          <span class="pill">Secure-by-default</span>
+          <span class="pill">On-site + remote</span>
+          <span class="pill">Business + residential</span>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="On-site technology support" src="https://images.unsplash.com/photo-1581092919535-7146f7bb8a0b?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <!-- DETAILS SECTIONS -->
+  <section id="managed-it" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Managed IT</h2>
+        <p style="color: var(--muted)">Keep your devices, accounts, and day-to-day operations running smoothly. Ideal for small businesses that need a dependable tech partner.</p>
+        <ul>
+          <li>Remote troubleshooting and on-site visits when needed</li>
+          <li>User/device cleanup, performance tuning, and best practices</li>
+          <li>Account security guidance (passwords, MFA, basic hardening)</li>
+          <li>Hardware recommendations and upgrade planning</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="IT support workstation" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <section id="networking" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Networking (Business &amp; Home)</h2>
+        <p style="color: var(--muted)">Better coverage, better stability, fewer dropouts. We design networks that fit real buildings—homes, offices, shops, and properties with outbuildings.</p>
+        <ul>
+          <li>Wi‑Fi planning for coverage &amp; performance</li>
+          <li>Router/switch setup, device placement, and clean configuration</li>
+          <li>Troubleshooting slow internet, interference, and dead zones</li>
+          <li>Optional: documentation so you know what you have</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="Network equipment and cables" src="https://images.unsplash.com/photo-1551703599-6b3e8379aa8f?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <section id="voip" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Business VoIP (Ooma Partner)</h2>
+        <p style="color: var(--muted)">Professional calling features for small businesses—set up the right way, with training so your team feels confident.</p>
+        <ul>
+          <li>New VoIP setup and migration planning</li>
+          <li>Call routing, ring groups, business hours, voicemail</li>
+          <li>Multi-user setup and basic onboarding</li>
+          <li><strong>Note:</strong> VoIP offerings are for business customers</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="Business phone and headset" src="https://images.unsplash.com/photo-1587614382346-4ec70e2c67c3?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <section id="pc-repair" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">PC Repair &amp; In‑Home Setup</h2>
+        <p style="color: var(--muted)">From slow computers to new device setup, we make home and small-office tech feel simple again.</p>
+        <ul>
+          <li>Diagnostics, cleanup, and performance improvements</li>
+          <li>New PC setup, data transfer, printers, and accounts</li>
+          <li>Home office setup (monitor docking, webcam/mic, reliability)</li>
+          <li>Practical recommendations you can actually follow</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="Laptop repair" src="https://images.unsplash.com/photo-1580894894513-541e068a3c6b?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <section id="home-av" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Home Theater &amp; Audio System Setup</h2>
+        <p style="color: var(--muted)">Clean setups, correct settings, and better sound. Great for living rooms, basements, and dedicated media spaces.</p>
+        <ul>
+          <li>TV / streaming device setup and optimization</li>
+          <li>Soundbar / receiver / speaker configuration</li>
+          <li>Cable management guidance and layout planning</li>
+          <li>Whole-home audio basics (where applicable)</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="Home theater" src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <section id="media" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Video Production</h2>
+        <p style="color: var(--muted)">Video that looks and sounds professional—whether it’s a promo, a product walkthrough, or content for social media.</p>
+        <ul>
+          <li>Promo videos, social clips, basic motion graphics</li>
+          <li>Editing, audio cleanup, and export for web platforms</li>
+          <li>Business storytelling: services, people, and process</li>
+          <li>Optional: on-location filming (as scheduling allows)</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="Video camera" src="https://images.unsplash.com/photo-1526948128573-703ee1aeb6fa?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <section id="design" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Logo &amp; Brand Design</h2>
+        <p style="color: var(--muted)">Clean branding that works everywhere: websites, signs, social media, and printed materials.</p>
+        <ul>
+          <li>Logo design or refresh</li>
+          <li>Color and font guidance (simple brand kit)</li>
+          <li>Export packages for web + print</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="Brand design" src="https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <section id="print" class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold mb-2">Printed Media (Flyers, Posters, Cards)</h2>
+        <p style="color: var(--muted)">Marketing materials designed to look sharp and print correctly. Perfect for local events, storefronts, and service businesses.</p>
+        <ul>
+          <li>Flyers, posters, menus, business cards</li>
+          <li>Print-ready exports (bleed, margins, proper resolution)</li>
+          <li>Optional: coordinate with your print shop requirements</li>
+        </ul>
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+      <div class="col-lg-5">
+        <img class="feature-img" alt="Printed materials" src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80" loading="lazy" />
+      </div>
+    </div>
+    <div class="divider"></div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="container my-5 py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card service-card p-4 p-md-5">
+          <h2 class="fw-bold mb-2">Contact</h2>
+          <p class="mb-4" style="color: var(--muted)">Tell us what you’re working on (business or residential) and we’ll get back to you.</p>
+
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            <span class="pill">Ashtabula County</span>
+            <span class="pill">Surrounding Counties</span>
+            <span class="pill">On-site + Remote</span>
+          </div>
+
+          <form action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" value="f7b65244-689f-4d00-8391-c10789938b20" />
+
+            <input type="text" name="name" placeholder="Your Name" required class="form-control mb-3" />
+            <input type="email" name="email" placeholder="Email Address" required class="form-control mb-3" />
+
+            <select name="customer_type" class="form-control mb-3" required>
+              <option value="" selected disabled>I am a...</option>
+              <option>Business customer</option>
+              <option>Residential customer</option>
+            </select>
+
+            <select name="service_interest" class="form-control mb-3" required>
+              <option value="" selected disabled>I need help with...</option>
+              <option>Managed IT / troubleshooting</option>
+              <option>Networking / Wi‑Fi</option>
+              <option>Business VoIP (Ooma)</option>
+              <option>PC repair / setup</option>
+              <option>Home theater / audio</option>
+              <option>Video production</option>
+              <option>Logo / design</option>
+              <option>Printed media</option>
+              <option>Not sure yet</option>
+            </select>
+
+            <textarea name="message" placeholder="Briefly describe what you need (location, timeline, any details)" required rows="5" class="form-control mb-3"></textarea>
+
+            <button type="submit" class="btn btn-teal w-100">Send Message</button>
+          </form>
+
+          <p class="small mt-3 mb-0" style="color: var(--muted-2)">
+            Tip: If you want on-site service, include your town and a good time window for a call-back.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="text-center">
+    <div class="container">
+      <p class="mb-0">&copy; 2026 Londo Technologies LTD | <span class="text-teal">Londo.Tech</span></p>
+      <p class="small mb-0" style="color: var(--muted-2)">Family-owned technology &amp; media support — Ashtabula County and surrounding counties.</p>
+      <div class="mt-2">
+        <a class="back-top text-teal" href="#top">↑ Back to top</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
