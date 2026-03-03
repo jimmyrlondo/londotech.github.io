@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Portal | Londo Technologies LTD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --teal-accent: #00f2ff;
+        }
+        body { background-color: var(--dark-bg); color: #ffffff; font-family: sans-serif; }
+        .text-teal { color: var(--teal-accent); }
+        .btn-teal { background-color: var(--teal-accent); color: var(--dark-bg); fw-bold; border: none; }
+        .support-card { background: var(--card-bg); border: 1px solid var(--teal-accent); border-radius: 15px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">LONDO <span class="text-teal">TECHNOLOGIES</span></a>
+        </div>
+    </nav>
+
+    <div class="container py-5 mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-4 fw-bold mb-4">Remote <span class="text-teal">Support Portal</span></h1>
+                <p class="lead mb-5 opacity-75">Secure, encrypted remote assistance for Londo Technologies clients.</p>
+                
+                <div class="card support-card p-5 shadow-lg">
+                    <h3 class="mb-4">How to Connect</h3>
+                    <div class="text-start mb-4">
+                        <p><strong>1. Get your code:</strong> Contact us via phone or message to receive your unique session ID.</p>
+                        <p><strong>2. Launch the client:</strong> Click the button below to download the lightweight support tool.</p>
+                        <p><strong>3. Grant Access:</strong> Run the file and provide the 9-digit code when prompted.</p>
+                    </div>
+                    
+                    <a href="https://www.dwservice.net/en/download.html" target="_blank" class="btn btn-teal btn-lg px-5 py-3 fw-bold">Download Support Tool</a>
+                    
+                    <p class="mt-4 small text-muted">Sessions are encrypted with 256-bit AES security. Only grant access to technicians you trust.</p>
+                </div>
+                
+                <a href="index.html" class="btn btn-link text-teal mt-4 text-decoration-none">← Return to Homepage</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
