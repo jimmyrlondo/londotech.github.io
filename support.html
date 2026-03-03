@@ -7,43 +7,46 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
-            --teal-accent: #00f2ff;
+            --dark-bg: #f3ead7;
+            --card-bg: #fbf6ec;
+            --teal-accent: #8b2f2f;
+            --text: #2b241a;
         }
-        body { background-color: var(--dark-bg); color: #ffffff; font-family: sans-serif; }
+        body { background-color: var(--dark-bg); color: var(--text); font-family: 'Inter', sans-serif; }
+        .support-card { background: var(--card-bg); border: 1px solid #d8cbb3; border-radius: 15px; }
         .text-teal { color: var(--teal-accent); }
-        .btn-teal { background-color: var(--teal-accent); color: var(--dark-bg); fw-bold; border: none; }
-        .support-card { background: var(--card-bg); border: 1px solid var(--teal-accent); border-radius: 15px; }
+        .btn-teal { background-color: var(--teal-accent); color: #fbf6ec; border: none; font-weight: bold; }
+        .btn-teal:hover { background-color: #742525; color: #fff; }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">LONDO <span class="text-teal">TECHNOLOGIES</span></a>
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <a href="index.html" class="text-decoration-none"><h2 class="fw-bold text-dark">LONDO <span class="text-teal">TECHNOLOGIES</span></h2></a>
+            <h1 class="display-5 fw-bold mt-4">Remote <span class="text-teal">Support Portal</span></h1>
         </div>
-    </nav>
 
-    <div class="container py-5 mt-5">
         <div class="row justify-content-center">
-            <div class="col-md-8 text-center">
-                <h1 class="display-4 fw-bold mb-4">Remote <span class="text-teal">Support Portal</span></h1>
-                <p class="lead mb-5 opacity-75">Secure, encrypted remote assistance for Londo Technologies clients.</p>
-                
-                <div class="card support-card p-5 shadow-lg">
-                    <h3 class="mb-4">How to Connect</h3>
-                    <div class="text-start mb-4">
-                        <p><strong>1. Get your code:</strong> Contact us via phone or message to receive your unique session ID.</p>
-                        <p><strong>2. Launch the client:</strong> Click the button below to download the lightweight support tool.</p>
-                        <p><strong>3. Grant Access:</strong> Run the file and provide the 9-digit code when prompted.</p>
+            <div class="col-md-6">
+                <div class="card support-card p-4 shadow-sm">
+                    <h4 class="fw-bold mb-3">Connection Instructions</h4>
+                    <p class="small mb-4">Follow these steps to allow a technician to securely access your computer.</p>
+                    
+                    <ol class="mb-4">
+                        <li class="mb-2">Click the button below to download the support tool.</li>
+                        <li class="mb-2">Run the file (no installation required).</li>
+                        <li class="mb-2">Provide the <strong>ID and Password</strong> shown on your screen to your technician.</li>
+                    </ol>
+
+                    <a href="https://www.dwservice.net/en/download.html" target="_blank" class="btn btn-teal btn-lg w-100 py-3">Download Support Tool</a>
+                    
+                    <div class="mt-4 p-3 bg-light rounded border small">
+                        <strong>Security Note:</strong> Londo Technologies will <u>never</u> call you unsolicited asking for access. Only provide your code during a scheduled session.
                     </div>
-                    
-                    <a href="https://www.dwservice.net/en/download.html" target="_blank" class="btn btn-teal btn-lg px-5 py-3 fw-bold">Download Support Tool</a>
-                    
-                    <p class="mt-4 small text-muted">Sessions are encrypted with 256-bit AES security. Only grant access to technicians you trust.</p>
                 </div>
-                
-                <a href="index.html" class="btn btn-link text-teal mt-4 text-decoration-none">← Return to Homepage</a>
+                <div class="text-center mt-4">
+                    <a href="index.html" class="text-muted small">← Back to Londo.Tech</a>
+                </div>
             </div>
         </div>
     </div>
