@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Resume | Londo Technologies LTD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #f3ead7;
+            --card-bg: #fbf6ec;
+            --accent: #8b2f2f;
+            --text: #2b241a;
+            --muted: rgba(43, 36, 26, 0.72);
+            --border: #d8cbb3;
+            --border-strong: #c8b79b;
+            --accent-glow: rgba(139, 47, 47, 0.14);
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #efe3cc, var(--dark-bg));
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .navbar {
+            border-bottom: 1px solid var(--border-strong);
+            background: #fbf6ec;
+        }
+
+        .text-accent { color: var(--accent); }
+
+        .hero {
+            padding: 80px 0 30px;
+        }
+
+        .muted { color: var(--muted); }
+
+        .card-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(43, 36, 26, 0.05);
+        }
+
+        .badge-role {
+            background: rgba(139, 47, 47, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(139, 47, 47, 0.35);
+            font-weight: 700;
+            letter-spacing: .4px;
+        }
+
+        .timeline-item {
+            border-left: 3px solid var(--border-strong);
+            padding-left: 1rem;
+            margin-left: .5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: "";
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            position: absolute;
+            left: -7px;
+            top: .35rem;
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(43, 36, 26, 0.04);
+            font-size: 0.85rem;
+            margin: 0 .35rem .45rem 0;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fbf6ec;
+            border: none;
+            font-weight: 700;
+        }
+
+        .btn-accent:hover {
+            background: #742525;
+            color: #fff;
+        }
+
+        footer { border-top: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">LONDO <span class="text-accent">TECHNOLOGIES</span></a>
+            <div class="d-flex gap-3 align-items-center">
+                <a class="nav-link muted" href="/">Home</a>
+                <a class="nav-link muted" href="/support.html">Remote Support</a>
+                <a class="nav-link fw-bold text-accent" href="/resume/">Resume</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-8">
+                    <span class="badge badge-role rounded-pill px-3 py-2">PROFESSIONAL RESUME</span>
+                    <h1 class="display-5 fw-bold mt-3 mb-2">Jimmy Londo</h1>
+                    <p class="lead muted mb-3">Founder & Lead, <strong>Londo Technologies</strong> • Sales Manager & IT Specialist • Operations-Focused Leader</p>
+                    <p class="muted mb-0">A customer-first professional with a long track record of building relationships, driving revenue, improving operations, and leading teams across retail, technology, and business development roles.</p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card-panel p-4">
+                        <h5 class="fw-bold mb-3">Contact</h5>
+                        <p class="mb-2"><strong>Phone:</strong> <a class="text-accent text-decoration-none" href="tel:14403201989">440-320-1989</a></p>
+                        <p class="mb-2"><strong>Website:</strong> <a class="text-accent text-decoration-none" href="https://londo.tech">Londo.tech</a></p>
+                        <p class="mb-0"><strong>Location:</strong> Ohio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="container py-4">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card-panel p-4 p-md-5">
+                    <h2 class="fw-bold mb-4">Experience</h2>
+
+                    <div class="timeline-item">
+                        <h5 class="fw-bold mb-1">Londo Technologies (Primary)</h5>
+                        <p class="mb-2"><strong>Founder & Lead</strong> | Current</p>
+                        <ul class="mb-0">
+                            <li>Lead client-facing technology and media solutions across IT support, networking, rural connectivity, and digital services.</li>
+                            <li>Drive business development, service strategy, and delivery quality to strengthen long-term customer relationships.</li>
+                            <li>Provide hands-on technical consulting while maintaining a professional, local-first brand experience.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5 class="fw-bold mb-1">Quality Imaging Solutions</h5>
+                        <p class="mb-2"><strong>Sales Manager & IT Specialist</strong> | September 2022 – Current</p>
+                        <ul class="mb-0">
+                            <li>Manage sales initiatives and technical support responsibilities to help customers adopt practical, value-driven solutions.</li>
+                            <li>Analyze business needs, align resources, and support implementation strategies that improve outcomes and retention.</li>
+                            <li>Deliver strong communication and follow-through across sales, operations, and IT-focused service work.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5 class="fw-bold mb-1">Best Buy | Mentor, OH</h5>
+                        <p class="mb-2"><strong>Assistant Manager</strong> | August 2013 – September 2022</p>
+                        <ul>
+                            <li>Mentored staff to enhance skills and achieve daily targets through hands-on leadership.</li>
+                            <li>Directed employees and supervised activities to drive productivity and efficiency.</li>
+                            <li>Collaborated with store manager on strategies to achieve sales and profit goals.</li>
+                            <li>Enforced company policies and procedures to strengthen standards across departments.</li>
+                            <li>Implemented training processes for newly hired employees and supervised managers and leads.</li>
+                            <li>Led performance evaluations and rewarded top performers to retain quality personnel.</li>
+                            <li>Coached team members with constructive feedback to boost confidence and productivity.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item mb-0">
+                        <h5 class="fw-bold mb-1">Great Lakes Cleaning Systems | Elyria, OH</h5>
+                        <p class="mb-2"><strong>Owner</strong> | June 2010 – August 2013</p>
+                        <ul class="mb-0">
+                            <li>Oversaw staff hiring, onboarding, and scheduling to streamline operations.</li>
+                            <li>Developed business and marketing plans and prepared monthly financial reports.</li>
+                            <li>Set pricing structures based on market analytics and emerging trends.</li>
+                            <li>Promoted business via social media to maximize brand identity and revenue.</li>
+                            <li>Supervised worker performance to improve productivity, efficiency, and cost savings.</li>
+                            <li>Managed sales presentations and implemented successful sales strategies.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card-panel p-4 mb-4">
+                    <h4 class="fw-bold mb-3">Core Skills</h4>
+                    <span class="pill">Rapport & Relationship Building</span>
+                    <span class="pill">Sales Presentations</span>
+                    <span class="pill">Social Media Savvy</span>
+                    <span class="pill">Sales & Market Development</span>
+                    <span class="pill">Sales Records Management</span>
+                    <span class="pill">Recruiting & Hiring</span>
+                    <span class="pill">Team Leadership</span>
+                    <span class="pill">Critical Thinking</span>
+                    <span class="pill">Calm Under Pressure</span>
+                    <span class="pill">Computer Skills</span>
+                    <span class="pill">Microsoft Office</span>
+                    <span class="pill">Coaching & Mentoring</span>
+                    <span class="pill">Complex Problem Solving</span>
+                    <span class="pill">Staff Management</span>
+                </div>
+
+                <div class="card-panel p-4 mb-4">
+                    <h4 class="fw-bold mb-3">Service Strengths</h4>
+                    <p class="muted mb-2">Built from active Londo Technologies offerings:</p>
+                    <ul class="mb-0">
+                        <li>Managed IT & troubleshooting</li>
+                        <li>Networking, Wi‑Fi, and rural connectivity</li>
+                        <li>Business VoIP solutions</li>
+                        <li>Video production and brand design</li>
+                        <li>Printed media and secure disposal services</li>
+                    </ul>
+                </div>
+
+                <div class="card-panel p-4">
+                    <h4 class="fw-bold mb-3">Education</h4>
+                    <p class="mb-1"><strong>High School Diploma</strong></p>
+                    <p class="mb-1">Avon Lake High School</p>
+                    <p class="muted mb-0">Avon Lake, OH • June 2005</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container pb-5">
+        <div class="card-panel p-4 p-md-5 text-center">
+            <h3 class="fw-bold mb-2">View Services or Request Support</h3>
+            <p class="muted mb-4">Learn more about current offerings or start a conversation directly.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a class="btn btn-accent" href="/">Visit Londo Technologies</a>
+                <a class="btn btn-outline-dark" href="/support.html">Open Support Portal</a>
+                <a class="btn btn-outline-dark" href="sms:14403201989">Text 440-320-1989</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-4 text-center">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 Londo Technologies LTD | <span class="text-accent">Londo.Tech</span></p>
+        </div>
+    </footer>
+
+</body>
+</html>
