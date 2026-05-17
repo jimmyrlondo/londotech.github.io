@@ -212,7 +212,7 @@
             <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-4">
                 <a href="tel:14403201989" class="btn btn-teal btn-lg px-5">Call Now</a>
                 <a href="sms:14403201989" class="btn btn-outline-light btn-lg px-5">Text Us</a>
-                <a href="#voip" class="btn btn-teal btn-lg px-5">Managed VoIP Services</a>
+                <a href="#voip" class="btn btn-outline-light btn-lg px-5">Managed VoIP Services</a>
                 <a href="#work" class="btn btn-outline-light btn-lg px-5">Explore Services</a>
             </div>
 
@@ -718,8 +718,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('[data-service]').forEach((element) => {
                 const serviceKey = element.getAttribute('data-service');
-                if (Object.prototype.hasOwnProperty.call(serviceFlags, serviceKey) && !serviceFlags[serviceKey]) {
-                    element.style.display = 'none';
+                if (Object.hasOwn(serviceFlags, serviceKey) && !serviceFlags[serviceKey]) {
+                    element.classList.add('d-none');
                 }
             });
         });
