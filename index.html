@@ -206,12 +206,13 @@
 
             <p class="lead mb-4 opacity-75">
                 Family-owned, professional support. Remote-first for faster fixes—plus on-site installs for networks,
-                Starlink setup, and outbuilding connectivity.
+                Starlink setup, outbuilding connectivity, and <strong>managed VoIP systems</strong> for growing businesses.
             </p>
 
             <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-4">
                 <a href="tel:14403201989" class="btn btn-teal btn-lg px-5">Call Now</a>
                 <a href="sms:14403201989" class="btn btn-outline-light btn-lg px-5">Text Us</a>
+                <a href="#voip" class="btn btn-teal btn-lg px-5">Managed VoIP Services</a>
                 <a href="#work" class="btn btn-outline-light btn-lg px-5">Explore Services</a>
             </div>
 
@@ -220,9 +221,9 @@
                 <span class="pill">Starlink Setup</span>
                 <span class="pill">Mesh Wi‑Fi</span>
                 <span class="pill">Wireless Bridges (Barn/Shop)</span>
-                <span class="pill">Business VoIP (Ooma)</span>
+                <span class="pill" data-service="managedVoip">Managed VoIP (Ooma)</span>
                 <span class="pill">Video & Design</span>
-                <span class="pill">Document Shredding & Hard Drive Disposal</span>
+                <span class="pill" data-service="shredding">Document Shredding & Hard Drive Disposal</span>
             </div>
         </div>
     </header>
@@ -238,9 +239,9 @@
                     <ul class="mb-0">
                         <li>Managed IT & troubleshooting</li>
                         <li>Network setup, Wi‑Fi, and security hardening</li>
-                        <li><strong>Business VoIP</strong> (Ooma partner)</li>
+                        <li data-service="managedVoip"><strong>Managed VoIP</strong> & Business VoIP (Ooma partner)</li>
                         <li>Printed media, branding, and video production</li>
-                        <li><strong>Document shredding</strong> & secure <strong>hard drive disposal</strong></li>
+                        <li data-service="shredding"><strong>Document shredding</strong> & secure <strong>hard drive disposal</strong></li>
                     </ul>
                 </div>
             </div>
@@ -274,7 +275,16 @@
         </div>
 
         <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="managedVoip">
+                <a class="jump-card" href="#voip">
+                    <div class="card service-card p-4">
+                        <h4 class="text-teal">Managed VoIP</h4>
+                        <p class="small mb-0">Business phone systems, call routing, onboarding, and reliable support.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-6 col-lg-3" data-service="managedIt">
                 <a class="jump-card" href="#managed-it">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Managed IT</h4>
@@ -283,7 +293,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="networking">
                 <a class="jump-card" href="#networking">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Networking (Biz & Home)</h4>
@@ -292,7 +302,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="ruralConnectivity">
                 <a class="jump-card" href="#rural-connectivity">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Rural Connectivity</h4>
@@ -301,16 +311,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
-                <a class="jump-card" href="#voip">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Business VoIP</h4>
-                        <p class="small mb-0">Ooma-based phone systems for professional calling and routing.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="pcRepair">
                 <a class="jump-card" href="#pc-repair">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">PC Repair & Setup</h4>
@@ -319,7 +320,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="videoProduction">
                 <a class="jump-card" href="#media">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Video Production</h4>
@@ -328,7 +329,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="brandDesign">
                 <a class="jump-card" href="#design">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Logo & Brand Design</h4>
@@ -337,7 +338,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="printedMedia">
                 <a class="jump-card" href="#print">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Printed Media</h4>
@@ -346,7 +347,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="homeAv">
                 <a class="jump-card" href="#home-av">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Home Theater & Audio</h4>
@@ -355,7 +356,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3" data-service="shredding">
                 <a class="jump-card" href="#shredding">
                     <div class="card service-card p-4">
                         <h4 class="text-teal">Document Shredding & Hard Drive Disposal</h4>
@@ -391,7 +392,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="managed-it" class="container my-5 py-4">
+    <section id="managed-it" class="container my-5 py-4" data-service="managedIt">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Managed IT</h2>
@@ -413,7 +414,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="networking" class="container my-5 py-4">
+    <section id="networking" class="container my-5 py-4" data-service="networking">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Networking (Business & Home)</h2>
@@ -435,7 +436,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="rural-connectivity" class="container my-5 py-4">
+    <section id="rural-connectivity" class="container my-5 py-4" data-service="ruralConnectivity">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Rural Connectivity (Starlink • Mesh • Wireless Bridges)</h2>
@@ -464,19 +465,24 @@
         <div class="divider"></div>
     </section>
 
-    <section id="voip" class="container my-5 py-4">
+    <section id="voip" class="container my-5 py-4" data-service="managedVoip">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Business VoIP (Ooma Partner)</h2>
+                <h2 class="fw-bold mb-2">Managed VoIP & Business VoIP (Ooma Partner)</h2>
                 <p class="opacity-75">
-                    Professional calling features for small businesses—set up the right way, with training so your team feels confident.
+                    Professional, fully managed calling features for small businesses—set up the right way, with training and ongoing support so your team stays confident.
                 </p>
                 <ul>
                     <li>New VoIP setup and migration planning</li>
                     <li>Call routing, ring groups, business hours, voicemail</li>
                     <li>Multi-user setup and basic onboarding</li>
+                    <li>Ongoing management, updates, and support as your team grows</li>
                     <li><strong>Note:</strong> VoIP offerings are for business customers</li>
                 </ul>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <a class="btn btn-teal" href="tel:14403201989">Call for Managed VoIP</a>
+                    <a class="btn btn-outline-light" href="sms:14403201989">Text Us</a>
+                </div>
                 <a class="back-top text-teal" href="#top">↑ Back to top</a>
             </div>
             <div class="col-lg-5">
@@ -486,7 +492,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="pc-repair" class="container my-5 py-4">
+    <section id="pc-repair" class="container my-5 py-4" data-service="pcRepair">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">PC Repair & In‑Home Setup</h2>
@@ -508,7 +514,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="home-av" class="container my-5 py-4">
+    <section id="home-av" class="container my-5 py-4" data-service="homeAv">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Home Theater & Audio System Setup</h2>
@@ -530,7 +536,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="media" class="container my-5 py-4">
+    <section id="media" class="container my-5 py-4" data-service="videoProduction">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Video Production</h2>
@@ -552,7 +558,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="design" class="container my-5 py-4">
+    <section id="design" class="container my-5 py-4" data-service="brandDesign">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Logo & Brand Design</h2>
@@ -573,7 +579,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="print" class="container my-5 py-4">
+    <section id="print" class="container my-5 py-4" data-service="printedMedia">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Printed Media (Flyers, Posters, Cards)</h2>
@@ -594,7 +600,7 @@
         <div class="divider"></div>
     </section>
 
-    <section id="shredding" class="container my-5 py-4">
+    <section id="shredding" class="container my-5 py-4" data-service="shredding">
         <div class="row g-4 align-items-center">
             <div class="col-lg-7">
                 <h2 class="fw-bold mb-2">Document Shredding & Hard Drive Disposal</h2>
@@ -659,16 +665,16 @@
 
                         <select name="service_interest" class="form-control mb-3" required>
                             <option value="" selected disabled>I need help with...</option>
-                            <option>Rural connectivity (Starlink / mesh / wireless bridge)</option>
-                            <option>Managed IT / troubleshooting</option>
-                            <option>Networking / Wi‑Fi</option>
-                            <option>Business VoIP (Ooma)</option>
-                            <option>PC repair / setup</option>
-                            <option>Home theater / audio</option>
-                            <option>Video production</option>
-                            <option>Logo / design</option>
-                            <option>Printed media</option>
-                            <option>Document shredding / hard drive disposal</option>
+                            <option data-service="ruralConnectivity">Rural connectivity (Starlink / mesh / wireless bridge)</option>
+                            <option data-service="managedIt">Managed IT / troubleshooting</option>
+                            <option data-service="networking">Networking / Wi‑Fi</option>
+                            <option data-service="managedVoip">Managed VoIP / Business VoIP (Ooma)</option>
+                            <option data-service="pcRepair">PC repair / setup</option>
+                            <option data-service="homeAv">Home theater / audio</option>
+                            <option data-service="videoProduction">Video production</option>
+                            <option data-service="brandDesign">Logo / design</option>
+                            <option data-service="printedMedia">Printed media</option>
+                            <option data-service="shredding">Document shredding / hard drive disposal</option>
                             <option>Not sure yet</option>
                         </select>
 
@@ -695,5 +701,28 @@
         </div>
     </footer>
 
+    <script>
+        const serviceFlags = {
+            managedVoip: true,
+            managedIt: true,
+            networking: true,
+            ruralConnectivity: true,
+            pcRepair: true,
+            homeAv: true,
+            videoProduction: true,
+            brandDesign: true,
+            printedMedia: true,
+            shredding: false
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-service]').forEach((element) => {
+                const serviceKey = element.getAttribute('data-service');
+                if (Object.prototype.hasOwnProperty.call(serviceFlags, serviceKey) && !serviceFlags[serviceKey]) {
+                    element.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
