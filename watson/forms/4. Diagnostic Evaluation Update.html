@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Evaluation Update</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../images/goldlogo.png">
+    <meta name="description" content="Diagnostic Evaluation Update form for Watson Community Health Center. Save, export, and print legally binding clinical documents securely and accessibly.">
+    <meta property="og:title" content="Diagnostic Evaluation Update - Watson Community Health Center">
+    <meta property="og:description" content="Comprehensive diagnostic evaluation update form with save/export/print features for clinical use.">
+    <meta property="og:image" content="../images/goldlogo.png">
+    <meta property="og:type" content="website">
+    
+    <script>
+        // ==================== PREFERENCE LOADING (INLINE - RUNS BEFORE PAGE RENDERS) ====================
+        (function() {
+            try {
+                const prefs = JSON.parse(localStorage.getItem('wchc_user_preferences') || '{}');
+                
+                // Apply high contrast mode immediately
+                if (prefs.highContrast === true) {
+                    document.documentElement.classList.add('high-contrast-mode');
+                }
+                
+                // Apply font size (with 'px' units)
+                if (prefs.fontSize) {
+                    document.documentElement.style.fontSize = prefs.fontSize + 'px';
+                }
+                
+                // Apply line height
+                if (prefs.lineHeight) {
+                    document.documentElement.style.lineHeight = prefs.lineHeight;
+                }
+                
+                // Apply font family
+                if (prefs.fontFamily) {
+                    document.documentElement.style.fontFamily = prefs.fontFamily;
+                }
+            } catch (e) {
+                console.error('Could not load preferences:', e);
+            }
+        })();
+    </script>
+    
+    <style>
+        /* REMOVED font-family from body rule so preferences can override */
+        body { background-color: #f3f4f6; }
+        .signature-line { height: 2.5rem; border-bottom: 1px solid #4b5563; margin-top: 0.25rem; }
+        .form-container { max-width: 960px; margin: 2rem auto; padding: 2rem; background-color: #ffffff; border-radius: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .form-field-group { border-radius: 0.75rem; padding: 1.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; }
+        .form-label { font-weight: 600; color: #111827; margin-bottom: 0.5rem; display: block; }
+        .form-input, .form-textarea, .form-select { display: block; width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: #ffffff; transition: all 0.2s; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.5); }
+        .form-input:read-only { background-color: #f3f4f6; cursor: not-allowed; }
+        .form-button { display: inline-block; padding: 0.75rem 1.5rem; font-weight: 600; color: #ffffff; border-radius: 0.75rem; transition: all 0.2s; cursor: pointer; border: none; }
+        .form-button:hover, .form-button:focus { opacity: 0.9; outline: 2px solid #d3af37; outline-offset: 2px;}
+        .nav-link { display: block; padding: 0.5rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: #4b5563; background-color: #f3f4f6; transition: background-color 0.2s; }
+        .nav-link:hover, .nav-link:focus { background-color: #e5e7eb; outline: 2px solid #d3af37; outline-offset: 2px;}
+        .nav-container { position: fixed; top: 2rem; left: 2rem; width: 250px; z-index: 10; display: none; max-height: calc(100vh - 4rem); overflow-y: auto; padding-right: 8px;}
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 1.5rem; border-radius: 1rem; max-width: 600px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; }
+        .modal-body { overflow-y: auto; }
+        .modal-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 0.5rem; cursor: pointer; transition: background-color 0.2s; }
+        .modal-item:hover { background-color: #f3f4f6; }
+        .delete-btn { background-color: #ef4444; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; cursor: pointer; }
+        .delete-btn:hover { background-color: #dc2626; }
+        .asam-grid { display: grid; gap: 0.5rem; align-items: center; grid-template-columns: minmax(200px, 2fr) repeat(4, 1fr); }
+        .asam-grid > div { padding: 0.5rem; text-align: center; }
+        .asam-grid > div:first-child { text-align: left; font-weight: 500; }
+        .asam-header { font-weight: 600; font-size: 0.875rem; background-color: #f3f4f6; border-radius: 0.5rem; }
+        .sr-only { position: absolute!important; width: 1px!important; height: 1px!important; padding: 0!important; margin: -1px!important; overflow: hidden!important; clip: rect(0,0,0,0)!important; white-space: nowrap!important; border: 0!important; }
+        .focus\:not-sr-only:focus { position: static!important; width: auto!important; height: auto!important; margin: 0!important; overflow: visible!important; clip: auto!important; white-space: normal!important; }
+        @media print {
+          body { background-color: #fff !important; }
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          .form-container { box-shadow: none !important; margin: 0 !important; padding: 0.5in !important; border-radius: 0; }
+          .page-break { page-break-before: always; }
+        }
+        @media (min-width: 1024px) { .nav-container { display: block; } .form-container { margin-left: 280px; } }
+      /* ==================== HIGH CONTRAST MODE ==================== */
+.high-contrast-mode {
+    background-color: #000 !important;
+    color: #FFFF00 !important;
+}
+
+.high-contrast-mode body {
+    background-color: #000 !important;
+    color: #FFFF00 !important;
+}
+
+.high-contrast-mode .form-container {
+    background-color: #000 !important;
+    color: #FFFF00 !important;
+    border: 2px solid #FFFF00 !important;
+}
+
+.high-contrast-mode .form-field-group {
+    background-color: #000 !important;
+    border: 2px solid #FFFF00 !important;
+}
+
+.high-contrast-mode .form-label,
+.high-contrast-mode h1,
+.high-contrast-mode h2,
+.high-contrast-mode h3,
+.high-contrast-mode h4,
+.high-contrast-mode label,
+.high-contrast-mode p,
+.high-contrast-mode span,
+.high-contrast-mode strong,
+.high-contrast-mode div,
+.high-contrast-mode small {
+    color: #FFFF00 !important;
+}
+
+.high-contrast-mode .form-input,
+.high-contrast-mode .form-textarea,
+.high-contrast-mode .form-select {
+    background-color: #000 !important;
+    color: #FFFF00 !important;
+    border: 2px solid #FFFF00 !important;
+}
+
+.high-contrast-mode .form-input::placeholder,
+.high-contrast-mode .form-textarea::placeholder {
+    color: #AAAA00 !important;
+    opacity: 1;
+}
+
+.high-contrast-mode .form-button {
+    background-color: #FFFF00 !important;
+    color: #000 !important;
+    border: 2px solid #FFFF00 !important;
+}
+
+.high-contrast-mode .nav-link {
+    background-color: #000 !important;
+    color: #FFFF00 !important;
+    border: 1px solid #FFFF00 !important;
+}
+
+.high-contrast-mode .modal-content {
+    background-color: #000 !important;
+    color: #FFFF00 !important;
+    border: 2px solid #FFFF00 !important;
+}
+
+.high-contrast-mode .modal-item {
+    background-color: #000 !important;
+    border: 1px solid #FFFF00 !important;
+    color: #FFFF00 !important;
+}
+
+.high-contrast-mode .delete-btn {
+    background-color: #FF0000 !important;
+    color: #FFFF00 !important;
+}
+
+/* Fix for substance use section - CRITICAL for your screenshots */
+.high-contrast-mode .p-4 span,
+.high-contrast-mode .border span,
+.high-contrast-mode .rounded-lg span {
+    color: #FFFF00 !important;
+}
+
+.high-contrast-mode .text-sm,
+.high-contrast-mode .text-xs,
+.high-contrast-mode .text-gray-600,
+.high-contrast-mode .text-gray-500,
+.high-contrast-mode .text-gray-800,
+.high-contrast-mode .text-gray-700,
+.high-contrast-mode .text-gray-900 {
+    color: #FFFF00 !important;
+}
+
+/* Fix for white/light colored boxes - CRITICAL */
+.high-contrast-mode .bg-white,
+.high-contrast-mode .p-4.border,
+.high-contrast-mode .rounded-lg.bg-white {
+    background-color: #000 !important;
+    border: 1px solid #FFFF00 !important;
+}
+
+/* Fix radio/checkbox labels */
+.high-contrast-mode input[type="radio"] + span,
+.high-contrast-mode input[type="checkbox"] + span {
+    color: #FFFF00 !important;
+}
+
+/* Fix ASAM section */
+.high-contrast-mode .asam-header,
+.high-contrast-mode .asam-grid > div {
+    background-color: #000 !important;
+    color: #FFFF00 !important;
+}
+
+/* Make checkboxes/radios visible */
+.high-contrast-mode input[type="checkbox"],
+.high-contrast-mode input[type="radio"] {
+    border: 2px solid #FFFF00 !important;
+    background-color: #000 !important;
+    accent-color: #FFFF00 !important;
+}
+
+/* Fix date inputs color scheme */
+.high-contrast-mode input[type="date"] {
+    color-scheme: dark;
+}
+
+/* Fix "For Office Use Only" section */
+.high-contrast-mode .bg-gray-200,
+.high-contrast-mode .bg-gray-100 {
+    background-color: #000 !important;
+}
+
+/* Fix grid layouts */
+.high-contrast-mode .grid div {
+    color: #FFFF00 !important;
+}
+
+/* Fix flex containers */
+.high-contrast-mode .flex span,
+.high-contrast-mode .flex-grow span {
+    color: #FFFF00 !important;
+}
+
+/* Fix buttons in modal */
+.high-contrast-mode button {
+    color: #000 !important;
+    background-color: #FFFF00 !important;
+}
+
+.high-contrast-mode .delete-btn {
+    background-color: #FF0000 !important;
+    color: #FFFF00 !important;
+}
+    </style>
+    <script>window.WATSON_AUTH_CONFIG={mode:'protect',loginPath:'../index.html'};</script>
+    <script src="../js/auth-gate.js"></script>
+</head>
+<body>
+    <!-- Accessibility: skip to content link for screen readers -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-yellow-200 p-2 rounded z-50">Skip to main content</a>
+    
+    <!-- Sidebar Navigation with ARIA -->
+    <div class="nav-container" role="navigation" aria-label="Form Section Navigation">
+        <a href="../app.html" class="nav-link font-bold text-blue-600 hover:bg-blue-100 mb-4" tabindex="0">← Forms Home</a>
+        <h3 class="font-bold text-gray-900 mb-2">Form Sections</h3>
+        <nav id="form-nav" aria-label="Section links"></nav>
+    </div>
+
+    <div id="main-content" class="form-container" role="main" tabindex="-1">
+        <h1 class="text-3xl font-bold text-center text-gray-900 mb-2">Watson Community Health Centre</h1>
+        <h2 class="text-xl font-medium text-center text-gray-600 mb-8">Diagnostic Evaluation Update and SUD Assessment and ASAM Level of Care</h2>
+        
+        <form id="deuForm" onsubmit="return false;" aria-label="Diagnostic Evaluation Update Form">
+            <input type="hidden" id="formId" value="deu-v1">
+                        <!-- Section 1: Demographic Information -->
+            <div id="section-demographics" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Demographic Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" id="date" name="date" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="recordNumber" class="form-label">Record # (last four digits of SS#)</label>
+                            <input type="text" id="recordNumber" name="recordNumber" class="form-input" placeholder="8899" pattern="\d{4}" maxlength="4" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="clientName" class="form-label">Client Name</label>
+                            <input type="text" id="clientName" name="clientName" class="form-input" placeholder="Last, First, MI" required>
+                        </div>
+                        <div>
+                            <label for="dob" class="form-label">DOB</label>
+                            <input type="date" id="dob" name="dob" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" id="age" name="age" class="form-input" readonly>
+                        </div>
+                        <div>
+                            <label for="raceEthnicity" class="form-label">Race or Ethnicity</label>
+                            <select id="raceEthnicity" name="raceEthnicity" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+                                <option value="Asian">Asian</option>
+                                <option value="Black or African American">Black or African American</option>
+                                <option value="Hispanic or Latino">Hispanic or Latino</option>
+                                <option value="Native Hawaiian or Other Pacific Islander">Native Hawaiian or Other Pacific Islander</option>
+                                <option value="White">White</option>
+                                <option value="Two or More Races">Two or More Races</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="gender" class="form-label">Gender (per insurance carrier)</label>
+                            <select id="gender" name="gender" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Non-binary">Non-binary</option>
+                                <option value="Transgender Male">Transgender Male</option>
+                                <option value="Transgender Female">Transgender Female</option>
+                                <option value="Gender non-conforming">Gender non-conforming</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="sexualOrientation" class="form-label">Sexual/Romantic Orientation</label>
+                            <input type="text" id="sexualOrientation" name="sexualOrientation" class="form-input">
+                        </div>
+                        <div>
+                            <label for="preferredPronoun" class="form-label">Preferred pronoun</label>
+                            <select id="preferredPronoun" name="preferredPronoun" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="He/Him/His">He/Him/His</option>
+                                <option value="She/Her/Hers">She/Her/Hers</option>
+                                <option value="They/Them/Theirs">They/Them/Theirs</option>
+                                <option value="Ze/Zir/Zirs">Ze/Zir/Zirs</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" id="address" name="address" class="form-input" placeholder="Street, City, State, Zip">
+                        </div>
+                        <div>
+    <label for="phoneNumber" class="form-label">Phone</label>
+    <input type="tel" id="phoneNumber" name="phoneNumber" class="form-input" placeholder="(555) 555-5555">
+</div>
+<div>
+    <label for="clientEmail" class="form-label">Client Email</label>
+    <input type="email" id="clientEmail" name="clientEmail" class="form-input" placeholder="client@example.com">
+</div>
+<div>
+    <label for="demographics_additional_info" class="form-label">Additional Information</label>
+    <input type="text" id="demographics_additional_info" name="demographics_additional_info" class="form-input">
+</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Diagnostic Evaluation Update -->
+            <div id="section-update-reason" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Diagnostic Evaluation Update</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="update_reason" class="form-label">Reason for update</label>
+                            <select id="update_reason" name="update_reason" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="Annual Review">Annual Review</option>
+                                <option value="Significant Change in Status">Significant Change in Status</option>
+                                <option value="Hospitalization">Post-Hospitalization</option>
+                                <option value="Client Request">Client Request</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="last_de_date" class="form-label">Date of last DE/DA</label>
+                            <input type="date" id="last_de_date" name="last_de_date" class="form-input">
+                        </div>
+                        <div>
+                            <label for="de_update_additional_info" class="form-label">Additional Information</label>
+                            <textarea id="de_update_additional_info" name="de_update_additional_info" class="form-textarea h-24"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Presenting Problem -->
+            <div id="section-presenting-problem" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Presenting Problem</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="presentingProblem" class="form-label">What led you to come in here today? What do you need help with?</label>
+                            <textarea id="presentingProblem" name="presentingProblem" class="form-textarea h-32"></textarea>
+                        </div>
+                        <div>
+                            <label for="treatmentHope" class="form-label">What does client hope to get from treatment?</label>
+                            <textarea id="treatmentHope" name="treatmentHope" class="form-textarea h-24"></textarea>
+                        </div>
+                        <div>
+                            <label for="severity" class="form-label">How severe on a scale of 1-10? <span id="severityValue" class="font-bold ml-2">5</span></label>
+                            <input type="range" id="severity" name="severity" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <div>
+                            <label for="presenting_problem_additional_info" class="form-label">Additional Information</label>
+                            <textarea id="presenting_problem_additional_info" name="presenting_problem_additional_info" class="form-textarea h-24"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Previous DSM 5 Diagnosis -->
+            <div id="section-previous-diagnosis" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Previous DSM 5 Diagnosis</h3>
+                    <div class="grid grid-cols-3 gap-4 font-semibold text-sm">
+                        <div>Diagnosis</div>
+                        <div>Code</div>
+                        <div>Date Identified</div>
+                    </div>
+                    <div id="previous-diagnosis-grid" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Section 5: Updated Psychiatric History -->
+            <div id="section-psychiatric-history" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Updated Psychiatric History</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="psych_dx_words" class="form-label">Diagnosis (in client's words, their explanations)</label>
+                            <textarea id="psych_dx_words" name="psych_dx_words" class="form-textarea h-24"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Most recent hospitalization</label>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label><input type="radio" name="most_recent_hosp" value="Last month"> Last month</label>
+                                <label><input type="radio" name="most_recent_hosp" value="6 months"> 6 months</label>
+                                <label><input type="radio" name="most_recent_hosp" value="Past year"> Past year</label>
+                                <label><input type="radio" name="most_recent_hosp" value="2 years"> 2 years</label>
+                                <label><input type="radio" name="most_recent_hosp" value="2 years plus"> 2 years plus</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="hosp_where" class="form-label">Where?</label>
+                            <input type="text" id="hosp_where" name="hosp_where" class="form-input">
+                        </div>
+                        <div>
+                            <label class="form-label">Length of stay</label>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label><input type="radio" name="hosp_length" value="1-2 weeks"> 1-2 weeks</label>
+                                <label><input type="radio" name="hosp_length" value="2-4 weeks"> 2-4 weeks</label>
+                                <label><input type="radio" name="hosp_length" value="Month+"> Month+</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="hosp_reason" class="form-label">What was going on?</label>
+                            <textarea id="hosp_reason" name="hosp_reason" class="form-textarea h-24"></textarea>
+                        </div>
+                        <div>
+                            <label for="psych_history_additional_info" class="form-label">Additional Information</label>
+                            <textarea id="psych_history_additional_info" name="psych_history_additional_info" class="form-textarea h-24"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Are you currently receiving Psychiatric or Community Mental Health treatment outside of agency?</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="outside_treatment" value="No" checked onchange="toggleDetails(this, 'outside_treatment_details', false)"> No</label>
+                                <label><input type="radio" name="outside_treatment" value="Yes" onchange="toggleDetails(this, 'outside_treatment_details', true)"> Yes (complete ROI)</label>
+                            </div>
+                        </div>
+                        <div id="outside_treatment_details" class="hidden space-y-4">
+                            <div>
+                                <label for="outside_provider_where" class="form-label">Where?</label>
+                                <input type="text" id="outside_provider_where" name="outside_provider_where" class="form-input">
+                            </div>
+                            <div>
+                                <label for="outside_provider_name" class="form-label">Name of provider</label>
+                                <input type="text" id="outside_provider_name" name="outside_provider_name" class="form-input">
+                            </div>
+                            <div>
+                                <label for="outside_provider_additional_info" class="form-label">Additional Information</label>
+                                <textarea id="outside_provider_additional_info" name="outside_provider_additional_info" class="form-textarea h-24"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+     <!-- Section 6: Substance Use History -->
+<div id="section-substance-use" class="mb-6">
+    <div class="form-field-group">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Substance Use History</h3>
+        <p class="text-sm text-gray-600 mb-4">Severity Levels = Presence of the # of DSM criteria symptoms Mild = 2–3, Moderate = 4-5, Severe = 6 or more symptoms</p>
+        <div id="substance-use-container"></div>
+    </div>
+</div>
+
+            <!-- Section 7: CAGE & Treatment History -->
+            <div id="section-cage-treatment" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">CAGE Questions & Treatment History</h3>
+                    <h4 class="text-md font-semibold text-gray-800 mb-4">CAGE Questions</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <p>Have you ever felt you should cut down on your drinking/drug use?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_cutdown" value="No"> No</label>
+                                <label><input type="radio" name="cage_cutdown" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p>Have people annoyed you by criticizing your drinking/drug use?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_annoyed" value="No"> No</label>
+                                <label><input type="radio" name="cage_annoyed" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p>Have you ever felt bad/guilty about your drug use?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_guilty" value="No"> No</label>
+                                <label><input type="radio" name="cage_guilty" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p>Have you ever had to drink/used drugs first thing in the morning to steady your nerves or help you to feel better?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_eyeopener" value="No"> No</label>
+                                <label><input type="radio" name="cage_eyeopener" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-6 border-gray-300">
+                    <h4 class="text-md font-semibold text-gray-800 mb-4">Treatment History</h4>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-5 gap-4 items-center">
+                            <label>Treatment History</label>
+                            <label></label>
+                            <label>Where</label>
+                            <label>When</label>
+                            <label>How Long</label>
+                        </div>
+                        <div class="grid grid-cols-5 gap-4 items-center">
+                            <label>Outpatient</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_outpatient" value="No"> No</label>
+                                <label><input type="radio" name="tx_outpatient" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_outpatient_where" class="form-input">
+                            <input type="text" name="tx_outpatient_when" class="form-input">
+                            <input type="text" name="tx_outpatient_howlong" class="form-input">
+                        </div>
+                        <div class="grid grid-cols-5 gap-4 items-center">
+                            <label>Inpatient</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_inpatient" value="No"> No</label>
+                                <label><input type="radio" name="tx_inpatient" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_inpatient_where" class="form-input">
+                            <input type="text" name="tx_inpatient_when" class="form-input">
+                            <input type="text" name="tx_inpatient_howlong" class="form-input">
+                        </div>
+                        <div class="grid grid-cols-5 gap-4 items-center">
+                            <label>Detox unit</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_detox" value="No"> No</label>
+                                <label><input type="radio" name="tx_detox" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_detox_where" class="form-input">
+                            <input type="text" name="tx_detox_when" class="form-input">
+                            <input type="text" name="tx_detox_howlong" class="form-input">
+                        </div>
+                        <div class="grid grid-cols-5 gap-4 items-center">
+                            <label>AA/NA/CA, etc.</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_selfhelp" value="No"> No</label>
+                                <label><input type="radio" name="tx_selfhelp" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_selfhelp_where" class="form-input">
+                            <input type="text" name="tx_selfhelp_when" class="form-input">
+                            <input type="text" name="tx_selfhelp_howlong" class="form-input">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="form-label">Do you have a sponsor?</label>
+                        <div class="flex items-center space-x-4">
+                            <label><input type="radio" name="sponsor" value="No" checked> No</label>
+                            <label><input type="radio" name="sponsor" value="Yes"> Yes, Name/Phone:</label>
+                            <input type="text" name="sponsor_name_phone" class="form-input">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="tx_additional_info" class="form-label">Additional information</label>
+                        <textarea id="tx_additional_info" name="tx_additional_info" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="client_insight" class="form-label">Client insight to SU issues: (how do you feel about your substance use? – get quote)</label>
+                        <textarea id="client_insight" name="client_insight" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label class="form-label">Clinical focus based on observation of client's insight level: (choose one):</label>
+                        <div class="flex flex-col space-y-2">
+                            <label><input type="radio" name="clinical_focus" value="No history"> No history of drug or alcohol use</label>
+                            <label><input type="radio" name="clinical_focus" value="Engagement"> Engagement (Client unaware of any problem)</label>
+                            <label><input type="radio" name="clinical_focus" value="Persuasion"> Persuasion (Client thinks may have problem)</label>
+                            <label><input type="radio" name="clinical_focus" value="Active treatment"> Active treatment (Client recognizes has a problem)</label>
+                            <label><input type="radio" name="clinical_focus" value="Relapse prevention"> Relapse prevention (Client focuses on sober strategies)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 8: Updated Psychosocial Functioning -->
+            <div id="section-psychosocial" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Updated Psychosocial Functioning</h3>
+                    <p class="text-sm text-gray-600 mb-4">Since the completion of the last DE, has there been a change in:</p>
+                    <div id="psychosocial-functioning-container" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- Section 9: Updated Psychiatric Symptoms Checklist -->
+            <div id="section-psychiatric-symptoms" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Updated Psychiatric Symptoms Checklist</h3>
+                    <p class="text-sm text-gray-600 mb-4">Since the completion of the last DE, has there been a change in:</p>
+                    <div id="psychiatric-symptoms-container" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- Section 10: Mental Status Exam -->
+            <div id="section-mse" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Mental Status Exam</h3>
+                    <div id="mse-container"></div>
+                </div>
+            </div>
+
+            <!-- Section 11: Narrative Summary -->
+            <div id="section-narrative" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Narrative Summary of Updated Information</h3>
+                    <label for="narrative_summary" class="form-label">Narrative Summary of all of the above:</label>
+                    <textarea id="narrative_summary" name="narrative_summary" class="form-textarea h-64"></textarea>
+                </div>
+            </div>
+
+            <!-- Section 12: Diagnostic Impression -->
+            <div id="section-diagnostic-impression" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Diagnostic Impression</h3>
+                    <label for="diagnostic_impression" class="form-label">Diagnostic Impression (DSM 5 diagnosis and ICD 10 Code):</label>
+                    <textarea id="diagnostic_impression" name="diagnostic_impression" class="form-textarea h-32"></textarea>
+                </div>
+            </div>
+
+            <!-- Section 13: Recommended Services -->
+            <div id="section-recommended-services" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recommended Services</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-start"><input type="checkbox" name="recommended_services[]" value="Diagnostic Evaluation"> <span class="ml-3"><span class="font-semibold">Diagnostic Evaluation</span> <span class="text-gray-600 text-sm">(Includes Initial Diagnostic Evaluation and Diagnostic Update)</span></span></label>
+                        <label class="flex items-start"><input type="checkbox" name="recommended_services[]" value="IHBT"> <span class="ml-3"><span class="font-semibold">IHBT</span> <span class="text-gray-600 text-sm">(Intensive Home-Based Treatment)</span></span></label>
+                        <label class="flex items-start"><input type="checkbox" name="recommended_services[]" value="ACT"> <span class="ml-3"><span class="font-semibold">ACT</span> <span class="text-gray-600 text-sm">(Assertive Community Treatment)</span></span></label>
+                        <label class="flex items-start"><input type="checkbox" name="recommended_services[]" value="Psychoeducation Support Services"> <span class="ml-3"><span class="font-semibold">Psychoeducation Support Services</span> <span class="text-gray-600 text-sm">(Includes Psychosocial Service Rehabilitation, Therapeutic Behavioral Services - individual, families, and crisis)</span></span></label>
+                        <label class="flex items-start"><input type="checkbox" name="recommended_services[]" value="Psychotherapy"> <span class="ml-3"><span class="font-semibold">Psychotherapy</span> <span class="text-gray-600 text-sm">(Includes Psychotherapy for individuals, families, interactive complexity, and crisis)</span></span></label>
+                        <label class="flex items-start"><input type="checkbox" name="recommended_services[]" value="Psychopharmacological Services"> <span class="ml-3"><span class="font-semibold">Psychopharmacological Services</span> <span class="text-gray-600 text-sm">(Includes Psychiatric Evaluation, Psychopharmacological Management Services)</span></span></label>
+                        <label class="flex items-start"><input type="checkbox" name="recommended_services[]" value="Substance Use Disorder Services"> <span class="ml-3"><span class="font-semibold">Substance Use Disorder Services</span> <span class="text-gray-600 text-sm">(Includes SUD Assessment; SUD Psychotherapy for individuals, groups, and families)</span></span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 14: ASAM -->
+            <div id="section-asam" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">ASAM Level of Care</h3>
+                    <div id="asam-grid-container" class="overflow-x-auto">
+                        <div class="asam-grid">
+                            <div class="asam-header">ASAM Level</div>
+                            <div class="asam-header">Level 1</div>
+                            <div class="asam-header">Level 2.1</div>
+                            <div class="asam-header">Level 3.1</div>
+                            <div class="asam-header">Level 3.5</div>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label class="form-label">ASAM Recommended Level of Care</label>
+                        <div class="flex flex-wrap gap-x-6 gap-y-2">
+                            <label><input type="radio" name="asam_recommendation" value="1"> Level 1 Outpatient</label>
+                            <label><input type="radio" name="asam_recommendation" value="2.1"> Level 2.1 Intensive Outpatient</label>
+                            <label><input type="radio" name="asam_recommendation" value="3.1"> Level 3.1 Intensive Outpatient w/Residential Support</label>
+                            <label><input type="radio" name="asam_recommendation" value="3.5"> Level 3.5 Non-Medical Community Residential</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 15: Strengths/Assets/Resources -->
+            <div id="section-strengths" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Strengths/Assets/Resources</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Strong support system"> <span class="ml-2 text-sm">Strong support system</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Self-confident"> <span class="ml-2 text-sm">Self-confident</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Decisive"> <span class="ml-2 text-sm">Decisive</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Flexible"> <span class="ml-2 text-sm">Flexible</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Survivor"> <span class="ml-2 text-sm">Survivor</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Resourceful"> <span class="ml-2 text-sm">Resourceful</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Team player"> <span class="ml-2 text-sm">Team player</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Independent"> <span class="ml-2 text-sm">Independent</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Respects self"> <span class="ml-2 text-sm">Respects self</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Good social skills"> <span class="ml-2 text-sm">Good social skills</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Insightful"> <span class="ml-2 text-sm">Insightful</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Committed"> <span class="ml-2 text-sm">Committed</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Compassionate"> <span class="ml-2 text-sm">Compassionate</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Transparent"> <span class="ml-2 text-sm">Transparent</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Educated"> <span class="ml-2 text-sm">Educated</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Intelligent"> <span class="ml-2 text-sm">Intelligent</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Logical"> <span class="ml-2 text-sm">Logical</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Caring"> <span class="ml-2 text-sm">Caring</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Sense of humor"> <span class="ml-2 text-sm">Sense of humor</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Honest"> <span class="ml-2 text-sm">Honest</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Resilient"> <span class="ml-2 text-sm">Resilient</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Organized"> <span class="ml-2 text-sm">Organized</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Internal strength"> <span class="ml-2 text-sm">Internal strength</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Curious"> <span class="ml-2 text-sm">Curious</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Goal-oriented"> <span class="ml-2 text-sm">Goal-oriented</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Strong-willed"> <span class="ml-2 text-sm">Strong-willed</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Can multi-task"> <span class="ml-2 text-sm">Can multi-task</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Diplomatic"> <span class="ml-2 text-sm">Diplomatic</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Employable"> <span class="ml-2 text-sm">Employable</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Emotional control"> <span class="ml-2 text-sm">Emotional control</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Self-sufficient"> <span class="ml-2 text-sm">Self-sufficient</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Enjoys learning new things"> <span class="ml-2 text-sm">Enjoys learning new things</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Creative"> <span class="ml-2 text-sm">Creative</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Disciplined"> <span class="ml-2 text-sm">Disciplined</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="strengths[]" value="Expressive"> <span class="ml-2 text-sm">Expressive</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 16: Skills Deficits -->
+            <div id="section-skills-deficits" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Skills Deficits/Skills Training/Community Support Needs</h3>
+                    <p class="text-sm text-gray-600 mb-6">(check all applicable skills deficits, skills training, and/or community support needs identified)</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="p-4 border rounded-lg bg-white">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="skills_deficits[]" value="Treatment Planning">
+                                <span class="ml-3 text-sm"><span class="font-semibold">Treatment planning.</span> Participating in and utilizing strengths-based treatment/planning...</span>
+                            </label>
+                        </div>
+                        <div class="p-4 border rounded-lg bg-white">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="skills_deficits[]" value="Identification of strategies">
+                                <span class="ml-3 text-sm"><span class="font-semibold">Identification of strategies or treatment options.</span> Assisting the individual and family members...</span>
+                            </label>
+                        </div>
+                        <div class="p-4 border rounded-lg bg-white">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="skills_deficits[]" value="Crisis prevention">
+                                <span class="ml-3 text-sm"><span class="font-semibold">Crisis prevention and amelioration.</span> Assisting the individual with effectively responding to or avoiding identified precursors...</span>
+                            </label>
+                        </div>
+                        <div class="p-4 border rounded-lg bg-white">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="skills_deficits[]" value="Restoration of social skills">
+                                <span class="ml-3 text-sm"><span class="font-semibold">Restoration of social skills.</span> Rehabilitation and support with the restoration of social and interpersonal skills...</span>
+                            </label>
+                        </div>
+                        <div class="p-4 border rounded-lg bg-white">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="skills_deficits[]" value="Restoration of daily functioning">
+                                <span class="ml-3 text-sm"><span class="font-semibold">Restoration of daily functioning.</span> Assisting the individual to restore daily functioning...</span>
+                            </label>
+                        </div>
+                        <div class="p-4 border rounded-lg bg-white">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="skills_deficits[]" value="Developing and providing solution focused interventions">
+                                <span class="ml-3 text-sm"><span class="font-semibold">Developing and providing solution focused interventions</span> and emotional and behavioral management...</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="skills_evidence" class="form-label">As Evidenced By (describe the specific skill deficits or areas where improvement is needed):</label>
+                        <textarea id="skills_evidence" name="skills_evidence" class="form-textarea h-32"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 17: Signatures -->
+            <div id="section-signatures" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Evaluation Completed By</h3>
+                    <div class="space-y-6 mt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div><label class="form-label text-sm">Clinician Signature</label><div class="signature-line"></div></div>
+                            <div><label for="clinicianPrintedName" class="form-label text-sm">Clinician Printed Name (with credentials)</label><input type="text" id="clinicianPrintedName" name="clinicianPrintedName" class="form-input"></div>
+                            <div><label for="clinicianDate" class="form-label text-sm">Date</label><input type="date" id="clinicianDate" name="clinicianDate" class="form-input"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div><label class="form-label text-sm">Supervisor Signature</label><div class="signature-line"></div></div>
+                            <div><label for="supervisorPrintedName" class="form-label text-sm">Supervisor Printed Name (if applicable, with credentials)</label><input type="text" id="supervisorPrintedName" name="supervisorPrintedName" class="form-input"></div>
+                            <div><label for="supervisorDate" class="form-label text-sm">Date</label><input type="date" id="supervisorDate" name="supervisorDate" class="form-input"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Office Use Only -->
+            <div class="form-field-group bg-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">For Office Use Only</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div><label for="footer_client_name" class="form-label">Clients Name:</label><input type="text" id="footer_client_name" name="footer_client_name" class="form-input bg-gray-100" readonly></div>
+                    <div><label for="footer_dob" class="form-label">DOB:</label><input type="date" id="footer_dob" name="footer_dob" class="form-input bg-gray-100" readonly></div>
+                    <div><label for="footer_mrn" class="form-label">MRN:</label><input type="text" id="footer_mrn" name="footer_mrn" class="form-input bg-gray-100" readonly></div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Modal for loading saved forms -->
+        <div id="loadModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Load Saved DEU Data">
+            <div class="modal-content">
+                <h3 class="text-lg font-bold mb-4">Load Saved DEU Data</h3>
+                <input type="search" id="modalSearch" placeholder="Search by client name..." onkeyup="filterModalItems()" class="w-full p-2 mb-4 border border-gray-300 rounded-md" aria-label="Search saved clients">
+                <div id="savedFormsList" class="modal-body"></div>
+                <div class="mt-4 text-right">
+                    <button onclick="closeModal()" class="form-button bg-gray-500 hover:bg-gray-600">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container mt-8 flex flex-col items-center gap-4 no-print" aria-label="Form Actions">
+            <div class="flex flex-wrap justify-center gap-4">
+                <button type="button" onclick="displaySavedForms()" class="form-button bg-yellow-500 hover:bg-yellow-600 text-black">Load Saved Data</button>
+                <button type="button" onclick="saveToLocalStorage()" class="form-button bg-green-600 hover:bg-green-700">Save Progress</button>
+                <button type="button" onclick="printForm()" class="form-button bg-blue-600 hover:bg-blue-700">Print Summary</button>
+            </div>
+            <div class="flex flex-wrap justify-center gap-4">
+                <input type="file" id="importFile" onchange="importData(event)" accept=".json" style="display: none;">
+                <button type="button" onclick="document.getElementById('importFile').click()" class="form-button bg-gray-600 hover:bg-gray-700">Import from File</button>
+                <button type="button" onclick="exportData()" class="form-button bg-gray-600 hover:bg-gray-700">Export to File</button>
+            </div>
+            <div>
+                <button type="button" onclick="clearForm()" class="form-button bg-red-600 hover:bg-red-700">Clear Form</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    // --- CONFIGURATION ---
+    const FORM_ID = 'deu-v1';
+    const FORM_NAME_PRINT = 'Diagnostic Evaluation Update';
+    const FORM_ELEMENT_ID = 'deuForm';
+
+    // --- PRINT FUNCTION ---
+    function printForm() {
+        const data = getFormData();
+        const getValue = (key, fallback = '') => data[key] ? (String(data[key]).trim()) : fallback;
+        const getChecked = key => Array.isArray(data[key]) ? data[key] : (data[key] ? [data[key]] : []);
+        const formatDate = (d) => { if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return ''; const [y,m,dy] = d.split('-'); return `${m}/${dy}/${y}`; };
+        const createField = (label, value) => `<div class="field"><span class="label">${label}</span><div class="value">${value || '&nbsp;'}</div></div>`;
+        const createFieldLong = (label, value) => `<div class="field full-width"><span class="label">${label}</span><div class="value value-long">${value || '&nbsp;'}</div></div>`;
+
+        let mainContent = '';
+
+        // --- Section Builder Functions ---
+        const buildDemographics = () => {
+            let html = `<div class="grid-3col">
+                ${createField('Client Name', getValue('clientName'))} ${createField('Date of Birth', formatDate(getValue('dob')))} ${createField('Age', getValue('age'))}
+                ${createField('Date of Assessment', formatDate(getValue('date')))} ${createField('Record #', getValue('recordNumber'))} ${createField('Phone', getValue('phoneNumber'))}
+            </div>`;
+            html += `<div class="sub-section grid-2col">${createField('Race/Ethnicity', getValue('raceEthnicity'))}${createField('Gender', getValue('gender'))}${createField('Sexual Orientation', getValue('sexualOrientation'))}${createField('Preferred Pronoun', getValue('preferredPronoun'))}</div>`;
+            html += `<div class="sub-section">${createField('Address', getValue('address'))}${createFieldLong('Additional Information', getValue('demographics_additional_info'))}</div>`;
+            return html;
+        };
+
+       const buildSubstanceUse = () => {
+    const substances = [
+        {name:'Alcohol', key:'alcohol'},
+        {name:'Amphetamines', key:'amphetamines'},
+        {name:'Caffeine', key:'caffeine'},
+        {name:'Cannabis', key:'cannabis'},
+        {name:'Cocaine', key:'cocaine'},
+        {name:'Hallucinogens', key:'hallucinogens'},
+        {name:'Inhalants', key:'inhalants'},
+        {name:'Nicotine', key:'nicotine'},
+        {name:'Opioids', key:'opioids'},
+        {name:'Sedatives', key:'sedatives'},
+        {name:'Stimulants', key:'stimulants'},
+        {name:'Other', key:'other'}
+    ];
+    
+    let html = '<table class="data-table"><thead><tr>';
+    html += '<th>Substance</th>';
+    html += '<th>Age of First Use</th>';
+    html += '<th>Frequency (Last 30 Days)</th>';
+    html += '<th>Last Use</th>';
+    html += '<th>Method</th>';
+    html += '<th>Severity</th>';
+    html += '</tr></thead><tbody>';
+    
+    substances.forEach(sub => {
+        const useValue = getValue(`sud_${sub.key}_use`);
+        
+        // Only show substances where "Yes" was selected
+        if (useValue === 'Yes') {
+            html += '<tr>';
+            html += `<td><strong>${sub.name}</strong></td>`;
+            html += `<td>${getValue(`sud_${sub.key}_age`) || 'N/A'}</td>`;
+            html += `<td>${getValue(`sud_${sub.key}_frequency`) || 'N/A'}</td>`;
+            html += `<td>${getValue(`sud_${sub.key}_last_use`) || 'N/A'}</td>`;
+            html += `<td>${getValue(`sud_${sub.key}_method`) || 'N/A'}</td>`;
+            html += `<td>${getValue(`sud_${sub.key}_severity`) || 'N/A'}</td>`;
+            html += '</tr>';
+        }
+    });
+    
+    if (html.indexOf('<tr>') === -1) {
+        // No substances were marked "Yes"
+        html += '<tr><td colspan="6" style="text-align:center; font-style:italic;">No substance use reported.</td></tr>';
+    }
+    
+    html += '</tbody></table>';
+    return html;
+};
+
+        const buildAsamGrid = () => {
+            const asamData = [ 
+                { d: '1 Acute Intoxication/Withdrawal'}, 
+                { d: '2 Biomedical Conditions'}, 
+                { d: '3 Emotional/Behavioral/Cognitive Conditions'}, 
+                { d: '4 Readiness to Change'}, 
+                { d: '5 Relapse/Continued Use Potential'}, 
+                { d: '6 Recovery Environment'} 
+            ];
+            let html = '<table class="data-table"><thead><tr><th>Dimension</th><th>Risk Rating</th><th>Additional Info</th></tr></thead><tbody>';
+            asamData.forEach((item, index) => {
+                html += `<tr>
+                            <td><b>${item.d}</b></td>
+                            <td>${getChecked(`asam_dim${index+1}`).join(', ')}</td>
+                            <td>${getValue(`asam_dim${index+1}_additional_info`)}</td>
+                         </tr>`;
+            });
+            html += '</tbody></table>';
+            return html;
+        };
+
+        // --- Iterate Through Sections and Build `mainContent` ---
+        document.querySelectorAll('div[id^="section-"]').forEach(section => {
+            let sectionHtml = '';
+    
+switch (section.id) {
+    case 'section-demographics': 
+        sectionHtml = buildDemographics(); 
+        break;
+        
+    case 'section-update-reason': 
+        sectionHtml = `
+            <div class="grid-2col">
+                ${createField('Reason for update', getValue('update_reason'))}
+                ${createField('Date of last DE/DA', formatDate(getValue('last_de_date')))}
+            </div>
+            ${createFieldLong('Additional Information', getValue('de_update_additional_info'))}
+        `; 
+        break;
+        
+    case 'section-presenting-problem': 
+        sectionHtml = `
+            ${createFieldLong('What led you to come in here today?', getValue('presentingProblem'))}
+            ${createFieldLong('What does client hope to get from treatment?', getValue('treatmentHope'))}
+            ${createField('How severe on a scale of 1-10?', getValue('severity'))}
+            ${createFieldLong('Additional Information', getValue('presenting_problem_additional_info'))}
+        `; 
+        break;
+        
+    case 'section-previous-diagnosis': 
+        let diagRows = ''; 
+        for(let i = 0; i < 5; i++) { 
+            if(getValue(`previous_diagnosis_${i}_0`)) { 
+                diagRows += `<tr>
+                    <td>${getValue(`previous_diagnosis_${i}_0`)}</td>
+                    <td>${getValue(`previous_diagnosis_${i}_1`)}</td>
+                    <td>${formatDate(getValue(`previous_diagnosis_${i}_2`))}</td>
+                </tr>`; 
+            } 
+        } 
+        sectionHtml = `
+            <table class="data-table">
+                <thead>
+                    <tr><th>Diagnosis</th><th>Code</th><th>Date Identified</th></tr>
+                </thead>
+                <tbody>${diagRows || '<tr><td colspan="3">No previous diagnoses provided.</td></tr>'}</tbody>
+            </table>
+        `; 
+        break;
+        
+    case 'section-psychiatric-history': 
+        sectionHtml = `
+            ${createFieldLong("Diagnosis (in client's words)", getValue('psych_dx_words'))}
+            <div class="grid-2col">
+                ${createField('Most recent hospitalization', getValue('most_recent_hosp'))}
+                ${createField('Where?', getValue('hosp_where'))}
+                ${createField('Length of stay', getValue('hosp_length'))}
+            </div>
+            ${createFieldLong('What was going on?', getValue('hosp_reason'))}
+            ${createFieldLong('Additional Information', getValue('psych_history_additional_info'))}
+            ${createField('Receiving outside treatment?', getValue('outside_treatment'))}
+            ${getValue('outside_treatment') === 'Yes' ? `
+                ${createField('Provider Where?', getValue('outside_provider_where'))}
+                ${createField('Provider Name', getValue('outside_provider_name'))}
+                ${createFieldLong('Provider Additional Info', getValue('outside_provider_additional_info'))}
+            ` : ''}
+        `; 
+        break;
+        
+    case 'section-substance-use': 
+        sectionHtml = buildSubstanceUse(); 
+        break;
+        
+    case 'section-cage-treatment': 
+    sectionHtml = `
+        <h4>CAGE Questions</h4>
+        <div class="grid-2col">
+            ${createField('Have you ever felt you should cut down on your drinking/drug use?', getValue('cage_cutdown'))}
+            ${createField('Have people annoyed you by criticizing your drinking/drug use?', getValue('cage_annoyed'))}
+            ${createField('Have you ever felt bad/guilty about your drug use?', getValue('cage_guilty'))}
+            ${createField('Have you ever had to drink/used drugs first thing in the morning to steady your nerves or help you to feel better?', getValue('cage_eyeopener'))}
+        </div>
+            
+            <h4 style="margin-top:20px;">Treatment History</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Type</th><th>Yes/No</th><th>Where</th><th>When</th><th>How Long</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Outpatient</strong></td>
+                        <td>${getValue('tx_outpatient') || 'N/A'}</td>
+                        <td>${getValue('tx_outpatient_where') || 'N/A'}</td>
+                        <td>${getValue('tx_outpatient_when') || 'N/A'}</td>
+                        <td>${getValue('tx_outpatient_howlong') || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Inpatient</strong></td>
+                        <td>${getValue('tx_inpatient') || 'N/A'}</td>
+                        <td>${getValue('tx_inpatient_where') || 'N/A'}</td>
+                        <td>${getValue('tx_inpatient_when') || 'N/A'}</td>
+                        <td>${getValue('tx_inpatient_howlong') || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Detox Unit</strong></td>
+                        <td>${getValue('tx_detox') || 'N/A'}</td>
+                        <td>${getValue('tx_detox_where') || 'N/A'}</td>
+                        <td>${getValue('tx_detox_when') || 'N/A'}</td>
+                        <td>${getValue('tx_detox_howlong') || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AA/NA/CA, etc.</strong></td>
+                        <td>${getValue('tx_selfhelp') || 'N/A'}</td>
+                        <td>${getValue('tx_selfhelp_where') || 'N/A'}</td>
+                        <td>${getValue('tx_selfhelp_when') || 'N/A'}</td>
+                        <td>${getValue('tx_selfhelp_howlong') || 'N/A'}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="sub-section">
+                ${createField('Have Sponsor?', getValue('sponsor'))}
+                ${getValue('sponsor') === 'Yes' ? createField('Sponsor Name/Phone', getValue('sponsor_name_phone')) : ''}
+                ${createFieldLong('Additional Treatment Info', getValue('tx_additional_info'))}
+                ${createFieldLong('Client insight to SU issues', getValue('client_insight'))}
+                ${createField('Clinical focus', getValue('clinical_focus'))}
+            </div>
+        `; 
+        break;
+
+        case 'section-psychosocial':
+    let psychosocialHtml = '';
+    const psychosocialLabels = {
+        'familyenvironmentrelationshipsspecialcircumstances': 'Family Environment/Relationships/Special Circumstances',
+        'housing': 'Housing',
+        'employmentincome': 'Employment/Income',
+        'militaryinformation': 'Military Information',
+        'educationschoolperformance': 'Education/School Performance',
+        'religiousspiritualityculturalbeliefs': 'Religious/Spirituality/Cultural Beliefs',
+        'behaviorandsocialproblems': 'Behavior and Social Problems',
+        'legalsysteminvolvement': 'Legal System Involvement',
+        'interestshobbies': 'Interests/Hobbies',
+        'psychosocialstressors': 'Psychosocial Stressors',
+        'pertinenthealthissuesmedicalproblems': 'Pertinent Health Issues/Medical Problems',
+        'currentmedicationsorchanges': 'Current medications or changes',
+        'pregnancybirthsmiscarriageabortionsother': 'Pregnancy/Births/Miscarriage/Abortions/Other',
+        'primarycarephysiciannamelocation': 'Primary Care Physician (Name/Location)',
+        'other': 'Other'
+    };
+    
+ Object.keys(psychosocialLabels).forEach(key => {
+        // Add the 'soc_' prefix to match the new HTML generation
+        const varName = 'soc_' + key;
+        
+        // We check for 'on' OR if there is text in the details (in case they typed but didn't click check)
+        if (getValue(`${varName}_changed`) === 'on' || getValue(`${varName}_details`).length > 0) {
+            psychosocialHtml += `${createFieldLong(psychosocialLabels[key], getValue(`${varName}_details`))}`;
+        }
+    });
+    sectionHtml = psychosocialHtml || '<p style="font-style:italic;">No changes reported.</p>';
+    break;
+    
+
+case 'section-psychiatric-symptoms':
+    let symptomsHtml = '';
+    const symptomLabels = {
+        'nutritionaleatingpatternchangesdisorders': 'Nutritional/Eating Pattern Changes/Disorders',
+        'painmanagement': 'Pain Management',
+        'depressedmood': 'Depressed Mood',
+        'bereavementissues': 'Bereavement Issues',
+        'oppositionalbehaviors': 'Oppositional Behaviors',
+        'inattention': 'Inattention',
+        'impulsivity': 'Impulsivity',
+        'hyperactivity': 'Hyperactivity',
+        'disturbedrealitypsychosis': 'Disturbed Reality (psychosis)',
+        'moodswingsmanicepisodes': 'Mood Swings/Manic Episodes',
+        'trauma': 'Trauma',
+        'anxietypanicattacksobsessionscompulsions': 'Anxiety/Panic Attacks/Obsessions/Compulsions',
+        'survivorshipvictimization': 'Survivorship/Victimization',
+        'violencetoothersobjectsorplacesselfinjurysuicideattempts': 'Violence to others, objects, or places/Self-injury/Suicide Attempts',
+        'angermanagement': 'Anger Management',
+        'addictivebehaviorsgamblingsexualsubstance': 'Addictive Behaviors (gambling, sexual, substance)',
+        'otheraddictivebehaviors': 'Other Addictive Behaviors',
+        'sleepproblems': 'Sleep Problems'
+    };
+    
+    Object.keys(symptomLabels).forEach(key => {
+        // Add the 'sym_' prefix to match the new HTML generation
+        const varName = 'sym_' + key;
+        
+        if (getValue(`${varName}_changed`) === 'on' || getValue(`${varName}_details`).length > 0) {
+            symptomsHtml += `${createFieldLong(symptomLabels[key], getValue(`${varName}_details`))}`;
+        }
+    });
+    sectionHtml = symptomsHtml || '<p style="font-style:italic;">No changes reported.</p>';
+    break;
+
+    case 'section-mse':
+    sectionHtml = `
+        <h4>General Observations</h4>
+        ${createField('Appearance', getChecked('appearance').join(', '))}
+        ${createField('Build', getChecked('build').join(', '))}
+        ${createField('Demeanor', getChecked('demeanor').join(', '))}
+        ${createField('Eye Contact', getChecked('eyecontact').join(', '))}
+        ${createField('Activity', getChecked('activity').join(', '))}
+        ${createField('Speech', getChecked('speech').join(', '))}
+        ${createFieldLong('Comments', getValue('generalobservations_comments'))}
+        
+        <h4 style="margin-top:15px;">Thought Content</h4>
+        ${createField('Delusions', getChecked('delusions').join(', '))}
+        ${createField('Other', getChecked('other').join(', '))}
+        ${createField('Self-Abuse', getChecked('selfabuse').join(', '))}
+        ${createField('Aggressive', getChecked('aggressive').join(', '))}
+        ${createFieldLong('Comments', getValue('thoughtcontent_comments'))}
+        
+        <h4 style="margin-top:15px;">Perception</h4>
+        ${createField('Hallucinations', getChecked('hallucinations').join(', '))}
+        ${createField('Other', getChecked('perception_other').join(', '))}
+        ${createFieldLong('Comments', getValue('perception_comments'))}
+        
+        <h4 style="margin-top:15px;">Thought Process</h4>
+        ${createField('', getChecked('thoughtprocess').join(', '))}
+        ${createFieldLong('Comments', getValue('thoughtprocess_comments'))}
+        
+        <h4 style="margin-top:15px;">Mood</h4>
+        ${createField('', getChecked('mood').join(', '))}
+        ${createFieldLong('Comments', getValue('mood_comments'))}
+        
+        <h4 style="margin-top:15px;">Affect</h4>
+        ${createField('', getChecked('affect').join(', '))}
+        ${createFieldLong('Comments', getValue('affect_comments'))}
+        
+        <h4 style="margin-top:15px;">Behavior</h4>
+        ${createField('', getChecked('behavior').join(', '))}
+        ${createFieldLong('Comments', getValue('behavior_comments'))}
+        
+        <h4 style="margin-top:15px;">Cognition</h4>
+        ${createField('Impairment of', getChecked('impairmentof').join(', '))}
+        ${createField('Intelligence Estimate', getChecked('intelligenceestimate').join(', '))}
+        ${createFieldLong('Comments', getValue('cognition_comments'))}
+        
+        <h4 style="margin-top:15px;">Insight/Judgment</h4>
+        ${createField('', Array.isArray(getValue('insightjudgment')) ? getValue('insightjudgment').join(', ') : getValue('insightjudgment'))}
+        ${createFieldLong('Comments', getValue('insightjudgment_comments'))}
+    `;
+    break;
+    case 'section-narrative': 
+        sectionHtml = createFieldLong('Narrative Summary', getValue('narrative_summary')); 
+        break;
+        
+    case 'section-diagnostic-impression': 
+        sectionHtml = createFieldLong('Diagnostic Impression (DSM 5 & ICD 10)', getValue('diagnostic_impression')); 
+        break;
+        
+    case 'section-recommended-services': 
+        sectionHtml = `${createField('Recommended Services', getChecked('recommended_services').join(', '))}`; 
+        break;
+        
+   case 'section-asam': 
+    sectionHtml = buildAsamGrid();
+    
+    // Add ASAM Recommendation
+    const asamRec = getValue('asam_recommendation');
+    let asamRecLabel = '';
+    if (asamRec === '1') asamRecLabel = 'Level 1 Outpatient';
+    else if (asamRec === '2.1') asamRecLabel = 'Level 2.1 Intensive Outpatient';
+    else if (asamRec === '3.1') asamRecLabel = 'Level 3.1 Intensive Outpatient w/Residential Support';
+    else if (asamRec === '3.5') asamRecLabel = 'Level 3.5 Non-Medical Community Residential';
+    
+    if (asamRecLabel) {
+        sectionHtml += `<div style="margin-top:20px;">${createField('ASAM Recommended Level of Care', asamRecLabel)}</div>`;
+    }
+    break;
+        
+    case 'section-strengths': 
+        sectionHtml = `${createField('Strengths/Assets/Resources', getChecked('strengths').join(', '))}`; 
+        break;
+        
+    case 'section-skills-deficits': 
+        sectionHtml = `
+            ${createField('Skills Deficits/Training/Community Support Needs', getChecked('skills_deficits').join(', '))}
+            ${createFieldLong('As Evidenced By', getValue('skills_evidence'))}
+        `; 
+        break;
+}
+
+            if (sectionHtml) {
+                mainContent += `<h3 class="section-title">${section.querySelector('h3').textContent}</h3><div>${sectionHtml}</div>`;
+            }
+        });
+
+        const printWindow=window.open('','_blank');
+        printWindow.document.write(`<html><head><title>${FORM_NAME_PRINT} - ${getValue('clientName')}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Inter',sans-serif;font-size:10pt;color:#333;margin:0;background-color:#e0e0e0}.page-content{width:8.5in;min-height:11in;padding:0.75in;box-sizing:border-box;background-color:white;margin:2rem auto;box-shadow:0 0 10px rgba(0,0,0,0.2)}@media print{body{background-color:white;padding:0}.page-content{margin:0;box-shadow:none;min-height:0}.footer{position:fixed;bottom:0.75in;left:0.75in;right:0.75in;width:calc(8.5in - 1.5in)}h3.section-title,.data-table,.field,.signature-section{page-break-inside:avoid}}.header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:2px solid #000080}.footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:2px solid #000080;font-size:8pt;color:#666;margin-top:20px}.logo{width:250px;height:auto}.header-title{text-align:right}.header-title h1{margin:0;font-size:16pt;color:#000080;font-weight:700}.header-title h2{margin:0;font-size:10pt;font-weight:400;color:#555}h3.section-title{font-size:12pt;font-weight:600;color:#333;background-color:#f0f5fa;padding:8px 12px;margin:20px 0 15px 0;border-left:4px solid #000080}.sub-section{margin-top:1rem;padding-top:1rem;border-top:1px dashed #ccc;}.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}.grid-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 20px}.field .label{font-weight:600;font-size:9pt;color:#444;display:block;margin-bottom:4px}.field .value{background:#f9f9f9;padding:6px 10px;border-radius:4px;border:1px solid #eee;min-height:1.2em;word-wrap:break-word;}.field .value-long{white-space:pre-wrap;min-height:3em}.full-width{grid-column:1 / -1}.data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:9pt}.data-table th,.data-table td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}.data-table th{background-color:#f2f2f2;font-weight:600}.signature-section{margin-top:30px;padding-bottom:60px; page-break-before: auto;}.signature-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:25px;align-items:end;}.signature-box{margin-top:15px;}.signature-line{border-bottom:1px solid #333;height:40px;margin-bottom:5px}.signature-label{font-size:8pt;color:#555}</style></head><body><div class="page-content"><div class="header">
+  <img src="data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADA/2sPDkgAAAAABP1/3Y5ABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4CSlKnsGBRJUJAAAAABJRU5ErkJggg==" alt="Company Logo" class="logo">
+  <div class="header-title">
+    <h1>${FORM_NAME_PRINT}</h1>
+    <h2>Watson Community Health Center</h2>
+    <div class="identifiers" style="margin-top:8px;font-size:10pt;color:#333;text-align:right;">
+      <strong>Client:</strong> ${getValue('clientName') || '&nbsp;'}<br>
+      <strong>Record #:</strong> ${getValue('recordNumber') || '&nbsp;'}<br>
+      <strong>DOB:</strong> ${formatDate(getValue('dob')) || '&nbsp;'}
+    </div>
+  </div>
+</div><main>${mainContent}</main><div class="signature-section"><h3 class="section-title">Evaluation Completed By</h3><div class="signature-grid"><div class="signature-box"><div class="signature-line"></div><span class="signature-label">Clinician Signature</span></div><div class="signature-box"><div class="signature-line"></div><span class="signature-label">Date: ${formatDate(getValue('clinicianDate'))}</span></div><div>${getValue('clinicianPrintedName')}</div><div></div><div class="signature-box"><div class="signature-line"></div><span class="signature-label">Supervisor Signature (if applicable)</span></div><div class="signature-box"><div class="signature-line"></div><span class="signature-label">Date: ${formatDate(getValue('supervisorDate'))}</span></div><div>${getValue('supervisorPrintedName')}</div><div></div></div></div></div></body></html>`);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(()=>{printWindow.print()},500);
+    }
+
+    // --- UNIVERSAL FUNCTIONS ---
+    
+function getFormData(){const form=document.getElementById(FORM_ELEMENT_ID);const formData=new FormData(form);const data={formId:FORM_ID,lastModified:new Date().toISOString()};for(const[key,value]of formData.entries()){const cleanKey=key.replace(/\[\]$/,'');if(key.endsWith('[]')){if(!data[cleanKey])data[cleanKey]=[];data[cleanKey].push(value)}else{data[key]=value}}return data}
+
+function populateForm(data) {
+    const form = document.getElementById(FORM_ELEMENT_ID);
+    form.reset();
+    
+    for (const key in data) {
+        if (key === 'formId' || key === 'lastModified') continue;
+        
+        const value = data[key];
+        
+        // Try to find elements with or without []
+        let elements = form.elements[key];
+        
+        // If not found and key doesn't have [], try with []
+        if (!elements && !key.endsWith('[]')) {
+            elements = form.elements[key + '[]'];
+        }
+        
+        // If not found and key has [], try without []
+        if (!elements && key.endsWith('[]')) {
+            elements = form.elements[key.replace('[]', '')];
+        }
+        
+        // If still not found, skip
+        if (!elements) continue;
+        
+        const elementList = elements.nodeName ? [elements] : Array.from(elements);
+        const firstEl = elementList[0];
+        
+        if (firstEl.type === 'checkbox') {
+            const values = Array.isArray(value) ? value : [value];
+            elementList.forEach(el => {
+                el.checked = values.includes(el.value);
+            });
+      } else if (firstEl.type === 'radio') {
+    // Radio buttons: value should be a string, not an array
+    const radioValue = Array.isArray(value) ? value[0] : value;
+    console.log('Radio key:', key, 'Value:', radioValue, 'Options:', elementList.map(e => e.value));
+    elementList.forEach(el => {
+        if (el.value === radioValue) {
+            el.checked = true;
+            console.log('Checked:', el.value);
+        }
+    });
+}
+        else {
+            if (firstEl.value !== undefined) firstEl.value = value;
+        }
+    }
+    
+    // Populate substance use history separately
+    populateSubstanceUseHistory(data);
+    
+    // Trigger change events
+    form.querySelectorAll('[onchange]').forEach(el => el.dispatchEvent(new Event('change')));
+    if (document.getElementById('dob')) document.getElementById('dob').dispatchEvent(new Event('input'));
+}
+    function saveToLocalStorage(){const data=getFormData();const clientName=data.clientName.trim();if(!clientName){alert('Please enter a Client Name before saving.');return}const key=`savedForm_${FORM_ID}_${clientName}`;try{localStorage.setItem(key,JSON.stringify(data));alert(`Progress for ${clientName} saved successfully!`)}catch(e){if(e.name==='QuotaExceededError'){alert('Error: Browser storage is full. Please export and then delete some older saved forms to make space.')}else{alert('An unknown error occurred while saving.');console.error(e)}}}
+    function displaySavedForms(){const savedFormsList=document.getElementById('savedFormsList');savedFormsList.innerHTML='';let savedItems=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key.startsWith(`savedForm_${FORM_ID}_`)){try{const data=JSON.parse(localStorage.getItem(key));savedItems.push({key,data})}catch(e){console.error('Could not parse saved data:',key,e)}}}savedItems.sort((a,b)=>new Date(b.data.lastModified)-new Date(a.data.lastModified));if(savedItems.length===0){savedFormsList.innerHTML=`<p class="text-gray-500">No saved forms found in this browser.</p>`}else{savedItems.forEach(item=>{const clientName=item.data.clientName||'Unnamed';const lastModified=new Date(item.data.lastModified).toLocaleString();const itemDiv=document.createElement('div');itemDiv.className='modal-item';itemDiv.innerHTML=`<div class="flex-grow" onclick="loadSelectedForm('${item.key}')"><strong class="item-name">${clientName}</strong><br><small>Last saved: ${lastModified}</small></div><button onclick="deleteSavedForm(event,'${item.key}')"class="delete-btn">Delete</button>`;savedFormsList.appendChild(itemDiv)})}document.getElementById('loadModal').classList.remove('hidden');document.getElementById('modalSearch').value='';document.getElementById('modalSearch').focus()}
+    function filterModalItems(){const searchTerm=document.getElementById('modalSearch').value.toLowerCase();document.querySelectorAll('.modal-item').forEach(item=>{const name=item.querySelector('.item-name').textContent.toLowerCase();item.style.display=name.includes(searchTerm)?'flex':'none'})}
+    function loadSelectedForm(key){const data=JSON.parse(localStorage.getItem(key));populateForm(data);closeModal();alert(`Data for ${data.clientName} has been loaded.`)}
+    function deleteSavedForm(event,key){event.stopPropagation();const data=JSON.parse(localStorage.getItem(key));const clientName=data.clientName||'this entry';if(confirm(`Are you sure you want to permanently delete the saved data for ${clientName}? This cannot be undone.`)){localStorage.removeItem(key);displaySavedForms();filterModalItems()}}
+    function closeModal(){document.getElementById('loadModal').classList.add('hidden')}
+    function parseClientName(nameStr){let[lastName,firstName]=['Unknown','Client'];if(nameStr){if(nameStr.includes(',')){[lastName,firstName]=nameStr.split(',',2).map(s=>s.trim())}else{const parts=nameStr.trim().split(' ');lastName=parts.pop()||'Unknown';firstName=parts.join(' ')||'Client'}}return[lastName,firstName]}
+    function exportData() {
+    const data = getFormData();
+    if (!data.clientName || !data.clientName.trim()) {
+        alert('Please enter a Client Name before exporting.');
+        return;
+    }
+    
+    const [lastName, firstName] = parseClientName(data.clientName);
+    const dateStr = data.date || new Date().toISOString().split('T')[0];
+    const formattedDate = dateStr.replace(/-/g, '');
+    const filename = `${formattedDate}_${lastName}_${firstName}_${FORM_ID}.json`;
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link); // Add to DOM
+    link.click();
+    document.body.removeChild(link); // Remove from DOM
+    URL.revokeObjectURL(link.href);
+}
+    function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(data.formId!==FORM_ID){alert(`Error: Incompatible File\n\nThis file is for the '${data.formId||'Unknown Form'}'. You are currently on the '${FORM_ID}' form.`);return}populateForm(data);alert('Client data imported successfully from file!')}catch(error){alert('An error occurred while reading this file.');console.error("Import Error: ",error)}};reader.readAsText(file);event.target.value=''}
+    function clearForm(){if(confirm("Are you sure you want to clear all fields on this form? This cannot be undone.")){document.getElementById(FORM_ELEMENT_ID).reset();initializeFormDefaults();alert('Form has been cleared.')}}
+
+    // --- FORM-SPECIFIC HELPERS ---
+    function initializeFormDefaults(){if(document.getElementById('date'))document.getElementById('date').valueAsDate=new Date();if(typeof setupInitialDates==='function')setupInitialDates();if(typeof updateAgeAndFooter==='function')updateAgeAndFooter()}
+    function setupInitialDates(){const today=new Date().toISOString().split('T')[0];['date','clinicianDate','supervisorDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today})}
+    function updateAgeAndFooter(){const dobInput=document.getElementById('dob');if(dobInput&&dobInput.value){const dob=new Date(dobInput.value);const today=new Date();let age=today.getFullYear()-dob.getFullYear();const m=today.getMonth()-dob.getMonth();if(m<0||(m===0&&today.getDate()<dob.getDate())){age--}document.getElementById('age').value=age>=0?age:''}else if(document.getElementById('age')){document.getElementById('age').value=''}updateFooterInfo()}
+    function updateFooterInfo(){document.getElementById('footer_client_name').value=document.getElementById('clientName').value;document.getElementById('footer_dob').value=document.getElementById('dob').value;document.getElementById('footer_mrn').value=document.getElementById('recordNumber').value}
+    function updateNavigation(){const navContainer=document.getElementById('form-nav');if(!navContainer)return;navContainer.innerHTML='';document.querySelectorAll('div[id^="section-"]').forEach(section=>{const title=section.querySelector('h3')?.textContent;if(title){const link=document.createElement('a');link.href=`#${section.id}`;link.className='nav-link';link.textContent=title;navContainer.appendChild(link)}})}
+    function buildGrid(containerId,rows,types){const container=document.getElementById(containerId);if(!container)return;container.innerHTML='';for(let i=0;i<rows;i++){const row=document.createElement('div');row.className='grid grid-cols-3 gap-4';types.forEach((type,j)=>{const input=document.createElement('input');input.type=type;input.name=`${containerId}_${i}_${j}`;input.className='form-input';const div=document.createElement('div');div.appendChild(input);row.appendChild(div)});container.appendChild(row)}}
+    function buildSubstanceUseSection(){
+    const container = document.getElementById('substance-use-container');
+    if(!container) return;
+    
+    const substances = [
+        {name:'Alcohol', key:'alcohol', examples:'(beer, wine, liquor, whiskey, vodka, etc.)'},
+        {name:'Amphetamines', key:'amphetamines', examples:'(Adderall, Dexedrine, speed, meth, crystal)'},
+        {name:'Caffeine', key:'caffeine', examples:'(coffee, energy drinks, tea, soda)'},
+        {name:'Cannabis', key:'cannabis', examples:'(marijuana, weed, pot, hash, edibles, THC)'},
+        {name:'Cocaine', key:'cocaine', examples:'(crack, coke, blow, powder)'},
+        {name:'Hallucinogens', key:'hallucinogens', examples:'(LSD, acid, mushrooms, peyote, ecstasy, MDMA, ketamine)'},
+        {name:'Inhalants', key:'inhalants', examples:'(glue, paint thinner, aerosols, nitrous oxide, poppers)'},
+        {name:'Nicotine', key:'nicotine', examples:'(cigarettes, vaping, e-cigs, chewing tobacco, cigars)'},
+        {name:'Opioids', key:'opioids', examples:'(heroin, fentanyl, oxycodone, Percocet, Vicodin, morphine, codeine)'},
+        {name:'Sedatives', key:'sedatives', examples:'(Xanax, Valium, Ativan, Klonopin, sleeping pills, benzos)'},
+        {name:'Stimulants', key:'stimulants', examples:'(cocaine, crack, Ritalin, diet pills)'},
+        {name:'Other', key:'other', examples:'(specify any other substances not listed above)'}
+    ];
+    
+    let html = '<div class="space-y-4">';
+    
+    substances.forEach(sub => {
+        const key = sub.key;
+        
+        html += `
+            <div class="p-4 border rounded-lg bg-white">
+                <div class="flex items-start mb-3">
+                    <div class="flex-grow">
+                        <strong class="text-base">${sub.name}</strong><br>
+                        <span style="font-size: 0.75rem; color: #666;">${sub.examples}</span>
+                    </div>
+                    <div class="flex gap-4 ml-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="sud_${key}_use" value="No" checked class="h-4 w-4">
+                            <span class="ml-2">No</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="sud_${key}_use" value="Yes" class="h-4 w-4">
+                            <span class="ml-2">Yes</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="sud_${key}_details" style="display: none;">
+                    <div class="grid grid-cols-4 gap-3 mb-4">
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1">Age 1st Use</label>
+                            <input type="number" name="sud_${key}_age" class="form-input" placeholder="Age">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1">Frequency</label>
+                            <input type="text" name="sud_${key}_frequency" class="form-input" placeholder="e.g., 3x/wk">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1">Last Use</label>
+                            <input type="text" name="sud_${key}_last_use" class="form-input" placeholder="e.g., Yesterday">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1">Method</label>
+                            <input type="text" name="sud_${key}_method" class="form-input" placeholder="e.g., Smoked">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Severity:</label>
+                        <select name="sud_${key}_severity" class="form-select">
+                            <option value="">Select...</option>
+                            <option value="Mild">Mild (2-3 symptoms)</option>
+                            <option value="Moderate">Moderate (4-5 symptoms)</option>
+                            <option value="Severe">Severe (6+ symptoms)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // ATTACH EVENT LISTENERS AFTER HTML IS INSERTED
+    substances.forEach(sub => {
+        const radios = document.querySelectorAll(`input[name="sud_${sub.key}_use"]`);
+        radios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                toggleSubstanceDetails(sub.key, this.value === 'Yes');
+            });
+        });
+    });
+}
+    
+
+// KEEP ONLY THIS ONE VERSION - DELETE ALL OTHER toggleSubstanceDetails FUNCTIONS
+function toggleSubstanceDetails(key, show) {
+    const detailsDiv = document.getElementById(`sud_${key}_details`);
+    if (detailsDiv) {
+        detailsDiv.style.display = show ? 'block' : 'none';
+    }
+}
+
+
+
+function buildCheckTextRow(containerId, items, prefix) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    items.forEach(item => {
+        // We add the prefix to the key to ensure uniqueness across sections
+        const cleanName = item.replace(/[^a-zA-Z]/g, '').toLowerCase();
+        const key = prefix + cleanName; 
+        
+        container.innerHTML += `<div class="p-3 border-t"><label class="flex items-start"><input type="checkbox" name="${key}_changed" class="h-4 w-4 mt-1 flex-shrink-0" onchange="this.parentElement.nextElementSibling.classList.toggle('hidden', !this.checked)"> <span class="ml-3 font-medium">${item}</span></label><div class="hidden mt-2 pl-7"><label class="form-label text-sm">Evidenced By/Signs/Symptoms/Behaviors:</label><textarea name="${key}_details" class="form-textarea text-sm h-20"></textarea></div></div>`
+    })
+}
+   function buildMseSection() {
+    const container = document.getElementById('mse-container');
+    if (!container) return;
+
+    // I have updated the "Perception" section below to use a specific name override
+    const mseData = [
+        {
+            group: 'General Observations',
+            items: [
+                { label: 'Appearance', options: ['Well-groomed', 'Unkept', 'Disheveled'] },
+                { label: 'Build', options: ['Average', 'Thin', 'Overweight'] },
+                { label: 'Demeanor', options: ['Average', 'Hostile', 'Mistrustful', 'Withdrawn', 'Preoccupied', 'Demanding'] },
+                { label: 'Eye Contact', options: ['Average', 'Avoidant', 'Intense'] },
+                { label: 'Activity', options: ['Average', 'Agitated', 'Slowed'] },
+                { label: 'Speech', options: ['Clear', 'Slurred', 'Slowed', 'Rapid', 'Pressured'] }
+            ]
+        },
+        {
+            group: 'Thought Content',
+            items: [
+                { label: 'Delusions', options: ['None Reported', 'Grandiose', 'Persecutory', 'Somatic', 'Bizarre', 'Nihilistic', 'Religious'] },
+                { label: 'Other', options: ['None Reported', 'Autistic', 'Obsessional', 'Phobic', 'Guilty', 'Ideas of reference', 'Preoccupied', 'Guarded'] },
+                { label: 'Self-Abuse', options: ['None Reported', 'Suicidal (assess lethality if present)', 'Intent', 'Plan', 'Self-mutilization'] },
+                { label: 'Aggressive', options: ['None Reported', 'Aggressive (assess lethality if present)', 'Intent', 'Plan'] }
+            ]
+        },
+        {
+            group: 'Perception',
+            items: [
+                { label: 'Hallucinations', options: ['None Reported', 'Auditory', 'Visual', 'Olfactory', 'Gustatory', 'Tactile'] },
+                // FIX IS HERE: Added 'nameOverride' to ensure this saves as 'perception_other'
+                { label: 'Other', nameOverride: 'perception_other', options: ['Illusions', 'Depersonalization', 'Derealization'] }
+            ]
+        },
+        { group: 'Thought Process', items: [{ type: 'checkbox', options: ['Logical', 'Circumstantial', 'Tangential', 'Loose', 'Racing', 'Incoherent', 'Concrete', 'Blocked', 'Flight of Ideas'] }] },
+        { group: 'Mood', items: [{ type: 'checkbox', options: ['Euthymic', 'Depressed', 'Anxious', 'Angry', 'Euphoric', 'Irritable', 'Pessimistic', 'Happy', 'Elated', 'Nonchalant', 'Apathetic', 'Dismissive', 'Hopeless'] }] },
+        { group: 'Affect', items: [{ type: 'checkbox', options: ['Full', 'Constricted', 'Flat', 'Inappropriate', 'Labile', 'Incongruent', 'Euthymic', 'Congruent with Mood', 'Depressed', 'Blunted', 'Variable', 'Mobilizable', 'Frightened', 'Dejected', 'Attention Seeking'] }] },
+        { group: 'Behavior', items: [{ type: 'checkbox', options: ['Cooperative', 'Resistant', 'Agitated', 'Impulsive', 'Over Sedated', 'Assaultive', 'Aggressive', 'Hyperactive', 'Restless', 'Loss of Interests', 'Anhedonia', 'Akathisia', 'Withdrawn', 'Dystonia', 'Tardive', 'Dyskinesia'] }] },
+        { group: 'Cognition', items: [{ label: 'Impairment of', options: ['None Reported', 'Orientation', 'Memory', 'Attention/Concentration', 'Ability to Abstract'] }, { label: 'Intelligence Estimate', options: ['DD', 'Borderline', 'Average', 'Above Average'] }] },
+        { group: 'Insight/Judgment', items: [{ label: 'Insight/Judgment', type: 'radio', options: ['Good', 'Fair', 'Poor'] }] }
+    ];
+
+    let html = '';
+    mseData.forEach(section => {
+        html += `<h4 class="text-md font-semibold text-gray-800 mb-2 mt-4">${section.group}</h4>`;
+        section.items.forEach(item => {
+            // Logic updated to check for nameOverride first
+            let nameKey;
+            if (item.nameOverride) {
+                nameKey = item.nameOverride;
+            } else {
+                nameKey = (item.label || section.group).toLowerCase().replace(/[^a-z0-9]/g, '');
+            }
+
+            html += `<div class="mb-4">`;
+            if (item.label) { html += `<label class="form-label">${item.label}:</label>` }
+            html += `<div class="flex flex-wrap gap-x-4 gap-y-2">`;
+            const inputType = item.type || 'checkbox';
+            item.options.forEach(opt => {
+                const inputName = (inputType === 'radio') ? nameKey : `${nameKey}[]`;
+                html += `<label class="flex items-center"><input type="${inputType}" name="${inputName}" value="${opt}"> <span class="ml-2">${opt}</span></label>`
+            });
+            html += `</div></div>`
+        });
+        html += `<div><label for="${section.group.toLowerCase().replace(/[^a-z0-9]/g, '')}_comments" class="form-label">Comments:</label><textarea id="${section.group.toLowerCase().replace(/[^a-z0-9]/g, '')}_comments" name="${section.group.toLowerCase().replace(/[^a-z0-9]/g, '')}_comments" class="form-textarea h-24"></textarea></div>`;
+        if (section.group !== 'Insight/Judgment') { html += '<hr class="my-6 border-gray-300">' }
+    });
+    container.innerHTML = html;
+}
+    function buildAsamGrid(){const container=document.getElementById('asam-grid-container');if(!container)return;const asamData=[{dimension:'1 Acute Intoxication and/or Withdrawal'},{dimension:'2 Biomedical Conditions and Complications'},{dimension:'3 Emotional/Behavioral or Cognitive Conditions and Complications'},{dimension:'4 Readiness to Change'},{dimension:'5 Relapse, Continued Use or Continued Problem Potential'},{dimension:'6 Recovery Environment'}];asamData.forEach((item,index)=>{const row=document.createElement('div');row.className='asam-grid border-b';row.innerHTML=`<div>${item.dimension}</div> <div><input type="checkbox" name="asam_dim${index+1}[]" value="1" class="h-5 w-5"></div> <div><input type="checkbox" name="asam_dim${index+1}[]" value="2.1" class="h-5 w-5"></div> <div><input type="checkbox" name="asam_dim${index+1}[]" value="3.1" class="h-5 w-5"></div> <div><input type="checkbox" name="asam_dim${index+1}[]" value="3.5" class="h-5 w-5"></div>`;container.appendChild(row);const additionalInfoRow=document.createElement('div');additionalInfoRow.className='mt-4 mb-6 pt-2';additionalInfoRow.innerHTML=`<textarea name="asam_dim${index+1}_additional_info" class="form-textarea h-24" placeholder="Additional information..."></textarea><label class="flex items-center mt-2"><input type="checkbox" name="asam_no_further_treatment_${index+1}" value="true" class="h-4 w-4"><span class="ml-2 text-sm text-gray-600">No further treatments are required for this client.</span></label>`;container.appendChild(additionalInfoRow)})}
+    function populateSubstanceUseHistory(data) {
+    const substances = [
+        {key:'alcohol'},
+        {key:'amphetamines'},
+        {key:'caffeine'},
+        {key:'cannabis'},
+        {key:'cocaine'},
+        {key:'hallucinogens'},
+        {key:'inhalants'},
+        {key:'nicotine'},
+        {key:'opioids'},
+        {key:'sedatives'},
+        {key:'stimulants'},
+        {key:'other'}
+    ];
+    
+    substances.forEach(sub => {
+        const key = sub.key;
+        
+        // Handle Yes/No radio buttons
+        const useValue = data[`sud_${key}_use`];
+        if (useValue) {
+            const radioButtons = document.querySelectorAll(`input[name="sud_${key}_use"]`);
+            radioButtons.forEach(radio => {
+                if (radio.value === useValue) {
+                    radio.checked = true;
+                }
+            });
+            
+            // **FIX: Manually show/hide details section**
+            const detailsDiv = document.getElementById(`sud_${key}_details`);
+            if (detailsDiv) {
+                detailsDiv.style.display = (useValue === 'Yes') ? 'block' : 'none';
+            }
+        }
+        
+        // Populate the detail fields
+        const fields = ['age', 'frequency', 'last_use', 'method', 'severity'];
+        fields.forEach(field => {
+            const fieldName = `sud_${key}_${field}`;
+            const element = document.querySelector(`[name="${fieldName}"]`);
+            if (element && data[fieldName]) {
+                element.value = data[fieldName];
+            }
+        });
+    });
+}           
+    
+function toggleDetails(element,detailsId,show){const detailsContainer=document.getElementById(detailsId);if(detailsContainer){detailsContainer.classList.toggle('hidden',!show)}}
+
+    // PAGE INITIALIZATION
+document.addEventListener('DOMContentLoaded', () => {
+    loadPreferences(); // Load saved preferences first
+        if(document.getElementById('modalSearch')) document.getElementById('modalSearch').addEventListener('keyup', filterModalItems);
+        ['dob', 'clientName', 'recordNumber'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', updateAgeAndFooter); });
+        document.getElementById('severity').addEventListener('input', e => { document.getElementById('severityValue').textContent = e.target.value; });
+
+// Build Previous Diagnosis Grid properly
+const diagContainer = document.getElementById('previous-diagnosis-grid');
+if (diagContainer) {
+    diagContainer.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-3 gap-4 mt-2';
+        row.innerHTML = `
+            <input type="text" name="previous_diagnosis_${i}_0" class="form-input" placeholder="Diagnosis">
+            <input type="text" name="previous_diagnosis_${i}_1" class="form-input" placeholder="Code">
+            <input type="date" name="previous_diagnosis_${i}_2" class="form-input">
+        `;
+        diagContainer.appendChild(row);
+    }
+}        buildSubstanceUseSection();
+        buildCheckTextRow('psychosocial-functioning-container', ['Family Environment/Relationships/Special Circumstances', 'Housing', 'Employment/Income', 'Military Information', 'Education/School Performance', 'Religious/Spirituality/Cultural Beliefs', 'Behavior and Social Problems', 'Legal System Involvement', 'Interests/Hobbies', 'Psychosocial Stressors', 'Pertinent Health Issues/Medical Problems', 'Current medications or changes', 'Pregnancy/Births/Miscarriage/Abortions/Other', 'Primary Care Physician (Name/Location)', 'Other'], 'soc_');
+        buildCheckTextRow('psychiatric-symptoms-container', ['Nutritional/Eating Pattern Changes/Disorders', 'Pain Management', 'Depressed Mood', 'Bereavement Issues', 'Oppositional Behaviors', 'Inattention', 'Impulsivity', 'Hyperactivity', 'Disturbed Reality (psychosis)', 'Mood Swings/Manic Episodes', 'Trauma', 'Anxiety/Panic Attacks/Obsessions/Compulsions', 'Survivorship/Victimization', 'Violence to others, objects, or places/Self-injury/Suicide Attempts', 'Anger Management', 'Addictive Behaviors (gambling, sexual, substance)', 'Other Addictive Behaviors', 'Sleep Problems', 'Other'], 'sym_');        buildMseSection();
+        buildAsamGrid();
+        updateNavigation();
+        initializeFormDefaults();
+    });
+
+    document.getElementById('deuForm').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            // Allow Enter in textarea and on buttons
+            if (
+                e.target.tagName !== 'TEXTAREA' &&
+                e.target.type !== 'submit' &&
+                e.target.type !== 'button'
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+        // --- LOAD PREFERENCES FUNCTION ---
+    function loadPreferences() {
+        try {
+            const prefs = JSON.parse(localStorage.getItem('wchc_user_preferences') || '{}');
+            
+            // Auto-fill Record Number
+            const recordNumberEl = document.getElementById('recordNumber');
+            if (recordNumberEl && prefs.recordNumber && !recordNumberEl.value) {
+                recordNumberEl.value = prefs.recordNumber;
+            }
+            
+            // Auto-fill Race/Ethnicity
+            const raceEl = document.getElementById('raceEthnicity');
+            if (raceEl && prefs.race && !raceEl.value) {
+                raceEl.value = prefs.race;
+            }
+            
+            // Auto-fill Gender
+            const genderEl = document.getElementById('gender');
+            if (genderEl && prefs.gender && !genderEl.value) {
+                genderEl.value = prefs.gender;
+            }
+            
+            // Trigger footer update if values were filled
+            if (recordNumberEl && recordNumberEl.value) {
+                updateFooterInfo();
+            }
+        } catch (e) {
+            console.error('Error loading preferences:', e);
+        }
+    }
+</script>
+</body>
+</html>    

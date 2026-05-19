@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watson Community Health - Forms</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/goldlogo.png">
+    <!-- SEO Meta Description -->
+    <meta name="description" content="Access clinical forms, assessments, treatment plans, and administrative documents at Watson Community Health Center. Secure and user-friendly portal with search, feedback, and data privacy features.">
+    <!-- Open Graph for Social Sharing -->
+    <meta property="og:title" content="Watson Community Health - Clinical Forms Portal">
+    <meta property="og:description" content="A secure, easy-to-use portal for all clinical and administrative forms at Watson Community Health Center.">
+    <meta property="og:image" content="images/logo.png">
+    <meta property="og:type" content="website">
+    
+    <!-- Prevent transition flash on page load -->
+    <script>
+        document.documentElement.classList.add('preload');
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .brand-blue { color: #000080; }
+        .border-brand-blue { border-color: #000080; }
+        .bg-brand-blue { background-color: #000080; }
+        .hover\:bg-brand-blue-dark:hover { background-color: #00005a; }
+        .border-brand-gold { border-color: #d3af37; }
+        .text-brand-gold { color: #d3af37; }
+        
+        /* Focus styles for accessibility */
+        .focus-outline {
+            outline: 2px solid #d3af37;
+            outline-offset: 2px;
+        }
+        
+        /* User Preference Variables */
+        :root {
+            --user-font-size: 16px;
+            --user-line-height: 1.5;
+        }
+
+        /* Apply user preferences with smooth transitions */
+        body, body * {
+            font-size: var(--user-font-size);
+            line-height: var(--user-line-height);
+            transition: font-size 0.2s ease, line-height 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Disable transitions on page load */
+        .preload * {
+            transition: none !important;
+        }
+
+        /* High Contrast Mode - Base */
+        body.high-contrast-mode {
+            background-color: #000 !important;
+        }
+
+        body.high-contrast-mode .bg-white {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            border: 2px solid #ffffff !important;
+        }
+
+        body.high-contrast-mode .bg-gray-100 {
+            background-color: #000000 !important;
+        }
+
+        body.high-contrast-mode .text-gray-500,
+        body.high-contrast-mode .text-gray-600,
+        body.high-contrast-mode .text-gray-700 {
+            color: #ffff00 !important;
+        }
+
+        body.high-contrast-mode .brand-blue {
+            color: #00ffff !important;
+        }
+
+        body.high-contrast-mode a {
+            text-decoration: underline;
+        }
+
+        /* High Contrast Mode - Inputs */
+        body.high-contrast-mode input[type="text"],
+        body.high-contrast-mode input[type="search"],
+        body.high-contrast-mode select {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            border: 2px solid #ffffff !important;
+        }
+
+        body.high-contrast-mode input::placeholder {
+            color: #ffff00 !important;
+            opacity: 0.7;
+        }
+
+        body.high-contrast-mode input:focus,
+        body.high-contrast-mode select:focus {
+            outline: 3px solid #00ffff !important;
+            outline-offset: 2px;
+        }
+
+        /* High Contrast Mode - Buttons */
+        body.high-contrast-mode button,
+        body.high-contrast-mode .bg-brand-blue {
+            background-color: #0000ff !important;
+            color: #ffffff !important;
+            border: 2px solid #ffffff !important;
+        }
+
+        body.high-contrast-mode button:hover {
+            background-color: #0000cc !important;
+        }
+
+        /* High Contrast Mode - Form Cards */
+        body.high-contrast-mode .form-card {
+            background-color: #1a1a1a !important;
+            border: 2px solid #ffffff !important;
+        }
+
+        body.high-contrast-mode .form-card:hover {
+            background-color: #2a2a2a !important;
+            border: 3px solid #00ffff !important;
+        }
+
+        /* Apply preferences to modals/overlays */
+        .modal-content,
+        .modal-overlay * {
+            font-size: var(--user-font-size);
+            line-height: var(--user-line-height);
+        }
+
+        /* Save Indicator Animation */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        #saveIndicator {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+    <script>window.WATSON_AUTH_CONFIG={mode:'protect',loginPath:'index.html'};</script>
+    <script src="js/auth-gate.js"></script>
+</head>
+<body class="bg-gray-100" aria-label="Watson Community Health Center Forms Portal">
+
+    <!-- noscript warning for progressive enhancement -->
+    <noscript>
+      <div class="bg-yellow-100 text-yellow-800 p-2 rounded m-4 text-center">
+        This portal works best with JavaScript enabled. Some features such as search and data clearing will not function without it.
+      </div>
+    </noscript>
+
+    <header class="bg-white shadow-lg sticky top-0 z-10" role="banner">
+        <nav aria-label="Main Navigation">
+            <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <h1 class="text-xl font-bold brand-blue">Clinical Forms Portal</h1>
+                            <p class="text-sm text-gray-500 hidden md:block">Watson Community Health Center</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 px-8 hidden md:block">
+                        <label for="formSearch" class="sr-only">Search for a form</label>
+                        <input type="text" id="formSearch" placeholder="🔍 Search for a form..." class="w-full p-2 rounded-lg border-2 border-gray-300 focus:border-brand-blue focus:ring-brand-blue" aria-label="Search forms">
+                    </div>
+                    <div>
+                        <a href="forms/feedback.html" class="bg-brand-blue text-white font-semibold py-2 px-5 rounded-lg shadow-sm hover:bg-brand-blue-dark transition-colors duration-300 whitespace-nowrap focus:focus-outline" aria-label="Provide Feedback about this portal">
+                            Provide Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Preferences Panel (collapsible) -->
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
+        <div class="bg-white rounded-xl shadow-md p-4">
+            <button 
+                onclick="togglePreferences()" 
+                class="w-full flex items-center justify-between font-semibold brand-blue hover:text-brand-gold transition-colors"
+                aria-expanded="false"
+                aria-controls="preferencesPanel"
+            >
+                <span>⚙️ Preferences <kbd class="text-xs bg-gray-200 px-2 py-1 rounded ml-2">Ctrl+Alt+P</kbd></span>
+                <span id="prefToggleIcon">▼</span>
+            </button>
+            
+            <div id="preferencesPanel" class="hidden mt-4 space-y-4">
+                <!-- Font Size Control -->
+                <div class="flex items-center justify-between">
+                    <label for="fontSizeSlider" class="font-medium text-gray-700">Font Size:</label>
+                    <div class="flex items-center gap-4">
+                        <input 
+                            type="range" 
+                            id="fontSizeSlider" 
+                            min="12" 
+                            max="20" 
+                            value="16" 
+                            step="1"
+                            class="w-48"
+                            aria-label="Adjust font size"
+                        >
+                        <span id="fontSizeValue" class="text-sm font-semibold text-gray-600 w-12">16px</span>
+                    </div>
+                </div>
+
+                <!-- High Contrast Mode -->
+                <div class="flex items-center justify-between">
+                    <label for="highContrastToggle" class="font-medium text-gray-700">High Contrast Mode:</label>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="highContrastToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <!-- Line Spacing -->
+                <div class="flex items-center justify-between">
+                    <label for="lineSpacingSelect" class="font-medium text-gray-700">
+                        Line Spacing:
+                        <small class="text-gray-500 block text-xs">(Visible in forms)</small>
+                    </label>
+                    <select id="lineSpacingSelect" class="p-2 border rounded-lg">
+                        <option value="1.2">Compact (1.2)</option>
+                        <option value="1.5" selected>Normal (1.5)</option>
+                        <option value="1.8">Comfortable (1.8)</option>
+                        <option value="2.0">Extra (2.0)</option>
+                    </select>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="bg-gray-100 p-4 rounded-lg mt-4">
+                    <p class="font-medium mb-2">Preview:</p>
+                    <p id="previewText" style="font-size: var(--user-font-size); line-height: var(--user-line-height);">
+                        This is how text will appear in forms. The quick brown fox jumps over the lazy dog. Adjust the settings above to see changes in real-time.
+                    </p>
+                </div>
+
+                <!-- Reset Button -->
+                <div class="flex justify-end pt-2 border-t">
+                    <button 
+                        onclick="resetPreferences()" 
+                        class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                        Reset to Defaults
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-content" class="container mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8" tabindex="-1">
+        <div class="text-center mb-6">
+            <img src="images/logo.png" alt="Watson Community Health Center Logo" class="mx-auto h-56 w-auto">
+        </div>
+
+        <div class="mb-8 md:hidden">
+            <label for="formSearchMobile" class="sr-only">Search for a form (mobile)</label>
+            <input type="text" id="formSearchMobile" placeholder="🔍 Search for a form..." class="w-full p-4 rounded-xl border-2 border-gray-300 focus:border-brand-blue focus:ring-brand-blue" aria-label="Search forms (mobile)">
+        </div>
+
+        <section id="form-grid-container" class="grid grid-cols-1 lg:grid-cols-3 gap-8" aria-label="Form Categories">
+            <!-- Assessments & Evaluations -->
+            <section class="space-y-4" aria-labelledby="assessments-title">
+                <h3 id="assessments-title" class="text-2xl font-bold brand-blue border-b-2 border-brand-gold pb-2">Assessments & Evaluations</h3>
+                <div class="category-grid space-y-4">
+                    <a href="forms/1. Adult Diagnostic Evaluation.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-gold focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">1. Adult Diagnostic Evaluation</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Initial comprehensive assessment for adults.</p>
+                    </a>
+                    <a href="forms/3. Child Diagnostic Evaluation.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-gold focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">3. Child Diagnostic Evaluation</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Initial assessment for children/minors.</p>
+                    </a>
+                    <a href="forms/4. Diagnostic Evaluation Update.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-gold focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">4. Diagnostic Evaluation Update</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Periodic updates to an existing evaluation.</p>
+                    </a>
+                    <a href="forms/6. Substance Use Disorder Assessment.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-gold focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">6. SUD Assessment (SUDA)</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Assessment for SUD services.</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Treatment Plans -->
+            <section class="space-y-4" aria-labelledby="treatment-title">
+                <h3 id="treatment-title" class="text-2xl font-bold brand-blue border-b-2 border-brand-gold pb-2">Treatment Plans</h3>
+                <div class="category-grid space-y-4">
+                    <a href="forms/2. Mental Health Individual Treatment Plan.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-blue focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">2. Mental Health ITP</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Individual Treatment Plan for mental health.</p>
+                    </a>
+                    <a href="forms/5. Integrated ITP.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-blue focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">5. Integrated ITP</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Combined MH and SUD Treatment Plan.</p>
+                    </a>
+                    <a href="forms/7. SUD ITP.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-blue focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">7. SUD Individual Treatment Plan</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Individual Treatment Plan for SUD services.</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Administrative & Safety -->
+            <section class="space-y-4" aria-labelledby="admin-title">
+                <h3 id="admin-title" class="text-2xl font-bold brand-blue border-b-2 border-brand-gold pb-2">Administrative & Safety</h3>
+                <div class="category-grid space-y-4">
+                    <a href="forms/8. Consent Packet.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-gold focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">8. Consent Packet</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">All necessary client consent forms.</p>
+                    </a>
+                    <a href="forms/9. Client Safety Plan.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-gold focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">9. Client Safety Plan</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Safety plan for Case Managers.</p>
+                    </a>
+                    <a href="forms/10. Client Crisis Plan.html" class="form-card group block bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform border-l-4 border-brand-gold focus:focus-outline" tabindex="0">
+                        <h2 class="form-title text-lg font-semibold brand-blue group-hover:underline">10. Client Crisis Plan</h2>
+                        <p class="form-description text-sm text-gray-500 mt-1">Crisis intervention for Therapists.</p>
+                    </a>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <footer class="bg-white mt-12 border-t-4 border-gray-200" role="contentinfo">
+        <div class="container mx-auto max-w-4xl py-8 px-4">
+            <h2 class="text-2xl font-bold brand-blue mb-4 text-center">Updates & Contact</h2>
+            <div class="bg-gray-50 p-4 rounded-lg text-sm sm:text-base mb-6">
+                <p class="font-semibold text-left mb-3">Latest Update: November 4, 2025 (v2.3 - Adult & Update Diagnostic Forms Complete Overhaul)</p>
+                
+                <!-- Collapsible Updates Button -->
+                <button onclick="toggleUpdates()" id="toggleUpdatesBtn" class="bg-brand-blue text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-brand-blue-dark transition-colors focus:focus-outline flex items-center mx-auto">
+                    <span id="toggleIcon">▼</span>
+                    <span class="ml-2">Show All Updates</span>
+                </button>
+                
+                <!-- Collapsible Updates Content -->
+                <div id="allUpdates" style="display: none;" class="mt-4 space-y-3">
+                    <div>
+                        <p class="font-semibold text-green-700">🎯 Form 1 - Adult Diagnostic Evaluation Print Fixes:</p>
+                        <ul class="list-disc list-inside mt-1 space-y-2 text-left ml-4">
+                            <li>
+                                <b>Substance Use Conditional Display:</b> <span class="text-blue-800">Fixed all 12 substance categories not appearing in printout.</span> <span class="text-green-700">Only substances marked "Yes" now display in professional table format with Age/Frequency/Last Use/Method/Severity.</span>
+                            </li>
+                            <li>
+                                <b>Mental Status Exam Complete Rebuild:</b> <span class="text-blue-800">Resolved all MSE checkbox data failing to print.</span> <span class="text-green-700">All 11 subsections (Appearance, Build, Demeanor, Eye Contact, Activity, Speech, Thought Content, Perception, Thought Process, Mood, Affect, Behavior, Cognition, Insight/Judgment) now render correctly.</span>
+                            </li>
+                            <li>
+                                <b>CAGE Questions Full Text:</b> <span class="text-blue-800">Expanded abbreviated labels to complete question text.</span> <span class="text-green-700">Now displays full questions like "Have you ever felt you should cut down on your drinking/drug use?"</span>
+                            </li>
+                            <li>
+                                <b>Section Label Formatting:</b> <span class="text-blue-800">Fixed psychosocial and psychiatric section names appearing as "familyenvironmentrelationshipsspecialcircumstances".</span> <span class="text-green-700">Now properly displays "Family Environment/Relationships/Special Circumstances" and 32 other field labels.</span>
+                            </li>
+                            <li>
+                                <b>ASAM Recommendation Display:</b> <span class="text-blue-800">Added missing ASAM Level of Care radio button output.</span> <span class="text-green-700">Now shows selected recommendation (Level 1, 2.1, 3.1, or 3.5) with full descriptive text.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-green-700">🎯 Form 4 - Diagnostic Evaluation Update Print Fixes:</p>
+                        <ul class="list-disc list-inside mt-1 space-y-2 text-left ml-4">
+                            <li>
+                                <b>Complete Print Function Reconstruction:</b> <span class="text-blue-800">Rebuilt entire printForm() function from scratch.</span> <span class="text-green-700">All 17 sections now render with professional formatting and complete data integrity.</span>
+                            </li>
+                            <li>
+                                <b>Previous Diagnosis Grid Fix:</b> <span class="text-blue-800">Enhanced 5-row diagnosis table with proper date formatting.</span> <span class="text-green-700">Displays Diagnosis Name, ICD-10 Code, and Date Identified in clean table format.</span>
+                            </li>
+                            <li>
+                                <b>Treatment History Table:</b> <span class="text-blue-800">Built structured 4-row table for treatment history.</span> <span class="text-green-700">Shows Outpatient, Inpatient, Detox Unit, and AA/NA/CA with Where/When/How Long columns.</span>
+                            </li>
+                            <li>
+                                <b>Insight/Judgment Radio Button Fix:</b> <span class="text-blue-800">Corrected field storing as array instead of single value.</span> <span class="text-green-700">Changed input name from insightjudgment[] to insightjudgment for proper radio behavior.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-purple-700">🔧 Cross-Form Technical Improvements:</p>
+                        <ul class="list-disc list-inside mt-1 space-y-1 text-left ml-4">
+                            <li><b>Field Name Mapping:</b> Created comprehensive label dictionaries for psychosocial (15 items) and psychiatric symptoms (18 items) ensuring human-readable output across both forms.</li>
+                            <li><b>Checkbox Array Handling:</b> Fixed getChecked() function calls - removed erroneous [] suffixes causing data retrieval failures in both diagnostic forms.</li>
+                            <li><b>Event Listener Timing:</b> Fixed substance use radio button handlers being attached before DOM elements existed - moved to post-HTML-insert phase.</li>
+                            <li><b>489-Line Test JSON Validation:</b> Created comprehensive test dataset covering all form fields to validate complete data capture and print accuracy.</li>
+                            <li><b>populateForm() Enhancement:</b> Improved radio/checkbox detection logic to handle both string and array values properly.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded border-l-4 border-green-400 mt-4">
+                        <p class="font-semibold text-green-800">✅ Quality Assurance Complete:</p>
+                        <p class="text-green-700 text-sm mt-1"><b>Both Adult Diagnostic Evaluation and Diagnostic Evaluation Update forms</b> now feature complete print fidelity across all sections: Demographics, Presenting Problem, Previous Diagnosis, Psychiatric History, Substance Use (12 categories), CAGE Questions, Treatment History, Psychosocial Functioning, Psychiatric Symptoms, Mental Status Exam (11 subsections), ASAM Assessment, Strengths/Resources, Skills Deficits, and Signatures.</p>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded border-l-4 border-blue-400 mt-4">
+                        <p class="font-semibold text-blue-800">⏱️ Session Duration & Scope:</p>
+                        <p class="text-blue-700 text-sm mt-1">This update represents approximately 2 hours of intensive debugging, code reconstruction, and cross-form standardization. Over 600 lines of JavaScript were rewritten or enhanced across printForm(), populateForm(), buildMseSection(), and buildSubstanceUseSection() functions in both diagnostic forms.</p>
+                    </div>
+                    
+                    <!-- Previous Updates -->
+                    <div class="mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-semibold text-left mb-2">Previous Updates:</p>
+                        <ul class="list-disc list-inside space-y-1 text-left text-sm">
+                            <li><b>Oct 24, 2025 (v2.2):</b> Child Diagnostic Critical Fixes - UTC date bug resolution, optional signatures fixed, auto-date population, comprehensive print audit of all 200+ fields across 31 sections.</li>
+                            <li><b>Oct 7, 2025 (v2.1):</b> Diagnostic QA & Print Release - Psychiatric Checklist rebuild, professional print formatting with company logo and headers, comprehensive debugging of dynamic grids.</li>
+                            <li><b>Sept 22, 2025 (v1.4):</b> SUD ITP & Assessment upgrades - Enhanced treatment plan goal tracking, browser storage security improvements, clear data functionality with double-confirmation.</li>
+                            <li><b>Sept 15, 2025 (v1.3):</b> Portal redesign with Tailwind CSS, responsive search functionality, color-coded form categories (gold for assessments, blue for treatment plans).</li>
+                            <li><b>Sept 8, 2025 (v1.2):</b> Mental Health ITP enhancements - Goal progress tracking, improved save/load modal with search filter, client name parsing for exports.</li>
+                            <li><b>Sept 1, 2025 (v1.1):</b> Initial forms deployment - Adult Diagnostic Evaluation, Child Diagnostic Evaluation, Consent Packet, Safety Plans with basic print functionality.</li>
+                            <li><b>Aug 25, 2025 (v1.0):</b> Portal launch - Watson Community Health Center Forms Portal goes live with 10 core clinical forms and feedback system.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 p-3 rounded border-l-4 border-blue-400 mt-4">
+                    <p class="font-semibold text-blue-800">🔮 Future Roadmap:</p>
+                    <p class="text-blue-700 text-sm mt-1">Planning conversion to <b>Ready Nurse Systems (RNS)</b> Electron desktop app, mobile support via Capacitor, enterprise SaaS features, and custom form builder for healthcare practices.</p>
+                </div>
+            </div>
+            <div class="pt-4 text-center border-t">
+                <p class="font-semibold text-gray-700">Support Contact:</p>
+                <p class="text-sm text-gray-600">For questions or technical support, contact Jimmy Londo at 440-320-1989.</p>
+            </div>
+            <div class="text-center mt-6">
+                <button onclick="clearAllData()" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-700 transition-colors focus:focus-outline" aria-label="Clear all saved form data" aria-describedby="clear-data-warning">
+                    Clear All Saved Form Data
+                </button>
+                <div id="clear-data-warning" class="sr-only">
+                  This action will permanently delete all in-progress forms saved in your browser.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ==================== PREFERENCES SYSTEM ====================
+        const PREFS_KEY = 'wchc_user_preferences';
+
+        const defaultPreferences = {
+            fontSize: 16,
+            highContrast: false,
+            lineSpacing: 1.5
+        };
+
+        function loadPreferences() {
+            try {
+                const saved = localStorage.getItem(PREFS_KEY);
+                return saved ? { ...defaultPreferences, ...JSON.parse(saved) } : defaultPreferences;
+            } catch (e) {
+                console.error('Error loading preferences:', e);
+                return defaultPreferences;
+            }
+        }
+
+        function savePreferences(prefs) {
+            try {
+                localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+                showSaveIndicator();
+            } catch (e) {
+                console.error('Error saving preferences:', e);
+                alert('Could not save preferences. Browser storage may be full.');
+            }
+        }
+
+        function applyPreferences(prefs) {
+            // Font Size
+            document.documentElement.style.setProperty('--user-font-size', `${prefs.fontSize}px`);
+            
+            // High Contrast
+            if (prefs.highContrast) {
+                document.body.classList.add('high-contrast-mode');
+            } else {
+                document.body.classList.remove('high-contrast-mode');
+            }
+            
+            // Line Spacing
+            document.documentElement.style.setProperty('--user-line-height', prefs.lineSpacing);
+        }
+
+        function showSaveIndicator() {
+            // Remove existing indicator if present
+            const existing = document.getElementById('saveIndicator');
+            if (existing) existing.remove();
+            
+            const indicator = document.createElement('div');
+            indicator.id = 'saveIndicator';
+            indicator.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            indicator.textContent = '✓ Preferences saved';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => indicator.remove(), 500);
+            }, 2000);
+        }
+
+        function togglePreferences() {
+            const panel = document.getElementById('preferencesPanel');
+            const icon = document.getElementById('prefToggleIcon');
+            const button = panel.previousElementSibling;
+            
+            const isHidden = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden');
+            icon.textContent = isHidden ? '▲' : '▼';
+            button.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+        }
+
+        function resetPreferences() {
+            if (confirm('Reset all preferences to default values?')) {
+                savePreferences(defaultPreferences);
+                initializePreferencesUI();
+                applyPreferences(defaultPreferences);
+                alert('Preferences have been reset to defaults.');
+            }
+        }
+
+        function initializePreferencesUI() {
+            const prefs = loadPreferences();
+            
+            // Font Size
+            const fontSlider = document.getElementById('fontSizeSlider');
+            const fontValue = document.getElementById('fontSizeValue');
+            if (fontSlider) {
+                fontSlider.value = prefs.fontSize;
+                fontValue.textContent = `${prefs.fontSize}px`;
+                
+                fontSlider.addEventListener('input', (e) => {
+                    const size = parseInt(e.target.value);
+                    fontValue.textContent = `${size}px`;
+                    prefs.fontSize = size;
+                    savePreferences(prefs);
+                    applyPreferences(prefs);
+                });
+            }
+            
+            // High Contrast
+            const contrastToggle = document.getElementById('highContrastToggle');
+            if (contrastToggle) {
+                contrastToggle.checked = prefs.highContrast;
+                
+                contrastToggle.addEventListener('change', (e) => {
+                    prefs.highContrast = e.target.checked;
+                    savePreferences(prefs);
+                    applyPreferences(prefs);
+                });
+            }
+            
+            // Line Spacing
+            const lineSpacingSelect = document.getElementById('lineSpacingSelect');
+            if (lineSpacingSelect) {
+                lineSpacingSelect.value = prefs.lineSpacing;
+                
+                lineSpacingSelect.addEventListener('change', (e) => {
+                    prefs.lineSpacing = parseFloat(e.target.value);
+                    savePreferences(prefs);
+                    applyPreferences(prefs);
+                });
+            }
+            
+            // Apply on load
+            applyPreferences(prefs);
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Remove preload class to enable transitions
+            setTimeout(() => {
+                document.documentElement.classList.remove('preload');
+            }, 100);
+            
+            // Initialize preferences
+            initializePreferencesUI();
+            
+            // Setup search functionality
+            const performSearch = (searchTerm) => {
+                const allCards = document.querySelectorAll('.form-card');
+                allCards.forEach(card => {
+                    const title = card.querySelector('.form-title').textContent.toLowerCase();
+                    const description = card.querySelector('.form-description').textContent.toLowerCase();
+                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                const categories = document.querySelectorAll('#form-grid-container > section');
+                categories.forEach(category => {
+                    const visibleCards = Array.from(category.querySelectorAll('.form-card')).some(card => card.style.display !== 'none');
+                    if (!visibleCards) {
+                        category.style.display = 'none';
+                    } else {
+                        category.style.display = 'block';
+                    }
+                });
+            };
+
+            // Debounce function to improve performance
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const searchInput = document.getElementById('formSearch');
+            const searchInputMobile = document.getElementById('formSearchMobile');
+            const handleSearch = debounce((e) => performSearch(e.target.value.toLowerCase()), 150);
+
+            if (searchInput) searchInput.addEventListener('keyup', handleSearch);
+            if (searchInputMobile) searchInputMobile.addEventListener('keyup', handleSearch);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Ctrl+Alt+P = Toggle preferences
+                if (e.ctrlKey && e.altKey && e.key === 'p') {
+                    e.preventDefault();
+                    togglePreferences();
+                }
+            });
+        });
+
+        // Accessibility: Focus on main content after page load for skip navigation users
+        window.addEventListener('load', function() {
+            if (window.location.hash === '#main-content') {
+                const main = document.getElementById('main-content');
+                if (main) main.focus();
+            }
+        });
+
+        function clearAllData() {
+            if (confirm("Are you sure you want to delete ALL saved form data from this browser? This action cannot be undone.")) {
+                if (confirm("Please confirm again. All in-progress forms that have not been exported to a file will be permanently lost.")) {
+                    let itemsRemoved = 0;
+                    // Clear localStorage (but preserve preferences)
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('savedForm_')) {
+                            localStorage.removeItem(key);
+                            itemsRemoved++;
+                        }
+                    }
+                    // Clear sessionStorage as well
+                    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                        const key = sessionStorage.key(i);
+                        if (key.startsWith('savedForm_')) {
+                            sessionStorage.removeItem(key);
+                        }
+                    }
+                    alert(`${itemsRemoved} saved form(s) have been cleared from this browser's storage.`);
+                }
+            }
+        }
+
+        function toggleUpdates() {
+            const updatesDiv = document.getElementById('allUpdates');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const toggleBtn = document.getElementById('toggleUpdatesBtn');
+            
+            if (updatesDiv.style.display === 'none') {
+                updatesDiv.style.display = 'block';
+                toggleIcon.textContent = '▲';
+                toggleBtn.querySelector('span:last-child').textContent = 'Hide All Updates';
+            } else {
+                updatesDiv.style.display = 'none';
+                toggleIcon.textContent = '▼';
+                toggleBtn.querySelector('span:last-child').textContent = 'Show All Updates';
+            }
+        }
+    </script>
+</body>
+</html>
