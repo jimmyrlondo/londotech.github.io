@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Substance Use Disorder Assessment and ASAM Level of Care</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../images/goldlogo.png">
+    <meta name="description" content="Substance Use Disorder Assessment and ASAM Level of Care form for Watson Community Health Center. Save, export, and print legally binding clinical documents securely and accessibly.">
+    <meta property="og:title" content="Substance Use Disorder Assessment - Watson Community Health Center">
+    <meta property="og:description" content="Comprehensive SUD assessment form with save/export/print features for clinical use.">
+    <meta property="og:image" content="../images/goldlogo.png">
+    <meta property="og:type" content="website">
+    
+    <script>
+        // ==================== PREFERENCE LOADING (INLINE - RUNS BEFORE PAGE RENDERS) ====================
+        (function() {
+            try {
+                const prefs = JSON.parse(localStorage.getItem('wchc_user_preferences') || '{}');
+                
+                // Apply high contrast mode immediately
+                if (prefs.highContrast === true) {
+                    document.documentElement.classList.add('high-contrast-mode');
+                }
+                
+                // Apply font size (with 'px' units)
+                if (prefs.fontSize) {
+                    document.documentElement.style.fontSize = prefs.fontSize + 'px';
+                }
+                
+                // Apply line height
+                if (prefs.lineHeight) {
+                    document.documentElement.style.lineHeight = prefs.lineHeight;
+                }
+                
+                // Apply font family
+                if (prefs.fontFamily) {
+                    document.documentElement.style.fontFamily = prefs.fontFamily;
+                }
+            } catch (e) {
+                console.error('Could not load preferences:', e);
+            }
+        })();
+    </script>
+    
+    <style>
+        /* REMOVED font-family from body rule so preferences can override */
+        body { background-color: #f3f4f6; }
+        .signature-line { height: 2.5rem; border-bottom: 1px solid #4b5563; margin-top: 0.25rem; }
+        .form-container { max-width: 960px; margin: 2rem auto; padding: 2rem; background-color: #ffffff; border-radius: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .form-field-group { border-radius: 0.75rem; padding: 1.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; }
+        .form-label { font-weight: 600; color: #111827; margin-bottom: 0.5rem; display: block; }
+        .form-input, .form-textarea, .form-select { display: block; width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: #ffffff; transition: all 0.2s; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.5); }
+        .form-input:read-only { background-color: #f3f4f6; cursor: not-allowed; }
+        .form-button { display: inline-block; padding: 0.75rem 1.5rem; font-weight: 600; color: #ffffff; border-radius: 0.75rem; transition: all 0.2s; cursor: pointer; border: none; }
+        .form-button:hover, .form-button:focus { opacity: 0.9; outline: 2px solid #d3af37; outline-offset: 2px;}
+        .nav-link { display: block; padding: 0.5rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: #4b5563; background-color: #f3f4f6; transition: background-color 0.2s; }
+        .nav-link:hover, .nav-link:focus { background-color: #e5e7eb; outline: 2px solid #d3af37; outline-offset: 2px;}
+        .nav-container { position: fixed; top: 2rem; left: 2rem; width: 250px; z-index: 10; display: none; max-height: calc(100vh - 4rem); overflow-y: auto; padding-right: 8px;}
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 1.5rem; border-radius: 1rem; max-width: 600px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; }
+        .modal-body { overflow-y: auto; }
+        .modal-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 0.5rem; cursor: pointer; transition: background-color 0.2s; }
+        .modal-item:hover { background-color: #f3f4f6; }
+        .delete-btn { background-color: #ef4444; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; cursor: pointer; }
+        .delete-btn:hover { background-color: #dc2626; }
+        .asam-grid { display: grid; gap: 0.5rem; align-items: center; grid-template-columns: minmax(200px, 2fr) repeat(4, 1fr); }
+        .asam-grid > div { padding: 0.5rem; text-align: center; }
+        .asam-grid > div:first-child { text-align: left; font-weight: 500; }
+        .asam-header { font-weight: 600; font-size: 0.875rem; background-color: #f3f4f6; border-radius: 0.5rem; }
+        .sr-only { position: absolute!important; width: 1px!important; height: 1px!important; padding: 0!important; margin: -1px!important; overflow: hidden!important; clip: rect(0,0,0,0)!important; white-space: nowrap!important; border: 0!important; }
+        .focus\:not-sr-only:focus { position: static!important; width: auto!important; height: auto!important; margin: 0!important; overflow: visible!important; clip: auto!important; white-space: normal!important; }
+        @media print {
+          body { background-color: #fff !important; }
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          .form-container { box-shadow: none !important; margin: 0 !important; padding: 0.5in !important; border-radius: 0; }
+          .page-break { page-break-before: always; }
+        }
+        @media (min-width: 1024px) { .nav-container { display: block; } .form-container { margin-left: 280px; } }
+        
+        /* ==================== HIGH CONTRAST MODE ==================== */
+        .high-contrast-mode {
+            background-color: #000 !important;
+            color: #FFFF00 !important;
+        }
+
+        .high-contrast-mode body {
+            background-color: #000 !important;
+            color: #FFFF00 !important;
+        }
+
+        .high-contrast-mode .form-container {
+            background-color: #000 !important;
+            color: #FFFF00 !important;
+            border: 2px solid #FFFF00 !important;
+        }
+
+        .high-contrast-mode .form-field-group {
+            background-color: #000 !important;
+            border: 2px solid #FFFF00 !important;
+        }
+
+        .high-contrast-mode .form-label,
+        .high-contrast-mode h1,
+        .high-contrast-mode h2,
+        .high-contrast-mode h3,
+        .high-contrast-mode h4,
+        .high-contrast-mode label,
+        .high-contrast-mode p,
+        .high-contrast-mode span,
+        .high-contrast-mode strong,
+        .high-contrast-mode div,
+        .high-contrast-mode small {
+            color: #FFFF00 !important;
+        }
+
+        .high-contrast-mode .form-input,
+        .high-contrast-mode .form-textarea,
+        .high-contrast-mode .form-select {
+            background-color: #000 !important;
+            color: #FFFF00 !important;
+            border: 2px solid #FFFF00 !important;
+        }
+
+        .high-contrast-mode .form-input::placeholder,
+        .high-contrast-mode .form-textarea::placeholder {
+            color: #AAAA00 !important;
+            opacity: 1;
+        }
+
+        .high-contrast-mode .form-button {
+            background-color: #FFFF00 !important;
+            color: #000 !important;
+            border: 2px solid #FFFF00 !important;
+        }
+
+        .high-contrast-mode .nav-link {
+            background-color: #000 !important;
+            color: #FFFF00 !important;
+            border: 1px solid #FFFF00 !important;
+        }
+
+        .high-contrast-mode .modal-content {
+            background-color: #000 !important;
+            color: #FFFF00 !important;
+            border: 2px solid #FFFF00 !important;
+        }
+
+        .high-contrast-mode .modal-item {
+            background-color: #000 !important;
+            border: 1px solid #FFFF00 !important;
+            color: #FFFF00 !important;
+        }
+
+        .high-contrast-mode .delete-btn {
+            background-color: #FF0000 !important;
+            color: #FFFF00 !important;
+        }
+
+        /* Fix for gray text */
+        .high-contrast-mode .text-sm,
+        .high-contrast-mode .text-xs,
+        .high-contrast-mode .text-gray-600,
+        .high-contrast-mode .text-gray-500,
+        .high-contrast-mode .text-gray-800,
+        .high-contrast-mode .text-gray-700,
+        .high-contrast-mode .text-gray-900 {
+            color: #FFFF00 !important;
+        }
+
+        /* Fix radio/checkbox labels */
+        .high-contrast-mode input[type="radio"] + span,
+        .high-contrast-mode input[type="checkbox"] + span {
+            color: #FFFF00 !important;
+        }
+
+        /* Make checkboxes/radios visible */
+        .high-contrast-mode input[type="checkbox"],
+        .high-contrast-mode input[type="radio"] {
+            border: 2px solid #FFFF00 !important;
+            background-color: #000 !important;
+            accent-color: #FFFF00 !important;
+        }
+
+        /* Fix date inputs */
+        .high-contrast-mode input[type="date"],
+        .high-contrast-mode input[type="number"] {
+            color-scheme: dark;
+        }
+
+        /* Fix readonly/disabled inputs */
+        .high-contrast-mode .form-input:read-only,
+        .high-contrast-mode .form-input:disabled,
+        .high-contrast-mode .bg-gray-100,
+        .high-contrast-mode .bg-gray-200 {
+            background-color: #000 !important;
+            border: 2px solid #FFFF00 !important;
+        }
+
+        /* Fix grid layouts */
+        .high-contrast-mode .grid div,
+        .high-contrast-mode .asam-grid div {
+            color: #FFFF00 !important;
+        }
+
+        /* Fix border colors */
+        .high-contrast-mode .border,
+        .high-contrast-mode .border-t,
+        .high-contrast-mode .border-b,
+        .high-contrast-mode .border-gray-300,
+        .high-contrast-mode .border-b {
+            border-color: #FFFF00 !important;
+        }
+
+        /* Fix ASAM grid headers */
+        .high-contrast-mode .asam-header {
+            background-color: #000 !important;
+            border: 1px solid #FFFF00 !important;
+        }
+
+        /* Fix substance use section cards */
+        .high-contrast-mode .bg-white {
+            background-color: #000 !important;
+        }
+
+        /* Fix rounded borders */
+        .high-contrast-mode .rounded-lg,
+        .high-contrast-mode .rounded {
+            border: 1px solid #FFFF00 !important;
+        }
+    </style>
+    <script>window.WATSON_AUTH_CONFIG={mode:'protect',loginPath:'../index.html'};</script>
+    <script src="../js/auth-gate.js"></script>
+</head>
+<body>
+    <!-- Accessibility: skip to content link for screen readers -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-yellow-200 p-2 rounded z-50">Skip to main content</a>
+    <!-- Sidebar Navigation with ARIA -->
+    <div class="nav-container" role="navigation" aria-label="Form Section Navigation">
+        <a href="../app.html" class="nav-link font-bold text-blue-600 hover:bg-blue-100 mb-4" tabindex="0">← Forms Home</a>
+        <h3 class="font-bold text-gray-900 mb-2">Form Sections</h3>
+        <nav id="form-nav" aria-label="Section links"></nav>
+    </div>
+    <div id="main-content" class="form-container" role="main" tabindex="-1">
+        <h1 class="text-3xl font-bold text-center text-gray-900 mb-2">Watson Community Health Centre</h1>
+        <h2 class="text-xl font-medium text-center text-gray-600 mb-8">Substance Use Disorder Assessment and ASAM Level of Care</h2>
+                <form id="sudaForm" onsubmit="return false;" aria-label="Substance Use Disorder Assessment Form">
+            <input type="hidden" id="formId" value="suda-v1">
+
+            <!-- --- Demographic & Referral Source Section --- -->
+            <div id="section-demographics" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Demographic & Referral Source</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" id="date" name="date" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="recordNumber" class="form-label">Record # (last four digits of SS#)</label>
+                            <input type="text" id="recordNumber" name="recordNumber" class="form-input" placeholder="8899" pattern="\d{4}" maxlength="4" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="clientName" class="form-label">Client Name</label>
+                            <input type="text" id="clientName" name="clientName" class="form-input" placeholder="Last, First, MI" required>
+                        </div>
+                        <div>
+                            <label for="dob" class="form-label">DOB</label>
+                            <input type="date" id="dob" name="dob" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" id="age" name="age" class="form-input" readonly>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="form-label">Legal Guardian</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="legalGuardian" value="No" checked onchange="toggleDetails(this, 'legalGuardianFields', false)"> No</label>
+                                <label><input type="radio" name="legalGuardian" value="Yes" onchange="toggleDetails(this, 'legalGuardianFields', true)"> Yes</label>
+                            </div>
+                        </div>
+                        <div id="legalGuardianFields" class="md:col-span-2 hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="guardianName" class="form-label">Name</label>
+                                    <input type="text" id="guardianName" name="guardianName" class="form-input">
+                                </div>
+                                <div>
+                                    <label for="guardianPhone" class="form-label">Phone</label>
+                                    <input type="tel" id="guardianPhone" name="guardianPhone" class="form-input" placeholder="(555) 555-5555">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-6 border-gray-300">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="raceEthnicity" class="form-label">Race or Ethnicity</label>
+                            <select id="raceEthnicity" name="raceEthnicity" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+                                <option value="Asian">Asian</option>
+                                <option value="Black or African American">Black or African American</option>
+                                <option value="Hispanic or Latino">Hispanic or Latino</option>
+                                <option value="Native Hawaiian or Other Pacific Islander">Native Hawaiian or Other Pacific Islander</option>
+                                <option value="White">White</option>
+                                <option value="Two or More Races">Two or More Races</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="gender" class="form-label">Gender (per insurance carrier)</label>
+                            <select id="gender" name="gender" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Non-binary">Non-binary</option>
+                                <option value="Transgender Male">Transgender Male</option>
+                                <option value="Transgender Female">Transgender Female</option>
+                                <option value="Gender non-conforming">Gender non-conforming</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="sexualOrientation" class="form-label">Sexual/Romantic Orientation</label>
+                            <input type="text" id="sexualOrientation" name="sexualOrientation" class="form-input">
+                        </div>
+                        <div>
+                            <label for="preferredPronoun" class="form-label">Preferred pronoun</label>
+                            <select id="preferredPronoun" name="preferredPronoun" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="He/Him/His">He/Him/His</option>
+                                <option value="She/Her/Hers">She/Her/Hers</option>
+                                <option value="They/Them/Theirs">They/Them/Theirs</option>
+                                <option value="Ze/Zir/Zirs">Ze/Zir/Zirs</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="orientation_additional_info" class="form-label">Additional Information (Orientation)</label>
+                            <textarea id="orientation_additional_info" name="orientation_additional_info" class="form-textarea h-20"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="maritalStatus" class="form-label">Marital Status</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-x-4 gap-y-2">
+                                <label><input type="checkbox" name="maritalStatus[]" value="Single/Never Married"> Single/Never Married</label>
+                                <label><input type="checkbox" name="maritalStatus[]" value="Married"> Married</label>
+                                <label><input type="checkbox" name="maritalStatus[]" value="Partnership/Living Together"> Partnership</label>
+                                <label><input type="checkbox" name="maritalStatus[]" value="Divorced"> Divorced</label>
+                                <label><input type="checkbox" name="maritalStatus[]" value="Separated"> Separated</label>
+                                <label><input type="checkbox" name="maritalStatus[]" value="Widowed"> Widowed</label>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="marital_additional_info" class="form-label">Additional Information (Marital Status)</label>
+                            <textarea id="marital_additional_info" name="marital_additional_info" class="form-textarea h-20"></textarea>
+                        </div>
+                    </div>
+                    <hr class="my-6 border-gray-300">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" id="address" name="address" class="form-input" placeholder="Street, City, State, Zip">
+                        </div>
+                        <div>
+                            <label for="clientPhone" class="form-label">Phone</label>
+                            <input type="tel" id="clientPhone" name="clientPhone" class="form-input" placeholder="(555) 555-5555">
+                        </div>
+                        <div class="flex items-end">
+                            <label class="flex items-center"><input type="checkbox" id="noEmergencyContact" name="noEmergencyContact" class="h-4 w-4" onchange="toggleEmergencyContact()"> <span class="ml-2 text-sm text-gray-600">No emergency contact reported</span></label>
+                        </div>
+                        <div>
+                            <label for="emergencyName" class="form-label">Emergency Contact Name</label>
+                            <input type="text" id="emergencyName" name="emergencyName" class="form-input">
+                        </div>
+                        <div>
+                            <label for="emergencyRelationship" class="form-label">Relationship</label>
+                            <input type="text" id="emergencyRelationship" name="emergencyRelationship" class="form-input">
+                        </div>
+                        <div>
+                            <label for="emergencyPhone" class="form-label">Phone</label>
+                            <input type="tel" id="emergencyPhone" name="emergencyPhone" class="form-input" placeholder="(555) 555-5555">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="form-label">Referral Source (forensic, hospital, other)</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="referralSource" value="Self" checked onchange="toggleDetails(this, 'referralSourceOther', false)"> Self</label>
+                                <label><input type="radio" name="referralSource" value="Other" onchange="toggleDetails(this, 'referralSourceOther', true)"> Other:</label>
+                                <input type="text" id="referralSourceOther" name="referralSourceOther" class="form-input hidden flex-grow" placeholder="Please specify">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- --- Presenting Problem Section --- -->
+            <div id="section-presenting-problem" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Presenting Problem</h3>
+                    <div class="mb-6">
+                        <label for="presentingProblem" class="form-label">What led you to come in here today?</label>
+                        <textarea id="presentingProblem" name="presentingProblem" class="form-textarea h-32"></textarea>
+                    </div>
+                    <div class="mb-6">
+                        <label for="treatmentHope" class="form-label">What does client hope to get from treatment?</label>
+                        <textarea id="treatmentHope" name="treatmentHope" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mb-6">
+                        <label for="severity" class="form-label">How severe on a scale of 1-10? <span id="severityValue" class="font-bold ml-2">5</span></label>
+                        <input type="range" id="severity" name="severity" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label for="presenting_problem_additional_info" class="form-label">Additional Information</label>
+                        <textarea id="presenting_problem_additional_info" name="presenting_problem_additional_info" class="form-textarea h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --- DE History Section --- -->
+            <div id="section-de-history" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">DE History from previous mental health providers:</h3>
+                    <div class="grid grid-cols-2 gap-4 font-semibold text-sm">
+                        <div>Diagnosis (DSM 5 / ICD 10)</div>
+                        <div>Date</div>
+                    </div>
+                    <div id="diagnosis-history-grid" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- --- Employment Section --- -->
+            <div id="section-employment" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Employment</h3>
+                    <div class="mb-4">
+                        <label class="form-label">Employment Status:</label>
+                        <div class="flex flex-wrap gap-x-4 gap-y-2">
+                            <label><input type="radio" name="employment_status" value="Full-time" onchange="handleEmploymentStatusChange()"> Full-time</label>
+                            <label><input type="radio" name="employment_status" value="Part-time" onchange="handleEmploymentStatusChange()"> Part-time</label>
+                            <label><input type="radio" name="employment_status" value="Unemployed" onchange="handleEmploymentStatusChange()"> Unemployed</label>
+                            <label><input type="radio" name="employment_status" value="Retired" onchange="handleEmploymentStatusChange()"> Retired</label>
+                        </div>
+                    </div>
+                    <div id="employedFields" class="hidden space-y-4">
+                        <div>
+                            <label for="job_details" class="form-label">Where/what?</label>
+                            <input type="text" id="job_details" name="job_details" class="form-input">
+                        </div>
+                    </div>
+                    <div id="unemployedRetiredFields" class="hidden space-y-4">
+                        <div>
+                            <label for="unemployed_retired_duration" class="form-label">How long?</label>
+                            <input type="text" id="unemployed_retired_duration" name="unemployed_retired_duration" class="form-input">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div>
+                            <label for="last_job_duration" class="form-label">How long did your last job last?</label>
+                            <input type="text" id="last_job_duration" name="last_job_duration" class="form-input">
+                        </div>
+                        <div>
+                            <label for="last_job_end_date" class="form-label">When did your last job end?</label>
+                            <input type="text" id="last_job_end_date" name="last_job_end_date" class="form-input">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="seeking_employment" class="form-label">Are you currently seeking employment? (please explain)</label>
+                        <textarea id="seeking_employment" name="seeking_employment" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label class="form-label">Disabled/Receiving:</label>
+                        <div class="flex flex-wrap gap-x-4 gap-y-2">
+                            <label><input type="checkbox" name="disability_status[]" value="SSI"> SSI</label>
+                            <label><input type="checkbox" name="disability_status[]" value="SSDI"> SSDI</label>
+                            <label><input type="checkbox" name="disability_status[]" value="SSA"> SSA</label>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="disabled_since" class="form-label">Since when?</label>
+                        <input type="text" id="disabled_since" name="disabled_since" class="form-input" placeholder="e.g., Month/Year">
+                    </div>
+                    <div class="mt-4">
+                        <label for="employment_concerns" class="form-label">Any employment/financial concerns?</label>
+                        <textarea id="employment_concerns" name="employment_concerns" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="employment_additional_info" class="form-label">Additional information:</label>
+                        <textarea id="employment_additional_info" name="employment_additional_info" class="form-textarea h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --- Medications Section --- -->
+            <div id="section-medications" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Medications</h3>
+                    <div class="mb-4">
+                        <label class="flex items-center"><input type="checkbox" name="no_medication"> <span class="ml-2">Client is currently not taking prescribed medication</span></label>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-sm font-semibold mb-2">
+                        <div>Current Medication</div>
+                        <div>Dosage/Frequency</div>
+                        <div>Prescribed by</div>
+                        <div>Reason for Medication</div>
+                    </div>
+                    <div id="medication-grid" class="space-y-1"></div>
+                    <div class="space-y-4 mt-6">
+                        <label for="med_effectiveness" class="form-label">Effectiveness of medications:</label>
+                        <textarea id="med_effectiveness" name="med_effectiveness" class="form-textarea h-20"></textarea>
+                        <label for="med_side_effects" class="form-label">Side effects to current medications:</label>
+                        <textarea id="med_side_effects" name="med_side_effects" class="form-textarea h-20"></textarea>
+                        <label for="previous_meds" class="form-label">Previous medications?</label>
+                        <textarea id="previous_meds" name="previous_meds" class="form-textarea h-20"></textarea>
+                        <label for="allergies" class="form-label">Allergic to medications or other allergies? Reactions?</label>
+                        <textarea id="allergies" name="allergies" class="form-textarea h-20"></textarea>
+                        <label for="meds_additional_info" class="form-label">Additional Information:</label>
+                        <textarea id="meds_additional_info" name="meds_additional_info" class="form-textarea h-20"></textarea>
+                    </div>
+                    <hr class="my-6 border-gray-300">
+                    <h4 class="text-md font-semibold text-gray-800 mb-4">Are you currently taking/using the following?</h4>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                            <label>Vitamins/supplements</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="vitamins" value="No" checked onchange="toggleDetails(this, 'vitamins_what', false)"> No</label>
+                                <label><input type="radio" name="vitamins" value="Yes" onchange="toggleDetails(this, 'vitamins_what', true)"> Yes:</label>
+                            </div>
+                            <input type="text" id="vitamins_what" name="vitamins_what" class="form-input hidden" placeholder="What?">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                            <label>OTC Meds</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="otc" value="No" checked onchange="toggleDetails(this, 'otc_what', false)"> No</label>
+                                <label><input type="radio" name="otc" value="Yes" onchange="toggleDetails(this, 'otc_what', true)"> Yes:</label>
+                            </div>
+                            <input type="text" id="otc_what" name="otc_what" class="form-input hidden" placeholder="What?">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                            <label>Tobacco</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tobacco" value="No" checked onchange="toggleDetails(this, 'tobacco_what', false)"> No</label>
+                                <label><input type="radio" name="tobacco" value="Yes" onchange="toggleDetails(this, 'tobacco_what', true)"> Yes:</label>
+                            </div>
+                            <input type="text" id="tobacco_what" name="tobacco_what" class="form-input hidden" placeholder="How much per day?">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                            <label>Caffeine</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="caffeine" value="No" checked onchange="toggleDetails(this, 'caffeine_what', false)"> No</label>
+                                <label><input type="radio" name="caffeine" value="Yes" onchange="toggleDetails(this, 'caffeine_what', true)"> Yes:</label>
+                            </div>
+                            <input type="text" id="caffeine_what" name="caffeine_what" class="form-input hidden" placeholder="How much per day?">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                            <label>Birth Control (for females)</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="birthControl" value="No" checked onchange="toggleDetails(this, 'birthControl_what', false)"> No</label>
+                                <label><input type="radio" name="birthControl" value="Yes" onchange="toggleDetails(this, 'birthControl_what', true)"> Yes:</label>
+                            </div>
+                            <input type="text" id="birthControl_what" name="birthControl_what" class="form-input hidden" placeholder="What?">
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label for="taking_additional_info" class="form-label">Additional Information:</label>
+                        <textarea id="taking_additional_info" name="taking_additional_info" class="form-textarea h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+            <!-- --- Legal Section --- -->
+            <div id="section-legal" class="mb-6"><div class="form-field-group"><h3 class="text-lg font-semibold text-gray-900 mb-4">Legal System Involvement (Criminal/Civic/Domestic/Juvenile/CFS)</h3><div class="mb-4"><label class="form-label">Is client currently involved in the legal system?</label><div class="flex items-center space-x-4"><label><input type="radio" name="legal_current" value="No" checked> No</label><label><input type="radio" name="legal_current" value="Yes"> Yes</label></div></div><div class="mb-4"><label class="form-label">Current legal status:</label><div class="flex flex-wrap gap-x-4 gap-y-2"><label><input type="checkbox" name="legal_status[]" value="On probation"> On probation</label><label><input type="checkbox" name="legal_status[]" value="On parole"> On parole</label><label><input type="checkbox" name="legal_status[]" value="Diversion program"> Diversion program</label><label><input type="checkbox" name="legal_status[]" value="Pending charges"> Pending charges</label></div></div><div class="mb-4"><label class="form-label">If yes, select:</label><div class="flex flex-wrap gap-x-4 gap-y-2"><label><input type="checkbox" name="legal_type[]" value="Status offense"> Status offense</label><label><input type="checkbox" name="legal_type[]" value="Delinquency"> Delinquency</label><label><input type="checkbox" name="legal_type[]" value="Misdemeanor"> Misdemeanor</label><label><input type="checkbox" name="legal_type[]" value="Felony"> Felony</label></div></div><div class="mb-4"><label class="form-label">Has the client ever been involved in the legal system?</label><div class="flex items-center space-x-4"><label><input type="radio" name="legal_history" value="No" checked> No history</label><label><input type="radio" name="legal_history" value="Yes"> Yes</label></div></div><div class="mb-4"><label for="legal_charges_desc" class="form-label">Describe past legal charges:</label><textarea id="legal_charges_desc" name="legal_charges_desc" class="form-textarea h-24"></textarea></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4"><div><label class="form-label">Do you agree with charge(s)?</label><div class="flex items-center space-x-4"><label><input type="radio" name="agree_charges" value="Yes"> Yes</label><label><input type="radio" name="agree_charges" value="No"> No</label></div></div><div><label class="form-label">Court ordered to treatment?</label><div class="flex items-center space-x-4"><label><input type="radio" name="court_ordered" value="Yes"> Yes</label><label><input type="radio" name="court_ordered" value="No"> No</label></div></div></div><div class="mb-4"><label for="legal_additional_info_1" class="form-label">Additional information:</label><textarea id="legal_additional_info_1" name="legal_additional_info_1" class="form-textarea h-24"></textarea></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4"><div><label for="po_name" class="form-label">Probation/Parole Officer:</label><input type="text" id="po_name" name="po_name" class="form-input"></div><div><label for="po_number" class="form-label">Number:</label><input type="text" id="po_number" name="po_number" class="form-input"></div></div><div class="mb-4"><label class="form-label">Juvenile Court involvement:</label><div class="flex items-center space-x-4"><label><input type="radio" name="juvenile_court" value="Not reported" checked> Not reported</label><label><input type="radio" name="juvenile_court" value="Yes"> Yes</label></div><textarea name="juvenile_court_comments" class="form-textarea mt-2" placeholder="If yes, comments:"></textarea></div><div class="mb-4"><label class="form-label">Is Children’s Protective Services involved?</label><div class="flex items-center space-x-4"><label><input type="radio" name="cps_involved" value="Not reported" checked> Not reported</label><label><input type="radio" name="cps_involved" value="Yes"> Yes</label></div><div class="mt-2 space-y-2"><input type="text" name="cps_intake" class="form-input" placeholder="Intake"><div class="flex flex-wrap gap-x-4 gap-y-2"><label><input type="checkbox" name="cps_status[]" value="Custody"> Custody</label><label><input type="checkbox" name="cps_status[]" value="Protective supervision"> Protective supervision</label><label><input type="checkbox" name="cps_status[]" value="Ongoing worker"> Ongoing worker</label></div></div><label for="legal_additional_info_2" class="form-label mt-2">Additional information:</label><textarea id="legal_additional_info_2" name="legal_additional_info_2" class="form-textarea h-24"></textarea></div><div><label class="form-label">Domestic Relations Court Involvement:</label><div class="flex items-center space-x-4"><label><input type="radio" name="domestic_court" value="Not reported" checked> Not reported</label><label><input type="radio" name="domestic_court" value="Yes"> Yes</label></div><div class="mt-2 flex flex-wrap gap-x-4 gap-y-2"><label><input type="checkbox" name="domestic_status[]" value="Custody"> Custody</label><label><input type="checkbox" name="domestic_status[]" value="Protective orders"> Protective orders</label><label><input type="checkbox" name="domestic_status[]" value="Restraining orders"> Restraining orders</label></div><label for="legal_additional_info_3" class="form-label mt-2">Additional information:</label><textarea id="legal_additional_info_3" name="legal_additional_info_3" class="form-textarea h-24"></textarea></div></div></div>
+
+            <!-- --- Substance Use History Section --- -->
+            <div id="section-substance-use" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Substance Use History</h3>
+                    <p class="text-sm text-gray-600 mb-4">Severity Levels = Presence of the # of DSM criteria symptoms Mild = 2–3, Moderate = 4-5, Severe = 6 or more symptoms</p>
+                    <div id="substance-use-container"></div>
+                </div>
+            </div>
+
+            <!-- --- CAGE Questions & Treatment History Section --- -->
+            <div id="section-cage-treatment" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">CAGE Questions & Treatment History</h3>
+                    <h4 class="text-md font-semibold text-gray-800 mb-4">CAGE Questions (ALCOHOL)</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <p>Have you ever felt you should cut down on your drinking/drug use?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_cutdown" value="No"> No</label>
+                                <label><input type="radio" name="cage_cutdown" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p>Have people annoyed you by criticizing your drinking/drug use?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_annoyed" value="No"> No</label>
+                                <label><input type="radio" name="cage_annoyed" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p>Have you ever felt bad/guilty about your drug use?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_guilty" value="No"> No</label>
+                                <label><input type="radio" name="cage_guilty" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p>Have you ever had to drink/used drugs first thing in the morning to steady your nerves or help you to feel better?</p>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="cage_eyeopener" value="No"> No</label>
+                                <label><input type="radio" name="cage_eyeopener" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-6 border-gray-300">
+                    <h4 class="text-md font-semibold text-gray-800 mb-4">DRUG AND ALCOHOL TREATMENT HISTORY</h4>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-4 gap-4 items-center">
+                            <label>Treatment History</label>
+                            <label></label>
+                            <label>Where</label>
+                            <label>When</label>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 items-center">
+                            <label>Outpatient</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_outpatient" value="No"> No</label>
+                                <label><input type="radio" name="tx_outpatient" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_outpatient_where" class="form-input">
+                            <input type="text" name="tx_outpatient_when" class="form-input">
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 items-center">
+                            <label>Inpatient</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_inpatient" value="No"> No</label>
+                                <label><input type="radio" name="tx_inpatient" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_inpatient_where" class="form-input">
+                            <input type="text" name="tx_inpatient_when" class="form-input">
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 items-center">
+                            <label>Detox unit</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_detox" value="No"> No</label>
+                                <label><input type="radio" name="tx_detox" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_detox_where" class="form-input">
+                            <input type="text" name="tx_detox_when" class="form-input">
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 items-center">
+                            <label>AA/NA/CA, etc.</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="tx_selfhelp" value="No"> No</label>
+                                <label><input type="radio" name="tx_selfhelp" value="Yes"> Yes</label>
+                            </div>
+                            <input type="text" name="tx_selfhelp_where" class="form-input">
+                            <input type="text" name="tx_selfhelp_when" class="form-input">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="form-label">Do you have a sponsor?</label>
+                        <div class="flex items-center space-x-4">
+                            <label><input type="radio" name="sponsor" value="No" checked> No</label>
+                            <label><input type="radio" name="sponsor" value="Yes"> Yes, Name/Phone:</label>
+                            <input type="text" name="sponsor_name_phone" class="form-input">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="tx_additional_info" class="form-label">Additional information:</label>
+                        <textarea id="tx_additional_info" name="tx_additional_info" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="client_insight" class="form-label">Client insight to SU issues: (how do you feel about your substance use? – get quote)</label>
+                        <textarea id="client_insight" name="client_insight" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="insight_additional_info" class="form-label">Additional information:</label>
+                        <textarea id="insight_additional_info" name="insight_additional_info" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label class="form-label">Clinical focus based on observation of client’s insight level: (choose one):</label>
+                        <div class="flex flex-col space-y-2">
+                            <label><input type="radio" name="clinical_focus" value="No history"> No history of drug or alcohol use</label>
+                            <label><input type="radio" name="clinical_focus" value="Engagement"> Engagement (Client unaware of any problem)</label>
+                            <label><input type="radio" name="clinical_focus" value="Persuasion"> Persuasion (Client thinks may have problem)</label>
+                            <label><input type="radio" name="clinical_focus" value="Active treatment"> Active treatment (Client recognizes has a problem)</label>
+                            <label><input type="radio" name="clinical_focus" value="Relapse prevention"> Relapse prevention (Client focuses on sober strategies)</label>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="family_alcohol_use" class="form-label">Who in your family uses alcohol? (past or present)</label>
+                        <textarea id="family_alcohol_use" name="family_alcohol_use" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="family_drug_use" class="form-label">Who in your family uses drugs? Which ones? (past or present)</label>
+                        <textarea id="family_drug_use" name="family_drug_use" class="form-textarea h-24"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="family_su_additional_info" class="form-label">Additional Information:</label>
+                        <textarea id="family_su_additional_info" name="family_su_additional_info" class="form-textarea h-24"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --- MSE Section --- -->
+            <div id="section-mse" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Mental Status Exam (MSE)</h3>
+                    <div id="mse-container"></div>
+                </div>
+            </div>
+
+            <!-- --- Narrative Summary Section --- -->
+            <div id="section-narrative" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Narrative Summary</h3>
+                    <label for="narrative_summary" class="form-label">Narrative Summary of all of the above:</label>
+                    <textarea id="narrative_summary" name="narrative_summary" class="form-textarea h-64"></textarea>
+                </div>
+            </div>
+
+            <!-- --- New Diagnosis Section --- -->
+            <div id="section-new-diagnosis" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">New Diagnosis</h3>
+                    <label class="flex items-center"><input type="checkbox" name="de_update_recommended" value="true" class="h-4 w-4"><span class="ml-2">Diagnostic Evaluation Update Recommended</span></label>
+                    <label for="new_diagnosis_notes" class="form-label mt-4">New/Additional DSM Substance Use Diagnosis</label>
+                    <textarea id="new_diagnosis_notes" name="new_diagnosis_notes" class="form-textarea h-32"></textarea>
+                </div>
+            </div>
+
+            <!-- --- ASAM Level of Care Section --- -->
+            <div id="section-asam" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">ASAM Level of Care</h3>
+                    <div id="asam-grid-container" class="overflow-x-auto">
+                        <div class="asam-grid">
+                            <div class="asam-header">ASAM Level</div>
+                            <div class="asam-header">Level 1</div>
+                            <div class="asam-header">Level 2.1</div>
+                            <div class="asam-header">Level 3.1</div>
+                            <div class="asam-header">Level 3.5</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --- ASAM Recommendation Section --- -->
+            <div id="section-asam-recommendation" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">ASAM Level of Care Recommendation</h3>
+                    <div class="flex flex-wrap gap-x-6 gap-y-2">
+                        <label><input type="radio" name="asam_recommendation" value="1"> Level 1 Outpatient</label>
+                        <label><input type="radio" name="asam_recommendation" value="2.1"> Level 2.1 Intensive Outpatient</label>
+                        <label><input type="radio" name="asam_recommendation" value="3.1"> Level 3.1 Intensive Outpatient w/Residential Support</label>
+                        <label><input type="radio" name="asam_recommendation" value="3.5"> Level 3.5 Non-Medical Community Residential</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --- Treatment Recommendations Section --- -->
+            <div id="section-treatment-recs" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Treatment Recommendations</h3>
+                    <div class="flex flex-col space-y-2">
+                        <label><input type="checkbox" name="treatment_recs[]" value="Individual Psychotherapy"> Individual Psychotherapy</label>
+                        <label><input type="checkbox" name="treatment_recs[]" value="Group Psychotherapy"> Group Psychotherapy</label>
+                        <label><input type="checkbox" name="treatment_recs[]" value="Pharmacological Management"> Pharmacological Management</label>
+                        <label><input type="checkbox" name="treatment_recs[]" value="Psychosocial Service Rehabilitation"> Psychosocial Service Rehabilitation</label>
+                    </div>
+                    <label for="treatment_recs_additional_info" class="form-label mt-4">Additional Information:</label>
+                    <textarea id="treatment_recs_additional_info" name="treatment_recs_additional_info" class="form-textarea h-32"></textarea>
+                </div>
+            </div>
+
+            <!-- --- Signatures Section --- -->
+            <div id="section-signatures" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Assessment Completed By</h3>
+                    <div class="mb-4">
+                        <label class="form-label">Client appears to be reliable self-reporter:</label>
+                        <div class="flex items-center space-x-4">
+                            <label><input type="radio" name="reliable_reporter" value="Yes" checked onchange="toggleDetails(this, 'reliable_reporter_rationale_div', false)"> Yes</label>
+                            <label><input type="radio" name="reliable_reporter" value="No" onchange="toggleDetails(this, 'reliable_reporter_rationale_div', true)"> No, Rationale:</label>
+                        </div>
+                        <div id="reliable_reporter_rationale_div" class="hidden mt-2"><textarea name="reliable_reporter_rationale" class="form-textarea h-20"></textarea></div>
+                    </div>
+                    <div class="space-y-6 mt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div><label class="form-label text-sm">Clinician Signature</label><div class="signature-line"></div></div>
+                            <div><label for="clinicianPrintedName" class="form-label text-sm">Clinician Printed Name (with credentials)</label><input type="text" id="clinicianPrintedName" name="clinicianPrintedName" class="form-input"></div>
+                            <div><label for="clinicianDate" class="form-label text-sm">Date</label><input type="date" id="clinicianDate" name="clinicianDate" class="form-input"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div><label class="form-label text-sm">Supervisor Signature</label><div class="signature-line"></div></div>
+                            <div><label for="supervisorPrintedName" class="form-label text-sm">Supervisor Printed Name (if applicable, with credentials)</label><input type="text" id="supervisorPrintedName" name="supervisorPrintedName" class="form-input"></div>
+                            <div><label for="supervisorDate" class="form-label text-sm">Date</label><input type="date" id="supervisorDate" name="supervisorDate" class="form-input"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-field-group bg-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">For Office Use Only</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div><label for="footer_client_name" class="form-label">Clients Name:</label><input type="text" id="footer_client_name" name="footer_client_name" class="form-input bg-gray-100" readonly></div>
+                    <div><label for="footer_dob" class="form-label">DOB:</label><input type="date" id="footer_dob" name="footer_dob" class="form-input bg-gray-100" readonly></div>
+                    <div><label for="footer_mrm" class="form-label">MRN:</label><input type="text" id="footer_mrm" name="footer_mrm" class="form-input bg-gray-100" readonly></div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Modal for loading saved forms -->
+        <div id="loadModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Load Saved SUDA Data">
+            <div class="modal-content">
+                <h3 class="text-lg font-bold mb-4">Load Saved SUDA Data</h3>
+                <input type="search" id="modalSearch" placeholder="Search by client name..." onkeyup="filterModalItems()" class="w-full p-2 mb-4 border border-gray-300 rounded-md" aria-label="Search saved clients">
+                <div id="savedFormsList" class="modal-body"></div>
+                <div class="mt-4 text-right">
+                    <button onclick="closeModal()" class="form-button bg-gray-500 hover:bg-gray-600">Cancel</button>
+                </div>
+            </div>
+        </div>
+        <div class="button-container mt-8 flex flex-col items-center gap-4 no-print" aria-label="Form Actions">
+            <div class="flex flex-wrap justify-center gap-4">
+                <button type="button" onclick="displaySavedForms()" class="form-button bg-yellow-500 hover:bg-yellow-600 text-black">Load Saved Data</button>
+                <button type="button" onclick="saveToLocalStorage()" class="form-button bg-green-600 hover:bg-green-700">Save Progress</button>
+                <button type="button" onclick="printForm()" class="form-button bg-blue-600 hover:bg-blue-700">Print Summary</button>
+            </div>
+            <div class="flex flex-wrap justify-center gap-4">
+                <input type="file" id="importFile" onchange="importData(event)" accept=".json" style="display: none;">
+                <button type="button" onclick="document.getElementById('importFile').click()" class="form-button bg-gray-600 hover:bg-gray-700">Import from File</button>
+                <button type="button" onclick="exportData()" class="form-button bg-gray-600 hover:bg-gray-700">Export to File</button>
+            </div>
+            <div>
+                <button type="button" onclick="clearForm()" class="form-button bg-red-600 hover:bg-red-700">Clear Form</button>
+            </div>
+        </div>
+    </div>
+   <script>
+    // --- CONFIGURATION ---
+    const FORM_ID = 'suda-v1';
+    const FORM_NAME_PRINT = 'Substance Use Disorder Assessment';
+    const FORM_ELEMENT_ID = 'sudaForm';
+
+ // --- PRINT FUNCTION (Updated with Full ASAM Grid) ---
+    function printForm() {
+        const data = getFormData();
+        const getValue = (key, fallback = '') => data[key] ? (String(data[key]).trim()) : fallback;
+        const getChecked = key => Array.isArray(data[key]) ? data[key] : (data[key] ? [data[key]] : []);
+        const formatDate = (d) => { if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return ''; const [y,m,dy] = d.split('-'); return `${m}/${dy}/${y}`; };
+        const createField = (label, value) => `<div class="field"><span class="label">${label}</span><div class="value">${value || '&nbsp;'}</div></div>`;
+        const createFieldLong = (label, value) => `<div class="field full-width"><span class="label">${label}</span><div class="value value-long">${value || '&nbsp;'}</div></div>`;
+
+        let mainContent = '';
+
+        // --- Section Builder Functions ---
+        const buildDemographics = () => {
+            let html = `<div class="grid-3col">
+                ${createField('Client Name', getValue('clientName'))} ${createField('Date of Birth', formatDate(getValue('dob')))} ${createField('Age', getValue('age'))}
+                ${createField('Date of Assessment', formatDate(getValue('date')))} ${createField('Record #', getValue('recordNumber'))} ${createField('Phone', getValue('clientPhone'))}
+            </div>`;
+            if (getValue('legalGuardian') === 'Yes') { html += `<div class="sub-section grid-2col">${createField('Guardian Name', getValue('guardianName'))}${createField('Guardian Phone', getValue('guardianPhone'))}</div>`; }
+            html += `<div class="sub-section grid-2col">${createField('Race/Ethnicity', getValue('raceEthnicity'))}${createField('Gender', getValue('gender'))}${createField('Sexual Orientation', getValue('sexualOrientation'))}${createField('Preferred Pronoun', getValue('preferredPronoun'))}</div>`;
+            html += `${createFieldLong('Additional Info (Orientation)', getValue('orientation_additional_info'))}`;
+            html += `<div class="sub-section">${createField('Marital Status', getChecked('maritalStatus').join(', '))}${createFieldLong('Additional Info (Marital Status)', getValue('marital_additional_info'))}</div>`;
+            html += `<div class="sub-section">${createField('Emergency Contact', getValue('noEmergencyContact') ? 'No emergency contact reported' : `${getValue('emergencyName')} (${getValue('emergencyRelationship')}) - ${getValue('emergencyPhone')}` )}</div>`;
+            html += `<div class="sub-section">${createField('Referral Source', getValue('referralSource') === 'Other' ? `Other: ${getValue('referralSourceOther')}` : getValue('referralSource'))}</div>`;
+            return html;
+        };
+
+        const buildDeHistory = () => {
+            let rows = '';
+            for(let i = 0; i < 5; i++) { if(getValue(`diag_history_desc_${i}`)) { rows += `<tr><td>${getValue(`diag_history_desc_${i}`)}</td><td>${formatDate(getValue(`diag_history_date_${i}`))}</td></tr>`; } }
+            return `<table class="data-table"><thead><tr><th>Diagnosis (DSM 5 / ICD 10)</th><th>Date</th></tr></thead><tbody>${rows || '<tr><td colspan="2">No history provided.</td></tr>'}</tbody></table>`;
+        };
+
+        const buildMedications = () => {
+            let medRows = '';
+            for(let i = 0; i < 10; i++) {
+                if(getValue(`med_name_${i}`)) {
+                    medRows += `<tr><td>${getValue(`med_name_${i}`)}</td><td>${getValue(`med_dose_${i}`)}</td><td>${getValue(`med_prescriber_${i}`)}</td><td>${getValue(`med_reason_${i}`)}</td></tr>`;
+                }
+            }
+            let html = getValue('no_medication') ? '<p>Client is currently not taking prescribed medication.</p>' : `<table class="data-table"><thead><tr><th>Medication</th><th>Dosage/Freq</th><th>Prescribed By</th><th>Reason</th></tr></thead><tbody>${medRows || '<tr><td colspan=4>No medications listed.</td></tr>'}</tbody></table>`;
+            
+            html += `<div class="sub-section">
+                ${createFieldLong('Effectiveness of medications', getValue('med_effectiveness'))}
+                ${createFieldLong('Side effects to current medications', getValue('med_side_effects'))}
+                ${createFieldLong('Previous medications', getValue('previous_meds'))}
+                ${createFieldLong('Allergies/Reactions', getValue('allergies'))}
+                ${createFieldLong('Additional Info (Medications)', getValue('meds_additional_info'))}
+            </div>`;
+            
+            html += `<h4 style="margin-top:1rem;font-weight:600;">Currently Taking/Using:</h4><div class="grid-2col">`;
+            html += createField('Vitamins/Supplements', getValue('vitamins') === 'Yes' ? getValue('vitamins_what') : 'No');
+            html += createField('OTC Meds', getValue('otc') === 'Yes' ? getValue('otc_what') : 'No');
+            html += createField('Tobacco', getValue('tobacco') === 'Yes' ? getValue('tobacco_what') : 'No');
+            html += createField('Caffeine', getValue('caffeine') === 'Yes' ? getValue('caffeine_what') : 'No');
+            html += createField('Birth Control', getValue('birthControl') === 'Yes' ? getValue('birthControl_what') : 'No');
+            html += `</div>${createFieldLong('Additional Info (Current Use)', getValue('taking_additional_info'))}`;
+            return html;
+        };
+
+        const buildLegal = () => {
+            let html = `${createField('Currently involved in legal system?', getValue('legal_current'))}`;
+            if(getValue('legal_current') === 'Yes') {
+                html += createField('Current legal status:', getChecked('legal_status').join(', '));
+                html += createField('Legal type:', getChecked('legal_type').join(', '));
+            }
+            html += `${createField('History of legal involvement?', getValue('legal_history'))}`;
+            if(getValue('legal_history') === 'Yes') {
+                html += createFieldLong('Describe past legal charges:', getValue('legal_charges_desc'));
+            }
+            html += `<div class="grid-2col">
+                ${createField('Agree with charges?', getValue('agree_charges'))}
+                ${createField('Court ordered to treatment?', getValue('court_ordered'))}
+                ${createField('Probation/Parole Officer', getValue('po_name'))}
+                ${createField('PO Number', getValue('po_number'))}
+            </div>`;
+            html += createFieldLong('Additional Info #1', getValue('legal_additional_info_1'));
+            
+            html += `<div class="sub-section">${createField('Juvenile Court Involvement', getValue('juvenile_court'))}`;
+            if(getValue('juvenile_court') === 'Yes') { html += createFieldLong('Juvenile Court Comments', getValue('juvenile_court_comments')); }
+            html += `</div>`;
+            
+            html += `<div class="sub-section">${createField('CPS Involved', getValue('cps_involved'))}`;
+            if(getValue('cps_involved') === 'Yes') { html += createField('CPS Intake', getValue('cps_intake')); html += createField('CPS Status', getChecked('cps_status').join(', ')); }
+            html += createFieldLong('Additional Info #2', getValue('legal_additional_info_2'));
+            html += `</div>`;
+            
+            html += `<div class="sub-section">${createField('Domestic Relations Court', getValue('domestic_court'))}`;
+            if(getValue('domestic_court') === 'Yes') { html += createField('Domestic Status', getChecked('domestic_status').join(', ')); }
+            html += createFieldLong('Additional Info #3', getValue('legal_additional_info_3'));
+            html += `</div>`;
+            return html;
+        };
+
+        const buildSubstanceUse = () => {
+            let html = '';
+            const substances = [
+                { name: 'CAFFEINE', key: 'caffeine_su'}, { name: 'TOBACCO', key: 'tobacco_su'},
+                { name: 'ALCOHOL - beer, wine, liquor, etc.', key: 'alcohol'}, { name: 'CANNABIS', key: 'cannabis'},
+                { name: 'HALLUCINOGENS', key: 'hallucinogens'}, { name: 'PHENCYCLIDINE (PCP)', key: 'pcp'},
+                { name: 'INHALANTS', key: 'inhalants'}, { name: 'OPIOIDS', key: 'opioids'},
+                { name: 'SEDATIVE, HYPNOTIC, OR ANXIOLYTIC', key: 'sedatives'}, { name: 'STIMULANTS', key: 'stimulants'},
+                { name: 'OTHER', key: 'other_su'}
+            ];
+            const dsmCriteria = [ "Larger amounts/longer period", "Persistent desire/unsuccessful cut down", "Time spent obtaining/recovering", "Craving", "Failure to fulfill roles", "Social problems", "Activities given up", "Physically hazardous", "Psych/Physical problems", "Tolerance", "Withdrawal" ];
+            substances.forEach(sub => {
+                if (!getChecked(`${sub.key}_never_used`).includes('on')) {
+                    let dsmMet = getChecked(`${sub.key}_dsm`).map(i => `<li>${dsmCriteria[parseInt(i) - 1]}</li>`).join('');
+                    html += `<div class="sub-section"><h4>${sub.name}</h4><div class="grid-3col">
+                                ${createField('Age 1st Use', getValue(`${sub.key}_age_first_use`))} ${createField('Last Use', getValue(`${sub.key}_last_use`))}
+                                ${createField('Amount/Mode', getValue(`${sub.key}_mode`))} ${createField('Frequency', getValue(`${sub.key}_frequency`))}
+                                ${createField('Route', getValue(`${sub.key}_route`))}
+                            </div>
+                            ${getChecked(`${sub.key}_used_past_12m`).includes('true') ? `<div class="field full-width"><span class="label">DSM Criteria Met:</span><div class="value"><ul>${dsmMet || 'None'}</ul></div></div>` : ''}
+                            ${createFieldLong('Additional Info', getValue(`${sub.key}_additional_info`))}</div>`;
+                }
+            });
+            return html || '<p>No substance use reported.</p>';
+        };
+
+        const buildCageTreatment = () => {
+            let html = `<h4>CAGE Questions</h4><div class="grid-2col">
+                ${createField('Felt you should cut down?', getValue('cage_cutdown'))} ${createField('People annoyed you?', getValue('cage_annoyed'))}
+                ${createField('Felt bad/guilty?', getValue('cage_guilty'))} ${createField('Eye-opener use?', getValue('cage_eyeopener'))}
+            </div>`;
+            html += `<h4 style="margin-top:1rem;">Treatment History</h4><table class="data-table"><thead><tr><th>Type</th><th>Yes/No</th><th>Where</th><th>When</th></tr></thead><tbody>
+                    <tr><td>Outpatient</td><td>${getValue('tx_outpatient')}</td><td>${getValue('tx_outpatient_where')}</td><td>${getValue('tx_outpatient_when')}</td></tr>
+                    <tr><td>Inpatient</td><td>${getValue('tx_inpatient')}</td><td>${getValue('tx_inpatient_where')}</td><td>${getValue('tx_inpatient_when')}</td></tr>
+                    <tr><td>Detox</td><td>${getValue('tx_detox')}</td><td>${getValue('tx_detox_where')}</td><td>${getValue('tx_detox_when')}</td></tr>
+                    <tr><td>AA/NA/CA</td><td>${getValue('tx_selfhelp')}</td><td>${getValue('tx_selfhelp_where')}</td><td>${getValue('tx_selfhelp_when')}</td></tr>
+                </tbody></table>`;
+            html += `<div class="sub-section">${createField('Has Sponsor?', getValue('sponsor') === 'Yes' ? `Yes: ${getValue('sponsor_name_phone')}` : 'No')}
+                ${createFieldLong('Treatment Additional Info', getValue('tx_additional_info'))}${createFieldLong('Client Insight', getValue('client_insight'))}
+                ${createFieldLong('Insight Additional Info', getValue('insight_additional_info'))}${createField('Clinical Focus', getValue('clinical_focus'))}
+                ${createFieldLong('Family Alcohol Use', getValue('family_alcohol_use'))}${createFieldLong('Family Drug Use', getValue('family_drug_use'))}
+                ${createFieldLong('Family SU Additional Info', getValue('family_su_additional_info'))}</div>`;
+            return html;
+        };
+
+        // --- NEW: Full ASAM Grid for Print ---
+        const buildAsamGrid = () => {
+            const asamData = [
+                { dimension: '1. Acute Intoxication/Withdrawal', levels: ['No withdrawal needs or needs can be safely managed at this level', 'No withdrawal needs or needs can be safely managed at this level', 'No signs or symptoms of withdrawal, or withdrawal that can be managed at low intensity outpatient', 'Minimal risk of severe withdrawal, or if withdrawal is present, can be managed at a social setting detox level'] },
+                { dimension: '2. Biomedical Conditions', levels: ['None or sufficient stable', 'If present, are stable or are receiving concurrent attention', 'Stable and no medical monitoring needed, or doesn’t warrant inpatient', 'If present, stable and can self-administer meds or severe enough to warrant medical monitoring'] },
+                { dimension: '3. Emotional/Behavioral/Cognitive', levels: ['None or very stable (cognitively able to participate)', 'If present, mild severity and needs outpatient monitoring', 'Stable or if distracting, can respond to the level of 24-hour structure', 'Mild to Moderate severity; needs structure to focus on recovery.'] },
+                { dimension: '4. Readiness to Change', levels: ['Willing to cooperate or is ambivalent', 'Resistance high enough to require structured program', 'Willing to cooperate with residential, but externalizes problems', 'Has little awareness & needs interventions available only at level III.5'] },
+                { dimension: '5. Relapse/Continued Use', levels: ['Able to maintain abstinence with minimal support', 'Intensification of symptoms despite active participation in Level I', 'Is at high risk for imminent relapse without 24-hour structure', 'Has little awareness & needs intervention to prevent continued use'] },
+                { dimension: '6. Recovery Environment', levels: ['Supportive recovery environment or willingness to obtain', 'Lacks social contacts conducive to recovery, but can cope', 'Has a using, unsupportive social network, requiring 24-hour support', 'Environment is dangerous & client needs 24-hour structure'] }
+            ];
+
+            let html = `<table class="data-table" style="font-size:8pt; table-layout:fixed; width:100%;">
+                <thead>
+                    <tr style="background:#f0f5fa;">
+                        <th style="width:15%">Dimension</th>
+                        <th style="width:21%">Level 1<br>Outpatient</th>
+                        <th style="width:21%">Level 2.1<br>Intensive OP</th>
+                        <th style="width:21%">Level 3.1<br>Halfway House</th>
+                        <th style="width:22%">Level 3.5<br>Residential</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            asamData.forEach((item, index) => {
+                const dimIndex = index + 1;
+                // Helper to check the box: If the value (1, 2.1, 3.1, 3.5) is in the array, print checkbox checked
+                const chk = (val) => getChecked(`asam_dim${dimIndex}`).includes(String(val)) ? '<b>☑</b>' : '☐';
+                
+                html += `<tr>
+                    <td style="font-weight:bold;">${item.dimension}</td>
+                    <td>${chk(1)} ${item.levels[0]}</td>
+                    <td>${chk(2.1)} ${item.levels[1]}</td>
+                    <td>${chk(3.1)} ${item.levels[2]}</td>
+                    <td>${chk(3.5)} ${item.levels[3]}</td>
+                </tr>`;
+                
+                // Add the additional info row for this dimension
+                const info = getValue(`asam_dim${dimIndex}_additional_info`);
+                if(info) {
+                    html += `<tr><td colspan="5" style="border-top:none; padding-top:0; font-style:italic;"><strong>Notes:</strong> ${info}</td></tr>`;
+                }
+            });
+            html += '</tbody></table>';
+            return html;
+        };
+
+        const buildMse = () => {
+            return `<div class="grid-3col">${createField('Appearance', getChecked('generalobservations_appearance').join(', '))}${createField('Mood', getChecked('mood_mood').join(', '))}${createField('Affect', getChecked('affect_affect').join(', '))}${createField('Speech', getChecked('generalobservations_speech').join(', '))}${createField('Thought Process', getChecked('thoughtprocess_thoughtprocess').join(', '))}${createField('Insight/Judgment', getValue('insightjudgment_insightjudgment'))}</div>${createFieldLong('MSE Comments', getValue('generalobservations_comments'))}`;
+        };
+
+        // --- Iterate Through Sections ---
+        document.querySelectorAll('div[id^="section-"]').forEach(section => {
+            let sectionHtml = '';
+            switch (section.id) {
+                case 'section-demographics': sectionHtml = buildDemographics(); break;
+                case 'section-presenting-problem': sectionHtml = `${createFieldLong('Leading Cause', getValue('presentingProblem'))}${createFieldLong('Hopes', getValue('treatmentHope'))}${createField('Severity (1-10)', getValue('severity'))}${createFieldLong('Additional Info', getValue('presenting_problem_additional_info'))}`; break;
+                case 'section-de-history': sectionHtml = buildDeHistory(); break;
+                case 'section-employment': sectionHtml = `${createField('Status', getValue('employment_status'))}<div class="grid-2col">${createField('Where/what?', getValue('job_details'))}${createField('Unemployed Duration', getValue('unemployed_retired_duration'))}${createField('Last Job Duration', getValue('last_job_duration'))}${createField('Last Job End', getValue('last_job_end_date'))}</div>${createFieldLong('Seeking employment?', getValue('seeking_employment'))}<div class="grid-2col">${createField('Disabled', getChecked('disability_status').join(', '))}${createField('Since', getValue('disabled_since'))}</div>${createFieldLong('Concerns', getValue('employment_concerns'))}${createFieldLong('Info', getValue('employment_additional_info'))}`; break;
+                case 'section-medications': sectionHtml = buildMedications(); break;
+                case 'section-legal': sectionHtml = buildLegal(); break;
+                case 'section-substance-use': sectionHtml = buildSubstanceUse(); break;
+                case 'section-cage-treatment': sectionHtml = buildCageTreatment(); break;
+                case 'section-mse': sectionHtml = buildMse(); break;
+                case 'section-narrative': sectionHtml = createFieldLong('Narrative Summary', getValue('narrative_summary')); break;
+                case 'section-new-diagnosis': sectionHtml = createFieldLong('New/Additional DSM Diagnosis', getValue('new_diagnosis_notes')); break;
+                case 'section-asam': sectionHtml = buildAsamGrid(); break; // Uses new function
+                case 'section-asam-recommendation': sectionHtml = createField('Recommended Level', getValue('asam_recommendation').replace('3.1','3.1 Intensive Outpatient w/Residential Support').replace('3.5','3.5 Non-Medical Community Residential')); break;
+                case 'section-treatment-recs': sectionHtml = `${createField('Treatment Recs', getChecked('treatment_recs').join(', '))}${createFieldLong('Additional Info', getValue('treatment_recs_additional_info'))}`; break;
+            }
+            if (sectionHtml) {
+                mainContent += `<h3 class="section-title">${section.querySelector('h3').textContent}</h3><div>${sectionHtml}</div>`;
+            }
+        });
+
+        const printWindow=window.open('','_blank');
+        printWindow.document.write(`<html><head><title>${FORM_NAME_PRINT} - ${getValue('clientName')}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:'Inter',sans-serif;font-size:10pt;color:#333;margin:0;background-color:#e0e0e0}.page-content{width:8.5in;min-height:11in;padding:0.75in;box-sizing:border-box;background-color:white;margin:2rem auto;box-shadow:0 0 10px rgba(0,0,0,0.2)}@media print{body{background-color:white;padding:0}.page-content{margin:0;box-shadow:none;min-height:0}.footer{position:fixed;bottom:0.75in;left:0.75in;right:0.75in;width:calc(8.5in - 1.5in)}h3.section-title,.data-table,.field,.signature-section{page-break-inside:avoid}}.header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:2px solid #000080}.footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:2px solid #000080;font-size:8pt;color:#666;margin-top:20px}.logo{width:250px;height:auto}.header-title{text-align:right}.header-title h1{margin:0;font-size:16pt;color:#000080;font-weight:700}.header-title h2{margin:0;font-size:10pt;font-weight:400;color:#555}h3.section-title{font-size:12pt;font-weight:600;color:#333;background-color:#f0f5fa;padding:8px 12px;margin:20px 0 15px 0;border-left:4px solid #000080}.sub-section{margin-top:1rem;padding-top:1rem;border-top:1px dashed #ccc;}.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}.grid-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 20px}.field .label{font-weight:600;font-size:9pt;color:#444;display:block;margin-bottom:4px}.field .value{background:#f9f9f9;padding:6px 10px;border-radius:4px;border:1px solid #eee;min-height:1.2em;word-wrap:break-word;}.field .value-long{white-space:pre-wrap;min-height:3em}.full-width{grid-column:1 / -1}.data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:9pt}.data-table th,.data-table td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}.data-table th{background-color:#f2f2f2;font-weight:600}.signature-section{margin-top:30px;padding-bottom:60px; page-break-before: auto;}.signature-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:25px;align-items:end;}.signature-box{margin-top:15px;}.signature-line{border-bottom:1px solid #333;height:40px;margin-bottom:5px}.signature-label{font-size:8pt;color:#555}</style></head><body><div class="page-content"><div class="header"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABTkAAAMpCAYAAADPcTfBAAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAlwSFlzAAAewgAAHsIBbtB1PgAAAAd0SU1FB+kJChMHCi7GAA8AACAASURBVHja7N17mGVVfSfu7xKQ4JURI0joqu6GVtRd0BeclotKvOUXTdBWMUocdaJxRjOKBjQxOjPOE0cTggYvSRyNE40XVGRaTaLjDVG5pJHuBmpzh6a7WlFUHBEJIpf1+6Oo6qrqU1Xnss85+5zzvs9TD9VV56y9z9prL/b+1Fp7RQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwFDKM1/59s/luf9WNQAAgyupAgCAkZcjIvI1fxvpyNcO43XibICZr/zPUV63fa8XTGza4toYAGCAuZADABhtOW89Psqpe2Z/UIxtirThT4fhWnE23JzcvHHJFxZjD4604TzXxwAAA8pFHADA6Mp5+29GufPf9vpFMbZvpA0XDvI1Y45YPtycy2hOAIDB5SIOAGBE5Zv/Ry63fGnJ1xTjB0Raf/4gXUdOT72//LlR7vhhS2+cE+y6RgYAGDAu4AAARlS+9Phc7r6n5ffdP+KxbteS0+Hm1mdFOXVb24UYzQkAMJgeoAoAAEZSjvSgtt44uXlj5B//5XQZ/V+ZfHql9KvfG5ObN3YUcEZE5G1PjbDSOgDAwPFXagCA0dPy8yqXMmdkZy+vL6dHbl756iivu7zSgo3mBAAYPC7eAABGT64q4JyrKF4Qac2bu32t2fSK6W19hhX7RDrmItfJAAADxsUbAMBoqXQU52K6NLqz6/tuFCcAwGByAQcAMFpytwPOuSoIO2dHbuatJ0Q5dXcv9tU1MgDAgHEBBwAwWnoacs5oI+ycfubm9f8zyvKLdds3AABqxkUcAMBo2TMyctvTotx1R083vshoyXmrmeftL4y47/9FOfWLru5LMX5ApPXnuy4GABgCLuYAAEbXnMDzxCh33dmTjRZHnxxp9el7dmLHB6K8/OPTvxt7cJRT3Qlei7H9ItJ+kdZ/03UwAMCQcVEHAEBEl1ct75fi2BdEOqTrK74DANBnLvIAAJhrwdTxZ0S58/aB2flifL9I6y+o8zVvdu0OAFA9F0oAAP23XPCV6rJv+cpXR3nd5bWrwBouHjS/3q54bsQ9v4hIOcqdS0/HL1YeEJHviXLXnpXki+NPjvSo013LAwDU8IIZAGAU7RVoLrUA0ILwrg7XcHue47n1hCin7u5rZdY13Mw73xnl9i/04nO7ngcAcFEEANATe4LB738gyks+3nZBxYp9Ih1zUV2u62rxHM9ixfMiHfOWfl/fToeblx4b5e77evO5xx8Yaf13XNsDALgQAgDoqung60fvi/LCT3ZtI8X4/pHWf7tf13k5oh6LFRUrHhCx70SktR/qdT30vQ7uH9np2h4AGFkuhAAAqrVn1Ob33hvldz/V8x3o0VTm6QB323Oi3PWTWh6IYu1vR1r19m5f/+b8/f8V5SX/u7+f9TFjkZ5wjmt7AGBkuRACAKhGLaZuzyjWnhxp1elVX/PtCXAnz4ryhrMH6gAVa343UvG2qq6Hp0PeqfdEufUz/f9sK4+NtO4s1/YAwMhyIQQA0LnaTNleqBjbL+KRvxdp/HXtXPvNXyH8qjOjvPacoTloRfGCSGve3Or18XS4ef1pUZYX9P0z1HDhJQCAvnAhBADQuVzHgHOu4pjfibTivza6DsyLfqglVn3vaF9W7Btx4KZIR5y+9zZv+MuIn30+IlKUu+/tbR2tfV6kVW9Z+kDf/I4ot/xT/47j+IGR1n/FNT0AgAsiAIBq5W0n5nLXnQOzv3NH/+WpM6PcWu3ozOJxz4105J91eh2al/pl3UPlqhXFcyKt+W+u4QEA2ry4BABgeTlf/6GIu3dEee03R+qDF487OtKRH+r1dWbDADTvOCPKy88dvjpe9/uRVr7etTsAwBJcKAEAVGfR0YfDNPJwwXMg63RNOf8ZopefFOWOW4alnl23AwAswcUSAED3zQvfBi3wLJ54SqTDTh3E68j5oefkKVHecGPtd7oL4WZ2PwAADDsXNQAAvbVX4FTLVdlXPiLSui8P23Xj9Mro206MOj5DtVh3UqSVb+2kvhtP49/25Ch3/Wrv7T31JZEe8Qb3BwDAUHARAwCwvNzF66z5ow2vPSXKq/o32rB4/IsiPfa0Yb9WrNXI2uKY50Va8ZZ26nx+29n21Ch3/bL9/Tj2RZEOOc29AgAwkFy4AAA0Nhsg5WveGeXVX2j6jcUTT4502OntXndNjza842+i/Oo/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5Q7bqnlTpa7bo3ymn+MfOt/X7jvUW47p6OyF0yNpwnpiNOra4CXHjt7LNPar6pcAICKCDkBgFExG24Oymi0dND/mPfvTve7OOLk2aI1h9ZMbNoSxdi+HZdT7r4v8qXHzbZHAACqsa8qAABGxShPtS1WHhxp4vQIAWc7UkRE2nBhrqINlbvvnf1+YtOW2rbL4tiTIh3yVkcfABgIQk4AYCTk2/46yvM+PTD7u2Baec47PhDl5R9vu7y07osRAs6OFcWGKMutnbfHy3470tovT5c5tn+UU3f17zOt2CfiIc+OdOTbFvzGauoAwOAwXR0AGA07zx/EvU4x8yzODgJOz+Gs7nikNX9bSUHlTT/dU+aGb/flwxTrT46JTVsiHXNRpCPflu5vbwu/AAAG5sIZAGAUtPQMxDy5Kcobbu7Ljs4JJVNEdDRFekFZVNSOqphifv+xSRGR89YTopy6u6s7Xow/KNL6b7ofAACGkunqAMCoaCnMSROb54WiedtTo9z1y17vb0eL0xTrTgpTjrtzXKp4lmaePCvSxBsiIlLacEGu8tmcxdNfEelhr+n4PAAAGBRCTgCAxuaFQWn9t+aHnt97T5Tf/UzlG104tbyT4CutfOten4PK2kYuNr44yi0dPOf1V5/rYtsRbgMAo8UzOQEAmjPvWYXpsD+OiU1buvW8y+kpzDed2XYBnsPZ/faQDn1jFCsf1Gk5s+F58cQTq26rAAAjQ8gJANCe2SCpqrCzOPr35v27vOyctsrxHM7etYG07pttv3nBMzhTOuwvO9qZKqe7AwAMGiEnAEBnKhs1l1b/8Ux5OV/+nLbKKJ54ytz9ogeqHDVbrH5UPz9Kvf0/9uzDFo//7UiPffsoXiPOHudehp3FuudFWvmWVtpHw6C9W/tcPOmkSI9+6yi2BwBgQLlgAQCYbzpkvPqMKK+pZqXuYvygSOu/1Op12J6Q9ab3R3nZJ7r2gec8AzKN+nHvRmhYPOrQSMdvbudavO8jTrUNAGBQuFgBANija0HXXMWRz430uD9r5bqsK2FXsfIhkdZ9w3Vhg3qusg0U4w+OtP68peq58bM0f/SeKC/8TN8rxSrvAMAgcJECADAzenPr06KcuqPnG28xRMr5it+J8sYfV7VN14OLtIeIiHzZKVHedGOVxzk12k4dF59qYv8BAGrDRQoAMMqmw82p90e59RN935ni8BdGOupNy12n5U4DMQFna20kX3p8lLvv6bighfWetz8jlztvH5iKKMYfFmn917QdAKCWHqAKAIARlCMi58tPisnNG2sRcEZElDd+LiY3b4y87dmRr/6bHHtPY85515lVbU5I1Ww9HbipkoL2CqfTYF2Kl7t+PhAjTgGA0STkBABGyWxwOLl5Y5
+
+    // --- UNIVERSAL FUNCTIONS ---
+    function getFormData(){const form=document.getElementById(FORM_ELEMENT_ID);const formData=new FormData(form);const data={formId:FORM_ID,lastModified:new Date().toISOString()};for(const[key,value]of formData.entries()){const cleanKey=key.replace(/\[\]$/,'');if(key.endsWith('[]')){if(!data[cleanKey])data[cleanKey]=[];data[cleanKey].push(value)}else{data[key]=value}}return data}
+   function populateForm(data) {
+    const form = document.getElementById(FORM_ELEMENT_ID);
+    form.reset();
+    
+    for (const key in data) {
+        if (key === 'formId' || key === 'lastModified') continue;
+        
+        const value = data[key];
+        
+        // Try multiple name patterns to find the element
+        let elements = form.elements[key] || 
+                      form.elements[key + '[]'] || 
+                      document.getElementsByName(key) ||
+                      document.getElementsByName(key + '[]');
+        
+        // Handle special case: single checkboxes (like asam_no_further_treatment_1)
+        if (!elements || elements.length === 0) {
+            const singleCheckbox = document.querySelector(`input[name="${key}"][type="checkbox"]`);
+            if (singleCheckbox) {
+                elements = [singleCheckbox];
+            }
+        }
+        
+        if (!elements || elements.length === 0) {
+            // Log missing fields for debugging (remove in production)
+            console.warn(`Field not found: ${key}`, value);
+            continue;
+        }
+        
+        const elementList = elements.nodeName ? [elements] : Array.from(elements);
+        const firstEl = elementList[0];
+        
+        if (firstEl.type === 'checkbox') {
+            const values = Array.isArray(value) ? value : [value];
+            elementList.forEach(el => {
+                // Handle both regular checkboxes and single checkboxes with value="true"
+                if (el.value === 'true' || el.value === 'on') {
+                    el.checked = (value === 'true' || value === true || value === 'on');
+                } else {
+                    el.checked = values.includes(el.value);
+                }
+            });
+        } else if (firstEl.type === 'radio') {
+            elementList.forEach(el => {
+                if (el.value === value) el.checked = true;
+            });
+        } else {
+            // Handle text inputs, textareas, selects
+            if (firstEl.value !== undefined) firstEl.value = value;
+        }
+    }
+    
+    // Trigger change events for conditional fields
+    form.querySelectorAll('[onchange]').forEach(el => el.dispatchEvent(new Event('change')));
+    
+    // Update age and footer
+    if (document.getElementById('dob')) {
+        document.getElementById('dob').dispatchEvent(new Event('input'));
+    }
+}
+    function saveToLocalStorage(){const data=getFormData();const clientName=data.clientName.trim();if(!clientName){alert('Please enter a Client Name before saving.');return}const key=`savedForm_${FORM_ID}_${clientName}`;try{localStorage.setItem(key,JSON.stringify(data));alert(`Progress for ${clientName} saved successfully!`)}catch(e){if(e.name==='QuotaExceededError'){alert('Error: Browser storage is full. Please export and then delete some older saved forms to make space.')}else{alert('An unknown error occurred while saving.');console.error(e)}}}
+    function displaySavedForms(){const savedFormsList=document.getElementById('savedFormsList');savedFormsList.innerHTML='';let savedItems=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key.startsWith(`savedForm_${FORM_ID}_`)){try{const data=JSON.parse(localStorage.getItem(key));savedItems.push({key,data})}catch(e){console.error('Could not parse saved data:',key,e)}}}savedItems.sort((a,b)=>new Date(b.data.lastModified)-new Date(a.data.lastModified));if(savedItems.length===0){savedFormsList.innerHTML=`<p class="text-gray-500">No saved forms found in this browser.</p>`}else{savedItems.forEach(item=>{const clientName=item.data.clientName||'Unnamed';const lastModified=new Date(item.data.lastModified).toLocaleString();const itemDiv=document.createElement('div');itemDiv.className='modal-item';itemDiv.innerHTML=`<div class="flex-grow" onclick="loadSelectedForm('${item.key}')"><strong class="item-name">${clientName}</strong><br><small>Last saved: ${lastModified}</small></div><button onclick="deleteSavedForm(event,'${item.key}')"class="delete-btn">Delete</button>`;savedFormsList.appendChild(itemDiv)})}document.getElementById('loadModal').classList.remove('hidden');document.getElementById('modalSearch').value='';document.getElementById('modalSearch').focus()}
+    function filterModalItems(){const searchTerm=document.getElementById('modalSearch').value.toLowerCase();document.querySelectorAll('.modal-item').forEach(item=>{const name=item.querySelector('.item-name').textContent.toLowerCase();item.style.display=name.includes(searchTerm)?'flex':'none'})}
+    function loadSelectedForm(key){const data=JSON.parse(localStorage.getItem(key));populateForm(data);closeModal();alert(`Data for ${data.clientName} has been loaded.`)}
+    function deleteSavedForm(event,key){event.stopPropagation();const data=JSON.parse(localStorage.getItem(key));const clientName=data.clientName||'this entry';if(confirm(`Are you sure you want to permanently delete the saved data for ${clientName}? This cannot be undone.`)){localStorage.removeItem(key);displaySavedForms();filterModalItems()}}
+    function closeModal(){document.getElementById('loadModal').classList.add('hidden')}
+    function parseClientName(nameStr){let[lastName,firstName]=['Unknown','Client'];if(nameStr){if(nameStr.includes(',')){[lastName,firstName]=nameStr.split(',',2).map(s=>s.trim())}else{const parts=nameStr.trim().split(' ');lastName=parts.pop()||'Unknown';firstName=parts.join(' ')||'Client'}}return[lastName,firstName]}
+    function exportData(){const data=getFormData();if(!data.clientName.trim()){alert('Please enter a Client Name before exporting.');return}const[lastName,firstName]=parseClientName(data.clientName);const filename=`${formatDate(data.date)||'NODATE'}_${lastName}_${firstName}_${FORM_ID}.json`;const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=filename;link.click();URL.revokeObjectURL(link.href)}
+    function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(data.formId!==FORM_ID){alert(`Error: Incompatible File\n\nThis file is for the '${data.formId||'Unknown Form'}'. You are currently on the '${FORM_ID}' form.`);return}populateForm(data);alert('Client data imported successfully from file!')}catch(error){alert('An error occurred while reading this file.');console.error("Import Error: ",error)}};reader.readAsText(file);event.target.value=''}
+    function clearForm(){if(confirm("Are you sure you want to clear all fields on this form? This cannot be undone.")){document.getElementById(FORM_ELEMENT_ID).reset();initializeFormDefaults();alert('Form has been cleared.')}}
+
+    // --- FORM-SPECIFIC HELPERS ---
+    function initializeFormDefaults(){if(document.getElementById('date'))document.getElementById('date').valueAsDate=new Date();if(typeof setupInitialDates==='function')setupInitialDates();if(typeof updateAgeAndFooter==='function')updateAgeAndFooter()}
+    function setupInitialDates(){const today=new Date().toISOString().split('T')[0];['date','clinicianDate','supervisorDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today})}
+    function updateAgeAndFooter(){const dobInput=document.getElementById('dob');if(dobInput&&dobInput.value){const dob=new Date(dobInput.value);const today=new Date();let age=today.getFullYear()-dob.getFullYear();const m=today.getMonth()-dob.getMonth();if(m<0||(m===0&&today.getDate()<dob.getDate())){age--}document.getElementById('age').value=age>=0?age:''}else if(document.getElementById('age')){document.getElementById('age').value=''}updateFooterInfo()}
+    function updateFooterInfo(){document.getElementById('footer_client_name').value=document.getElementById('clientName').value;document.getElementById('footer_dob').value=document.getElementById('dob').value;document.getElementById('footer_mrm').value=document.getElementById('recordNumber').value}
+    function updateNavigation(){const navContainer=document.getElementById('form-nav');if(!navContainer)return;navContainer.innerHTML='';document.querySelectorAll('div[id^="section-"]').forEach(section=>{const title=section.querySelector('h3')?.textContent;if(title){const link=document.createElement('a');link.href=`#${section.id}`;link.className='nav-link';link.textContent=title;navContainer.appendChild(link)}})}
+    function buildDiagnosisHistoryGrid(rows){const container=document.getElementById('diagnosis-history-grid');if(!container)return;for(let i=0;i<rows;i++){const row=document.createElement('div');row.className='grid grid-cols-2 gap-4 mt-2';row.innerHTML=`<input type="text" name="diag_history_desc_${i}" class="form-input"><input type="date" name="diag_history_date_${i}" class="form-input">`;container.appendChild(row)}}
+    function buildMedicationGrid(rows){const container=document.getElementById('medication-grid');if(!container)return;for(let i=0;i<rows;i++){const row=document.createElement('div');row.className='grid grid-cols-4 gap-2';row.innerHTML=`<textarea name="med_name_${i}" class="form-textarea text-sm p-1"></textarea><textarea name="med_dose_${i}" class="form-textarea text-sm p-1"></textarea><textarea name="med_prescriber_${i}" class="form-textarea text-sm p-1"></textarea><textarea name="med_reason_${i}" class="form-textarea text-sm p-1"></textarea>`;container.appendChild(row)}}
+    function buildSubstanceUseSection(){const container=document.getElementById('substance-use-container');if(!container)return;const substances=[{name:'CAFFEINE',key:'caffeine_su'},{name:'TOBACCO',key:'tobacco_su'},{name:'ALCOHOL - beer, wine, liquor, etc.',key:'alcohol'},{name:'CANNABIS (marijuana, marijuana related products)',key:'cannabis'},{name:'HALLUCINOGENS (LSD, ecstasy, Ketamine, mushrooms, etc.)',key:'hallucinogens'},{name:'PHENCYCLIDINE (PCP)',key:'pcp'},{name:'INHALANTS (glues, sprays, cans)',key:'inhalants'},{name:'OPIOIDS (Heroin, Hydrocodone, Oxycodone, etc.)',key:'opioids'},{name:'SEDATIVE, HYPNOTIC, OR ANXIOLYTIC (Benzodiazepines, etc.)',key:'sedatives'},{name:'STIMULANTS (Cocaine, Methamphetamine, Ritalin, Adderall, etc.)',key:'stimulants'},{name:'OTHER (unknown)',key:'other_su'}];const dsmCriteria=["Substance is often taken in larger amounts or over a longer period than intended","Persistent desire or unsuccessful efforts to cut down or control use of substance","Great deal of time used to obtain and/or recover from its effects","Craving, or strong desire or urge to use substance","Recurrent use results in failure to fulfill major role obligations at work, school, or home","Continued use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by the effects or the substance","Important social, occupational, or recreational activities given up or reduced due to use","Recurrent substance use in situations in which it is physically hazardous","Continued use despite knowledge of having persistent or recurrent problem (physical and/or psychological) that is likely caused by or exacerbated by use of the substance","Tolerance needs for increased amounts of the substance to get the same effect or a diminished effect with continued use of the same amount of the substance","Withdrawal (if applicable): characteristic withdrawal syndrome or use of substance to relieve/avoid symptoms"];let html='';substances.forEach(sub=>{const dsmHtml=dsmCriteria.map((criterion,i)=>`<label class="flex items-start text-sm"><input type="checkbox" name="${sub.key}_dsm[]" value="${i+1}" class="h-4 w-4 mt-1 flex-shrink-0"> <span class="ml-2">${criterion}</span></label>`).join('');html+=`<div class="p-4 border rounded-lg bg-white mb-4"><h4 class="text-md font-semibold text-gray-800 mb-2">${sub.name}</h4><div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4"><label class="flex items-center"><input type="checkbox" name="${sub.key}_never_used"> <span class="ml-2">Never Used</span></label></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="form-label">Ever: Age at 1st use:</label><input type="number" name="${sub.key}_age_first_use" class="form-input"></div><div><label class="form-label">Last use:</label><input type="text" name="${sub.key}_last_use" class="form-input"></div><div><label class="form-label">Mode of use (include amount):</label><input type="text" name="${sub.key}_mode" class="form-input"></div><div><label class="form-label">Frequency:</label><input type="text" name="${sub.key}_frequency" class="form-input"></div><div class="md:col-span-2"><label class="form-label">Route: (orally, intravenously, inhaled, intranasal, etc.)</label><input type="text" name="${sub.key}_route" class="form-input"></div></div><label class="flex items-center mb-4"><input type="checkbox" name="${sub.key}_used_past_12m" value="true" onchange="toggleDetails(this, '${sub.key}_dsm_details', this.checked)"> <span class="ml-2">Used in the past 12 months? (if checked, answer below):</span></label><div id="${sub.key}_dsm_details" class="hidden space-y-2">${dsmHtml}</div><div class="mt-4"><label class="form-label">Additional information:</label><textarea name="${sub.key}_additional_info" class="form-textarea h-24"></textarea></div></div>`});container.innerHTML=html}
+function buildMseSection(){
+    const container=document.getElementById('mse-container');
+    if(!container)return;
+    
+    const mseData=[
+        {group:'General Observations',items:[
+            {label:'Appearance',options:['Well-groomed','Unkept','Disheveled']},
+            {label:'Build',options:['Average','Thin','Overweight']},
+            {label:'Demeanor',options:['Average','Hostile','Mistrustful','Withdrawn','Preoccupied','Demanding']},
+            {label:'Eye Contact',options:['Average','Avoidant','Intense']},
+            {label:'Activity',options:['Average','Agitated','Slowed']},
+            {label:'Speech',options:['Clear','Slurred','Slowed','Rapid','Pressured']}
+        ]},
+        {group:'Thought Content',items:[
+            {label:'Delusions',options:['None Reported','Grandiose','Persecutory','Somatic','Bizarre','Nihilistic','Religious']},
+          {label:'Other',options:['None Reported','Autistic','Obsessional','Phobic','Guilty','Ideas of reference','Preoccupied','Guarded',{type:'other',name:'thoughtcontent'}]},
+            {label:'Self-Abuse',options:['None Reported','Suicidal (assess lethality if present)','Intent','Plan',{type:'other',name:'self_mutilation',label:'Self-mutilization:'}]},
+            {label:'Aggressive',options:['None Reported','Aggressive (assess lethality if present)','Intent','Plan']}
+        ]},
+        {group:'Perception',items:[
+            {label:'Hallucinations',options:['None Reported','Auditory','Visual','Olfactory','Gustatory','Tactile']},
+            {label:'Other',options:['Illusions','Depersonalization','Derealization']}
+        ]},
+        {group:'Thought Process',items:[
+            {type:'checkbox',options:['Logical','Circumstantial','Tangential','Loose','Racing','Incoherent','Concrete','Blocked','Flight of Ideas']}
+        ]},
+        {group:'Mood',items:[
+            {type:'checkbox',options:['Euthymic','Depressed','Anxious','Angry','Euphoric','Irritable','Pessimistic','Happy','Elated','Nonchalant','Apathetic','Dismissive','Hopeless']}
+        ]},
+        {group:'Affect',items:[
+            {type:'checkbox',options:['Full','Constricted','Flat','Inappropriate','Labile','Incongruent','Euthymic','Congruent with Mood','Depressed','Blunted','Variable','Mobilizable','Frightened','Dejected','Attention Seeking']}
+        ]},
+        {group:'Behavior',items:[
+            {type:'checkbox',options:['Cooperative','Resistant','Agitated','Impulsive','Over Sedated','Assaultive','Aggressive','Hyperactive','Restless','Loss of Interests','Anhedonia','Akathisia','Withdrawn','Dystonia','Tardive','Dyskinesia']}
+        ]},
+        {group:'Cognition',items:[
+            {label:'Impairment of',options:['None Reported','Orientation','Memory','Attention/Concentration','Ability to Abstract']},
+            {label:'Intelligence Estimate',options:['DD','Borderline','Average','Above Average']}
+        ]},
+        {group:'Insight/Judgment',items:[
+            {label:'Insight/Judgment',type:'radio',options:['Good','Fair','Poor']}
+        ]}
+    ];
+    
+    let html='';
+    mseData.forEach(section=>{
+        html+=`<h4 class="text-md font-semibold text-gray-800 mb-2 mt-4">${section.group}</h4>`;
+        section.items.forEach(item=>{
+            // 🔥 THIS IS THE KEY FIX - Use the FULL group name, not just the first word
+            const groupKey = section.group.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const labelKey = (item.label || section.group).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const baseNameKey = groupKey + '_' + labelKey;
+            
+            const inputType = item.type || 'checkbox';
+            const nameKey = (inputType === 'radio') ? baseNameKey : baseNameKey + '[]';
+            
+            html+=`<div class="mb-4">`;
+            if(item.label){
+                html+=`<label class="form-label">${item.label}:</label>`
+            }
+            html+=`<div class="flex flex-wrap gap-x-4 gap-y-2">`;
+            
+            item.options.forEach(opt=>{
+                if(typeof opt==='object'&&opt.type==='other'){
+                    html+=`<label class="flex items-center"><input type="${inputType}" name="${nameKey}" value="Other" onchange="toggleDetails(this, '${opt.name}_other_text', this.checked)"> <span class="ml-2">${opt.label||'Other:'}</span></label><input type="text" id="${opt.name}_other_text" name="${opt.name}_other_text" class="form-input ml-2 hidden w-auto flex-grow">`
+                }else{
+                    html+=`<label class="flex items-center"><input type="${inputType}" name="${nameKey}" value="${opt}"> <span class="ml-2">${opt}</span></label>`
+                }
+            });
+            html+=`</div></div>`;
+        });
+        
+        const commentsName = section.group.toLowerCase().replace(/[^a-z0-9]/g, '') + '_comments';
+        html+=`<div><label for="${commentsName}" class="form-label">Comments:</label><textarea id="${commentsName}" name="${commentsName}" class="form-textarea h-24"></textarea></div>`;
+        
+        if(section.group!=='Insight/Judgment'){
+            html+='<hr class="my-6 border-gray-300">'
+        }
+    });
+    container.innerHTML=html;
+}
+function buildAsamGrid() {
+    const container = document.getElementById('asam-grid-container');
+    if (!container) return;
+
+    const asamData = [
+        {
+            dimension: '1. Acute Intoxication and/or Withdrawal',
+            levels: [
+                'No withdrawal needs or needs can be safely managed at this level', // L1
+                'No withdrawal needs or needs can be safely managed at this level', // L2.1
+                'No signs or symptoms of withdrawal, or withdrawal that can be managed at low intensity outpatient level', // L3.1
+                'Minimal risk of severe withdrawal, or if withdrawal is present, can be managed at a social setting detox level' // L3.5
+            ]
+        },
+        {
+            dimension: '2. Biomedical Conditions and Complications',
+            levels: [
+                'None or sufficient stable', // L1
+                'If present, are stable or are receiving concurrent attention and won’t interfere with treatment', // L2.1
+                'Stable and no medical monitoring needed, or doesn’t warrant inpatient, but needs medical monitoring', // L3.1
+                'If present, stable and can self-administer meds or severe enough to warrant medical monitoring but not in need of inpatient treatment' // L3.5
+            ]
+        },
+        {
+            dimension: '3. Emotional/Behavioral or Cognitive Conditions',
+            levels: [
+                'None or very stable (cognitively able to participate and no risk of harm)', // L1
+                'If present, mild severity and needs outpatient monitoring to minimize distractions from recovery', // L2.1
+                'Stable or if distracting, can respond to the level of 24-hour structure in this program', // L3.1
+                'Mild to Moderate severity; needs structure to focus on recovery. Treatment should respond to the client’s cognitive deficits.' // L3.5
+            ]
+        },
+        {
+            dimension: '4. Readiness to Change',
+            levels: [
+                'Willing to cooperate or is ambivalent and needs motivating and monitoring strategies', // L1
+                'Resistance high enough to require structured program but not so high as to render outpatient treatment ineffective', // L2.1
+                'Willing to cooperate with residential, but externalizes problems and needs this level structure, motivation and support', // L3.1
+                'Has little awareness & needs interventions available only at level III.5 to engage & stay in treatment' // L3.5
+            ]
+        },
+        {
+            dimension: '5. Relapse, Continued Use Potential',
+            levels: [
+                'Able to maintain abstinence and recovery goals with minimal support', // L1
+                'Intensification of symptoms despite active participation in Level I; high likelihood of relapse without close monitoring', // L2.1
+                'Is at high risk for imminent relapse with dangerous consequences unless provided this 24-hour structure', // L3.1
+                'Has little awareness & needs intervention to prevent continued use, with imminent dangerous consequences.' // L3.5
+            ]
+        },
+        {
+            dimension: '6. Recovery Environment',
+            levels: [
+                'Supportive recovery environment or willingness to obtain such', // L1
+                'Lacks social contacts conducive to recovery, but with support of IOP, can cope', // L2.1
+                'Has a using, unsupportive social network, requiring this level of 24-hour support', // L3.1
+                'Environment is dangerous & client needs 24-hour structure to learn to cope' // L3.5
+            ]
+        }
+    ];
+
+    // Clear and rebuild
+    container.innerHTML = ''; 
+    
+    // Header Row
+    const headerHtml = `
+        <div class="asam-grid border-b bg-gray-100 font-bold text-sm text-center">
+            <div class="p-2 text-left">Dimension</div>
+            <div class="p-2">Level 1<br><span class="text-xs font-normal">Outpatient</span></div>
+            <div class="p-2">Level 2.1<br><span class="text-xs font-normal">Intensive Outpatient</span></div>
+            <div class="p-2">Level 3.1<br><span class="text-xs font-normal">Halfway House</span></div>
+            <div class="p-2">Level 3.5<br><span class="text-xs font-normal">Residential</span></div>
+        </div>`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.innerHTML = headerHtml;
+    container.appendChild(contentDiv);
+
+    asamData.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'asam-grid border-b items-stretch'; // items-stretch makes columns equal height
+        
+        // Dimension Name
+        let rowHtml = `<div class="p-2 font-semibold text-sm border-r bg-gray-50 flex items-center">${item.dimension}</div>`;
+        
+        // The 4 Levels
+        for (let i = 0; i < 4; i++) {
+            const levelValue = [1, 2.1, 3.1, 3.5][i];
+            const text = item.levels[i];
+            
+            rowHtml += `
+                <div class="p-2 text-xs border-r relative hover:bg-blue-50 transition-colors cursor-pointer" onclick="this.querySelector('input').click()">
+                    <label class="flex flex-col h-full cursor-pointer">
+                        <div class="mb-2 self-center">
+                            <input type="checkbox" name="asam_dim${index + 1}[]" value="${levelValue}" class="h-5 w-5 cursor-pointer">
+                        </div>
+                        <span class="text-gray-700 leading-tight">${text}</span>
+                    </label>
+                </div>`;
+        }
+        
+        row.innerHTML = rowHtml;
+        container.appendChild(row);
+
+        // Additional Info Box for this Dimension
+        const infoRow = document.createElement('div');
+        infoRow.className = 'mt-2 mb-6 px-2';
+        infoRow.innerHTML = `
+            <textarea name="asam_dim${index + 1}_additional_info" class="form-textarea h-16 text-sm" placeholder="Additional comments for Dimension ${index + 1}..."></textarea>
+            <label class="flex items-center mt-1">
+                <input type="checkbox" name="asam_no_further_treatment_${index + 1}" value="true" class="h-4 w-4">
+                <span class="ml-2 text-xs text-gray-600">No further treatments required for this dimension.</span>
+            </label>
+        `;
+        container.appendChild(infoRow);
+    });
+}
+function toggleDetails(element,detailsId,show){const detailsContainer=document.getElementById(detailsId);if(detailsContainer){detailsContainer.classList.toggle('hidden',!show)}}
+    function handleEmploymentStatusChange(){const status=document.querySelector('input[name="employment_status"]:checked')?.value;document.getElementById('employedFields').classList.toggle('hidden',!['Full-time','Part-time'].includes(status));document.getElementById('unemployedRetiredFields').classList.toggle('hidden',!['Unemployed','Retired'].includes(status))}
+    function toggleEmergencyContact(){const isDisabled=document.getElementById('noEmergencyContact').checked;['emergencyName','emergencyRelationship','emergencyPhone'].forEach(id=>{const input=document.getElementById(id);input.disabled=isDisabled;if(isDisabled)input.value=''} )}
+
+    // PAGE INITIALIZATION
+    document.addEventListener('DOMContentLoaded', () => {
+        if(document.getElementById('modalSearch')) document.getElementById('modalSearch').addEventListener('keyup', filterModalItems);
+        ['dob', 'clientName', 'recordNumber'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', updateAgeAndFooter); });
+        document.getElementById('severity').addEventListener('input', e => { document.getElementById('severityValue').textContent = e.target.value; });
+
+        buildDiagnosisHistoryGrid(5);
+        buildMedicationGrid(10);
+        buildSubstanceUseSection();
+        buildMseSection();
+        buildAsamGrid();
+        updateNavigation();
+        initializeFormDefaults();
+    });
+    document.getElementById('sudaForm').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    // Allow Enter in textarea and on buttons
+    if (
+      e.target.tagName !== 'TEXTAREA' &&
+      e.target.type !== 'submit' &&
+      e.target.type !== 'button'
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  }
+});
+</script>
+
+
+</body>
+</html>

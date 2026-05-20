@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form 8 - Client Consent Packet</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../images/goldlogo.png">
+    
+    <script>
+        (function() {
+            try {
+                const prefs = JSON.parse(localStorage.getItem('wchc_user_preferences') || '{}');
+                if (prefs.highContrast === true) document.documentElement.classList.add('high-contrast-mode');
+                if (prefs.fontSize) document.documentElement.style.fontSize = prefs.fontSize + 'px';
+            } catch (e) { console.error('Error loading prefs', e); }
+        })();
+    </script>
+    
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
+        .form-container { max-width: 960px; margin: 2rem auto; padding: 2rem; background-color: #ffffff; border-radius: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .form-section { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 4px solid #e5e7eb; }
+        .form-section-title { font-size: 1.5rem; font-weight: 700; color: #1e3a8a; margin-bottom: 1.5rem; border-left: 5px solid #d3af37; padding-left: 1rem; }
+        .form-field-group { border-radius: 0.75rem; padding: 1.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; margin-bottom: 1rem; }
+        .form-label { font-weight: 600; color: #111827; margin-bottom: 0.5rem; display: block; }
+        .form-input { display: block; width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: white; }
+        .legal-text { font-size: 0.95rem; line-height: 1.5; color: #374151; margin-bottom: 1rem; text-align: justify; }
+        .legal-list { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; font-size: 0.95rem; color: #374151; }
+        
+        /* Signature Pad Styles */
+        .signature-wrapper { border: 2px dashed #cbd5e1; background-color: #f8fafc; border-radius: 0.5rem; position: relative; height: 120px; width: 100%; margin-bottom: 5px; }
+        .signature-pad { width: 100%; height: 100%; touch-action: none; }
+        .clear-sig-btn { position: absolute; top: 5px; right: 5px; background: #fee2e2; color: #b91c1c; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; cursor: pointer; border: 1px solid #fca5a5; z-index: 10; }
+
+        .nav-container { position: fixed; top: 2rem; left: 2rem; width: 250px; display: none; }
+        .nav-link { display: block; padding: 0.5rem 1rem; margin-bottom: 0.5rem; color: #4b5563; background-color: #ffffff; border-radius: 0.5rem; }
+        .nav-link:hover { background-color: #dbeafe; color: #1e40af; }
+        .form-button { display: inline-block; padding: 0.75rem 1.5rem; font-weight: 600; color: #ffffff; border-radius: 0.75rem; cursor: pointer; border: none; transition: all 0.2s; }
+
+        /* High Contrast Overrides */
+        .high-contrast-mode { background-color: #000 !important; color: #FFFF00 !important; }
+        .high-contrast-mode .form-container, .high-contrast-mode .form-field-group { background-color: #000 !important; border-color: #FFFF00 !important; }
+        .high-contrast-mode .form-input, .high-contrast-mode select { background-color: #000 !important; color: #FFFF00 !important; border-color: #FFFF00 !important; }
+        .high-contrast-mode h1, .high-contrast-mode h2, .high-contrast-mode h3 { color: #FFFF00 !important; }
+
+        @media (min-width: 1200px) { .nav-container { display: block; } .form-container { margin-left: 300px; } }
+        @media print { .no-print { display: none !important; } .form-container { box-shadow: none; margin: 0; padding: 0; } body { background-color: white; } }
+    </style>
+    <script>window.WATSON_AUTH_CONFIG={mode:'protect',loginPath:'../index.html'};</script>
+    <script src="../js/auth-gate.js"></script>
+</head>
+<body>
+
+<div class="nav-container no-print">
+        <a href="../app.html" class="nav-link font-bold text-blue-600 mb-4">← Forms Home</a>
+        <h3 class="font-bold text-gray-900 mb-2">Sections</h3>
+        <nav class="max-h-[80vh] overflow-y-auto pr-2">
+            <a href="#section-0" class="nav-link font-semibold text-blue-800">Client Information</a>
+            <a href="#section-1" class="nav-link">1. Acknowledgement</a>
+            <a href="#section-2" class="nav-link">2. Financial Resp.</a>
+            <a href="#section-3" class="nav-link">3. Provider Choice</a>
+            <a href="#section-4" class="nav-link">4. ROI</a>
+            <a href="#section-5" class="nav-link">5. Consent (Adult)</a>
+            <a href="#section-6" class="nav-link">6. Consent (Minor)</a>
+            <a href="#section-7" class="nav-link">7. Photo Release</a>
+            <a href="#section-8" class="nav-link">8. Tele-Health</a>
+            <a href="#section-9" class="nav-link">9. Transportation</a>
+            <a href="#section-10" class="nav-link">10. Provider Change</a>
+            <a href="#section-11" class="nav-link">11. Med List</a>
+            <a href="#section-12" class="nav-link">12. Screening</a>
+            <a href="#action-buttons" class="nav-link font-bold text-green-700 mt-4 border-t-2 border-green-200 pt-2">↓ Finish & Print</a>
+        </nav>
+    </div>
+
+    <div class="form-container">
+        <div class="text-center mb-8">
+            <img src="../images/logo.png" alt="Watson Community Health Center" class="h-40 mx-auto mb-4">
+            <h1 class="text-3xl font-bold text-blue-900">Client Consent Packet</h1>
+        </div>
+
+        <form id="consentPacketForm" onsubmit="return false">
+            <input type="hidden" id="formId" value="consent-packet-full-v3">
+
+         <div id="section-0" class="form-section pt-4">
+                <h2 class="form-section-title">Client Information</h2>
+                <div class="form-field-group bg-blue-50 border-blue-200 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <p class="text-sm text-blue-800 italic">Enter information here to autofill the rest of the packet.</p>
+                        <span class="text-xs text-blue-600 bg-white px-2 py-1 rounded border border-blue-200">Autofill Enabled</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><label class="form-label">Client Name</label><input type="text" id="clientName" name="clientName" class="form-input" placeholder="Last, First"></div>
+                        <div><label class="form-label">Date of Birth</label><input type="date" id="dob" name="dob" class="form-input"></div>
+                        <div><label class="form-label">SSN (Last 4)</label><input type="text" id="ssn" name="ssn" class="form-input" maxlength="4"></div>
+                        
+                        <div><label class="form-label">Phone Number</label><input type="tel" id="clientPhone" name="clientPhone" class="form-input" placeholder="(555) 555-5555"></div>
+                        <div><label class="form-label">Packet Date</label><input type="date" id="packetDate" name="packetDate" class="form-input"></div>
+                        <div class="md:col-span-2"><label class="form-label">Current Address</label><input type="text" id="clientAddress" name="clientAddress" class="form-input" placeholder="Street Address, City, State, Zip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-1" class="form-section">
+                <h2 class="form-section-title">1. Acknowledgement of Receipt</h2>
+                <div class="form-field-group">
+                    <p class="legal-text font-bold">ACKNOWLEDGEMENT OF RECEIPT OF:</p>
+                    <ol class="list-decimal pl-6 mb-4 font-semibold">
+                        <li>Consumer Rights Policy and DMH Consumer Rights Statement</li>
+                        <li>HIPAA Privacy Rules for the Protection of Health and Mental Health Information</li>
+                    </ol>
+                    <p class="legal-text">I acknowledge that I received: Consumer Rights Policy and DMH Consumer Rights Statement AND HIPAA Privacy Rules for the Protection of Health and Mental Health Information.</p>
+                    <p class="legal-text">My signature below acknowledges that I have received a copy of both the Watson Community Health Centre Consumer Rights Policy and the DMH Consumer Rights Statement and that I have received a copy of the HIPAA Privacy Rules for the Protection of health and Mental Health Information.</p>
+                    
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-end">
+                        <div>
+                            <label class="form-label">Client Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_ack_client" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_ack_client')">Clear</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Legal Guardian Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_ack_guardian" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_ack_guardian')">Clear</button>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2"><label class="form-label">Reason for Refusal to sign:</label><input type="text" name="ack_refusal" class="form-input"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-2" class="form-section">
+                <h2 class="form-section-title">2. Patient Financial Responsibility</h2>
+                <div class="form-field-group">
+                    <p class="legal-text">Thank you for choosing Watson Community Health Centre for your medical needs. We are committed to providing you with the highest quality healthcare. We ask that you read and sign this form to acknowledge your understanding of our Client Financial policies.</p>
+                    
+                    <h4 class="font-bold mb-2">Client Financial Responsibilities</h4>
+                    <ul class="legal-list">
+                        <li>The Client (or Client's guardian, if a minor) is ultimately responsible for the payment for treatment and care.</li>
+                        <li>We will bill your insurance for you. However, the Client is required to provide the most correct and updated information regarding insurance.</li>
+                        <li>If we are unable to process payment through your insurance for any reason we will bill you for the services provided at the following rates:</li>
+                    </ul>
+
+                    <div class="overflow-x-auto mb-6">
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <tr class="bg-gray-100"><th class="border p-2 text-left">Service</th><th class="border p-2">Unit</th><th class="border p-2 text-right">Rate</th></tr>
+                            <tr><td class="border p-2">1. Individual Psychotherapy</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$75.00</td></tr>
+                            <tr><td class="border p-2">2. Group Psychotherapy</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$75.00</td></tr>
+                            <tr><td class="border p-2">3. Family Psychotherapy</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$150.00</td></tr>
+                            <tr><td class="border p-2">4. Diagnostic Evaluation</td><td class="border p-2">Flat fee</td><td class="border p-2 text-right">$100.00</td></tr>
+                            <tr><td class="border p-2">5. Community Psychiatric Supportive Treatment</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$35.00</td></tr>
+                            <tr><td class="border p-2">6. Therapeutic Behavioral Services</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$45.00</td></tr>
+                            <tr><td class="border p-2">7. Psychosocial Rehabilitation</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$35.00</td></tr>
+                            <tr><td class="border p-2">8. Assertive Community Treatment</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$75.00</td></tr>
+                            <tr><td class="border p-2">9. Intensive Home-Based Therapy</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$75.00</td></tr>
+                            <tr><td class="border p-2">10. Substance Use Disorder Assessment & ASAM</td><td class="border p-2">Flat fee</td><td class="border p-2 text-right">$75.00</td></tr>
+                            <tr><td class="border p-2">11. Substance Use Disorder Services</td><td class="border p-2">1-hour Session</td><td class="border p-2 text-right">$40.00</td></tr>
+                            <tr><td class="border p-2">12. Intensive Outpatient Treatment</td><td class="border p-2">Per Diem</td><td class="border p-2 text-right">$100.00</td></tr>
+                        </table>
+                    </div>
+
+                    <ul class="legal-list">
+                        <li>Clients are responsible for payment of copays, coinsurance, deductibles and all other procedures or treatment not covered by their insurance plan</li>
+                        <li>Copays are due at the time of service</li>
+                        <li>Coinsurance deductibles and non-covered items are due 30 days from receipt of billing</li>
+                        <li>Clients may incur, and are responsible for payment of additional charges, if applicable. These charges may include: Charge for returned checks - $30.00</li>
+                    </ul>
+
+                    <p class="legal-text font-semibold">By my signature below, I hereby authorize assignment of financial benefits directly to Watson Community Health Centre and any associated healthcare entities for service rendered as allowed under standard third-party contracts. I understand that I am financially responsible for charges not covered by this assignment.</p>
+                    
+                    <h4 class="font-bold mt-4 mb-2">Client Acknowledgement and Authorization</h4>
+                    <p class="legal-text">We respect Client confidentiality and only release personal health information about you in accordance with the State and Federal law. The attached notice describes our policies related to the use of the records of your care and how you may get access to this information. Please review this policy carefully. By my signature below, I acknowledge that I have received and read the privacy notice provided by Watson Community Health Centre to release medical and other information acquired in the course of my examination and/or treatment to the necessary insurance companies, third party payors, and or other physicians or healthcare entities to participate in my care.</p>
+
+                    <div class="mt-6">
+                        <label class="form-label">Client/Legal Guardian Signature</label>
+                        <div class="signature-wrapper">
+                            <canvas id="sig_fin_client" class="signature-pad"></canvas>
+                            <button type="button" class="clear-sig-btn" onclick="clearSig('sig_fin_client')">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-3" class="form-section">
+                <h2 class="form-section-title">3. Statement of Provider Choice</h2>
+                <div class="form-field-group">
+                    <p class="legal-text">I (Parent/Legal Guardian, if minor) have selected to receive the following service(s) from Watson Community Health Centre:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                        <label class="flex items-center"><input type="checkbox" name="choice_de" class="h-5 w-5 text-blue-600"> <span class="ml-2">Diagnostic Evaluation and Update</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_med" class="h-5 w-5 text-blue-600"> <span class="ml-2">Psychiatry/Medication Management</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_cpst" class="h-5 w-5 text-blue-600"> <span class="ml-2">CPST</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_psychotherapy" class="h-5 w-5 text-blue-600"> <span class="ml-2">Psychotherapy (Ind, Fam, Grp, Crisis)</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_psychoed" class="h-5 w-5 text-blue-600"> <span class="ml-2">Psychoeducation (TBS, PSR)</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_act" class="h-5 w-5 text-blue-600"> <span class="ml-2">Assertive Community Treatment (ACT)</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_ihbt" class="h-5 w-5 text-blue-600"> <span class="ml-2">Intensive Home-Based Therapy (IHBT)</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_sud_assess" class="h-5 w-5 text-blue-600"> <span class="ml-2">SUD Assessment and ASAM</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_sud_serv" class="h-5 w-5 text-blue-600"> <span class="ml-2">SUD Services (Case Mgmt, Counsel)</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_iop" class="h-5 w-5 text-blue-600"> <span class="ml-2">Intensive Outpatient Treatment</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_lab" class="h-5 w-5 text-blue-600"> <span class="ml-2">Laboratory Analysis</span></label>
+                    </div>
+
+                    <p class="legal-text">I attest that I have been provided with the information necessary to make an informed choice about service, informed about the range of other services in a way that in non-coercive and protects my right to self-determination.</p>
+                    <p class="legal-text">My selection of a service provider was based solely upon my identified needs, diagnosis, preference, and provider availability.</p>
+                    <p class="legal-text">By signing this Statement of Provider Choice, I acknowledge that I was given choice of provider and that the screening discussed location, available times, specialty, culture and linguistic preferences with me.</p>
+
+                    <div class="mt-6">
+                        <label class="form-label">Client/Legal Guardian Signature</label>
+                        <div class="signature-wrapper">
+                            <canvas id="sig_choice_client" class="signature-pad"></canvas>
+                            <button type="button" class="clear-sig-btn" onclick="clearSig('sig_choice_client')">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-4" class="form-section">
+                <h2 class="form-section-title">4. Authorization to Release and/or Exchange Confidential Information</h2>
+                <div class="form-field-group">
+                    <p class="legal-text">I, the undersigned, hereby authorize Watson Community Health Centre to use or disclose my personal health information and/or confidential information as described below to:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 border p-4 bg-white rounded">
+                        <div class="md:col-span-2"><label class="form-label">Name of Recipient</label><input type="text" name="roi_recipient" class="form-input"></div>
+                        <div><label class="form-label">Phone</label><input type="text" name="roi_phone" class="form-input"></div>
+                        <div><label class="form-label">Fax</label><input type="text" name="roi_fax" class="form-input"></div>
+                        <div class="md:col-span-2"><label class="form-label">Address</label><input type="text" name="roi_address" class="form-input"></div>
+                    </div>
+                    <div class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded">
+                        <label class="flex items-start">
+                            <input type="checkbox" name="roi_exchange" class="mt-1 h-5 w-5 text-blue-600"> 
+                            <span class="ml-3 legal-text mb-0"><strong>If marked,</strong> I further authorize the EXCHANGE of information and for the party identified as Recipient above to also disclose my personal health information and/or confidential information to Watson Community Health Centre.</span>
+                        </label>
+                    </div>
+                    <h4 class="font-bold mb-2">Type of Information to be Released/Exchanged:</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 mb-6 text-sm">
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Mental Health Assessments" class="mr-2"> Mental Health Assessments/Evaluations</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Partial Hospitalization" class="mr-2"> Partial Hospitalization Records</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="SUD Assessment" class="mr-2"> Alcohol/Drug Assessment (LOC)</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Treatment Plan" class="mr-2"> Treatment Plan/ITP/Treatment Updates</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="HIV Diagnosis" class="mr-2"> HIV/AIDS Related Diagnosis</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="SUD Treatment Summary" class="mr-2"> Alcohol/Drug Treatment Summary</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Progress Notes" class="mr-2"> Progress Notes</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Court Reports" class="mr-2"> Court Reports</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="SUD Treatment Plan" class="mr-2"> Alcohol/Drug Treatment Plan</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Psychological Info" class="mr-2"> Psychological Information</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Psychiatric Info" class="mr-2"> Psychiatric Information</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="SUD Progress Notes" class="mr-2"> Alcohol/Drug Progress Notes</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Medical Records" class="mr-2"> General Medical Records</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Employment Records" class="mr-2"> Employment Records</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="SUD Discharge Plan" class="mr-2"> Alcohol/Drug Discharge Plan</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="School Records" class="mr-2"> School Reports/Records/IEP/MFE</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Urinalysis" class="mr-2"> Urinalysis/Breathalyzer Results</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_info" value="Discharge Summary" class="mr-2"> Discharge Summary</label>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div><label class="form-label">Dates of Service (FROM):</label><input type="date" name="roi_date_from" class="form-input"></div>
+                        <div><label class="form-label">Dates of Service (TO):</label><input type="date" name="roi_date_to" class="form-input"></div>
+                    </div>
+                    <h4 class="font-bold mb-2">Purpose for Disclosure:</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4 text-sm">
+                        <label class="flex items-center"><input type="checkbox" name="roi_purpose" value="Care/Treatment" class="mr-2"> Care/Treatment/Ongoing</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_purpose" value="Treatment Planning" class="mr-2"> Treatment Planning</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_purpose" value="Assessment" class="mr-2"> Assessment/Evaluation</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_purpose" value="Referral" class="mr-2"> To follow up on a referral</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_purpose" value="Continuity" class="mr-2"> Continuity of Care</label>
+                        <label class="flex items-center"><input type="checkbox" name="roi_purpose" value="Other" class="mr-2"> Other</label>
+                    </div>
+                    <p class="legal-text">I understand and acknowledge that the requested information may contain information regarding physical and mental illness, HIV test results or diagnosis, AIDS or AIDS related conditions, alcohol and/or drug dependence/abuse. I also understand that information used or disclosed according to this authorization may be subject to re-disclosure by the recipient and may no longer be protected.</p>
+                    <p class="legal-text">I understand that I may see and copy the information described on this form if requested in writing. I also understand that the provider may not condition treatment, payment, enrollment or eligibility for benefits on whether I sign this authorization. The health care providers listed above will not receive financial or in-kind compensation in exchange for using or disclosing my health care information.</p>
+                    <p class="legal-text">I understand I have a right to revoke this authorization (in writing) at any time. I understand that the revocation will not apply to information that has already been released in response to this authorization. If not revoked, this authorization will expire one year from the date written below or on the following date, event or condition (if earlier).</p>
+                    <div class="mt-4 p-2 bg-gray-50 border text-xs text-gray-600 text-justify">
+                        <strong>*Prohibition Against Re-Disclosure:</strong> This information has been disclosed to you from records protected by federal confidentiality rules. The federal rules prohibit any further disclosure of this information unless further disclosure is expressly permitted by the written consent of the person to whom it pertains or as otherwise permitted by 42 C.F.R. Part 2. A general authorization for the release of medical or other information is NOT sufficient for this purpose. The federal rules restrict any use of information to criminally investigate or prosecute an alcohol or drug abuse client.
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <label class="form-label">Client Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_roi_client" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_roi_client')">Clear</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Parent/Guardian/Rep Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_roi_rep" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_roi_rep')">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t-2 border-dashed border-gray-400 pt-4">
+                        <h4 class="font-bold">Revocation of Authorization for Release of Information</h4>
+                        <p class="legal-text text-sm">At the date and time noted below, I hereby revoke permission for Watson Community Health Centre to further release information to the above-noted person, except to the extent the program has already acted in reliance upon it.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                             <div>
+                                <label class="form-label text-sm">Signature (Only sign to REVOKE)</label>
+                                <div class="signature-wrapper" style="height:80px;">
+                                    <canvas id="sig_roi_revoke" class="signature-pad"></canvas>
+                                    <button type="button" class="clear-sig-btn" onclick="clearSig('sig_roi_revoke')">Clear</button>
+                                </div>
+                             </div>
+                             <div><label class="form-label text-sm">Date of Revocation</label><input type="date" name="roi_revoke_date" class="form-input"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-5" class="form-section">
+                <h2 class="form-section-title">5. Consent for Treatment (18 yrs and above)</h2>
+                <div class="form-field-group">
+                    <p class="legal-text">I/We hereby give consent for mental health treatment (which may include services, supports) for the above-named Consumer. Services may include one or more of the following:</p>
+                    <ol class="list-decimal pl-6 mb-4 font-semibold text-sm">
+                        <li>Diagnostic Evaluation and Diagnostic Evaluation Update</li>
+                        <li>Community Psychiatric Service Treatment (CPST)</li>
+                        <li>Psychotherapy (Individual, Family, Group, Crisis)</li>
+                        <li>Psychoeducation Support Services (Therapeutic Behavioral Services, Psychosocial Rehabilitation)</li>
+                        <li>Assertive Community Treatment (ACT)</li>
+                        <li>Intensive Home-Based Therapy (IHBT)</li>
+                        <li>Substance Use Disorder Assessment and ASAM Level of Care</li>
+                        <li>Substance Use Disorder Services (Case Management; Psychotherapy; Individual Counseling; Group)</li>
+                        <li>Intensive Outpatient Treatment</li>
+                        <li>Laboratory Analysis</li>
+                        <li>Psychiatric Evaluation and Management</li>
+                        <li>Psychiatric Diagnostic with or without Medical</li>
+                        <li>Medication Administration</li>
+                    </ol>
+                    <p class="legal-text">I understand that all information shared with service providers at Watson Community Health Centre is confidential and no information will be released without my consent. During the course of treatment at Watson Community Health Centre, it may be necessary for my service provider to communicate with providers at Watson Community Health Centre. While written authorization will not be requested, prior to any discussion with Watson Community Health Centre providers, I understand that only provider will discuss all communications with me. In all other circumstances, consent to release information is given through written authorization. Verbal consent for limited release of information may be necessary in special circumstances.</p>
+                    <p class="legal-text font-semibold">I further understand that there are specific and limited exceptions to this confidentiality which include the following:</p>
+                    <ul class="legal-list">
+                        <li><strong>A.</strong> When there is risk of imminent danger to myself or to another person, the service provider is ethically bound to take necessary steps to prevent such danger.</li>
+                        <li><strong>B.</strong> When there is suspicion that a child or elder is being sexually or physically abused or is at risk of such abuse, the provider is legally required to take steps to protect the child and to inform the proper authorities.</li>
+                        <li><strong>C.</strong> When a valid court order is issued for medical records, the provider and the agency are bound by law to comply with such requests.</li>
+                    </ul>
+                    <p class="legal-text">If I have any questions regarding this consent form or about the services offered at Watson Community Health Centre, I may discuss them with my provider or the Clinical Supervisor. I have read and understand the above. I consent to receive the treatment offered to me by Watson Community Health Centre. I understand that I may stop treatment at any time. The consent/or treatment process has been thoroughly explained to me and I understand that I may stop treatment at any time.</p>
+                    
+                 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                        <div>
+                            <label class="form-label">Client Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_consent_adult" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_consent_adult')">Clear</button>
+                            </div>
+                        </div>
+                        <div><label class="form-label">Date</label><input type="date" name="adult_consent_date" class="form-input"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-6" class="form-section">
+                <h2 class="form-section-title">6. Consent for Treatment (Minor Consumer)</h2>
+                <div class="form-field-group">
+                    <p class="legal-text">As the parent or legal guardian with the authority to consent on behalf of the consumer named above, I hereby give my consent to receive behavioral health treatment (which may include services, supports, and/or medication) for the above named Consumer.</p>
+                    <p class="legal-text">Services may include one or more of the following:</p>
+                    <ol class="list-decimal pl-6 mb-4 font-semibold text-sm">
+                        <li>Diagnostic Evaluation and Diagnostic Evaluation Update</li>
+                        <li>Community Psychiatric Service Treatment (CPST)</li>
+                        <li>Psychotherapy (Individual, Family, Group, Crisis)</li>
+                        <li>Psychoeducation Support Services (Therapeutic Behavioral Services, Psychosocial Rehabilitation)</li>
+                        <li>Assertive Community Treatment (ACT)</li>
+                        <li>Intensive Home-Based Therapy (IHBT)</li>
+                        <li>Substance Use Disorder Assessment and ASAM Level of Care</li>
+                        <li>Substance Use Disorder Services (Case Management; Psychotherapy; Individual Counseling; Group)</li>
+                        <li>Intensive Outpatient Treatment</li>
+                        <li>Laboratory Analysis</li>
+                        <li>Psychiatric Evaluation and Management</li>
+                        <li>Psychiatric Diagnostic with or without Medical</li>
+                        <li>Medication Administration</li>
+                    </ol>
+                    <p class="legal-text">I understand that all information shared with service providers at Watson Community Health Centre is confidential and no information will be released without my consent. (Exceptions listed in Section 5 also apply here).</p>
+                    <p class="legal-text">I further understand that there are specific and limited exceptions to this confidentiality which include the following:</p>
+                    <ul class="legal-list">
+                        <li><strong>A.</strong> When there is risk of imminent danger to myself or to another person, the service provider is ethically bound to take necessary steps to prevent such danger.</li>
+                        <li><strong>B.</strong> When there is suspicion that a child or elder is being sexually or physically abused or is at risk of such abuse, the provider is legally required to take steps to protect the child and to inform the proper authorities.</li>
+                        <li><strong>C.</strong> When a valid court order is issued for medical records, the provider and the agency are bound by law to comply with such requests.</li>
+                    </ul>
+                    <p class="legal-text">If I have any questions regarding this consent form or about the services offered at Watson Community Health Centre, I may discuss them with my provider or the Clinical Supervisor. I have read and understand the above. I consent to receive the treatment offered to me by Watson Community Health Centre. I understand that I may stop treatment at any time.</p>
+                    
+                  <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                        <div>
+                            <label class="form-label">Parent/Legal Guardian Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_consent_minor_parent" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_consent_minor_parent')">Clear</button>
+                            </div>
+                        </div>
+                        <div><label class="form-label">Date</label><input type="date" name="minor_consent_date" class="form-input"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-7" class="form-section">
+                <h2 class="form-section-title">7. Photo Release Form</h2>
+                <div class="form-field-group">
+                    <h3 class="font-bold text-lg mb-2">Permission to Use Photograph</h3>
+                    <p class="legal-text">I (Parent/Legal Guardian, if minor) grant to Watson Community Health Centre, its representatives and employees the right to take photographs of me in connection with any activities I may participate in connected with services offered by Watson Community Health Centre. I authorize Watson Community Health Centre, its assigns and transferees to copyright, use and publish the same in print and/or electronically.</p>
+                    <p class="legal-text">I agree that Watson Community Health Centre may use such photographs of me with / without (circle one) my name and for any lawful purpose, including for example such purposes as publicity, illustration, advertising, and Web content.</p>
+                    <div class="my-6 p-4 border border-blue-300 bg-blue-50 rounded">
+                        <p class="font-bold mb-2">Please indicate your choice:</p>
+                        <div class="flex flex-col space-y-2">
+                            <label class="flex items-center"><input type="radio" name="photo_consent" value="WITH Name" class="h-5 w-5 text-blue-600"> <span class="ml-2">I agree to use photographs <strong>WITH</strong> my name.</span></label>
+                            <label class="flex items-center"><input type="radio" name="photo_consent" value="WITHOUT Name" class="h-5 w-5 text-blue-600"> <span class="ml-2">I agree to use photographs <strong>WITHOUT</strong> my name.</span></label>
+                            <label class="flex items-center"><input type="radio" name="photo_consent" value="DECLINE" class="h-5 w-5 text-red-600"> <span class="ml-2">I <strong>DECLINE</strong> photo release.</span></label>
+                        </div>
+                    </div>
+                    <p class="legal-text">I have read and understand the above:</p>
+                    
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="form-label">Client Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_photo_client" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_photo_client')">Clear</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Parent/Legal Guardian Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_photo_parent" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_photo_parent')">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-8" class="form-section">
+                <h2 class="form-section-title">8. Consent to Tele-Mental Health</h2>
+                <div class="form-field-group">
+                    <h3 class="font-bold text-lg mb-2">Introduction</h3>
+                    <p class="legal-text">Tele-mental health is the form of telemedicine that allows clients to access mental health care using audio-video interface such as videoconferencing. Electronic systems used will incorporate network and software security protocols to protect the confidentiality of client identification and imaging data and will include measures to safeguard the data and to ensure its integrity against intentional or unintentional corruption.</p>
+                    <h4 class="font-bold mt-4 mb-2">Expected Benefits:</h4>
+                    <ul class="legal-list">
+                        <li>Improved access to mental health care by enabling a client to remain in his/her home or office.</li>
+                        <li>Improved convenience for the client.</li>
+                        <li>More efficient management of mental health care within the community setting. Obtaining expertise of a distant specialist.</li>
+                    </ul>
+                    <h4 class="font-bold mt-4 mb-2">Possible Risks:</h4>
+                    <p class="legal-text">As with any medical procedure, there are potential risks associated with the use of tele-mental health. These risks include, but may not be limited to:</p>
+                    <ul class="legal-list">
+                        <li>In rare cases, information transmitted may not be sufficient (e.g. poor resolution of images) to allow for the effective communication between the client and the mental health professional. Effective communication is vital to the provision of mental health services by the mental health professional;</li>
+                        <li>Cultural and/or language differences between the client and the mental health professional may affect communication and service delivery.</li>
+                        <li>Delays in mental health assessment and treatment could occur due to deficiencies or failures of the equipment;</li>
+                        <li>In very rare instances, security protocols could fail, causing a breach of privacy of personal medical information;</li>
+                        <li>In rare cases, a lack of access to complete medical records may result in judgmental errors by the mental health professional;</li>
+                    </ul>
+                    <h4 class="font-bold mt-4 mb-2">By signing this form, I understand the following:</h4>
+                    <ol class="list-decimal pl-6 legal-text space-y-2">
+                        <li>I understand that the laws that protect privacy and the confidentiality of medical information also apply to tele-mental health and that no information obtained in the use of tele-therapy which identifies me will be disclosed to researchers or other entities without my consent.</li>
+                        <li>I understand that I have the right to withhold or withdraw my consent to the use of tele-mental health in the course of my care at any time, without affecting my right to future care or treatment.</li>
+                        <li>I understand that I have the right to inspect all information obtained in the course of a tele-mental health interaction and may receive copies of this information for a reasonable fee.</li>
+                        <li>I understand that no video and/or audio recordings of tele-mental health sessions will be made.</li>
+                        <li>I understand that a variety of alternative methods for the provision of mental health services may be available to me, and that I may choose one or more of these at any time.</li>
+                        <li>I understand that an alternative method for the provision of mental health services may be used by my mental health professional when deemed necessary.</li>
+                        <li>I understand that it is my duty to inform my mental health professional of any other healthcare providers involved in my medical/ mental health care.</li>
+                        <li>I understand that I may expect the anticipated benefits from the use of tele-mental health in my care, but that no results can be guaranteed or assured.</li>
+                        <li>I understand that Watson Community Health Centre cannot ensure confidentiality at the site where the client is located and when unapproved equipment software is used by the client, when tele-mental health procedures are not followed by the client.</li>
+                        <li>I understand that Watson Community Health Centre is not responsible for overages on client data usage plans, when Wi-Fi is not used by the client.</li>
+                        <li>I understand that my mental health professional providing tele-mental health is a qualified mental health professional with specialized training in the provision of distance mental health.</li>
+                        <li>I understand that Watson Community Health Centre is located at 16603 Harvard Ave Cleveland OH 44128; phone number: 216-999-7444.</li>
+                        <li>I understand that in times of crisis, or as desired during business hours, I may reach my mental health professional by business cell or desk phone.</li>
+                        <li>I understand that in times of crisis outside of normal work hours of my mental health professional I may call the Mobile Crisis Hotline at 216-623-6888 or call 911.</li>
+                    </ol>
+                    <h4 class="font-bold mt-6 mb-2">Client Consent to the Use of Tele-Mental health</h4>
+                    <p class="legal-text">I have read and understand the information provided above regarding tele-mental health, have discussed it with my mental health professional as may be designated, and all of my questions have been answered to my satisfaction. I hereby give my informed consent for the use of tele-therapy in my medical care. I hereby authorize Watson Community Health Centre to use tele-mental health in the course of my mental health diagnosis and treatment.</p>
+                    
+                 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                        <div>
+                            <label class="form-label">Client Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_tele_client" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_tele_client')">Clear</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Guardian Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_tele_guardian" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_tele_guardian')">Clear</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">WCHC Witness</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_tele_witness" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_tele_witness')">Clear</button>
+                            </div>
+                        </div>
+                        <div><label class="form-label">Date</label><input type="date" name="telehealth_date" class="form-input"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-9" class="form-section">
+                <h2 class="form-section-title">9. Transportation Permission Slip</h2>
+                <div class="form-field-group">
+                    <p class="legal-text">This permission slip must be signed by the parent or guardian of the child. If you do not give permission, please indicate in the appropriate space of the form.</p>
+                    
+                    <div class="mb-6 p-4 border-2 border-green-600 rounded bg-green-50">
+                        <label class="flex items-center mb-4">
+                            <input type="radio" name="transport_perm" value="Granted" class="h-6 w-6 text-green-600">
+                            <span class="ml-3 font-bold text-lg">I hereby give my full permission to Watson Community Health Centre to have consumer named above transported.</span>
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 ml-8 mt-4 items-end">
+                            <div>
+                                <label class="form-label">Signature of Parent/Legal Guardian</label>
+                                <div class="signature-wrapper">
+                                    <canvas id="sig_trans_grant_parent" class="signature-pad"></canvas>
+                                    <button type="button" class="clear-sig-btn" onclick="clearSig('sig_trans_grant_parent')">Clear</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Signature of Client</label>
+                                <div class="signature-wrapper">
+                                    <canvas id="sig_trans_grant_client" class="signature-pad"></canvas>
+                                    <button type="button" class="clear-sig-btn" onclick="clearSig('sig_trans_grant_client')">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-2 border-red-600 rounded bg-red-50">
+                        <label class="flex items-center mb-4">
+                            <input type="radio" name="transport_perm" value="Denied" class="h-6 w-6 text-red-600">
+                            <span class="ml-3 font-bold text-lg">I do NOT give permission to Watson Community Health Centre to have consumer named above transported.</span>
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 ml-8 mt-4 items-end">
+                            <div>
+                                <label class="form-label">Signature of Parent/Legal Guardian</label>
+                                <div class="signature-wrapper">
+                                    <canvas id="sig_trans_deny_parent" class="signature-pad"></canvas>
+                                    <button type="button" class="clear-sig-btn" onclick="clearSig('sig_trans_deny_parent')">Clear</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Signature of Client</label>
+                                <div class="signature-wrapper">
+                                    <canvas id="sig_trans_deny_client" class="signature-pad"></canvas>
+                                    <button type="button" class="clear-sig-btn" onclick="clearSig('sig_trans_deny_client')">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-10" class="form-section">
+                <h2 class="form-section-title">10. Behavioral Health Provider Change Form</h2>
+                <div class="form-field-group">
+                    <p class="legal-text font-bold">As the consumer of behavioral health services, I acknowledge that:</p>
+                    <ul class="legal-list">
+                        <li>I am enacting my Consumer Right of provider choice, and electing to change the provider of my behavioral health services;</li>
+                        <li>I am choosing to do so and that no promise or guarantee that any services received by my previous behavioral health provider will be continued or discontinued;</li>
+                        <li>I am consenting to treatment and service by Watson Community Health Centre, should I be eligible to participate in their behavioral health program;</li>
+                        <li>I will be required to complete a diagnostic evaluation/update and a treatment plan review before services can be initiated to determine medical necessity for services, under the rules of Ohio Department of Medicaid, per OAC 5160-1-01;</li>
+                        <li>I will be required to complete a Release of Information for the records of the services received from my previous behavioral health provider;</li>
+                        <li>I will be assigned to the Qualified Behavioral Health Specialist and/or Therapist most appropriate to render the services needed for my individual level of care, based on the determination of medical necessity and the services that I may be in need of.</li>
+                    </ul>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pt-4 border-t">
+                        <div class="md:col-span-2"><label class="form-label">Name of Previous Behavioral Health Provider</label><input type="text" name="prev_prov_name" class="form-input"></div>
+                        <div><label class="form-label">Contact phone number</label><input type="text" name="prev_prov_phone" class="form-input"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 pt-4 border-t">
+                        <div><label class="form-label">Case Manager</label><input type="text" name="prev_cm" class="form-input"></div>
+                        <div><label class="form-label">Contact phone number</label><input type="text" name="prev_cm_phone" class="form-input"></div>
+                        <div><label class="form-label">Contact email</label><input type="text" name="prev_cm_email" class="form-input"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 pt-4 border-t">
+                        <div><label class="form-label">Therapist</label><input type="text" name="prev_therapist" class="form-input"></div>
+                        <div><label class="form-label">Contact phone number</label><input type="text" name="prev_therapist_phone" class="form-input"></div>
+                        <div><label class="form-label">Contact email</label><input type="text" name="prev_therapist_email" class="form-input"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Services received/frequency</label>
+                        <div class="flex flex-col space-y-2 mt-2">
+                            <label class="flex items-center"><input type="checkbox" name="prev_svc" value="Case Management" class="h-5 w-5"> <span class="ml-2">CASE MANAGEMENT SERVICES</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="prev_svc" value="Therapy" class="h-5 w-5"> <span class="ml-2">INDIVIDUAL/GROUP THERAPY</span></label>
+                        </div>
+                        <div class="mt-2">
+                            <label class="form-label">How often (frequency)</label>
+                            <input type="text" name="prev_svc_freq" class="form-input">
+                        </div>
+                    </div>
+                    <p class="legal-text">By signing this Behavioral Health Provider Change Form, I acknowledge agreement to all of the statements listed above. This decision is my choice, as I have been made aware of the Watson Community Health Centre policy of Provider Choice. I am aware that by completing this form, I am not guaranteed any services, and I may discontinue services with Watson Community Health Centre at any time.</p>
+                    
+<div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                        <div>
+                            <label class="form-label">Client Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_change_client" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_change_client')">Clear</button>
+                            </div>
+                        </div>
+                        <div><label class="form-label">Insurance Provider</label><input type="text" name="insurance_prov" class="form-input"></div>
+                        <div>
+                            <label class="form-label">Parent/Legal Guardian Signature</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_change_parent" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_change_parent')">Clear</button>
+                            </div>
+                        </div>
+                        <div><label class="form-label">Date</label><input type="date" name="change_form_date" class="form-input"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-11" class="form-section">
+                <h2 class="form-section-title">11. Medication List</h2>
+                <div class="form-field-group">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="md:col-span-2 bg-red-50 p-2 border border-red-200 rounded">
+                            <label class="form-label text-red-700">ALLERGIES TO ANY MEDICATIONS:</label>
+                            <input type="text" name="med_allergies" class="form-input">
+                        </div>
+                        <div><label class="form-label">DOCTOR:</label><input type="text" name="med_doc" class="form-input"></div>
+                        <div><label class="form-label">PHONE:</label><input type="text" name="med_doc_phone" class="form-input"></div>
+                        <div><label class="form-label">PHARMACY:</label><input type="text" name="med_pharm" class="form-input"></div>
+                        <div><label class="form-label">PHONE:</label><input type="text" name="med_pharm_phone" class="form-input"></div>
+                    </div>
+                    <p class="mb-2 text-sm italic">List all prescriptions, over-the-counter medicines, vitamins, herbs, dietary supplements, oxygen, inhalers, and homeopathic remedies</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="border p-2">MEDICATION NAME AND START DATE</th>
+                                    <th class="border p-2">DOSE (mg, units, drops)</th>
+                                    <th class="border p-2">WHEN TAKEN (daily, at bedtime, PRN, etc.)</th>
+                                    <th class="border p-2">REASON FOR TAKING (diabetes, blood pressure, etc.)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border p-1"><input type="text" name="med_1_name" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_1_dose" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_1_when" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_1_reason" class="w-full p-1"></td></tr>
+                                <tr><td class="border p-1"><input type="text" name="med_2_name" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_2_dose" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_2_when" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_2_reason" class="w-full p-1"></td></tr>
+                                <tr><td class="border p-1"><input type="text" name="med_3_name" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_3_dose" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_3_when" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_3_reason" class="w-full p-1"></td></tr>
+                                <tr><td class="border p-1"><input type="text" name="med_4_name" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_4_dose" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_4_when" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_4_reason" class="w-full p-1"></td></tr>
+                                <tr><td class="border p-1"><input type="text" name="med_5_name" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_5_dose" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_5_when" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_5_reason" class="w-full p-1"></td></tr>
+                                <tr><td class="border p-1"><input type="text" name="med_6_name" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_6_dose" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_6_when" class="w-full p-1"></td><td class="border p-1"><input type="text" name="med_6_reason" class="w-full p-1"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-12" class="form-section">
+                <h2 class="form-section-title">12. Patient Health Questionnaires</h2>
+                <div class="form-field-group mb-8">
+                    <h3 class="text-xl font-bold text-blue-900 mb-2">PATIENT HEALTH QUESTIONNAIRE-9 (PHQ-9)</h3>
+                    <p class="mb-4 text-sm font-semibold">Over the last 2 weeks, how often have you been bothered by any of the following problems? (Use "✔" to indicate your answer)</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="border p-2 text-left w-1/2">Problem</th>
+                                    <th class="border p-2 text-center w-16">Not at all (0)</th>
+                                    <th class="border p-2 text-center w-16">Several days (1)</th>
+                                    <th class="border p-2 text-center w-16">More than half the days (2)</th>
+                                    <th class="border p-2 text-center w-16">Nearly every day (3)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr><td class="p-2 border-r">1. Little interest or pleasure in doing things</td><td class="text-center bg-gray-50"><input type="radio" name="phq_1" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_1" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_1" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_1" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">2. Feeling down, depressed, or hopeless</td><td class="text-center bg-gray-50"><input type="radio" name="phq_2" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_2" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_2" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_2" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">3. Trouble falling or staying asleep, or sleeping too much</td><td class="text-center bg-gray-50"><input type="radio" name="phq_3" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_3" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_3" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_3" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">4. Feeling tired or having little energy</td><td class="text-center bg-gray-50"><input type="radio" name="phq_4" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_4" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_4" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_4" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">5. Poor appetite or overeating</td><td class="text-center bg-gray-50"><input type="radio" name="phq_5" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_5" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_5" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_5" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">6. Feeling bad about yourself - or that you are a failure or have let yourself or your family down</td><td class="text-center bg-gray-50"><input type="radio" name="phq_6" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_6" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_6" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_6" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">7. Trouble concentrating on things, such as reading the newspaper or watching television</td><td class="text-center bg-gray-50"><input type="radio" name="phq_7" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_7" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_7" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_7" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">8. Moving or speaking so slowly that other people could have noticed? Or the opposite being so fidgety or restless that you have been moving around a lot more than usual</td><td class="text-center bg-gray-50"><input type="radio" name="phq_8" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_8" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_8" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_8" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">9. Thoughts that you would be better off dead or of hurting yourself in some way</td><td class="text-center bg-gray-50"><input type="radio" name="phq_9" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_9" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_9" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="phq_9" value="3"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-2 flex justify-end">
+                         <span class="font-bold mr-2">FOR OFFICE CODING = Total Score:</span>
+                         <input type="text" name="phq_total" id="phq_total" class="w-16 border text-center">
+                    </div>
+                    <div class="mt-4 p-4 bg-gray-50 border">
+                        <p class="mb-2">If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?</p>
+                        <div class="flex space-x-4">
+                            <label><input type="radio" name="phq_diff" value="Not difficult"> Not difficult at all</label>
+                            <label><input type="radio" name="phq_diff" value="Somewhat difficult"> Somewhat difficult</label>
+                            <label><input type="radio" name="phq_diff" value="Very difficult"> Very difficult</label>
+                            <label><input type="radio" name="phq_diff" value="Extremely difficult"> Extremely difficult</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-field-group">
+                    <h3 class="text-xl font-bold text-blue-900 mb-2">GAD-7 Anxiety</h3>
+                    <p class="mb-4 text-sm font-semibold">Over the last two weeks, how often have you been bothered by the following problems?</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="border p-2 text-left w-1/2">Problem</th>
+                                    <th class="border p-2 text-center w-16">Not at all (0)</th>
+                                    <th class="border p-2 text-center w-16">Several days (1)</th>
+                                    <th class="border p-2 text-center w-16">More than half the days (2)</th>
+                                    <th class="border p-2 text-center w-16">Nearly every day (3)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr><td class="p-2 border-r">1. Feeling nervous, anxious, or on edge</td><td class="text-center bg-gray-50"><input type="radio" name="gad_1" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_1" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_1" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_1" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">2. Not being able to stop or control worrying</td><td class="text-center bg-gray-50"><input type="radio" name="gad_2" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_2" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_2" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_2" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">3. Worrying too much about different things</td><td class="text-center bg-gray-50"><input type="radio" name="gad_3" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_3" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_3" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_3" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">4. Trouble relaxing</td><td class="text-center bg-gray-50"><input type="radio" name="gad_4" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_4" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_4" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_4" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">5. Being so restless that it is hard to sit still</td><td class="text-center bg-gray-50"><input type="radio" name="gad_5" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_5" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_5" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_5" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">6. Becoming easily annoyed or irritable</td><td class="text-center bg-gray-50"><input type="radio" name="gad_6" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_6" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_6" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_6" value="3"></td></tr>
+                                <tr><td class="p-2 border-r">7. Feeling afraid, as if something awful might happen</td><td class="text-center bg-gray-50"><input type="radio" name="gad_7" value="0"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_7" value="1"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_7" value="2"></td><td class="text-center bg-gray-50"><input type="radio" name="gad_7" value="3"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-2 flex justify-end">
+                         <span class="font-bold mr-2">Total Score:</span>
+                         <input type="text" name="gad_total" id="gad_total" class="w-16 border text-center">
+                    </div>
+                    <div class="mt-4 p-4 bg-gray-50 border">
+                        <p class="mb-2">If you checked any problems, how difficult have they made it for you to do your work, take care of things at home, or get along with other people?</p>
+                        <div class="flex space-x-4">
+                            <label><input type="radio" name="gad_diff" value="Not difficult"> Not difficult at all</label>
+                            <label><input type="radio" name="gad_diff" value="Somewhat difficult"> Somewhat difficult</label>
+                            <label><input type="radio" name="gad_diff" value="Very difficult"> Very difficult</label>
+                            <label><input type="radio" name="gad_diff" value="Extremely difficult"> Extremely difficult</label>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-xs text-gray-500">
+                        <p><strong>Scoring GAD-7 Anxiety Severity:</strong> 0-4: minimal anxiety | 5-9: mild anxiety | 10-14: moderate anxiety | 15-21: severe anxiety</p>
+                    </div>
+                    
+                  <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                        <div>
+                            <label class="form-label">Staff Signature (Reviewer)</label>
+                            <div class="signature-wrapper">
+                                <canvas id="sig_staff_review" class="signature-pad"></canvas>
+                                <button type="button" class="clear-sig-btn" onclick="clearSig('sig_staff_review')">Clear</button>
+                            </div>
+                        </div>
+                        <div><label class="form-label">Date</label><input type="date" name="review_date" class="form-input"></div>
+                    </div>
+                </div>
+            </div>
+
+<div id="action-buttons" class="button-container mt-12 mb-20 flex flex-col items-center gap-4 no-print border-t-4 border-gray-200 pt-8">
+                <h3 class="text-xl font-bold text-gray-700 mb-4">Packet Completion Actions</h3>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button type="button" onclick="saveToLocalStorage()" class="form-button bg-green-600 hover:bg-green-700 shadow-lg">Save Progress</button>
+                    <button type="button" onclick="printForm()" class="form-button bg-blue-600 hover:bg-blue-700 shadow-lg text-lg px-8">Print Packet (PDF)</button>
+                    <button type="button" onclick="exportData()" class="form-button bg-gray-600 hover:bg-gray-700 shadow-lg">Export to File</button>
+                    <button type="button" onclick="clearForm()" class="form-button bg-red-600 hover:bg-red-700 shadow-lg">Clear Form</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+<script>
+        // ==================== INITIALIZATION & AUTO-FILL ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            initSignaturePads(); 
+            setTodayDates(); // Auto-fill dates
+            
+            // Score Calculation Listeners
+            const radioInputs = document.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(input => {
+                if(input.name.startsWith('phq_') || input.name.startsWith('gad_')) {
+                    input.addEventListener('change', calculateScores);
+                }
+            });
+        });
+
+        function setTodayDates() {
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                if (!input.value) input.value = today;
+            });
+        }
+
+        // ==================== SIGNATURE PAD LOGIC ====================
+        const signaturePads = {};
+        const sigIds = [
+            'sig_ack_client', 'sig_ack_guardian', 'sig_fin_client', 'sig_choice_client',
+            'sig_roi_client', 'sig_roi_rep', 'sig_roi_revoke',
+            'sig_consent_adult', 'sig_consent_minor_parent',
+            'sig_photo_client', 'sig_photo_parent',
+            'sig_tele_client', 'sig_tele_guardian', 'sig_tele_witness',
+            'sig_trans_grant_parent', 'sig_trans_grant_client', 
+            'sig_trans_deny_parent', 'sig_trans_deny_client',
+            'sig_change_client', 'sig_change_parent', 'sig_staff_review'
+        ];
+
+        function initSignaturePads() {
+            sigIds.forEach(id => {
+                const canvas = document.getElementById(id);
+                if (canvas) {
+                    const pad = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
+                    signaturePads[id] = pad;
+                    
+                    function resizeCanvas() {
+                        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                        canvas.width = canvas.offsetWidth * ratio;
+                        canvas.height = canvas.offsetHeight * ratio;
+                        canvas.getContext("2d").scale(ratio, ratio);
+                        pad.clear(); 
+                    }
+                    window.addEventListener("resize", resizeCanvas);
+                    resizeCanvas();
+                }
+            });
+        }
+
+        function clearSig(id) {
+            if (signaturePads[id]) signaturePads[id].clear();
+        }
+
+        // ==================== CALCULATION LOGIC ====================
+        function calculateScores() {
+            // PHQ-9
+            let phqScore = 0;
+            for(let i=1; i<=9; i++) {
+                const radios = document.getElementsByName(`phq_${i}`);
+                for(const radio of radios) { if(radio.checked) phqScore += parseInt(radio.value); }
+            }
+            document.getElementById('phq_total').value = phqScore;
+
+            // GAD-7
+            let gadScore = 0;
+            for(let i=1; i<=7; i++) {
+                const radios = document.getElementsByName(`gad_${i}`);
+                for(const radio of radios) { if(radio.checked) gadScore += parseInt(radio.value); }
+            }
+            document.getElementById('gad_total').value = gadScore;
+        }
+
+        // ==================== DATA MANAGEMENT ====================
+        function getFormData() {
+            const form = document.getElementById('consentPacketForm');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) data[key] = [data[key]];
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+            sigIds.forEach(id => {
+                if(signaturePads[id] && !signaturePads[id].isEmpty()) {
+                    data[id] = signaturePads[id].toDataURL();
+                }
+            });
+            return data;
+        }
+
+        function saveToLocalStorage() {
+            const data = getFormData();
+            const clientName = data.clientName || 'Unnamed';
+            localStorage.setItem(`savedPacket_${clientName}`, JSON.stringify(data));
+            alert('Packet progress saved.');
+        }
+
+        function exportData() {
+            const data = getFormData();
+            const clientName = data.clientName || 'Unnamed';
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `ConsentPacket_${clientName}.json`;
+            link.click();
+        }
+
+        function clearForm() {
+            if(confirm("Clear all data?")) {
+                document.getElementById('consentPacketForm').reset();
+                sigIds.forEach(id => { if(signaturePads[id]) signaturePads[id].clear(); });
+                setTodayDates();
+                window.scrollTo(0,0);
+            }
+        }
+
+        // ==================== EXACT PRINT GENERATION ====================
+        function printForm() {
+            const data = getFormData();
+            const val = (key) => data[key] ? data[key] : '';
+            const chk = (key, target) => {
+                if (Array.isArray(data[key])) return data[key].includes(target) ? '☑' : '☐';
+                return data[key] === target ? '☑' : '☐';
+            };
+            
+            // Signature Helper
+            const sigBlock = (sigKey, label, dateVal) => {
+                const img = data[sigKey] ? `<img src="${data[sigKey]}" class="sig-img">` : '';
+                return `
+                <div class="sig-box">
+                    <div class="sig-wrapper">
+                        <div class="sig-content">${img}</div>
+                        <div class="sig-label">${label}</div>
+                    </div>
+                    <div class="sig-wrapper" style="flex: 0 0 150px;">
+                        <div class="sig-content" style="justify-content:center;">${dateVal || ''}</div>
+                        <div class="sig-label">Date</div>
+                    </div>
+                </div>`;
+            };
+
+            const footerHtml = `
+                <div class="footer">
+                    <span>Client: ${val('clientName')}</span>
+                    <span>DOB: ${val('dob')}</span>
+                    <span>Date: ${val('packetDate')}</span>
+                </div>`;
+            
+            const logoHtml = `<div class="header-logo"><img src="../images/logo.png" alt="Logo"></div>`;
+
+            let html = `<html><head><title>Print Packet</title>
+            <style>
+                @page { margin: 0.5in; size: letter; }
+                body { font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.2; color: #000; margin: 0; }
+                .page { position: relative; padding: 0; margin-bottom: 20px; page-break-after: always; }
+                .header-logo { text-align: center; margin-bottom: 20px; }
+                .header-logo img { height: 150px; width: auto; }
+                h1 { font-size: 16pt; text-align: center; text-transform: uppercase; font-weight: bold; margin: 15px 0; border-bottom: 2px solid #000; padding-bottom: 5px; }
+                p, li { margin-bottom: 6px; text-align: justify; }
+                ul, ol { padding-left: 25px; margin-top: 5px; }
+                
+                .sig-box { margin-top: 30px; display: flex; gap: 30px; }
+                .sig-wrapper { flex: 1; display: flex; flex-direction: column; }
+                .sig-content { height: 45px; border-bottom: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; }
+                .sig-label { font-size: 9pt; margin-top: 4px; }
+                .sig-img { max-height: 40px; }
+
+                table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10pt; page-break-inside: avoid; }
+                th, td { border: 1px solid #000; padding: 6px; }
+                th { background-color: #f0f0f0; }
+                .footer { border-top: 1px solid #000; padding-top: 5px; margin-top: 30px; font-size: 9pt; display: flex; justify-content: space-between; font-style: italic; }
+                .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            </style></head><body>`;
+
+            // --- PAGE 1: ACKNOWLEDGEMENT ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Acknowledgement of Receipt</h1>
+                <p><strong>ACKNOWLEDGEMENT OF RECEIPT OF:</strong></p>
+                <ol>
+                    <li>Consumer Rights Policy and DMH Consumer Rights Statement</li>
+                    <li>HIPAA Privacy Rules for the Protection of Health and Mental Health Information</li>
+                </ol>
+                <p>I acknowledge that I received: Consumer Rights Policy and DMH Consumer Rights Statement AND HIPAA Privacy Rules for the Protection of Health and Mental Health Information.</p>
+                <p>My signature below acknowledges that I have received a copy of both the Watson Community Health Centre Consumer Rights Policy and the DMH Consumer Rights Statement and that I have received a copy of the HIPAA Privacy Rules for the Protection of health and Mental Health Information.</p>
+                
+                <div style="margin-top:40px; border-bottom:1px solid #000; width:100%;">${val('clientName')}</div>
+                <div style="font-size:9pt; margin-top:2px;">Client Name (Printed)</div>
+
+                ${sigBlock('sig_ack_client', 'Client Signature', val('packetDate'))}
+                
+                <div class="sig-box">
+                    <div class="sig-wrapper">
+                        <div class="sig-content">${data['sig_ack_guardian'] ? `<img src="${data['sig_ack_guardian']}" class="sig-img">` : ''}</div>
+                        <div class="sig-label">Legal Guardian Signature</div>
+                    </div>
+                    <div class="sig-wrapper">
+                        <div class="sig-content" style="justify-content:flex-start;">${val('ack_refusal')}</div>
+                        <div class="sig-label">Reason for Refusal</div>
+                    </div>
+                </div>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 2: FINANCIAL ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Patient Financial Responsibility & Authorization Form</h1>
+                <p>Thank you for choosing Watson Community Health Centre for your medical needs. We are committed to providing you with the highest quality healthcare. We ask that you read and sign this form to acknowledge your understanding of our Client Financial policies.</p>
+                <p><strong>Client Financial Responsibilities</strong></p>
+                <ul>
+                    <li>The Client (or Client's guardian, if a minor) is ultimately responsible for the payment for treatment and care.</li>
+                    <li>We will bill your insurance for you. However, the Client is required to provide the most correct and updated information regarding insurance.</li>
+                </ul>
+                <table style="font-size:9pt;">
+                    <tr><th>Service</th><th>Rate</th><th>Service</th><th>Rate</th></tr>
+                    <tr><td>Ind. Psychotherapy</td><td>$75.00</td><td>Psychosocial Rehab</td><td>$35.00</td></tr>
+                    <tr><td>Group Psychotherapy</td><td>$75.00</td><td>Assertive Comm. Tx</td><td>$75.00</td></tr>
+                    <tr><td>Family Psychotherapy</td><td>$150.00</td><td>IHBT</td><td>$75.00</td></tr>
+                    <tr><td>Diagnostic Eval</td><td>$100.00</td><td>SUD Assessment</td><td>$75.00</td></tr>
+                    <tr><td>CPST</td><td>$35.00</td><td>SUD Services</td><td>$40.00</td></tr>
+                    <tr><td>TBS</td><td>$45.00</td><td>Intensive Outpatient</td><td>$100.00</td></tr>
+                </table>
+                <p>Clients are responsible for payment of copays, coinsurance, deductibles and all other procedures or treatment not covered by their insurance plan. Copays are due at the time of service. Charge for returned checks - $30.00.</p>
+                <p>By my signature below, I hereby authorize assignment of financial benefits directly to Watson Community Health Centre. I understand that I am financially responsible for charges not covered by this assignment.</p>
+                <p><strong>Client Acknowledgement and Authorization</strong></p>
+                <p>We respect Client confidentiality and only release personal health information about you in accordance with the State and Federal law. By my signature below, I acknowledge that I have received and read the privacy notice provided by Watson Community Health Centre.</p>
+                
+                <div style="margin-top:20px; border-bottom:1px solid #000;">${val('clientName')}</div>
+                <div style="font-size:9pt;">Client Name</div>
+
+                ${sigBlock('sig_fin_client', 'Client/Legal Guardian Signature', val('packetDate'))}
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 3: PROVIDER CHOICE ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Statement of Provider Choice</h1>
+                <p>I have selected to receive the following service(s) from Watson Community Health Centre:</p>
+                <div class="grid-2">
+                    <div>${chk('choice_de', 'on')} Diagnostic Eval & Update<br>${chk('choice_med', 'on')} Psychiatry/Med Mgmt<br>${chk('choice_cpst', 'on')} CPST<br>${chk('choice_psychotherapy', 'on')} Psychotherapy<br>${chk('choice_psychoed', 'on')} Psychoeducation<br>${chk('choice_act', 'on')} ACT</div>
+                    <div>${chk('choice_ihbt', 'on')} IHBT<br>${chk('choice_sud_assess', 'on')} SUD Assessment<br>${chk('choice_sud_serv', 'on')} SUD Services<br>${chk('choice_iop', 'on')} IOP<br>${chk('choice_lab', 'on')} Lab Analysis</div>
+                </div>
+                <p style="margin-top:20px">I attest that I have been provided with the information necessary to make an informed choice about service, informed about the range of other services in a way that in non-coercive and protects my right to self-determination. My selection of a service provider was based solely upon my identified needs, diagnosis, preference, and provider availability. By signing this Statement of Provider Choice, I acknowledge that I was given choice of provider and that the screening discussed location, available times, specialty, culture and linguistic preferences with me.</p>
+                
+                <div style="margin-top:20px; border-bottom:1px solid #000;">${val('clientName')}</div>
+                <div style="font-size:9pt;">Print Name</div>
+
+                ${sigBlock('sig_choice_client', 'Signature', val('packetDate'))}
+                
+                <div class="sig-box">
+                    <div class="sig-wrapper"><div class="sig-content"></div><div class="sig-label">Client/Legal Guardian Signature</div></div>
+                    <div class="sig-wrapper" style="flex:0 0 150px;"><div class="sig-content"></div><div class="sig-label">Date</div></div>
+                </div>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 4: ROI ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Authorization to Release Confidential Information</h1>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px;">
+                    <div style="width:40%"><strong>Client:</strong> ${val('clientName')}</div>
+                    <div style="width:20%"><strong>DOB:</strong> ${val('dob')}</div>
+                    <div style="width:20%"><strong>SSN:</strong> ${val('ssn')}</div>
+                    <div style="width:20%"><strong>Phone:</strong> ${val('clientPhone')}</div>
+                </div>
+                <p>I authorize Watson Community Health Centre to use or disclose my personal health information to:</p>
+                <p><strong>Recipient:</strong> ${val('roi_recipient')} | <strong>Phone:</strong> ${val('roi_phone')} | <strong>Fax:</strong> ${val('roi_fax')}</p>
+                <p><strong>Address:</strong> ${val('roi_address')}</p>
+                <p>${val('roi_exchange') ? '☑' : '☐'} <strong>I authorize the EXCHANGE (2-way) of information.</strong></p>
+                <p><strong>Dates of Service:</strong> ${val('roi_date_from')} to ${val('roi_date_to')}</p>
+                <p><strong>Information:</strong> ${Array.isArray(data['roi_info']) ? data['roi_info'].join(', ') : val('roi_info')}</p>
+                <p><strong>Purpose:</strong> ${Array.isArray(data['roi_purpose']) ? data['roi_purpose'].join(', ') : val('roi_purpose')}</p>
+                <p>I understand and acknowledge that the requested information may contain information regarding physical and mental illness, HIV test results, AIDS, alcohol/drug abuse. I understand that I may revoke this authorization at any time.</p>
+                <p style="font-size:8pt; border:1px solid #000; padding:5px;"><strong>*Prohibition Against Re-Disclosure:</strong> This information has been disclosed to you from records protected by federal confidentiality rules (42 C.F.R. Part 2). The federal rules prohibit any further disclosure of this information unless further disclosure is expressly permitted by the written consent of the person to whom it pertains.</p>
+                
+                <table style="margin-top:20px;">
+                    <tr>
+                        <td style="border:none; border-bottom:1px solid #000; height:40px; vertical-align:bottom; text-align:center;">${data['sig_roi_client'] ? `<img src="${data['sig_roi_client']}" style="max-height:35px;">` : ''}</td>
+                        <td style="border:none; border-bottom:1px solid #000; vertical-align:bottom;">${val('clientName')}</td>
+                        <td style="border:none; border-bottom:1px solid #000; vertical-align:bottom;">${val('packetDate')}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:none; font-size:8pt;">Signature of Client</td>
+                        <td style="border:none; font-size:8pt;">Printed Name</td>
+                        <td style="border:none; font-size:8pt;">Date</td>
+                    </tr>
+                    <tr>
+                        <td style="border:none; border-bottom:1px solid #000; height:40px; vertical-align:bottom; text-align:center;">${data['sig_roi_rep'] ? `<img src="${data['sig_roi_rep']}" style="max-height:35px;">` : ''}</td>
+                        <td style="border:none; border-bottom:1px solid #000; vertical-align:bottom;"></td>
+                        <td style="border:none; border-bottom:1px solid #000; vertical-align:bottom;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border:none; font-size:8pt;">Signature of Parent/Guardian</td>
+                        <td style="border:none; font-size:8pt;">Printed Name</td>
+                        <td style="border:none; font-size:8pt;">Date</td>
+                    </tr>
+                </table>
+
+                <div style="margin-top:20px; border:1px dashed #000; padding:10px;">
+                    <p style="font-weight:bold;">Revocation of Authorization</p>
+                    <p>At the date and time noted below, I hereby revoke permission for Watson Community Health Centre to further release information.</p>
+                    ${sigBlock('sig_roi_revoke', 'Signature (Only sign to REVOKE)', val('roi_revoke_date'))}
+                </div>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 5: CONSENT ADULT ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>CONSENT FOR TREATMENT (18 yrs and above)</h1>
+                <p>I/We hereby give consent for mental health treatment (which may include services, supports) for the above-named Consumer. Services may include one or more of the following: 1. Diagnostic Evaluation, 2. CPST, 3. Psychotherapy, 4. Psychoeducation, 5. ACT, 6. IHBT, 7. SUD Assessment, 8. SUD Services, 9. IOP, 10. Lab Analysis, 11. Psych Eval, 12. Psych Diagnostic, 13. Med Admin.</p>
+                <p>I understand that all information shared with service providers at Watson Community Health Centre is confidential and no information will be released without my consent. During the course of treatment at Watson Community Health Centre, it may be necessary for my service provider to communicate with providers at Watson Community Health Centre. While written authorization will not be requested, prior to any discussion with Watson Community Health Centre providers, I understand that only provider will discuss all communications with me.</p>
+                <p>I further understand that there are specific and limited exceptions to this confidentiality which include: A. Risk of imminent danger to myself or others; B. Suspicion of child or elder abuse; C. Valid court order.</p>
+                <p>If I have any questions regarding this consent form or about the services offered at Watson Community Health Centre, I may discuss them with my provider or the Clinical Supervisor. I have read and understand the above. I consent to receive the treatment offered to me by Watson Community Health Centre. I understand that I may stop treatment at any time.</p>
+                
+                <div style="margin-top:40px; border-bottom:1px solid #000;">${val('clientName')}</div>
+                <div style="font-size:9pt;">Print Name</div>
+
+                ${sigBlock('sig_consent_adult', 'Signature', val('adult_consent_date'))}
+                
+                <div class="sig-box">
+                    <div class="sig-wrapper"><div class="sig-content"></div><div class="sig-label">Parent/Legal Guardian Signature</div></div>
+                    <div class="sig-wrapper" style="flex:0 0 150px;"><div class="sig-content"></div><div class="sig-label">Date</div></div>
+                </div>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 6: CONSENT MINOR ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>CONSENT FOR TREATMENT (Minor)</h1>
+                <p>As the parent or legal guardian with the authority to consent on behalf of the consumer named above, I hereby give my consent to receive behavioral health treatment (which may include services, supports, and/or medication) for the above named Consumer.</p>
+                <p>Services may include one or more of the following: 1. Diagnostic Evaluation, 2. CPST, 3. Psychotherapy, 4. Psychoeducation, 5. ACT, 6. IHBT, 7. SUD Assessment, 8. SUD Services, 9. IOP, 10. Lab Analysis, 11. Psych Eval, 12. Psych Diagnostic, 13. Med Admin.</p>
+                <p>I understand that all information shared with service providers at Watson Community Health Centre is confidential... (Same exceptions as Adult form apply).</p>
+                <p>I further understand that there are specific and limited exceptions to this confidentiality which include: A. Risk of imminent danger; B. Suspicion of abuse; C. Valid court order.</p>
+                <p>I consent to receive the treatment offered to me by Watson Community Health Centre. I understand that I may stop treatment at any time.</p>
+                
+                <div style="margin-top:40px; border-bottom:1px solid #000;">${val('clientName')}</div>
+                <div style="font-size:9pt;">Print Name</div>
+
+                ${sigBlock('sig_consent_minor_parent', 'Signature', val('minor_consent_date'))}
+                
+                <div class="sig-box">
+                    <div class="sig-wrapper"><div class="sig-content"></div><div class="sig-label">Parent/Legal Guardian Signature</div></div>
+                    <div class="sig-wrapper" style="flex:0 0 150px;"><div class="sig-content"></div><div class="sig-label">Date</div></div>
+                </div>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 7: PHOTO RELEASE ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Photo Release Form</h1>
+                <p>I (Parent/Legal Guardian, if minor) grant to Watson Community Health Centre, its representatives and employees the right to take photographs of me in connection with any activities I may participate in connected with services offered by Watson Community Health Centre. I authorize Watson Community Health Centre, its assigns and transferees to copyright, use and publish the same in print and/or electronically.</p>
+                <p>I agree that Watson Community Health Centre may use such photographs of me with / without my name and for any lawful purpose.</p>
+                <p><strong>Selection:</strong> ${val('photo_consent')}</p>
+                
+                <div style="margin-top:30px; border-bottom:1px solid #000;">${val('clientName')}</div>
+                <div style="font-size:9pt;">Print Name</div>
+
+                ${sigBlock('sig_photo_client', 'Signature', val('packetDate'))}
+                ${sigBlock('sig_photo_parent', 'Client/Legal Guardian Signature', val('packetDate'))}
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 8: TELEHEALTH (FULL COMPLIANCE) ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>CONSENT TO TELE-MENTAL HEALTH</h1>
+                
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding-bottom:5px; margin-bottom:15px;">
+                    <div style="width:40%"><strong>Name:</strong> ${val('clientName')}</div>
+                    <div style="width:30%"><strong>DOB:</strong> ${val('dob')}</div>
+                    <div style="width:30%"><strong>SSN (Last 4):</strong> ${val('ssn')}</div>
+                </div>
+
+                <p><strong>Introduction</strong></p>
+                <p>Tele-mental health is the form of telemedicine that allows clients to access mental health care using audio-video interface such as videoconferencing. Electronic systems used will incorporate network and software security protocols to protect the confidentiality of client identification and imaging data and will include measures to safeguard the data and to ensure its integrity against intentional or unintentional corruption.</p>
+                
+                <p><strong>Expected Benefits:</strong></p>
+                <ul style="margin-top:0;">
+                    <li>Improved access to mental health care by enabling a client to remain in his/her home or office.</li>
+                    <li>Improved convenience for the client.</li>
+                    <li>More efficient management of mental health care within the community setting. Obtaining expertise of a distant specialist.</li>
+                </ul>
+
+                <p><strong>Possible Risks:</strong></p>
+                <p>As with any medical procedure, there are potential risks associated with the use of tele-mental health. These risks include, but may not be limited to:</p>
+                <ul style="margin-top:0;">
+                    <li>In rare cases, information transmitted may not be sufficient (e.g. poor resolution of images) to allow for the effective communication between the client and the mental health professional. Effective communication is vital to the provision of mental health services by the mental health professional;</li>
+                    <li>Cultural and/or language differences between the client and the mental health professional may affect communication and service delivery.</li>
+                    <li>Delays in mental health assessment and treatment could occur due to deficiencies or failures of the equipment;</li>
+                    <li>In very rare instances, security protocols could fail, causing a breach of privacy of personal medical information;</li>
+                    <li>In rare cases, a lack of access to complete medical records may result in judgmental errors by the mental health professional;</li>
+                </ul>
+
+                <p><strong>By signing this form, I understand the following:</strong></p>
+                <ol style="font-size: 9pt;">
+                    <li>I understand that the laws that protect privacy and the confidentiality of medical information also apply to tele-mental health and that no information obtained in the use of tele-therapy which identifies me will be disclosed to researchers or other entities without my consent.</li>
+                    <li>I understand that I have the right to withhold or withdraw my consent to the use of tele-mental health in the course of my care at any time, without affecting my right to future care or treatment.</li>
+                    <li>I understand that I have the right to inspect all information obtained in the course of a tele-mental health interaction and may receive copies of this information for a reasonable fee.</li>
+                    <li>I understand that no video and/or audio recordings of tele-mental health sessions will be made.</li>
+                    <li>I understand that a variety of alternative methods for the provision of mental health services may be available to me, and that I may choose one or more of these at any time.</li>
+                    <li>I understand that an alternative method for the provision of mental health services may be used by my mental health professional when deemed necessary.</li>
+                    <li>I understand that it is my duty to inform my mental health professional of any other healthcare providers involved in my medical/ mental health care.</li>
+                    <li>I understand that I may expect the anticipated benefits from the use of tele-mental health in my care, but that no results can be guaranteed or assured.</li>
+                    <li>I understand that Watson Community Health Centre cannot ensure confidentiality at the site where the client is located and when unapproved equipment software is used by the client, when tele-mental health procedures are not followed by the client.</li>
+                    <li>I understand that Watson Community Health Centre is not responsible for overages on client data usage plans, when Wi-Fi is not used by the client.</li>
+                    <li>I understand that my mental health professional providing tele-mental health is a qualified mental health professional with specialized training in the provision of distance mental health.</li>
+                    <li>I understand that Watson Community Health Centre is located at 16603 Harvard Ave Cleveland OH 44128; phone number: 216-999-7444.</li>
+                    <li>I understand that in times of crisis, or as desired during business hours, I may reach my mental health professional by business cell or desk phone.</li>
+                    <li>I understand that in times of crisis outside of normal work hours of my mental health professional I may call the Mobile Crisis Hotline at 216-623-6888 or call 911.</li>
+                </ol>
+
+                <p><strong>Client Consent to the Use of Tele-Mental health</strong></p>
+                <p>I have read and understand the information provided above regarding tele-mental health, have discussed it with my mental health professional as may be designated, and all of my questions have been answered to my satisfaction. I hereby give my informed consent for the use of tele-therapy in my medical care. I hereby authorize Watson Community Health Centre to use tele-mental health in the course of my mental health diagnosis and treatment.</p>
+
+                ${sigBlock('sig_tele_client', 'Client Signature', val('telehealth_date'))}
+                ${sigBlock('sig_tele_guardian', 'Guardian Signature', '')}
+                ${sigBlock('sig_tele_witness', 'WCHC Witness', '')}
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 9: TRANSPORT ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Transportation Permission Slip</h1>
+                <p>This permission slip must be signed by the parent or guardian of the child. If you do not give permission, please indicate in the appropriate space.</p>
+                <p style="font-size:14pt; font-weight:bold; margin:30px 0;">${val('transport_perm') === 'Granted' ? '☑' : '☐'} I hereby give my full permission to Watson Community Health Centre to have consumer named above transported.</p>
+                <p style="font-size:14pt; font-weight:bold; margin:30px 0;">${val('transport_perm') === 'Denied' ? '☑' : '☐'} I do NOT give permission to Watson Community Health Centre to have consumer named above transported.</p>
+                <div class="sig-box">
+                    <div class="sig-wrapper">
+                        <div class="sig-content">${data['sig_trans_grant_parent'] ? `<img src="${data['sig_trans_grant_parent']}" class="sig-img">` : (data['sig_trans_deny_parent'] ? `<img src="${data['sig_trans_deny_parent']}" class="sig-img">` : '')}</div>
+                        <div class="sig-label">Parent/Guardian Signature</div>
+                    </div>
+                    <div class="sig-wrapper">
+                        <div class="sig-content">${data['sig_trans_grant_client'] ? `<img src="${data['sig_trans_grant_client']}" class="sig-img">` : (data['sig_trans_deny_client'] ? `<img src="${data['sig_trans_deny_client']}" class="sig-img">` : '')}</div>
+                        <div class="sig-label">Client Signature</div>
+                    </div>
+                    <div class="sig-wrapper" style="flex: 0 0 150px;">
+                        <div class="sig-content" style="justify-content:center;">${val('packetDate')}</div>
+                        <div class="sig-label">Date</div>
+                    </div>
+                </div>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 10: PROVIDER CHANGE ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Behavioral Health Provider Change Form</h1>
+                <p>As the consumer of behavioral health services, I acknowledge that: I am enacting my Consumer Right of provider choice... I am choosing to do so and that no promise or guarantee that any services received by my previous provider will be continued... I will be required to complete a diagnostic evaluation... I will be required to complete a Release of Information...</p>
+                <p><strong>Previous Provider:</strong> ${val('prev_prov_name')} | <strong>Phone:</strong> ${val('prev_prov_phone')}</p>
+                <p><strong>Previous Case Manager:</strong> ${val('prev_cm')}</p>
+                <p><strong>Previous Therapist:</strong> ${val('prev_therapist')}</p>
+                <p><strong>Services Received:</strong> ${Array.isArray(data['prev_svc']) ? data['prev_svc'].join(', ') : val('prev_svc')} | <strong>Frequency:</strong> ${val('prev_svc_freq')}</p>
+                <p>By signing this Behavioral Health Provider Change Form, I acknowledge agreement to all of the statements listed above.</p>
+                
+                <div style="margin-top:20px; border-bottom:1px solid #000;">${val('clientName')}</div>
+                <div style="font-size:9pt;">Print Name</div>
+
+                ${sigBlock('sig_change_client', 'Signature', val('change_form_date'))}
+                
+                <div style="margin-top:20px; border-bottom:1px solid #000;">${val('insurance_prov')}</div>
+                <div style="font-size:9pt;">Insurance Provider</div>
+
+                ${sigBlock('sig_change_parent', 'Parent/Legal Guardian Signature', '')}
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 11: MED LIST ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>Medication List</h1>
+                <p>Allergies: ${val('med_allergies')} | Pharmacy: ${val('med_pharm')}</p>
+                <table>
+                    <tr><th>Medication</th><th>Dose</th><th>Freq</th><th>Reason</th></tr>
+                    <tr><td>${val('med_1_name')}</td><td>${val('med_1_dose')}</td><td>${val('med_1_when')}</td><td>${val('med_1_reason')}</td></tr>
+                    <tr><td>${val('med_2_name')}</td><td>${val('med_2_dose')}</td><td>${val('med_2_when')}</td><td>${val('med_2_reason')}</td></tr>
+                    <tr><td>${val('med_3_name')}</td><td>${val('med_3_dose')}</td><td>${val('med_3_when')}</td><td>${val('med_3_reason')}</td></tr>
+                    <tr><td>${val('med_4_name')}</td><td>${val('med_4_dose')}</td><td>${val('med_4_when')}</td><td>${val('med_4_reason')}</td></tr>
+                    <tr><td>${val('med_5_name')}</td><td>${val('med_5_dose')}</td><td>${val('med_5_when')}</td><td>${val('med_5_reason')}</td></tr>
+                    <tr><td>${val('med_6_name')}</td><td>${val('med_6_dose')}</td><td>${val('med_6_when')}</td><td>${val('med_6_reason')}</td></tr>
+                </tbody>
+                </table>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 12: PHQ-9 (SEPARATED FULL PAGE) ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>PATIENT HEALTH QUESTIONNAIRE-9 (PHQ-9)</h1>
+                <p style="margin-bottom:10px;">Over the last 2 weeks, how often have you been bothered by any of the following problems?</p>
+                
+                <table style="font-size:10pt;">
+                    <tr style="background:#eee;"><th>Problem</th><th style="width:50px; text-align:center;">0</th><th style="width:50px; text-align:center;">1</th><th style="width:50px; text-align:center;">2</th><th style="width:50px; text-align:center;">3</th></tr>
+                    <tr><td>1. Little interest or pleasure in doing things</td><td style="text-align:center;">${chk('phq_1','0')}</td><td style="text-align:center;">${chk('phq_1','1')}</td><td style="text-align:center;">${chk('phq_1','2')}</td><td style="text-align:center;">${chk('phq_1','3')}</td></tr>
+                    <tr><td>2. Feeling down, depressed, or hopeless</td><td style="text-align:center;">${chk('phq_2','0')}</td><td style="text-align:center;">${chk('phq_2','1')}</td><td style="text-align:center;">${chk('phq_2','2')}</td><td style="text-align:center;">${chk('phq_2','3')}</td></tr>
+                    <tr><td>3. Trouble falling/staying asleep, or sleeping too much</td><td style="text-align:center;">${chk('phq_3','0')}</td><td style="text-align:center;">${chk('phq_3','1')}</td><td style="text-align:center;">${chk('phq_3','2')}</td><td style="text-align:center;">${chk('phq_3','3')}</td></tr>
+                    <tr><td>4. Feeling tired or having little energy</td><td style="text-align:center;">${chk('phq_4','0')}</td><td style="text-align:center;">${chk('phq_4','1')}</td><td style="text-align:center;">${chk('phq_4','2')}</td><td style="text-align:center;">${chk('phq_4','3')}</td></tr>
+                    <tr><td>5. Poor appetite or overeating</td><td style="text-align:center;">${chk('phq_5','0')}</td><td style="text-align:center;">${chk('phq_5','1')}</td><td style="text-align:center;">${chk('phq_5','2')}</td><td style="text-align:center;">${chk('phq_5','3')}</td></tr>
+                    <tr><td>6. Feeling bad about yourself</td><td style="text-align:center;">${chk('phq_6','0')}</td><td style="text-align:center;">${chk('phq_6','1')}</td><td style="text-align:center;">${chk('phq_6','2')}</td><td style="text-align:center;">${chk('phq_6','3')}</td></tr>
+                    <tr><td>7. Trouble concentrating</td><td style="text-align:center;">${chk('phq_7','0')}</td><td style="text-align:center;">${chk('phq_7','1')}</td><td style="text-align:center;">${chk('phq_7','2')}</td><td style="text-align:center;">${chk('phq_7','3')}</td></tr>
+                    <tr><td>8. Moving/speaking slowly or fidgety/restless</td><td style="text-align:center;">${chk('phq_8','0')}</td><td style="text-align:center;">${chk('phq_8','1')}</td><td style="text-align:center;">${chk('phq_8','2')}</td><td style="text-align:center;">${chk('phq_8','3')}</td></tr>
+                    <tr><td>9. Thoughts of being better off dead</td><td style="text-align:center;">${chk('phq_9','0')}</td><td style="text-align:center;">${chk('phq_9','1')}</td><td style="text-align:center;">${chk('phq_9','2')}</td><td style="text-align:center;">${chk('phq_9','3')}</td></tr>
+                </table>
+                
+                <div style="text-align:right; margin:10px 0; font-size:12pt; font-weight:bold; border:1px solid #000; padding:10px; display:inline-block; float:right;">
+                    FOR OFFICE CODING: Total Score = ${val('phq_total')}
+                </div>
+                <div style="clear:both;"></div>
+
+                <div style="border:1px solid #000; padding:10px; margin-top:20px;">
+                    <p style="margin:0;">If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?</p>
+                    <p style="margin-top:10px; font-weight:bold;">${val('phq_diff')}</p>
+                </div>
+                
+                <p style="font-size:8pt; margin-top:30px;">Developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues, with an educational grant from Pfizer Inc. No permission required to reproduce, translate, display or distribute.</p>
+                ${footerHtml}
+            </div>`;
+
+            // --- PAGE 13: GAD-7 (SEPARATED FULL PAGE) ---
+            html += `<div class="page">
+                ${logoHtml}
+                <h1>GAD-7 ANXIETY SCREENING</h1>
+                <p style="margin-bottom:10px;">Over the last two weeks, how often have you been bothered by the following problems?</p>
+                
+                <table style="font-size:10pt;">
+                    <tr style="background:#eee;"><th>Problem</th><th style="width:50px; text-align:center;">0</th><th style="width:50px; text-align:center;">1</th><th style="width:50px; text-align:center;">2</th><th style="width:50px; text-align:center;">3</th></tr>
+                    <tr><td>1. Feeling nervous, anxious, or on edge</td><td style="text-align:center;">${chk('gad_1','0')}</td><td style="text-align:center;">${chk('gad_1','1')}</td><td style="text-align:center;">${chk('gad_1','2')}</td><td style="text-align:center;">${chk('gad_1','3')}</td></tr>
+                    <tr><td>2. Not being able to stop or control worrying</td><td style="text-align:center;">${chk('gad_2','0')}</td><td style="text-align:center;">${chk('gad_2','1')}</td><td style="text-align:center;">${chk('gad_2','2')}</td><td style="text-align:center;">${chk('gad_2','3')}</td></tr>
+                    <tr><td>3. Worrying too much about different things</td><td style="text-align:center;">${chk('gad_3','0')}</td><td style="text-align:center;">${chk('gad_3','1')}</td><td style="text-align:center;">${chk('gad_3','2')}</td><td style="text-align:center;">${chk('gad_3','3')}</td></tr>
+                    <tr><td>4. Trouble relaxing</td><td style="text-align:center;">${chk('gad_4','0')}</td><td style="text-align:center;">${chk('gad_4','1')}</td><td style="text-align:center;">${chk('gad_4','2')}</td><td style="text-align:center;">${chk('gad_4','3')}</td></tr>
+                    <tr><td>5. Being so restless that it is hard to sit still</td><td style="text-align:center;">${chk('gad_5','0')}</td><td style="text-align:center;">${chk('gad_5','1')}</td><td style="text-align:center;">${chk('gad_5','2')}</td><td style="text-align:center;">${chk('gad_5','3')}</td></tr>
+                    <tr><td>6. Becoming easily annoyed or irritable</td><td style="text-align:center;">${chk('gad_6','0')}</td><td style="text-align:center;">${chk('gad_6','1')}</td><td style="text-align:center;">${chk('gad_6','2')}</td><td style="text-align:center;">${chk('gad_6','3')}</td></tr>
+                    <tr><td>7. Feeling afraid as if something awful might happen</td><td style="text-align:center;">${chk('gad_7','0')}</td><td style="text-align:center;">${chk('gad_7','1')}</td><td style="text-align:center;">${chk('gad_7','2')}</td><td style="text-align:center;">${chk('gad_7','3')}</td></tr>
+                    <tr style="font-weight:bold; background:#eee;">
+                        <td style="text-align:right;">Column Totals:</td>
+                        <td style="text-align:center;">__</td><td style="text-align:center;">__</td><td style="text-align:center;">__</td><td style="text-align:center;">__</td>
+                    </tr>
+                </table>
+
+                <div style="text-align:right; margin:10px 0; font-size:12pt; font-weight:bold; border:1px solid #000; padding:10px; display:inline-block; float:right;">
+                    Total Score = ${val('gad_total')}
+                </div>
+                <div style="clear:both;"></div>
+
+                <div style="border:1px solid #000; padding:10px; margin-top:20px;">
+                    <p style="margin:0;">If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?</p>
+                    <p style="margin-top:10px; font-weight:bold;">${val('gad_diff')}</p>
+                </div>
+
+                <div style="margin-top:30px; border:1px solid #000; padding:10px; background:#f9f9f9; font-size:9pt;">
+                    <strong>Scoring GAD-7 Anxiety Severity</strong><br>
+                    0-4: minimal anxiety<br>
+                    5-9: mild anxiety<br>
+                    10-14: moderate anxiety<br>
+                    15-21: severe anxiety
+                </div>
+                
+                <p style="font-size:8pt; margin-top:20px;">Source: Primary Care Evaluation of Mental Disorders Patient Health Questionnaire (PRIME-MD-PHQ). Developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke, and colleagues. PRIME-MD® is a trademark of Pfizer Inc.</p>
+                
+                ${sigBlock('sig_staff_review', 'Staff Signature (Reviewer)', val('review_date'))}
+                ${footerHtml}
+            </div>`;
+
+            html += `</body></html>`;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 500);
+        }
+    </script>
+    
+</body>
+</html>
