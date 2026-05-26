@@ -44,8 +44,8 @@ function getServiceLines(invoice) {
 function createDefaultPurchasedItem() {
   return {
     description: '',
-    quantity: 1,
-    unitPrice: 0,
+    quantity: '',
+    unitPrice: '',
     category: 'Purchased Item',
     receipt: null
   };
@@ -229,11 +229,11 @@ function createPurchasedItemRow(item = createDefaultPurchasedItem()) {
     <div class="form-row">
       <label>
         Quantity
-        <input type="number" class="purchased-qty" min="0" step="0.01" value="1" />
+        <input type="number" class="purchased-qty" min="0" step="0.01" value="" />
       </label>
       <label>
         Unit Price
-        <input type="number" class="purchased-price" min="0" step="0.01" value="0" />
+        <input type="number" class="purchased-price" min="0" step="0.01" value="" />
       </label>
       <div class="inline-total">Line Total: <strong>$<span class="purchased-item-total">0.00</span></strong></div>
       <button type="button" class="danger remove-purchased-item">Remove</button>
@@ -249,8 +249,8 @@ function createPurchasedItemRow(item = createDefaultPurchasedItem()) {
 
   row.querySelector('.purchased-desc').value = item.description || '';
   row.querySelector('.purchased-category').value = item.category || 'Purchased Item';
-  row.querySelector('.purchased-qty').value = typeof item.quantity === 'number' ? item.quantity : 1;
-  row.querySelector('.purchased-price').value = typeof item.unitPrice === 'number' ? item.unitPrice : 0;
+  row.querySelector('.purchased-qty').value = typeof item.quantity === 'number' ? item.quantity : '';
+  row.querySelector('.purchased-price').value = typeof item.unitPrice === 'number' ? item.unitPrice : '';
   row._receipt = item.receipt || null;
 
   row.querySelector('.purchased-qty').addEventListener('input', () => updatePurchasedItemRowTotal(row));
@@ -334,8 +334,8 @@ function collectPurchasedItemsFromForm() {
     const hasAnyValue = Boolean(
       description ||
       receipt ||
-      (!isNaN(quantity) && quantity !== 1) ||
-      (!isNaN(unitPrice) && unitPrice !== 0)
+      quantityRaw !== '' ||
+      priceRaw !== ''
     );
     if (!hasAnyValue) {
       continue;
@@ -453,7 +453,7 @@ function handleCreateInvoice(e) {
     to,
     invoiceDate,
     notes,
-    lines: serviceLines,
+    lines: serviceLines, // keep legacy key for existing stored invoices/imports
     serviceLines,
     purchasedItems,
     serviceSubtotal,
