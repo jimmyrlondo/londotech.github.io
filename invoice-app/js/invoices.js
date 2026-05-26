@@ -249,8 +249,8 @@ function createPurchasedItemRow(item = createDefaultPurchasedItem()) {
 
   row.querySelector('.purchased-desc').value = item.description || '';
   row.querySelector('.purchased-category').value = item.category || 'Purchased Item';
-  row.querySelector('.purchased-qty').value = typeof item.quantity === 'number' ? item.quantity : '';
-  row.querySelector('.purchased-price').value = typeof item.unitPrice === 'number' ? item.unitPrice : '';
+  row.querySelector('.purchased-qty').value = item.quantity !== undefined && item.quantity !== null ? item.quantity : '';
+  row.querySelector('.purchased-price').value = item.unitPrice !== undefined && item.unitPrice !== null ? item.unitPrice : '';
   row._receipt = item.receipt || null;
 
   row.querySelector('.purchased-qty').addEventListener('input', () => updatePurchasedItemRowTotal(row));
@@ -327,8 +327,8 @@ function collectPurchasedItemsFromForm() {
     const quantityRaw = row.querySelector('.purchased-qty').value;
     const priceRaw = row.querySelector('.purchased-price').value;
 
-    const quantity = parseFloat(quantityRaw || 0);
-    const unitPrice = parseFloat(priceRaw || 0);
+    const quantity = parseFloat(quantityRaw);
+    const unitPrice = parseFloat(priceRaw);
     const receipt = row._receipt || null;
 
     const hasAnyValue = Boolean(
