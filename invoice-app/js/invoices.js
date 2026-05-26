@@ -31,6 +31,12 @@ function formatCurrency(value) {
   return Number(value || 0).toFixed(2);
 }
 
+function getSafeImageDataUrl(dataUrl) {
+  if (typeof dataUrl !== 'string') return '';
+  const trimmed = dataUrl.trim();
+  return trimmed.startsWith('data:image/') ? trimmed : '';
+}
+
 function getServiceLines(invoice) {
   return invoice.serviceLines || invoice.lines || [];
 }
@@ -186,8 +192,9 @@ function renderReceiptPreview(row) {
     return;
   }
 
-  if (receipt.type && receipt.type.startsWith('image/') && receipt.dataUrl) {
-    preview.innerHTML = 'Attached receipt: ' + escapeHtml(receipt.name || 'image') + '<img src="' + receipt.dataUrl + '" alt="Receipt preview" />';
+  const safeImageDataUrl = getSafeImageDataUrl(receipt.dataUrl);
+  if (receipt.type && receipt.type.startsWith('image/') && safeImageDataUrl) {
+    preview.innerHTML = 'Attached receipt: ' + escapeHtml(receipt.name || 'image') + '<img src="' + safeImageDataUrl + '" alt="Receipt preview" />';
     return;
   }
 
@@ -591,8 +598,9 @@ function renderReceiptsSection(purchasedItems) {
     html += '<div style="border:1px solid #e5e7eb; border-radius:6px; padding:8px; margin-bottom:8px; page-break-inside:avoid;">';
     html += '<div style="font-size:12px; margin-bottom:4px;"><strong>' + escapeHtml(item.description) + '</strong> (' + escapeHtml(item.category || 'Purchased Item') + ')</div>';
 
-    if (receipt.type && receipt.type.startsWith('image/') && receipt.dataUrl) {
-      html += '<img src="' + receipt.dataUrl + '" alt="Receipt for ' + escapeHtml(item.description) + '" style="max-width:100%; max-height:300px; border:1px solid #e5e7eb; border-radius:4px;"/>';
+    const safeImageDataUrl = getSafeImageDataUrl(receipt.dataUrl);
+    if (receipt.type && receipt.type.startsWith('image/') && safeImageDataUrl) {
+      html += '<img src="' + safeImageDataUrl + '" alt="Receipt for ' + escapeHtml(item.description) + '" style="max-width:100%; max-height:300px; border:1px solid #e5e7eb; border-radius:4px;"/>';
     } else {
       html += '<div style="font-size:12px; color:#374151;">Attachment available: ' + escapeHtml(receipt.name || 'Receipt file') + '</div>';
     }
