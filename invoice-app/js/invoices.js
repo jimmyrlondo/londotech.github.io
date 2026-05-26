@@ -186,6 +186,7 @@ function updatePurchasedItemRowTotal(row) {
 function renderReceiptPreview(row) {
   const preview = row.querySelector('.receipt-preview');
   const receipt = row._receipt;
+  preview.innerHTML = '';
 
   if (!receipt) {
     preview.textContent = 'No receipt attached.';
@@ -194,7 +195,13 @@ function renderReceiptPreview(row) {
 
   const safeImageDataUrl = getSafeImageDataUrl(receipt.dataUrl);
   if (receipt.type && receipt.type.startsWith('image/') && safeImageDataUrl) {
-    preview.innerHTML = 'Attached receipt: ' + escapeHtml(receipt.name || 'image') + '<img src="' + safeImageDataUrl + '" alt="Receipt preview" />';
+    const label = document.createElement('span');
+    label.textContent = 'Attached receipt: ' + (receipt.name || 'image');
+    const img = document.createElement('img');
+    img.src = safeImageDataUrl;
+    img.alt = 'Receipt preview';
+    preview.appendChild(label);
+    preview.appendChild(img);
     return;
   }
 
