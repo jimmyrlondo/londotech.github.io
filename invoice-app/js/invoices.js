@@ -18,6 +18,33 @@ function loadBaseData() {
   settings = loadData('settings', settings);
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatCurrency(value) {
+  return Number(value || 0).toFixed(2);
+}
+
+function getServiceLines(invoice) {
+  return invoice.serviceLines || invoice.lines || [];
+}
+
+function createDefaultPurchasedItem() {
+  return {
+    description: '',
+    quantity: 1,
+    unitPrice: 0,
+    category: 'Purchased Item',
+    receipt: null
+  };
+}
+
 /* Populate customer dropdown in the invoice form */
 function populateCustomerSelect() {
   const select = document.getElementById('invoiceCustomer');
@@ -71,7 +98,7 @@ function renderInvoicesTable() {
     tr.appendChild(dateTd);
 
     const totalTd = document.createElement('td');
-    totalTd.textContent = inv.total.toFixed(2);
+    totalTd.textContent = formatCurrency(inv.total);
     tr.appendChild(totalTd);
 
     const statusTd = document.createElement('td');
@@ -143,6 +170,191 @@ function generateInvoiceId() {
   return maxId + 1;
 }
 
+function updatePurchasedItemRowTotal(row) {
+  const qty = parseFloat(row.querySelector('.purchased-qty').value || 0);
+  const unitPrice = parseFloat(row.querySelector('.purchased-price').value || 0);
+  const total = (isNaN(qty) ? 0 : qty) * (isNaN(unitPrice) ? 0 : unitPrice);
+  row.querySelector('.purchased-item-total').textContent = formatCurrency(total);
+}
+
+function renderReceiptPreview(row) {
+  const preview = row.querySelector('.receipt-preview');
+  const receipt = row._receipt;
+
+  if (!receipt) {
+    preview.textContent = 'No receipt attached.';
+    return;
+  }
+
+  if (receipt.type && receipt.type.startsWith('image/') && receipt.dataUrl) {
+    preview.innerHTML = 'Attached receipt: ' + escapeHtml(receipt.name || 'image') + '<img src="' + receipt.dataUrl + '" alt="Receipt preview" />';
+    return;
+  }
+
+  preview.textContent = 'Attached file: ' + (receipt.name || 'Receipt file');
+}
+
+function createPurchasedItemRow(item = createDefaultPurchasedItem()) {
+  const row = document.createElement('div');
+  row.className = 'purchased-item-row';
+
+  row.innerHTML = `
+    <div class="form-row">
+      <label style="flex:2;">
+        Description
+        <input type="text" class="purchased-desc" placeholder="Eero Pro Router" />
+      </label>
+      <label>
+        Category
+        <select class="purchased-category">
+          <option value="Purchased Item">Purchased Item</option>
+          <option value="Expense">Expense</option>
+        </select>
+      </label>
+    </div>
+    <div class="form-row">
+      <label>
+        Quantity
+        <input type="number" class="purchased-qty" min="0" step="0.01" value="1" />
+      </label>
+      <label>
+        Unit Price
+        <input type="number" class="purchased-price" min="0" step="0.01" value="0" />
+      </label>
+      <div class="inline-total">Line Total: <strong>$<span class="purchased-item-total">0.00</span></strong></div>
+      <button type="button" class="danger remove-purchased-item">Remove</button>
+    </div>
+    <div class="form-row">
+      <label style="flex:1;">
+        Receipt (Optional image/pdf)
+        <input type="file" class="purchased-receipt" accept="image/*,.pdf,application/pdf" />
+      </label>
+    </div>
+    <div class="receipt-preview">No receipt attached.</div>
+  `;
+
+  row.querySelector('.purchased-desc').value = item.description || '';
+  row.querySelector('.purchased-category').value = item.category || 'Purchased Item';
+  row.querySelector('.purchased-qty').value = typeof item.quantity === 'number' ? item.quantity : 1;
+  row.querySelector('.purchased-price').value = typeof item.unitPrice === 'number' ? item.unitPrice : 0;
+  row._receipt = item.receipt || null;
+
+  row.querySelector('.purchased-qty').addEventListener('input', () => updatePurchasedItemRowTotal(row));
+  row.querySelector('.purchased-price').addEventListener('input', () => updatePurchasedItemRowTotal(row));
+
+  row.querySelector('.remove-purchased-item').addEventListener('click', () => {
+    row.remove();
+    const list = document.getElementById('purchasedItemsList');
+    if (list.children.length === 0) {
+      list.appendChild(createPurchasedItemRow());
+    }
+  });
+
+  row.querySelector('.purchased-receipt').addEventListener('change', (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) {
+      row._receipt = null;
+      renderReceiptPreview(row);
+      return;
+    }
+
+    if (typeof FileReader === 'undefined') {
+      row._receipt = {
+        name: file.name,
+        type: file.type || '',
+        dataUrl: ''
+      };
+      renderReceiptPreview(row);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      row._receipt = {
+        name: file.name,
+        type: file.type || '',
+        dataUrl: reader.result
+      };
+      renderReceiptPreview(row);
+    };
+    reader.onerror = () => {
+      row._receipt = {
+        name: file.name,
+        type: file.type || '',
+        dataUrl: ''
+      };
+      renderReceiptPreview(row);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  updatePurchasedItemRowTotal(row);
+  renderReceiptPreview(row);
+  return row;
+}
+
+function renderPurchasedItems(items) {
+  const list = document.getElementById('purchasedItemsList');
+  list.innerHTML = '';
+
+  const safeItems = Array.isArray(items) && items.length > 0 ? items : [createDefaultPurchasedItem()];
+  safeItems.forEach((item) => {
+    list.appendChild(createPurchasedItemRow(item));
+  });
+}
+
+function collectPurchasedItemsFromForm() {
+  const rows = Array.from(document.querySelectorAll('#purchasedItemsList .purchased-item-row'));
+  const purchasedItems = [];
+
+  for (const row of rows) {
+    const description = row.querySelector('.purchased-desc').value.trim();
+    const category = row.querySelector('.purchased-category').value || 'Purchased Item';
+    const quantityRaw = row.querySelector('.purchased-qty').value;
+    const priceRaw = row.querySelector('.purchased-price').value;
+
+    const quantity = parseFloat(quantityRaw || 0);
+    const unitPrice = parseFloat(priceRaw || 0);
+    const receipt = row._receipt || null;
+
+    const hasAnyValue = Boolean(
+      description ||
+      receipt ||
+      (!isNaN(quantity) && quantity !== 1) ||
+      (!isNaN(unitPrice) && unitPrice !== 0)
+    );
+    if (!hasAnyValue) {
+      continue;
+    }
+
+    if (!description) {
+      alert('Purchased item description is required.');
+      return null;
+    }
+
+    if (isNaN(quantity) || quantity < 0) {
+      alert('Purchased item quantity must be 0 or greater.');
+      return null;
+    }
+
+    if (isNaN(unitPrice) || unitPrice < 0) {
+      alert('Purchased item unit price must be 0 or greater.');
+      return null;
+    }
+
+    purchasedItems.push({
+      description,
+      category,
+      quantity,
+      unitPrice,
+      amount: quantity * unitPrice,
+      receipt
+    });
+  }
+
+  return purchasedItems;
+}
+
 /* Create or update invoice when form is submitted */
 function handleCreateInvoice(e) {
   e.preventDefault();
@@ -186,11 +398,11 @@ function handleCreateInvoice(e) {
   const customer = customers[custIdxNum];
   const rate = customer && typeof customer.rate === 'number' ? customer.rate : 0;
 
-  let total = 0;
-  const lines = customerTimeEntries.map((t) => {
+  let serviceSubtotal = 0;
+  const serviceLines = customerTimeEntries.map((t) => {
     const hours = parseFloat(t.hours || 0);
     const amount = hours * rate;
-    total += amount;
+    serviceSubtotal += amount;
     return {
       date: t.date,
       description: t.description || '',
@@ -199,6 +411,14 @@ function handleCreateInvoice(e) {
       amount
     };
   });
+
+  const purchasedItems = collectPurchasedItemsFromForm();
+  if (purchasedItems === null) {
+    return;
+  }
+
+  const purchasedSubtotal = purchasedItems.reduce((sum, item) => sum + item.amount, 0);
+  const total = serviceSubtotal + purchasedSubtotal;
 
   // Determine if we are editing or creating
   const editingIndexRaw = document.getElementById('invoiceId').value;
@@ -219,7 +439,11 @@ function handleCreateInvoice(e) {
     to,
     invoiceDate,
     notes,
-    lines,
+    lines: serviceLines,
+    serviceLines,
+    purchasedItems,
+    serviceSubtotal,
+    purchasedSubtotal,
     total,
     status: isEditing ? (invoices[editingIndex].status || 'draft') : 'draft'
   };
@@ -236,6 +460,8 @@ function handleCreateInvoice(e) {
   // clear edit state
   document.getElementById('invoiceId').value = '';
 
+  renderPurchasedItems([createDefaultPurchasedItem()]);
+
   showInvoicePreview(isEditing ? editingIndex : invoices.length - 1);
 }
 
@@ -248,6 +474,7 @@ function loadInvoiceIntoForm(index) {
   document.getElementById('invoiceTo').value = inv.to;
   document.getElementById('invoiceDate').value = inv.invoiceDate;
   document.getElementById('invoiceNotes').value = inv.notes || '';
+  renderPurchasedItems(inv.purchasedItems || [createDefaultPurchasedItem()]);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -259,6 +486,122 @@ function deleteInvoice(index) {
   renderInvoicesTable();
   const previewSection = document.getElementById('invoicePreviewSection');
   if (previewSection) previewSection.style.display = 'none';
+}
+
+function renderServiceLinesTable(serviceLines) {
+  let html = '';
+
+  html += '<div style="margin-bottom:18px;">';
+  html += '<div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Service Line Items</div>';
+  html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
+  html += '<thead>';
+  html += '<tr style="background:#111827; color:#f9fafb; page-break-inside:avoid;">';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:left; padding:6px;">Date</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:left; padding:6px;">Description</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Hours</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Rate</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Amount</th>';
+  html += '</tr>';
+  html += '</thead>';
+  html += '<tbody>';
+
+  if (serviceLines.length > 0) {
+    serviceLines.forEach((line, idx) => {
+      const rowBg = idx % 2 === 0 ? '#ffffff' : '#f5f5f5';
+      html += '<tr style="background:' + rowBg + ';">';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb;">' + escapeHtml(line.date) + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb;">' + escapeHtml(line.description) + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + Number(line.hours || 0).toFixed(2) + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + formatCurrency(line.rate) + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + formatCurrency(line.amount) + '</td>';
+      html += '</tr>';
+    });
+  } else {
+    html += '<tr><td colspan="5" style="padding:8px; text-align:center; color:#6b7280;">No service line items</td></tr>';
+  }
+
+  const subtotal = serviceLines.reduce((sum, line) => sum + Number(line.amount || 0), 0);
+  html += '<tr style="page-break-inside:avoid;">';
+  html += '<td colspan="4" style="padding:8px; text-align:right; font-weight:bold;">Services Subtotal</td>';
+  html += '<td style="padding:8px; text-align:right; font-weight:bold;">' + formatCurrency(subtotal) + '</td>';
+  html += '</tr>';
+
+  html += '</tbody></table>';
+  html += '</div>';
+
+  return { html, subtotal };
+}
+
+function renderPurchasedItemsTable(purchasedItems) {
+  let html = '';
+
+  html += '<div style="margin-bottom:18px;">';
+  html += '<div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Purchased Items / Expenses</div>';
+  html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
+  html += '<thead>';
+  html += '<tr style="background:#1f2937; color:#f9fafb; page-break-inside:avoid;">';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:left; padding:6px;">Category</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:left; padding:6px;">Description</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Qty</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Unit Price</th>';
+  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Amount</th>';
+  html += '</tr>';
+  html += '</thead>';
+  html += '<tbody>';
+
+  if (purchasedItems.length > 0) {
+    purchasedItems.forEach((item, idx) => {
+      const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+      html += '<tr style="background:' + rowBg + ';">';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb;">' + escapeHtml(item.category || 'Purchased Item') + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb;">' + escapeHtml(item.description) + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + Number(item.quantity || 0).toFixed(2) + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + formatCurrency(item.unitPrice) + '</td>';
+      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + formatCurrency(item.amount) + '</td>';
+      html += '</tr>';
+    });
+  } else {
+    html += '<tr><td colspan="5" style="padding:8px; text-align:center; color:#6b7280;">No purchased items/expenses</td></tr>';
+  }
+
+  const subtotal = purchasedItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  html += '<tr style="page-break-inside:avoid;">';
+  html += '<td colspan="4" style="padding:8px; text-align:right; font-weight:bold;">Purchased Items Subtotal</td>';
+  html += '<td style="padding:8px; text-align:right; font-weight:bold;">' + formatCurrency(subtotal) + '</td>';
+  html += '</tr>';
+
+  html += '</tbody></table>';
+  html += '</div>';
+
+  return { html, subtotal };
+}
+
+function renderReceiptsSection(purchasedItems) {
+  const withReceipts = purchasedItems.filter((item) => item.receipt && (item.receipt.name || item.receipt.dataUrl));
+  if (withReceipts.length === 0) {
+    return '';
+  }
+
+  let html = '';
+  html += '<div style="margin-top:8px; margin-bottom:16px; page-break-inside:auto;">';
+  html += '<div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Purchased Item Attachments</div>';
+
+  withReceipts.forEach((item) => {
+    const receipt = item.receipt;
+    html += '<div style="border:1px solid #e5e7eb; border-radius:6px; padding:8px; margin-bottom:8px; page-break-inside:avoid;">';
+    html += '<div style="font-size:12px; margin-bottom:4px;"><strong>' + escapeHtml(item.description) + '</strong> (' + escapeHtml(item.category || 'Purchased Item') + ')</div>';
+
+    if (receipt.type && receipt.type.startsWith('image/') && receipt.dataUrl) {
+      html += '<img src="' + receipt.dataUrl + '" alt="Receipt for ' + escapeHtml(item.description) + '" style="max-width:100%; max-height:300px; border:1px solid #e5e7eb; border-radius:4px;"/>';
+    } else {
+      html += '<div style="font-size:12px; color:#374151;">Attachment available: ' + escapeHtml(receipt.name || 'Receipt file') + '</div>';
+    }
+
+    html += '</div>';
+  });
+
+  html += '</div>';
+  return html;
 }
 
 /* Nicer invoice preview with optional banner and compact Invoice # */
@@ -281,7 +624,7 @@ function showInvoicePreview(index) {
     'Bank: Huntington National Bank\n' +
     'Routing #: 041000153\n' +
     'Account #: 01663397094\n' +
-    'Account Type: Checking' // edit these on your machine
+    'Account Type: Checking\n' +
     'Account Holder Name: Londo Technologies LTD';
 
   const paymentOptionsBody =
@@ -294,6 +637,13 @@ function showInvoicePreview(index) {
   const footerNote =
     'Payment is due within 14 days of invoice date unless otherwise agreed in writing. ' +
     'Please include the invoice number with all payments and correspondence.';
+
+  const serviceLines = getServiceLines(inv);
+  const purchasedItems = inv.purchasedItems || [];
+
+  const serviceSection = renderServiceLinesTable(serviceLines);
+  const purchasedSection = renderPurchasedItemsTable(purchasedItems);
+  const grandTotal = serviceSection.subtotal + purchasedSection.subtotal;
 
   let html = '';
   html += '<div style="max-width:800px; margin:0 auto; font-family:Arial,sans-serif; font-size:13px; color:#111827;">';
@@ -310,98 +660,73 @@ function showInvoicePreview(index) {
 
   // Left: business info (same size/weight)
   html += '<div style="max-width:60%; font-size:12px; line-height:1.5;">';
-  html += '<div>' + businessName + '</div>';
-  html += '<div style="white-space:pre-line;">' + businessAddress + '</div>';
-  html += '<div style="margin-top:4px;">' + businessEmail + '</div>';
+  html += '<div>' + escapeHtml(businessName) + '</div>';
+  html += '<div style="white-space:pre-line;">' + escapeHtml(businessAddress) + '</div>';
+  html += '<div style="margin-top:4px;">' + escapeHtml(businessEmail) + '</div>';
   html += '</div>';
 
   // Right: invoice meta – small and subtle
   html += '<div style="text-align:right; font-size:12px; line-height:1.5;">';
   html += '<div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7280; margin-bottom:2px;">Invoice</div>';
-  html += '<div style="margin-bottom:4px;">Invoice No.: ' + inv.id + '</div>';
-  html += '<div>Invoice Date: ' + inv.invoiceDate + '</div>';
-  html += '<div>Period: ' + inv.from + ' to ' + inv.to + '</div>';
-  html += '<div>Status: ' + (inv.status || 'draft') + '</div>';
+  html += '<div style="margin-bottom:4px;">Invoice No.: ' + escapeHtml(inv.id) + '</div>';
+  html += '<div>Invoice Date: ' + escapeHtml(inv.invoiceDate) + '</div>';
+  html += '<div>Period: ' + escapeHtml(inv.from) + ' to ' + escapeHtml(inv.to) + '</div>';
+  html += '<div>Status: ' + escapeHtml(inv.status || 'draft') + '</div>';
   html += '</div>';
 
   html += '</div>'; // end header flex
 
-// Bill To
-html += '<div style="margin-bottom:16px; page-break-inside:avoid;">';
-html += '<div style="font-size:12px; font-weight:bold; margin-bottom:4px;">Bill To</div>';
-if (c) {
-  if (c.company) {
-    html += '<div>' + c.company + '</div>';
+  // Bill To
+  html += '<div style="margin-bottom:16px; page-break-inside:avoid;">';
+  html += '<div style="font-size:12px; font-weight:bold; margin-bottom:4px;">Bill To</div>';
+  if (c) {
+    if (c.company) {
+      html += '<div>' + escapeHtml(c.company) + '</div>';
+    }
+    if (c.companyAddress) {
+      html += '<div style="white-space:pre-line;">' + escapeHtml(c.companyAddress) + '</div>';
+    }
+    if (c.name) {
+      html += '<div>Attn: ' + escapeHtml(c.name) + '</div>';
+    }
+    if (c.email) html += '<div>' + escapeHtml(c.email) + '</div>';
+    if (c.phone) html += '<div>' + escapeHtml(c.phone) + '</div>';
+  } else {
+    html += '<div>(Deleted customer)</div>';
   }
-  if (c.companyAddress) {
-    html += '<div style="white-space:pre-line;">' + c.companyAddress + '</div>';
-  }
-  if (c.name) {
-    html += '<div>Attn: ' + c.name + '</div>';
-  }
-  if (c.email) html += '<div>' + c.email + '</div>';
-  if (c.phone) html += '<div>' + c.phone + '</div>';
-} else {
-  html += '<div>(Deleted customer)</div>';
-}
-html += '</div>';
+  html += '</div>';
 
   // Notes
   if (inv.notes) {
     html += '<div style="margin-bottom:16px; page-break-inside:avoid;">';
     html += '<div style="font-size:12px; font-weight:bold; margin-bottom:4px;">Notes</div>';
-    html += '<div>' + inv.notes.replace(/\n/g, '<br/>') + '</div>';
+    html += '<div>' + escapeHtml(inv.notes).replace(/\n/g, '<br/>') + '</div>';
     html += '</div>';
   }
 
-  // Line items
-  html += '<div style="margin-bottom:16px;">';
-  html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">';
-  html += '<thead>';
-  html += '<tr style="background:#111827; color:#f9fafb; page-break-inside:avoid;">';
-  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:left; padding:6px;">Date</th>';
-  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:left; padding:6px;">Description</th>';
-  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Hours</th>';
-  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Rate</th>';
-  html += '<th style="border-bottom:1px solid #e5e7eb; text-align:right; padding:6px;">Amount</th>';
+  html += serviceSection.html;
+  html += purchasedSection.html;
+  html += renderReceiptsSection(purchasedItems);
+
+  html += '<div style="margin-bottom:16px; page-break-inside:avoid;">';
+  html += '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
+  html += '<tr>';
+  html += '<td style="padding:8px; text-align:right; font-weight:bold; border-top:2px solid #111827;">Grand Total</td>';
+  html += '<td style="padding:8px; text-align:right; width:140px; font-weight:bold; border-top:2px solid #111827;">' + formatCurrency(grandTotal) + '</td>';
   html += '</tr>';
-  html += '</thead>';
-  html += '<tbody>';
-
-  if (inv.lines && inv.lines.length > 0) {
-    inv.lines.forEach((line, idx) => {
-      const rowBg = idx % 2 === 0 ? '#ffffff' : '#f5f5f5';
-      html += '<tr style="background:' + rowBg + ';">';
-      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb;">' + (line.date || '') + '</td>';
-      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb;">' + (line.description || '') + '</td>';
-      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + line.hours.toFixed(2) + '</td>';
-      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + line.rate.toFixed(2) + '</td>';
-      html += '<td style="padding:6px; border-bottom:1px solid #e5e7eb; text-align:right;">' + line.amount.toFixed(2) + '</td>';
-      html += '</tr>';
-    });
-  } else {
-    html += '<tr><td colspan="5" style="padding:8px; text-align:center; color:#6b7280;">No line items</td></tr>';
-  }
-
-  // Total row
-  html += '<tr style="page-break-inside:avoid;">';
-  html += '<td colspan="4" style="padding:8px; text-align:right; font-weight:bold;">Total</td>';
-  html += '<td style="padding:8px; text-align:right; font-weight:bold;">' + inv.total.toFixed(2) + '</td>';
-  html += '</tr>';
-
-  html += '</tbody></table>';
-  html += '</div>'; // line items container
+  html += '</table>';
+  html += '</div>';
 
   // Footer: payment options + terms
   html += '<div style="margin-top:32px; padding-top:12px; border-top:1px solid #e5e7eb; page-break-inside:avoid;">';
 
   html += '<div style="margin-bottom:12px;">';
   html += '<div style="font-size:12px; font-weight:bold; margin-bottom:4px;">' + paymentOptionsTitle + '</div>';
-  html += '<div style="white-space:pre-line; font-size:12px;">' + paymentOptionsBody + '</div>';
+  html += '<div style="white-space:pre-line; font-size:12px;">' + escapeHtml(paymentOptionsBody) + '</div>';
   html += '</div>';
 
   html += '<div style="font-size:11px; color:#6b7280; margin-top:8px;">';
-  html += footerNote;
+  html += escapeHtml(footerNote);
   html += '</div>';
 
   html += '</div>'; // footer
@@ -411,29 +736,34 @@ html += '</div>';
   previewDiv.innerHTML = html;
   document.getElementById('invoicePreviewSection').style.display = 'block';
 }
-/* Print */
-document.getElementById('invoiceForm').addEventListener('submit', handleCreateInvoice);
 
-document.getElementById('printInvoiceBtn').addEventListener('click', () => {
-  const previewHtml = document.getElementById('invoicePreview').innerHTML;
-
-  // Find the current invoice so we can name the file nicely
-  const inv = invoices.find(i => i.id === currentPreviewInvoiceId);
-  const c = inv ? customers[inv.customerIndex] : null;
-
-  // Build a safe, predictable file name
+function buildInvoiceFileName(inv, customer) {
   const rawCompany = (settings.businessName || 'LondoTechnologies').replace(/\s+/g, '');
   const invNumber = inv ? String(inv.id).padStart(4, '0') : '0000';
-  const clientSlug = c && c.name
-    ? c.name.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').substring(0, 40)
+  const clientSlug = customer && customer.name
+    ? customer.name.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').substring(0, 40)
     : 'Client';
   const datePart = inv && inv.invoiceDate ? inv.invoiceDate : new Date().toISOString().slice(0, 10);
+  return `${rawCompany}_Invoice_${invNumber}_${clientSlug}_${datePart}.pdf`;
+}
 
-  const fileName = `${rawCompany}_Invoice_${invNumber}_${clientSlug}_${datePart}.pdf`;
+function getCurrentPreviewInvoiceDetails() {
+  const invoiceIndex = invoices.findIndex((i) => i.id === currentPreviewInvoiceId);
+  if (invoiceIndex < 0) return null;
+  const inv = invoices[invoiceIndex];
+  const customer = customers[inv.customerIndex] || null;
+  return { invoiceIndex, inv, customer };
+}
 
+function openPrintWindow(fileName) {
+  const previewHtml = document.getElementById('invoicePreview').innerHTML;
   const win = window.open('', '_blank', 'width=800,height=600');
 
-  // Use the fileName as the document title so most browsers suggest it when "Save as PDF"
+  if (!win) {
+    alert('Unable to open print window. Please check popup blocker settings.');
+    return;
+  }
+
   win.document.write('<html><head><title>' + fileName + '</title>');
   win.document.write('<style>body{font-family:Arial,sans-serif;margin:20px;}</style>');
   win.document.write('</head><body>');
@@ -442,13 +772,74 @@ document.getElementById('printInvoiceBtn').addEventListener('click', () => {
   win.document.close();
   win.focus();
   win.print();
-});
+}
+
+async function downloadCurrentInvoicePdf() {
+  const details = getCurrentPreviewInvoiceDetails();
+  if (!details) {
+    alert('Preview an invoice before downloading.');
+    return;
+  }
+
+  showInvoicePreview(details.invoiceIndex);
+  const fileName = buildInvoiceFileName(details.inv, details.customer);
+
+  const hasJsPdf = !!(window.jspdf && window.jspdf.jsPDF);
+  const hasHtml2Canvas = typeof window.html2canvas !== 'undefined';
+
+  if (!hasJsPdf || !hasHtml2Canvas) {
+    alert('PDF download is not supported in this browser. Falling back to Print.');
+    openPrintWindow(fileName);
+    return;
+  }
+
+  const previewEl = document.getElementById('invoicePreview');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'pt', format: 'letter' });
+
+    await pdf.html(previewEl, {
+      margin: [20, 20, 20, 20],
+      autoPaging: 'text',
+      html2canvas: {
+        scale: 0.65,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      }
+    });
+
+    pdf.save(fileName);
+  } catch (err) {
+    console.error(err);
+    alert('Could not generate PDF in this browser. Falling back to Print.');
+    openPrintWindow(fileName);
+  }
+}
+
+function handlePrintInvoice() {
+  const details = getCurrentPreviewInvoiceDetails();
+  if (!details) {
+    alert('Preview an invoice before printing.');
+    return;
+  }
+  const fileName = buildInvoiceFileName(details.inv, details.customer);
+  openPrintWindow(fileName);
+}
 
 /* Init */
 function init() {
   loadBaseData();
   populateCustomerSelect();
   renderInvoicesTable();
+  renderPurchasedItems([createDefaultPurchasedItem()]);
+
+  document.getElementById('invoiceForm').addEventListener('submit', handleCreateInvoice);
+  document.getElementById('printInvoiceBtn').addEventListener('click', handlePrintInvoice);
+  document.getElementById('downloadPdfBtn').addEventListener('click', downloadCurrentInvoicePdf);
+  document.getElementById('addPurchasedItemBtn').addEventListener('click', () => {
+    document.getElementById('purchasedItemsList').appendChild(createPurchasedItemRow());
+  });
 }
 
 init();

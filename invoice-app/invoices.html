@@ -27,7 +27,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Create / Edit Invoice</div>
-            <div class="card-subtitle">Generate from logged hours</div>
+            <div class="card-subtitle">Generate from logged hours and add purchased items/expenses</div>
           </div>
         </div>
 
@@ -60,6 +60,12 @@
             Notes (shown on invoice)
             <textarea id="invoiceNotes" rows="3"></textarea>
           </label>
+
+          <div class="purchased-items-section">
+            <div class="section-title">Add Purchased Item / Expense</div>
+            <div id="purchasedItemsList" class="purchased-items-list"></div>
+            <button id="addPurchasedItemBtn" type="button" class="secondary">Add Purchased Item / Expense</button>
+          </div>
 
           <button type="submit">Save / Generate Invoice</button>
         </form>
@@ -143,15 +149,20 @@
       <div class="card-header">
         <div>
           <div class="card-title">Invoice Preview</div>
-          <div class="card-subtitle">Use your browser’s Print → Save as PDF</div>
+          <div class="card-subtitle">Preview complete invoice with services, purchased items, and receipts</div>
         </div>
-        <button id="printInvoiceBtn" type="button">Print / Save as PDF</button>
+        <div style="display:flex; gap:8px;">
+          <button id="downloadPdfBtn" type="button">Download PDF</button>
+          <button id="printInvoiceBtn" type="button" class="secondary">Print</button>
+        </div>
       </div>
       <div id="invoicePreview" class="invoice-preview-card"></div>
     </section>
   </div>
 
   <script src="js/storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="js/invoices.js"></script>
 </body>
 </html>
