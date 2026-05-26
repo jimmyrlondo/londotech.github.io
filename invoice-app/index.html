@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Londo Technologies Productivity Hub</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="app-title">
+        <span class="logo-dot"></span>
+        Londo Technologies Productivity Hub
+      </div>
+      <nav class="app-nav">
+        <a href="index.html" class="active">Home</a>
+        <a href="customers.html">Customers</a>
+        <a href="hours.html">Time</a>
+        <a href="invoices.html">Invoices</a>
+        <a href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <div class="card-grid card-grid--two">
+      <!-- Left card: Workspace -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Workspace</div>
+            <div class="card-subtitle">Jump into your tools</div>
+          </div>
+          <span class="badge">Local-only · Private</span>
+        </div>
+
+        <ul>
+          <li><a href="customers.html">Customer Manager</a> – store client info &amp; rates</li>
+          <li><a href="hours.html">Time Tracking</a> – log your daily hours per customer</li>
+          <li><a href="invoices.html">Invoices</a> – generate printable invoices</li>
+          <li><a href="settings.html">Settings</a> – business profile &amp; defaults</li>
+        </ul>
+      </section>
+
+      <!-- Right card: Backup / Restore -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Backup &amp; Restore</div>
+            <div class="card-subtitle">Export your local data as JSON</div>
+          </div>
+        </div>
+
+        <p class="muted">
+          All data is stored locally in your browser. Use this to back up or move
+          between machines.
+        </p>
+
+        <button id="exportBtn">Export Data (JSON)</button>
+        <textarea id="exportOutput" rows="6" placeholder="Exported JSON will appear here"></textarea>
+
+        <div class="section-title" style="margin-top:10px;">Import Data</div>
+        <textarea id="importInput" rows="6" placeholder="Paste JSON here to import"></textarea>
+        <button class="secondary" id="importBtn">Import Data</button>
+      </section>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script>
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const json = exportAllData();
+      document.getElementById('exportOutput').value = json;
+    });
+
+    document.getElementById('importBtn').addEventListener('click', () => {
+      const json = document.getElementById('importInput').value;
+      if (!json.trim()) {
+        alert('Paste JSON to import.');
+        return;
+      }
+      try {
+        importAllData(json);
+        alert('Import successful! Reload pages to see changes.');
+      } catch (e) {
+        console.error(e);
+        alert('Failed to import JSON. Check console for details.');
+      }
+    });
+  </script>
+</body>
+</html>

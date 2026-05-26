@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Londo - Customers</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="app-title">
+        <span class="logo-dot"></span>
+        Londo Technologies Productivity Hub
+      </div>
+      <nav class="app-nav">
+        <a href="index.html">Home</a>
+        <a href="customers.html" class="active">Customers</a>
+        <a href="hours.html">Time</a>
+        <a href="invoices.html">Invoices</a>
+        <a href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <div class="card-grid card-grid--two">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Customer Details</div>
+            <div class="card-subtitle">Create or edit clients</div>
+          </div>
+        </div>
+
+       <form id="customerForm">
+  <input type="hidden" id="customerId" />
+
+  <div class="form-row">
+    <label>
+      Contact Name
+      <input type="text" id="customerName" placeholder="Person you work with" required />
+    </label>
+    <label>
+      Company Name
+      <input type="text" id="customerCompany" placeholder="Client company name" />
+    </label>
+  </div>
+
+  <label>
+    Company Address (multi-line)
+    <textarea id="customerCompanyAddress" rows="3" placeholder="123 Client St&#10;City, State ZIP"></textarea>
+  </label>
+
+  <div class="form-row">
+    <label>
+      Email
+      <input type="email" id="customerEmail" />
+    </label>
+    <label>
+      Phone
+      <input type="text" id="customerPhone" />
+    </label>
+  </div>
+
+  <div class="form-row">
+    <label>
+      Hourly Rate
+      <input type="number" id="customerRate" step="0.01" />
+    </label>
+  </div>
+
+  <label>
+    Notes
+    <textarea id="customerNotes" rows="3"></textarea>
+  </label>
+
+  <div>
+    <button type="submit">Save Customer</button>
+    <button type="button" class="secondary" id="resetBtn">Clear Form</button>
+  </div>
+</form>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Customer List</div>
+            <div class="card-subtitle">Click Edit to update details</div>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th><th>Contact</th><th>Phone</th><th>Rate</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/customers.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Londo - Settings</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="app-title">
+        <span class="logo-dot"></span>
+        Londo Technologies Productivity Hub
+      </div>
+      <nav class="app-nav">
+        <a href="index.html">Home</a>
+        <a href="customers.html">Customers</a>
+        <a href="hours.html">Time</a>
+        <a href="invoices.html">Invoices</a>
+        <a href="settings.html" class="active">Settings</a>
+      </nav>
+    </header>
+
+    <div class="card-grid">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Business Profile</div>
+            <div class="card-subtitle">Used on invoices and documents</div>
+          </div>
+        </div>
+
+     <form id="settingsForm">
+  <label>
+    Business Name
+    <input type="text" id="settingsBusinessName" placeholder="Londo Tech, LLC" />
+  </label>
+  <label>
+    Business Address (multi-line)
+    <textarea id="settingsBusinessAddress" rows="3" placeholder="123 Main St&#10;City, State ZIP"></textarea>
+  </label>
+  <label>
+    Business Email
+    <input type="email" id="settingsBusinessEmail" placeholder="you@londo.tech" />
+  </label>
+  <label>
+    Default Invoice Notes
+    <textarea id="settingsInvoiceNotes" rows="3" placeholder="Thank you for your business!"></textarea>
+  </label>
+
+  <label>
+    Invoice Banner Image URL
+    <input type="text" id="settingsBannerUrl" placeholder="https://example.com/banner.png" />
+  </label>
+
+  <label>
+    Invoice Banner Upload (PNG)
+    <span class="muted">Recommended size: 1200 × 300 px PNG, dark-on-light or light-on-transparent.</span>
+    <input type="file" id="settingsBannerFile" accept="image/png" />
+  </label>
+
+  <div id="settingsBannerPreviewWrapper" style="margin-top:8px; display:none;">
+    <div class="section-title">Current Banner Preview</div>
+    <div style="background:#111827; padding:8px; border-radius:8px;">
+      <img id="settingsBannerPreview" src="" alt="Banner preview"
+           style="max-width:100%; height:auto; display:block; margin:0 auto;" />
+    </div>
+  </div>
+
+  <div>
+    <button type="submit">Save Settings</button>
+    <button type="button" class="secondary" id="resetSettingsBtn">Reset</button>
+  </div>
+</form>
+      </section>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/settings.js"></script>
+</body>
+</html>

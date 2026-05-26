@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Londo - Time Tracking</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="app-title">
+        <span class="logo-dot"></span>
+        Londo Technologies Productivity Hub
+      </div>
+      <nav class="app-nav">
+        <a href="index.html">Home</a>
+        <a href="customers.html">Customers</a>
+        <a href="hours.html" class="active">Time</a>
+        <a href="invoices.html">Invoices</a>
+        <a href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <div class="card-grid card-grid--two">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Log Hours</div>
+            <div class="card-subtitle">Track your time per customer</div>
+          </div>
+        </div>
+
+        <form id="hoursForm">
+          <input type="hidden" id="timeEntryId" />
+          <div class="form-row">
+            <label>
+              Customer
+              <select id="timeCustomer" required></select>
+            </label>
+            <label>
+              Date
+              <input type="date" id="timeDate" required />
+            </label>
+            <label>
+              Hours
+              <input type="number" id="timeHours" step="0.01" min="0" required />
+            </label>
+          </div>
+          <label>
+            Description
+            <textarea id="timeDescription" rows="3"></textarea>
+          </label>
+          <div>
+            <button type="submit">Save Entry</button>
+            <button type="button" class="secondary" id="timeResetBtn">Clear Form</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Entries</div>
+            <div class="card-subtitle">Filter and review</div>
+          </div>
+          <span id="hoursSummary" class="summary-pill">Total hours: 0.00</span>
+        </div>
+
+        <div class="form-row" style="margin-bottom:8px;">
+          <label>
+            Customer filter
+            <select id="filterCustomer">
+              <option value="">All</option>
+            </select>
+          </label>
+          <label>
+            From
+            <input type="date" id="filterFrom" />
+          </label>
+          <label>
+            To
+            <input type="date" id="filterTo" />
+          </label>
+          <div style="display:flex; align-items:flex-end; gap:6px;">
+            <button type="button" class="secondary" id="filterBtn">Apply</button>
+            <button type="button" class="secondary" id="clearFilterBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Hours</th>
+                <th>Description</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="hoursTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/hours.js"></script>
+</body>
+</html>

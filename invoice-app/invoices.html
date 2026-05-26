@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Londo - Invoices</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="app-title">
+        <span class="logo-dot"></span>
+        Londo Technologies Productivity Hub
+      </div>
+      <nav class="app-nav">
+        <a href="index.html">Home</a>
+        <a href="customers.html">Customers</a>
+        <a href="hours.html">Time</a>
+        <a href="invoices.html" class="active">Invoices</a>
+        <a href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <div class="card-grid card-grid--two">
+      <!-- LEFT: Create/Edit Invoice -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Create / Edit Invoice</div>
+            <div class="card-subtitle">Generate from logged hours</div>
+          </div>
+        </div>
+
+        <form id="invoiceForm">
+          <input type="hidden" id="invoiceId" />
+
+          <div class="form-row">
+            <label>
+              Customer
+              <select id="invoiceCustomer" required></select>
+            </label>
+            <label>
+              From
+              <input type="date" id="invoiceFrom" required />
+            </label>
+            <label>
+              To
+              <input type="date" id="invoiceTo" required />
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label>
+              Invoice Date
+              <input type="date" id="invoiceDate" required />
+            </label>
+          </div>
+
+          <label>
+            Notes (shown on invoice)
+            <textarea id="invoiceNotes" rows="3"></textarea>
+          </label>
+
+          <button type="submit">Save / Generate Invoice</button>
+        </form>
+      </section>
+
+      <!-- RIGHT: Grouped Invoices -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Invoices</div>
+            <div class="card-subtitle">Draft · Sent · Paid</div>
+          </div>
+        </div>
+
+        <div style="display:grid; gap:12px;">
+          <div>
+            <div class="section-title">Draft</div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Period</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="invoicesTableBodyDraft"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-title">Sent</div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Period</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="invoicesTableBodySent"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-title">Paid</div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Period</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="invoicesTableBodyPaid"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PREVIEW -->
+    <section class="card" id="invoicePreviewSection" style="display:none; margin-top:16px;">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Invoice Preview</div>
+          <div class="card-subtitle">Use your browser’s Print → Save as PDF</div>
+        </div>
+        <button id="printInvoiceBtn" type="button">Print / Save as PDF</button>
+      </div>
+      <div id="invoicePreview" class="invoice-preview-card"></div>
+    </section>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/invoices.js"></script>
+</body>
+</html>
