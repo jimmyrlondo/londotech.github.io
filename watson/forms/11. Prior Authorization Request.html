@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prior Authorization Request</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../images/goldlogo.png">
+    <meta name="description" content="Prior Authorization Request form for Watson Community Health Center.">
+    <meta property="og:title" content="Prior Authorization Request - Watson Community Health Center">
+    <meta property="og:description" content="Request additional services using a secure, accessible prior authorization form.">
+    <meta property="og:image" content="../images/logo.png">
+    <meta property="og:type" content="website">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .form-container { max-width: 960px; margin: 2rem auto; padding: 2rem; background-color: #ffffff; border-radius: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .form-field-group { border-radius: 0.75rem; padding: 1.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; }
+        .form-label { font-weight: 600; color: #111827; margin-bottom: 0.5rem; display: block; }
+        .form-input, .form-textarea, .form-select { display: block; width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: #ffffff; transition: all 0.2s; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.5); }
+        .form-input:read-only { background-color: #f3f4f6; cursor: not-allowed; }
+        .form-button { display: inline-block; padding: 0.75rem 1.5rem; font-weight: 600; color: #ffffff; border-radius: 0.75rem; transition: all 0.2s; cursor: pointer; border: none; }
+        .form-button:hover, .form-button:focus { opacity: 0.9; outline: 2px solid #d3af37; outline-offset: 2px; }
+        .nav-link { display: block; padding: 0.5rem 1rem; border-radius: 0.5rem; margin: 0 4px 0.5rem 4px; font-weight: 500; color: #4b5563; background-color: #f3f4f6; transition: background-color 0.2s; text-decoration: none; }
+        .nav-link:hover, .nav-link:focus { background-color: #e5e7eb; outline: 2px solid #d3af37; outline-offset: 2px; }
+        .nav-container { position: fixed; top: 2rem; left: 2rem; width: 250px; z-index: 10; display: none; max-height: calc(100vh - 4rem); overflow-y: auto; padding-left: 16px; padding-right: 8px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 1.5rem; border-radius: 1rem; max-width: 600px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; }
+        .modal-body { overflow-y: auto; }
+        .modal-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 0.5rem; cursor: pointer; transition: background-color 0.2s; }
+        .modal-item:hover { background-color: #f3f4f6; }
+        .delete-btn { background-color: #ef4444; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; cursor: pointer; }
+        .delete-btn:hover { background-color: #dc2626; }
+        .hidden { display: none !important; }
+        .sr-only { position: absolute!important; width: 1px!important; height: 1px!important; padding: 0!important; margin: -1px!important; overflow: hidden!important; clip: rect(0,0,0,0)!important; white-space: nowrap!important; border: 0!important; }
+        .focus\:not-sr-only:focus { position: static!important; width: auto!important; height: auto!important; margin: 0!important; overflow: visible!important; clip: auto!important; white-space: normal!important; }
+        @media print {
+            body { background-color: #fff !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .form-container { box-shadow: none !important; margin: 0 !important; padding: 0.5in !important; border-radius: 0; }
+        }
+        @media (min-width: 1024px) { .nav-container { display: block; } .form-container { margin-left: 280px; } }
+    </style>
+    <script>window.WATSON_AUTH_CONFIG={mode:'protect',loginPath:'../index.html'};</script>
+    <script src="../js/auth-gate.js"></script>
+</head>
+<body>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-yellow-200 p-2 rounded z-50">Skip to main content</a>
+    <div class="nav-container" role="navigation" aria-label="Form Section Navigation">
+        <a href="../app.html" class="nav-link font-bold text-blue-600 hover:bg-blue-100 mb-4">← Forms Home</a>
+        <h3 class="font-bold text-gray-900 mb-2">Form Sections</h3>
+        <nav id="form-nav" aria-label="Section links"></nav>
+    </div>
+
+    <div id="main-content" class="form-container" role="main" tabindex="-1">
+        <form id="priorAuthorizationForm" aria-label="Prior Authorization Request Form">
+            <input type="hidden" id="formId" value="prior-authorization-request-v1">
+
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Prior Authorization Request</h1>
+                <p class="text-gray-500">Watson Community Health Center</p>
+            </div>
+
+            <div id="section-1" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Basic Demographics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="requestDate" class="form-label">Request Date</label>
+                            <input type="date" id="requestDate" name="requestDate" class="form-input">
+                        </div>
+                        <div>
+                            <label for="clinicianName" class="form-label">Clinician Name</label>
+                            <input type="text" id="clinicianName" name="clinicianName" class="form-input">
+                        </div>
+                        <div>
+                            <label for="clientName" class="form-label">Client Name</label>
+                            <input type="text" id="clientName" name="clientName" class="form-input">
+                        </div>
+                        <div>
+                            <label for="dob" class="form-label">DOB</label>
+                            <input type="date" id="dob" name="dob" class="form-input">
+                        </div>
+                        <div>
+                            <label for="mrn" class="form-label">MRN</label>
+                            <input type="text" id="mrn" name="mrn" class="form-input">
+                        </div>
+                        <div>
+                            <label for="phoneNumber" class="form-label">Phone Number</label>
+                            <input type="text" id="phoneNumber" name="phoneNumber" class="form-input">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" id="address" name="address" class="form-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-2" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Clinical Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="currentDiagnosis" class="form-label">Current Diagnosis</label>
+                            <textarea id="currentDiagnosis" name="currentDiagnosis" class="form-textarea" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label for="severityLevel" class="form-label">Severity Level (1-10)</label>
+                            <select id="severityLevel" name="severityLevel" class="form-select">
+                                <option value="">Select severity</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="lastServiceDate" class="form-label">Last Date of Service</label>
+                            <input type="date" id="lastServiceDate" name="lastServiceDate" class="form-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-3" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Current Services and Frequency</h3>
+                    <div id="services-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div id="section-4" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Medical Necessity</h3>
+                    <label for="medicalNecessity" class="form-label">Why are additional services needed?</label>
+                    <textarea id="medicalNecessity" name="medicalNecessity" class="form-textarea" rows="8"></textarea>
+                </div>
+            </div>
+
+            <div class="form-field-group bg-gray-200 mt-12">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">For Office Use Only</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="footer_client_name" class="form-label">Client Name:</label>
+                        <input type="text" id="footer_client_name" name="footer_client_name" class="form-input bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label for="footer_dob" class="form-label">DOB:</label>
+                        <input type="text" id="footer_dob" name="footer_dob" class="form-input bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label for="footer_mrn" class="form-label">MRN:</label>
+                        <input type="text" id="footer_mrn" name="footer_mrn" class="form-input bg-gray-100" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loadModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Load Saved Prior Authorization Request">
+                <div class="modal-content">
+                    <h3 class="text-lg font-bold mb-4">Load Saved Prior Authorization Request</h3>
+                    <input type="search" id="modalSearch" placeholder="Search by client name..." aria-label="Search saved clients" class="w-full p-2 mb-4 border border-gray-300 rounded-md">
+                    <div id="savedFormsList" class="modal-body"></div>
+                    <div class="mt-4 text-right">
+                        <button type="button" onclick="closeModal()" class="form-button bg-gray-500 hover:bg-gray-600">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container mt-8 flex flex-col items-center gap-4 no-print" aria-label="Form Actions">
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button type="button" onclick="displaySavedForms()" class="form-button bg-yellow-500 hover:bg-yellow-600 text-black">Load Saved Data</button>
+                    <button type="button" onclick="saveToLocalStorage()" class="form-button bg-green-600 hover:bg-green-700">Save Progress</button>
+                    <button type="button" onclick="printForm()" class="form-button bg-blue-600 hover:bg-blue-700">Print Summary</button>
+                </div>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <input type="file" id="importFile" onchange="importData(event)" accept=".json" style="display: none;">
+                    <button type="button" onclick="document.getElementById('importFile').click()" class="form-button bg-gray-600 hover:bg-gray-700">Import from File</button>
+                    <button type="button" onclick="exportData()" class="form-button bg-gray-600 hover:bg-gray-700">Export to File</button>
+                </div>
+                <div>
+                    <button type="button" onclick="clearForm()" class="form-button bg-red-600 hover:bg-red-700">Clear Form</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const FORM_ID = 'prior-authorization-request-v1';
+        const FORM_NAME_PRINT = 'Prior Authorization Request';
+        const FORM_ELEMENT_ID = 'priorAuthorizationForm';
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatDateForDisplay(value) {
+            if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+            const [year, month, day] = value.split('-');
+            return `${month}/${day}/${year}`;
+        }
+
+        function formatDateForFile(value) {
+            if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'NODATE';
+            return value.replace(/-/g, '');
+        }
+
+        function parseClientName(nameStr) {
+            let lastName = 'Unknown';
+            let firstName = 'Client';
+            if (nameStr && nameStr.trim()) {
+                if (nameStr.includes(',')) {
+                    [lastName, firstName] = nameStr.split(',', 2).map(part => part.trim() || '');
+                } else {
+                    const parts = nameStr.trim().split(/\s+/);
+                    lastName = parts.pop() || 'Unknown';
+                    firstName = parts.join(' ') || 'Client';
+                }
+            }
+            return [lastName || 'Unknown', firstName || 'Client'];
+        }
+
+        function createField(label, value) {
+            return `<div class="field"><span class="label">${escapeHtml(label)}</span><div class="value">${value || '&nbsp;'}</div></div>`;
+        }
+
+        function createLongField(label, value) {
+            return `<div class="field full-width"><span class="label">${escapeHtml(label)}</span><div class="value value-long">${value || '&nbsp;'}</div></div>`;
+        }
+
+        function printForm() {
+            const data = getFormData();
+            const getValue = (key) => String(data[key] || '').trim();
+
+            let servicesRows = '';
+            for (let i = 1; i <= 5; i++) {
+                const service = getValue(`service_name_${i}`);
+                const frequency = getValue(`service_frequency_${i}`);
+                if (service || frequency) {
+                    servicesRows += `<tr><td>${escapeHtml(service)}</td><td>${escapeHtml(frequency)}</td></tr>`;
+                }
+            }
+            if (!servicesRows) {
+                servicesRows = '<tr><td>&nbsp;</td><td>&nbsp;</td></tr>';
+            }
+
+            const printContents = `<!DOCTYPE html><html><head><title>${escapeHtml(FORM_NAME_PRINT)} - ${escapeHtml(getValue('clientName'))}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+                <style>
+                    body{font-family:'Inter',sans-serif;font-size:10pt;color:#333;margin:0;background-color:#e0e0e0}
+                    .page-content{width:8.5in;min-height:11in;padding:0.75in;box-sizing:border-box;background-color:white;margin:2rem auto;box-shadow:0 0 10px rgba(0,0,0,0.2)}
+                    @media print{body{background-color:white;padding:0}.page-content{margin:0;box-shadow:none;min-height:0}.footer{position:fixed;bottom:0.75in;left:0.75in;right:0.75in;width:calc(8.5in - 1.5in)}h3.section-title,.data-table,.field{page-break-inside:avoid}}
+                    .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:2px solid #000080}
+                    .footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:2px solid #000080;font-size:8pt;color:#666;margin-top:20px}
+                    .header-title h1{margin:0;font-size:16pt;color:#000080;font-weight:700}
+                    .header-title h2{margin:0;font-size:10pt;font-weight:400;color:#555}
+                    h3.section-title{font-size:12pt;font-weight:600;color:#333;background-color:#f0f5fa;padding:8px 12px;margin:20px 0 15px 0;border-left:4px solid #000080}
+                    .grid-2col,.grid-3col{display:grid;gap:12px 20px}
+                    .grid-2col{grid-template-columns:repeat(2,1fr)}
+                    .grid-3col{grid-template-columns:repeat(3,1fr)}
+                    .field .label{font-weight:600;font-size:9pt;color:#444;display:block;margin-bottom:4px}
+                    .field .value{background:#f9f9f9;padding:6px 10px;border-radius:4px;border:1px solid #eee;min-height:1.2em;word-wrap:break-word}
+                    .field .value-long{white-space:pre-wrap;min-height:5em}
+                    .full-width{grid-column:1 / -1}
+                    .data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:9pt}
+                    .data-table th,.data-table td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top}
+                    .data-table th{background-color:#f2f2f2;font-weight:600}
+                </style>
+            </head><body><div class="page-content">
+                <div class="header"><div class="header-title"><h1>${escapeHtml(FORM_NAME_PRINT)}</h1><h2>Watson Community Health Center</h2></div></div>
+                <h3 class="section-title">Basic Demographics</h3>
+                <div class="grid-3col">
+                    ${createField('Request Date', escapeHtml(formatDateForDisplay(getValue('requestDate'))))}
+                    ${createField('Clinician Name', escapeHtml(getValue('clinicianName')))}
+                    ${createField('Client Name', escapeHtml(getValue('clientName')))}
+                    ${createField('DOB', escapeHtml(formatDateForDisplay(getValue('dob'))))}
+                    ${createField('MRN', escapeHtml(getValue('mrn')))}
+                    ${createField('Phone Number', escapeHtml(getValue('phoneNumber')))}
+                    ${createLongField('Address', escapeHtml(getValue('address')))}
+                </div>
+                <h3 class="section-title">Clinical Information</h3>
+                <div class="grid-2col">
+                    ${createLongField('Current Diagnosis', escapeHtml(getValue('currentDiagnosis')))}
+                    ${createField('Severity Level (1-10)', escapeHtml(getValue('severityLevel')))}
+                    ${createField('Last Date of Service', escapeHtml(formatDateForDisplay(getValue('lastServiceDate'))))}
+                </div>
+                <h3 class="section-title">Current Services and Frequency</h3>
+                <table class="data-table"><thead><tr><th>Service</th><th>Frequency</th></tr></thead><tbody>${servicesRows}</tbody></table>
+                <h3 class="section-title">Medical Necessity</h3>
+                <div class="grid-2col">${createLongField('Why are additional services needed?', escapeHtml(getValue('medicalNecessity')))}</div>
+                <div class="footer"><span>Client: ${escapeHtml(getValue('clientName'))}</span><span>DOB: ${escapeHtml(formatDateForDisplay(getValue('dob')))}</span><span>MRN: ${escapeHtml(getValue('mrn'))}</span></div>
+            </div></body></html>`;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContents);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => printWindow.print(), 300);
+        }
+
+        function getFormData() {
+            const form = document.getElementById(FORM_ELEMENT_ID);
+            const formData = new FormData(form);
+            const data = { formId: FORM_ID, lastModified: new Date().toISOString() };
+            for (const [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            return data;
+        }
+
+        function populateForm(data) {
+            const form = document.getElementById(FORM_ELEMENT_ID);
+            form.reset();
+            Object.keys(data).forEach((key) => {
+                if (key === 'formId' || key === 'lastModified') return;
+                const element = form.elements[key];
+                if (element && typeof element.value !== 'undefined') {
+                    element.value = data[key];
+                }
+            });
+            updateFooterInfo();
+        }
+
+        function saveToLocalStorage() {
+            const data = getFormData();
+            const clientName = data.clientName.trim();
+            if (!clientName) {
+                alert('Please enter a Client Name before saving.');
+                return;
+            }
+            const key = `savedForm_${FORM_ID}_${clientName}`;
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+                alert(`Progress for ${clientName} saved successfully!`);
+            } catch (error) {
+                if (error.name === 'QuotaExceededError') {
+                    alert('Error: Browser storage is full. Please export and delete older saved forms to make space.');
+                } else {
+                    alert('An unknown error occurred while saving.');
+                    console.error(error);
+                }
+            }
+        }
+
+        function displaySavedForms() {
+            const savedFormsList = document.getElementById('savedFormsList');
+            savedFormsList.innerHTML = '';
+            const savedItems = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(`savedForm_${FORM_ID}_`)) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        savedItems.push({ key, data });
+                    } catch (error) {
+                        console.error('Could not parse saved data:', key, error);
+                    }
+                }
+            }
+            savedItems.sort((a, b) => new Date(b.data.lastModified) - new Date(a.data.lastModified));
+            if (savedItems.length === 0) {
+                savedFormsList.innerHTML = '<p class="text-gray-500">No saved forms found in this browser.</p>';
+            } else {
+                savedItems.forEach((item) => {
+                    const clientName = item.data.clientName || 'Unnamed';
+                    const lastModified = new Date(item.data.lastModified).toLocaleString();
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'modal-item';
+                    itemDiv.innerHTML = `<div class="flex-grow" onclick="loadSelectedForm(${JSON.stringify(item.key)})"><strong class="item-name">${escapeHtml(clientName)}</strong><br><small>Last saved: ${escapeHtml(lastModified)}</small></div><button type="button" onclick="deleteSavedForm(event, ${JSON.stringify(item.key)})" class="delete-btn">Delete</button>`;
+                    savedFormsList.appendChild(itemDiv);
+                });
+            }
+            document.getElementById('loadModal').classList.remove('hidden');
+            document.getElementById('modalSearch').value = '';
+            document.getElementById('modalSearch').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('loadModal').classList.add('hidden');
+        }
+
+        function loadSelectedForm(key) {
+            const data = JSON.parse(localStorage.getItem(key));
+            populateForm(data);
+            closeModal();
+            alert(`Data for ${data.clientName} has been loaded.`);
+        }
+
+        function deleteSavedForm(event, key) {
+            event.stopPropagation();
+            const data = JSON.parse(localStorage.getItem(key));
+            const clientName = data.clientName || 'this entry';
+            if (confirm(`Are you sure you want to permanently delete the saved data for ${clientName}? This cannot be undone.`)) {
+                localStorage.removeItem(key);
+                displaySavedForms();
+                filterModalItems();
+            }
+        }
+
+        function filterModalItems() {
+            const searchTerm = document.getElementById('modalSearch').value.toLowerCase();
+            document.querySelectorAll('#savedFormsList .modal-item').forEach((item) => {
+                const name = item.querySelector('.item-name')?.textContent.toLowerCase() || '';
+                item.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        function exportData() {
+            const data = getFormData();
+            if (!data.clientName.trim()) {
+                alert('Please enter a Client Name before exporting.');
+                return;
+            }
+            const [lastName, firstName] = parseClientName(data.clientName);
+            const filename = `${formatDateForFile(data.requestDate)}_${lastName}_${firstName}_${FORM_ID}.json`;
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(loadEvent) {
+                try {
+                    const data = JSON.parse(loadEvent.target.result);
+                    if (data.formId !== FORM_ID) {
+                        alert(`Error: Incompatible File\n\nThis file is for the '${data.formId || 'Unknown Form'}'. You are currently on the '${FORM_ID}' form.`);
+                        return;
+                    }
+                    populateForm(data);
+                    alert('Client data imported successfully from file!');
+                } catch (error) {
+                    alert('An error occurred while reading this file.');
+                    console.error('Import Error:', error);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function clearForm() {
+            if (confirm('Are you sure you want to clear all fields on this form? This cannot be undone.')) {
+                document.getElementById(FORM_ELEMENT_ID).reset();
+                initializeFormDefaults();
+                alert('Form has been cleared.');
+            }
+        }
+
+        function createNavigation() {
+            const nav = document.getElementById('form-nav');
+            document.querySelectorAll('[id^="section-"]').forEach((section) => {
+                const heading = section.querySelector('h3');
+                if (!heading) return;
+                const link = document.createElement('a');
+                link.href = `#${section.id}`;
+                link.className = 'nav-link';
+                link.textContent = heading.textContent;
+                nav.appendChild(link);
+            });
+        }
+
+        function createServicesList(count = 5) {
+            const container = document.getElementById('services-list');
+            for (let i = 1; i <= count; i++) {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 items-end';
+                row.innerHTML = `
+                    <div>
+                        <label class="form-label">Service ${i}</label>
+                        <input type="text" name="service_name_${i}" class="form-input" placeholder="Current service">
+                    </div>
+                    <div>
+                        <label class="form-label">Frequency ${i}</label>
+                        <input type="text" name="service_frequency_${i}" class="form-input" placeholder="Example: Weekly">
+                    </div>`;
+                container.appendChild(row);
+            }
+        }
+
+        function updateFooterInfo() {
+            const clientName = document.getElementById('clientName').value;
+            const dob = document.getElementById('dob').value;
+            const mrn = document.getElementById('mrn').value;
+            document.getElementById('footer_client_name').value = clientName;
+            document.getElementById('footer_dob').value = formatDateForDisplay(dob);
+            document.getElementById('footer_mrn').value = mrn;
+        }
+
+        function initializeFormDefaults() {
+            const requestDate = document.getElementById('requestDate');
+            if (requestDate && !requestDate.value) {
+                requestDate.valueAsDate = new Date();
+            }
+            updateFooterInfo();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createNavigation();
+            createServicesList();
+            initializeFormDefaults();
+            document.getElementById('modalSearch').addEventListener('keyup', filterModalItems);
+            ['clientName', 'dob', 'mrn'].forEach((id) => {
+                document.getElementById(id).addEventListener('input', updateFooterInfo);
+            });
+        });
+    </script>
+</body>
+</html>
