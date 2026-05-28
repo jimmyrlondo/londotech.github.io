@@ -34,6 +34,7 @@
         .modal-item:hover { background-color: #f3f4f6; }
         .delete-btn { background-color: #ef4444; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; cursor: pointer; }
         .delete-btn:hover { background-color: #dc2626; }
+        .signature-line { height: 2.5rem; border-bottom: 1px solid #4b5563; margin-top: 0.25rem; }
         .hidden { display: none !important; }
         .sr-only { position: absolute!important; width: 1px!important; height: 1px!important; padding: 0!important; margin: -1px!important; overflow: hidden!important; clip: rect(0,0,0,0)!important; white-space: nowrap!important; border: 0!important; }
         .focus\:not-sr-only:focus { position: static!important; width: auto!important; height: auto!important; margin: 0!important; overflow: visible!important; clip: auto!important; white-space: normal!important; }
@@ -59,6 +60,7 @@
     <div id="main-content" class="form-container" role="main" tabindex="-1">
         <form id="priorAuthorizationForm" aria-label="Prior Authorization Request Form">
             <input type="hidden" id="formId" value="prior-authorization-request-v1">
+            <input type="hidden" id="clientName" name="clientName">
 
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">Prior Authorization Request</h1>
@@ -74,12 +76,12 @@
                             <input type="date" id="requestDate" name="requestDate" class="form-input">
                         </div>
                         <div>
-                            <label for="clinicianName" class="form-label">Clinician Name</label>
-                            <input type="text" id="clinicianName" name="clinicianName" class="form-input">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" id="firstName" name="firstName" class="form-input">
                         </div>
                         <div>
-                            <label for="clientName" class="form-label">Client Name</label>
-                            <input type="text" id="clientName" name="clientName" class="form-input">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" class="form-input">
                         </div>
                         <div>
                             <label for="dob" class="form-label">DOB</label>
@@ -96,6 +98,18 @@
                         <div class="md:col-span-3">
                             <label for="address" class="form-label">Address</label>
                             <input type="text" id="address" name="address" class="form-input">
+                        </div>
+                        <div>
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" id="city" name="city" class="form-input">
+                        </div>
+                        <div>
+                            <label for="state" class="form-label">State</label>
+                            <input type="text" id="state" name="state" class="form-input">
+                        </div>
+                        <div>
+                            <label for="zip" class="form-label">ZIP</label>
+                            <input type="text" id="zip" name="zip" class="form-input">
                         </div>
                     </div>
                 </div>
@@ -145,10 +159,60 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Medical Necessity</h3>
                     <label for="medicalNecessity" class="form-label">Why are additional services needed?</label>
                     <textarea id="medicalNecessity" name="medicalNecessity" class="form-textarea" rows="8"></textarea>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <label for="projectedSeverityLevel" class="form-label">Projected Severity Level (1-10) After Additional Services</label>
+                            <select id="projectedSeverityLevel" name="projectedSeverityLevel" class="form-select">
+                                <option value="">Select projected severity</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-field-group bg-gray-200 mt-12">
+            <div id="section-5" class="mb-6">
+                <div class="form-field-group">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Authorization and Signatures</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="clinicianName" class="form-label">Clinician Name (Typed)</label>
+                            <input type="text" id="clinicianName" name="clinicianName" class="form-input">
+                        </div>
+                        <div>
+                            <label for="clinicianSignatureDate" class="form-label">Clinician Date</label>
+                            <input type="date" id="clinicianSignatureDate" name="clinicianSignatureDate" class="form-input">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="form-label">Clinician Signature</label>
+                            <div class="signature-line" aria-hidden="true"></div>
+                        </div>
+                        <div>
+                            <label for="supervisorName" class="form-label">Supervisor Name (Typed)</label>
+                            <input type="text" id="supervisorName" name="supervisorName" class="form-input">
+                        </div>
+                        <div>
+                            <label for="supervisorSignatureDate" class="form-label">Supervisor Date</label>
+                            <input type="date" id="supervisorSignatureDate" name="supervisorSignatureDate" class="form-input">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="form-label">Supervisor Signature</label>
+                            <div class="signature-line" aria-hidden="true"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-field-group bg-gray-200 mt-8">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">For Office Use Only</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
@@ -243,9 +307,30 @@
             return `<div class="field full-width"><span class="label">${escapeHtml(label)}</span><div class="value value-long">${value || '&nbsp;'}</div></div>`;
         }
 
+        function getClientDisplayName(data = null) {
+            const source = data || getFormData();
+            const firstName = String(source.firstName || '').trim();
+            const lastName = String(source.lastName || '').trim();
+            const fallbackName = String(source.clientName || '').trim();
+            return [firstName, lastName].filter(Boolean).join(' ').trim() || fallbackName;
+        }
+
+        function syncClientNameFromParts() {
+            const hiddenClientName = document.getElementById('clientName');
+            if (!hiddenClientName) return;
+            const firstName = String(document.getElementById('firstName')?.value || '').trim();
+            const lastName = String(document.getElementById('lastName')?.value || '').trim();
+            const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+            if (fullName) {
+                hiddenClientName.value = fullName;
+            }
+        }
+
         function printForm() {
             const data = getFormData();
             const getValue = (key) => String(data[key] || '').trim();
+            const clientDisplayName = getClientDisplayName(data);
+            const logoSrc = new URL('../images/logo.png', window.location.href).href;
 
             let servicesRows = '';
             for (let i = 1; i <= 5; i++) {
@@ -259,39 +344,50 @@
                 servicesRows = '<tr><td>&nbsp;</td><td>&nbsp;</td></tr>';
             }
 
-            const printContents = `<!DOCTYPE html><html><head><title>${escapeHtml(FORM_NAME_PRINT)} - ${escapeHtml(getValue('clientName'))}</title>
+            const printContents = `<!DOCTYPE html><html><head><title>${escapeHtml(FORM_NAME_PRINT)} - ${escapeHtml(clientDisplayName)}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
                 <style>
-                    body{font-family:'Inter',sans-serif;font-size:10pt;color:#333;margin:0;background-color:#e0e0e0}
-                    .page-content{width:8.5in;min-height:11in;padding:0.75in;box-sizing:border-box;background-color:white;margin:2rem auto;box-shadow:0 0 10px rgba(0,0,0,0.2)}
-                    @media print{body{background-color:white;padding:0}.page-content{margin:0;box-shadow:none;min-height:0}.footer{position:fixed;bottom:0.75in;left:0.75in;right:0.75in;width:calc(8.5in - 1.5in)}h3.section-title,.data-table,.field{page-break-inside:avoid}}
+                    body{font-family:'Inter',sans-serif;font-size:9.5pt;color:#333;margin:0;background-color:#e0e0e0;line-height:1.25}
+                    .page-content{width:8.5in;min-height:11in;padding:0.55in;box-sizing:border-box;background-color:white;margin:1rem auto;box-shadow:0 0 10px rgba(0,0,0,0.2)}
+                    @media print{body{background-color:white;padding:0}.page-content{margin:0;box-shadow:none;min-height:0}.footer{position:fixed;bottom:0.4in;left:0.55in;right:0.55in;width:calc(8.5in - 1.1in)}h3.section-title,.data-table,.field,.signature-section{page-break-inside:avoid}}
                     .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:2px solid #000080}
-                    .footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:2px solid #000080;font-size:8pt;color:#666;margin-top:20px}
+                    .footer{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:2px solid #000080;font-size:8pt;color:#666;margin-top:10px}
+                    .logo{width:150px;height:auto}
+                    .header-title{text-align:right}
                     .header-title h1{margin:0;font-size:16pt;color:#000080;font-weight:700}
                     .header-title h2{margin:0;font-size:10pt;font-weight:400;color:#555}
-                    h3.section-title{font-size:12pt;font-weight:600;color:#333;background-color:#f0f5fa;padding:8px 12px;margin:20px 0 15px 0;border-left:4px solid #000080}
-                    .grid-2col,.grid-3col{display:grid;gap:12px 20px}
+                    h3.section-title{font-size:11pt;font-weight:600;color:#333;background-color:#f0f5fa;padding:6px 10px;margin:12px 0 8px 0;border-left:4px solid #000080}
+                    .grid-2col,.grid-3col,.grid-4col{display:grid;gap:8px 14px}
                     .grid-2col{grid-template-columns:repeat(2,1fr)}
                     .grid-3col{grid-template-columns:repeat(3,1fr)}
+                    .grid-4col{grid-template-columns:repeat(4,1fr)}
                     .field .label{font-weight:600;font-size:9pt;color:#444;display:block;margin-bottom:4px}
-                    .field .value{background:#f9f9f9;padding:6px 10px;border-radius:4px;border:1px solid #eee;min-height:1.2em;word-wrap:break-word}
-                    .field .value-long{white-space:pre-wrap;min-height:5em}
+                    .field .value{background:#f9f9f9;padding:4px 8px;border-radius:4px;border:1px solid #eee;min-height:1.1em;word-wrap:break-word}
+                    .field .value-long{white-space:pre-wrap;min-height:2.5em}
                     .full-width{grid-column:1 / -1}
-                    .data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:9pt}
-                    .data-table th,.data-table td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top}
+                    .data-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:8.8pt}
+                    .data-table th,.data-table td{border:1px solid #ddd;padding:4px;text-align:left;vertical-align:top}
                     .data-table th{background-color:#f2f2f2;font-weight:600}
+                    .signature-section{margin-top:12px}
+                    .signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;align-items:end}
+                    .signature-line{border-bottom:1px solid #333;height:22px;margin-bottom:4px}
+                    .signature-label{font-size:8pt;color:#555}
                 </style>
             </head><body><div class="page-content">
-                <div class="header"><div class="header-title"><h1>${escapeHtml(FORM_NAME_PRINT)}</h1><h2>Watson Community Health Center</h2></div></div>
+                <div class="header"><img src="${escapeHtml(logoSrc)}" alt="Watson Community Health Center Logo" class="logo"><div class="header-title"><h1>${escapeHtml(FORM_NAME_PRINT)}</h1><h2>Watson Community Health Center</h2></div></div>
                 <h3 class="section-title">Basic Demographics</h3>
-                <div class="grid-3col">
+                <div class="grid-4col">
                     ${createField('Request Date', escapeHtml(formatDateForDisplay(getValue('requestDate'))))}
-                    ${createField('Clinician Name', escapeHtml(getValue('clinicianName')))}
-                    ${createField('Client Name', escapeHtml(getValue('clientName')))}
+                    ${createField('First Name', escapeHtml(getValue('firstName')))}
+                    ${createField('Last Name', escapeHtml(getValue('lastName')))}
+                    ${createField('Client Name', escapeHtml(clientDisplayName))}
                     ${createField('DOB', escapeHtml(formatDateForDisplay(getValue('dob'))))}
                     ${createField('MRN', escapeHtml(getValue('mrn')))}
                     ${createField('Phone Number', escapeHtml(getValue('phoneNumber')))}
-                    ${createLongField('Address', escapeHtml(getValue('address')))}
+                    ${createField('City', escapeHtml(getValue('city')))}
+                    ${createField('State', escapeHtml(getValue('state')))}
+                    ${createField('ZIP', escapeHtml(getValue('zip')))}
+                    ${createField('Address', escapeHtml(getValue('address')))}
                 </div>
                 <h3 class="section-title">Clinical Information</h3>
                 <div class="grid-2col">
@@ -302,8 +398,32 @@
                 <h3 class="section-title">Current Services and Frequency</h3>
                 <table class="data-table"><thead><tr><th>Service</th><th>Frequency</th></tr></thead><tbody>${servicesRows}</tbody></table>
                 <h3 class="section-title">Medical Necessity</h3>
-                <div class="grid-2col">${createLongField('Why are additional services needed?', escapeHtml(getValue('medicalNecessity')))}</div>
-                <div class="footer"><span>Client: ${escapeHtml(getValue('clientName'))}</span><span>DOB: ${escapeHtml(formatDateForDisplay(getValue('dob')))}</span><span>MRN: ${escapeHtml(getValue('mrn'))}</span></div>
+                <div class="grid-2col">
+                    ${createLongField('Why are additional services needed?', escapeHtml(getValue('medicalNecessity')))}
+                    ${createField('Projected Severity Level After Additional Services (1-10)', escapeHtml(getValue('projectedSeverityLevel')))}
+                </div>
+                <div class="signature-section">
+                    <h3 class="section-title">Authorization and Signatures</h3>
+                    <div class="signature-grid">
+                        <div>
+                            ${createField('Clinician Name (Typed)', escapeHtml(getValue('clinicianName')))}
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Clinician Signature</div>
+                        </div>
+                        <div>
+                            ${createField('Clinician Date', escapeHtml(formatDateForDisplay(getValue('clinicianSignatureDate'))))}
+                        </div>
+                        <div>
+                            ${createField('Supervisor Name (Typed)', escapeHtml(getValue('supervisorName')))}
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Supervisor Signature</div>
+                        </div>
+                        <div>
+                            ${createField('Supervisor Date', escapeHtml(formatDateForDisplay(getValue('supervisorSignatureDate'))))}
+                        </div>
+                    </div>
+                </div>
+                <div class="footer"><span>Client: ${escapeHtml(clientDisplayName)}</span><span>DOB: ${escapeHtml(formatDateForDisplay(getValue('dob')))}</span><span>MRN: ${escapeHtml(getValue('mrn'))}</span></div>
             </div></body></html>`;
 
             const printWindow = window.open('', '_blank');
@@ -314,6 +434,7 @@
         }
 
         function getFormData() {
+            syncClientNameFromParts();
             const form = document.getElementById(FORM_ELEMENT_ID);
             const formData = new FormData(form);
             const data = { formId: FORM_ID, lastModified: new Date().toISOString() };
@@ -333,16 +454,23 @@
                     element.value = data[key];
                 }
             });
+            if ((!form.elements.firstName?.value || !form.elements.lastName?.value) && form.elements.clientName?.value) {
+                const [lastName, firstName] = parseClientName(form.elements.clientName.value);
+                if (!form.elements.firstName?.value) form.elements.firstName.value = firstName === 'Client' ? '' : firstName;
+                if (!form.elements.lastName?.value) form.elements.lastName.value = lastName === 'Unknown' ? '' : lastName;
+            }
+            syncClientNameFromParts();
             updateFooterInfo();
         }
 
         function saveToLocalStorage() {
             const data = getFormData();
-            const clientName = data.clientName.trim();
+            const clientName = getClientDisplayName(data).trim();
             if (!clientName) {
                 alert('Please enter a Client Name before saving.');
                 return;
             }
+            data.clientName = clientName;
             const key = `savedForm_${FORM_ID}_${clientName}`;
             try {
                 localStorage.setItem(key, JSON.stringify(data));
@@ -377,7 +505,7 @@
                 savedFormsList.innerHTML = '<p class="text-gray-500">No saved forms found in this browser.</p>';
             } else {
                 savedItems.forEach((item) => {
-                    const clientName = item.data.clientName || 'Unnamed';
+                    const clientName = getClientDisplayName(item.data) || 'Unnamed';
                     const lastModified = new Date(item.data.lastModified).toLocaleString();
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'modal-item';
@@ -398,13 +526,13 @@
             const data = JSON.parse(localStorage.getItem(key));
             populateForm(data);
             closeModal();
-            alert(`Data for ${data.clientName} has been loaded.`);
+            alert(`Data for ${getClientDisplayName(data)} has been loaded.`);
         }
 
         function deleteSavedForm(event, key) {
             event.stopPropagation();
             const data = JSON.parse(localStorage.getItem(key));
-            const clientName = data.clientName || 'this entry';
+            const clientName = getClientDisplayName(data) || 'this entry';
             if (confirm(`Are you sure you want to permanently delete the saved data for ${clientName}? This cannot be undone.`)) {
                 localStorage.removeItem(key);
                 displaySavedForms();
@@ -422,6 +550,7 @@
 
         function exportData() {
             const data = getFormData();
+            data.clientName = getClientDisplayName(data);
             if (!data.clientName.trim()) {
                 alert('Please enter a Client Name before exporting.');
                 return;
@@ -498,7 +627,12 @@
         }
 
         function updateFooterInfo() {
-            const clientName = document.getElementById('clientName').value;
+            syncClientNameFromParts();
+            const clientName = getClientDisplayName({ 
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                clientName: document.getElementById('clientName').value
+            });
             const dob = document.getElementById('dob').value;
             const mrn = document.getElementById('mrn').value;
             document.getElementById('footer_client_name').value = clientName;
@@ -519,7 +653,7 @@
             createServicesList();
             initializeFormDefaults();
             document.getElementById('modalSearch').addEventListener('keyup', filterModalItems);
-            ['clientName', 'dob', 'mrn'].forEach((id) => {
+            ['firstName', 'lastName', 'dob', 'mrn'].forEach((id) => {
                 document.getElementById(id).addEventListener('input', updateFooterInfo);
             });
         });
