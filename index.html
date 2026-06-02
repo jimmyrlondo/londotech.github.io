@@ -3,180 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Londo Technologies LTD | IT & Media Solutions</title>
+    <title>Londo Technologies LTD | IT & Connectivity Support</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Rustic / rural palette (earthy + barn red) */
-            --dark-bg: #f3ead7;            /* warm parchment background */
-            --card-bg: #fbf6ec;            /* card background */
-            --teal-accent: #8b2f2f;        /* barn red (mapped to existing teal variable) */
-            --teal-glow: rgba(139, 47, 47, 0.18);
-
-            --text: #2b241a;              /* deep warm charcoal */
-            --muted: rgba(43, 36, 26, 0.70);
-            --divider: #d8cbb3;
-            --border: #d8cbb3;
-            --border-strong: #c8b79b;
+            --bg: #f4f7fb;
+            --surface: #ffffff;
+            --surface-soft: #eef4ff;
+            --accent: #1f4f8f;
+            --accent-dark: #173b69;
+            --accent-soft: rgba(31, 79, 143, 0.10);
+            --text: #18212f;
+            --muted: #5d6b82;
+            --border: #d7e0ee;
+            --shadow: 0 18px 40px rgba(24, 33, 47, 0.08);
         }
 
         html { scroll-behavior: smooth; }
 
         body {
-            background-color: var(--dark-bg);
+            margin: 0;
+            background:
+                radial-gradient(circle at top left, rgba(31, 79, 143, 0.08), transparent 32%),
+                linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
             color: var(--text);
             font-family: 'Inter', sans-serif;
         }
 
-        /* Top call/text bar */
-        .topbar {
-            background: rgba(251, 246, 236, 0.92);
-            border-bottom: 1px solid var(--divider);
-            font-size: 0.95rem;
-        }
-        .topbar a {
-            color: rgba(43, 36, 26, 0.88);
+        a {
+            color: var(--accent);
             text-decoration: none;
         }
-        .topbar a:hover { color: var(--teal-accent); }
-        .topbar .dot { opacity: 0.35; padding: 0 10px; }
 
-        .navbar { border-bottom: 1px solid var(--border-strong); }
-        .text-teal { color: var(--teal-accent); }
+        a:hover { color: var(--accent-dark); }
+
+        .topbar {
+            background: #eef4fb;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .topbar a,
+        .topbar span {
+            color: var(--muted);
+        }
+
+        .topbar strong {
+            color: var(--accent);
+        }
+
+        .topbar .dot {
+            opacity: 0.45;
+            padding: 0 10px;
+        }
+
+        .site-nav {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .navbar-brand {
+            letter-spacing: 0.04em;
+        }
+
+        .brand-accent,
+        .text-accent {
+            color: var(--accent);
+        }
+
+        .nav-link {
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link:focus {
+            color: var(--accent);
+        }
 
         .hero {
-            padding: 120px 0 80px;
-            background: radial-gradient(circle at top right, #efe3cc, var(--dark-bg));
+            padding: 92px 0 56px;
         }
 
-        .btn-teal {
-            background-color: var(--teal-accent);
-            color: #fbf6ec;
-            font-weight: bold;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px var(--teal-glow);
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(31, 79, 143, 0.18);
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
 
-        .btn-teal:hover {
-            transform: scale(1.05);
-            background-color: #742525;
-            box-shadow: 0 0 25px var(--teal-glow);
-            color: #ffffff;
-        }
-
-        /* Keep existing HTML buttons (btn-outline-light) but make them work on a light theme */
-        .btn-outline-light {
-            color: var(--text);
-            border-color: var(--border-strong);
-        }
-        .btn-outline-light:hover {
-            background: #efe3cc;
-            border-color: var(--border-strong);
-            color: var(--text);
-        }
-
-        .service-card {
-            background: var(--card-bg);
+        .hero-card,
+        .info-card,
+        .service-card,
+        .contact-card {
+            background: var(--surface);
             border: 1px solid var(--border);
-            transition: all 0.3s ease;
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card {
+            padding: 42px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin: 18px 0 18px;
+        }
+
+        .lead-copy {
+            max-width: 720px;
+            font-size: 1.1rem;
+            color: var(--muted);
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            padding: 9px 14px;
+            background: #f8fbff;
+            color: var(--text);
+            font-size: 0.92rem;
+            font-weight: 500;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 14px 24px;
+            font-weight: 700;
+            box-shadow: 0 12px 24px rgba(31, 79, 143, 0.22);
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-dark);
+            color: #fff;
+        }
+
+        .btn-soft {
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            border-radius: 999px;
+            padding: 14px 24px;
+            font-weight: 700;
+        }
+
+        .btn-soft:hover {
+            background: var(--surface-soft);
+            color: var(--accent-dark);
+            border-color: #bfd0e8;
+        }
+
+        .section {
+            padding: 24px 0;
+        }
+
+        .section-heading {
+            margin-bottom: 20px;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            max-width: 760px;
+            margin-bottom: 0;
+        }
+
+        .info-card,
+        .service-card,
+        .contact-card {
+            padding: 28px;
             height: 100%;
         }
 
-        .service-card:hover {
-            border-color: var(--teal-accent);
-            transform: translateY(-5px);
+        .service-card h3,
+        .info-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
         }
 
-        .service-card p {
-            color: var(--text) !important;
-            opacity: 1 !important;
+        .muted {
+            color: var(--muted);
         }
 
-        .rural-badge {
-            background: rgba(139, 47, 47, 0.08);
-            border: 1px solid rgba(139, 47, 47, 0.35);
-            color: var(--teal-accent);
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 15px;
+        .service-list,
+        .check-list {
+            padding-left: 1.1rem;
+            margin-bottom: 0;
         }
 
-        .section-title {
-            letter-spacing: 0.5px;
+        .service-list li,
+        .check-list li {
+            margin-bottom: 0.55rem;
+            color: var(--muted);
+        }
+
+        .service-list li:last-child,
+        .check-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .contact-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
         }
 
         .divider {
             height: 1px;
-            background: var(--divider);
-            margin: 20px 0 0;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 30px 0 6px;
         }
 
-        .jump-card {
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-
-        .jump-card:focus-visible {
-            outline: 2px solid var(--teal-accent);
-            outline-offset: 3px;
-            border-radius: 8px;
-        }
-
-        .pill {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: rgba(43, 36, 26, 0.04);
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-
-        .img-placeholder {
-            border: 1px dashed var(--border-strong);
-            background: rgba(251, 246, 236, 0.55);
-            border-radius: 12px;
-            min-height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        footer {
+            padding: 36px 0 44px;
             color: var(--muted);
-            text-align: center;
-            padding: 24px;
         }
 
-        .back-top {
-            text-decoration: none;
+        @media (max-width: 767.98px) {
+            .hero {
+                padding-top: 56px;
+            }
+
+            .hero-card,
+            .info-card,
+            .service-card,
+            .contact-card {
+                padding: 24px;
+            }
+
+            .topbar .status-line {
+                width: 100%;
+            }
         }
-
-        footer { border-top: 1px solid var(--divider); padding: 40px 0; }
-
-        /* Bootstrap helper text colors tuned for light theme */
-        .text-white-50 { color: rgba(43, 36, 26, 0.62) !important; }
-        .opacity-75 { opacity: 1 !important; color: var(--muted); }
-        .opacity-50 { opacity: 1 !important; color: rgba(43, 36, 26, 0.55); }
     </style>
 </head>
 <body id="top">
 
     <div class="topbar py-2">
         <div class="container d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                <strong class="text-teal">Call/Text:</strong>
+            <div class="d-flex flex-wrap align-items-center gap-2 status-line">
+                <strong>Call/Text:</strong>
                 <a href="tel:14403201989">440-320-1989</a>
                 <span class="dot">•</span>
-                <a href="support.html" class="fw-bold text-teal">Remote Support Portal</a>
-                <span class="dot">•</span>
-                <a href="watson/" class="fw-bold text-teal">Watson Forms</a>
-                <span class="dot">•</span>
-                <a href="/resume/" class="fw-bold text-teal">Professional Resume</a>
-                <span class="dot">•</span>
-                <span class="text-white-50">On-site available (North Bloomfield + surrounding areas)</span>
+                <span>On-site available in North Bloomfield and surrounding areas</span>
             </div>
             <div class="d-flex gap-3">
                 <a href="tel:14403201989">Call</a>
@@ -185,510 +282,242 @@
         </div>
     </div>
 
-    <nav class="navbar navbar-light sticky-top" style="background:#fbf6ec;">
+    <nav class="navbar navbar-expand-md site-nav sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#top">LONDO <span class="text-teal">TECHNOLOGIES</span></a>
-            <div class="d-flex gap-3 align-items-center">
-                <a class="nav-link text-white-50 d-none d-md-inline" href="#work">What We Do</a>
-                <a class="nav-link fw-bold text-teal d-none d-md-inline" href="support.html">Remote Support</a>
-                <a class="nav-link fw-bold text-teal d-none d-md-inline" href="watson/">Watson Forms</a>
-                <a class="nav-link fw-bold text-teal d-none d-md-inline" href="/resume/">Resume</a>
-                <a class="nav-link text-white-50 d-none d-md-inline" href="#about">Local & Family-Owned</a>
-                <a class="nav-link text-white-50 d-none d-md-inline" href="#contact">Contact</a>
+            <a class="navbar-brand fw-bold" href="#top">LONDO <span class="brand-accent">TECHNOLOGIES</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <div class="navbar-nav ms-auto gap-md-2">
+                    <a class="nav-link" href="#services">What We Do</a>
+                    <a class="nav-link" href="support.html">Remote Support</a>
+                    <a class="nav-link" href="#about">About</a>
+                    <a class="nav-link" href="#contact">Contact</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <header class="hero text-center">
+    <header class="hero">
         <div class="container">
-            <div class="rural-badge text-uppercase small fw-bold">North Bloomfield, OH • Trumbull County & Surrounding Areas</div>
+            <div class="hero-card">
+                <span class="eyebrow">North Bloomfield, Ohio • Remote-first + On-site</span>
+                <h1>Practical IT, connectivity, and media support for local businesses, farms, and homes.</h1>
+                <p class="lead-copy mb-0">
+                    Londo Technologies helps clients solve real-world tech problems with clear communication, dependable support,
+                    and services built for both small businesses and rural properties. No stock-photo fluff — just quality service,
+                    explained simply and delivered professionally.
+                </p>
 
-            <h1 class="display-3 fw-bold mb-3">
-                IT & Connectivity for<br><span class="text-teal">Local Businesses and Farms</span>
-            </h1>
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <a href="tel:14403201989" class="btn btn-accent">Call 440-320-1989</a>
+                    <a href="sms:14403201989" class="btn btn-soft">Text for Fast Help</a>
+                    <a href="#services" class="btn btn-soft">Explore Services</a>
+                </div>
 
-            <p class="lead mb-4 opacity-75">
-                Family-owned, professional support. Remote-first for faster fixes—plus on-site installs for networks,
-                Starlink setup, outbuilding connectivity, and <strong>managed VoIP systems</strong> for growing businesses.
-            </p>
-
-            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-4">
-                <a href="tel:14403201989" class="btn btn-teal btn-lg px-5">Call Now</a>
-                <a href="sms:14403201989" class="btn btn-outline-light btn-lg px-5">Text Us</a>
-                <a href="#voip" class="btn btn-outline-light btn-lg px-5">Managed VoIP Services</a>
-                <a href="#work" class="btn btn-outline-light btn-lg px-5">Explore Services</a>
-            </div>
-
-            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
-                <span class="pill">Remote-first Support</span>
-                <span class="pill">Starlink Setup</span>
-                <span class="pill">Mesh Wi‑Fi</span>
-                <span class="pill">Wireless Bridges (Barn/Shop)</span>
-                <span class="pill" data-service="managedVoip">Managed VoIP (Ooma)</span>
-                <span class="pill">Video & Design</span>
-                <span class="pill" data-service="shredding">Document Shredding & Hard Drive Disposal</span>
+                <div class="pill-row">
+                    <span class="pill">Managed IT</span>
+                    <span class="pill">Networking & Wi‑Fi</span>
+                    <span class="pill">Rural Connectivity</span>
+                    <span class="pill">Business VoIP</span>
+                    <span class="pill">PC Repair & Setup</span>
+                    <span class="pill">Video & Design</span>
+                </div>
             </div>
         </div>
     </header>
 
-    <section id="audiences" class="container my-5 py-4">
-        <div class="row g-4">
-            <div class="col-lg-6">
-                <div class="card service-card p-4 h-100">
-                    <h3 class="section-title mb-2">For <span class="text-teal">Businesses</span></h3>
-                    <p class="opacity-75 mb-3">
-                        Reliable support, clean networks, secure systems, and solutions that scale with your team.
-                    </p>
-                    <ul class="mb-0">
-                        <li>Managed IT & troubleshooting</li>
-                        <li>Network setup, Wi‑Fi, and security hardening</li>
-                        <li data-service="managedVoip"><strong>Managed VoIP</strong> & Business VoIP (Ooma partner)</li>
-                        <li>Printed media, branding, and video production</li>
-                        <li data-service="shredding"><strong>Document shredding</strong> & secure <strong>hard drive disposal</strong></li>
+    <section class="section">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="info-card">
+                        <h3>For businesses</h3>
+                        <p class="muted mb-3">Reliable support for teams that need stable systems, better communication tools, and a partner who can keep things moving.</p>
+                        <ul class="check-list">
+                            <li>Managed IT and troubleshooting</li>
+                            <li>Network setup, Wi‑Fi improvements, and security guidance</li>
+                            <li>Managed VoIP and call-flow setup</li>
+                            <li>Branding, print assets, and media support</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="info-card">
+                        <h3>For farms, rural properties, and homes</h3>
+                        <p class="muted mb-3">On-site help and remote support for connectivity, devices, and home technology that has to work across real buildings and real distances.</p>
+                        <ul class="check-list">
+                            <li>Starlink and mesh Wi‑Fi setup</li>
+                            <li>Wireless bridge planning for barns and shops</li>
+                            <li>PC repair, tune-ups, and device setup</li>
+                            <li>Home theater, audio, and in-home tech guidance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="divider"></div>
+        </div>
+    </section>
+
+    <section id="services" class="section">
+        <div class="container">
+            <div class="section-heading">
+                <h2 class="fw-bold mb-2">Clean replacement structure</h2>
+                <p>
+                    Instead of image-heavy sections, the homepage now works best as a clear service overview with strong copy,
+                    simple categories, and direct ways to contact you.
+                </p>
+            </div>
+
+            <div class="service-grid">
+                <div class="service-card">
+                    <h3 class="text-accent">Managed IT</h3>
+                    <p class="muted">Day-to-day support, system cleanup, practical troubleshooting, and dependable help when something breaks.</p>
+                    <ul class="service-list">
+                        <li>Remote-first problem solving</li>
+                        <li>Device and account cleanup</li>
+                        <li>Upgrade planning and recommendations</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <h3 class="text-accent">Networking & Wi‑Fi</h3>
+                    <p class="muted">Coverage planning, better stability, and cleaner setups for homes, shops, and offices.</p>
+                    <ul class="service-list">
+                        <li>Router and switch setup</li>
+                        <li>Dead-zone and performance troubleshooting</li>
+                        <li>Documentation and layout guidance</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <h3 class="text-accent">Rural Connectivity</h3>
+                    <p class="muted">Solutions built for rural reality, including Starlink, mesh systems, and wireless bridge installs.</p>
+                    <ul class="service-list">
+                        <li>Starlink setup and optimization</li>
+                        <li>Connectivity to barns and outbuildings</li>
+                        <li>Remote-first follow-up support</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <h3 class="text-accent">Business VoIP</h3>
+                    <p class="muted">Professional phone systems with setup, routing, onboarding, and ongoing support.</p>
+                    <ul class="service-list">
+                        <li>New system setup and migrations</li>
+                        <li>Ring groups, voicemail, and schedules</li>
+                        <li>Support as the business grows</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <h3 class="text-accent">PC Repair & Setup</h3>
+                    <p class="muted">Practical help for slow computers, new devices, home office setups, and general tech frustration.</p>
+                    <ul class="service-list">
+                        <li>Diagnostics and tune-ups</li>
+                        <li>New computer setup and transfers</li>
+                        <li>Printer and workstation support</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <h3 class="text-accent">Media & Design</h3>
+                    <p class="muted">Clear, useful creative work that supports the business — from videos to branding and print materials.</p>
+                    <ul class="service-list">
+                        <li>Promo and social video production</li>
+                        <li>Logo and brand design</li>
+                        <li>Flyers, cards, posters, and printed materials</li>
                     </ul>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="card service-card p-4 h-100">
-                    <h3 class="section-title mb-2">For <span class="text-teal">Farms</span>, Rural Properties & Homes</h3>
-                    <p class="opacity-75 mb-3">
-                        On-site help for home tech, Wi‑Fi coverage, PCs, and entertainment systems—done right and explained clearly.
-                        Remote-first support helps solve many issues fast without a long drive.
-                    </p>
-                    <ul class="mb-0">
-                        <li>Home & whole-property connectivity planning</li>
-                        <li>Outbuilding connectivity (barn/shop) using wireless bridges</li>
-                        <li>PC repair, tune-ups, and in-home setup</li>
-                        <li>Home theater & audio system setup</li>
-                        <li>Device guidance & ongoing support</li>
-                    </ul>
+            <div class="divider"></div>
+        </div>
+    </section>
+
+    <section id="about" class="section">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="info-card">
+                        <h2 class="fw-bold mb-3">Local. Family-owned. Built around real service.</h2>
+                        <p class="muted mb-3">
+                            Based near North Bloomfield, Londo Technologies supports clients throughout Trumbull County and surrounding areas.
+                            The focus is simple: solve the problem, communicate clearly, and make sure customers feel taken care of.
+                        </p>
+                        <div class="pill-row mt-0">
+                            <span class="pill">Clear communication</span>
+                            <span class="pill">Professional installs</span>
+                            <span class="pill">Remote-first support</span>
+                            <span class="pill">On-site when needed</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="info-card h-100">
+                        <h3>Why this redesign works</h3>
+                        <ul class="check-list">
+                            <li>Removes distracting placeholder imagery</li>
+                            <li>Keeps attention on services and value</li>
+                            <li>Makes the private portals less visible publicly</li>
+                            <li>Uses a cleaner blue-and-slate palette for a more modern IT feel</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
+            <div class="divider"></div>
         </div>
-        <div class="divider"></div>
     </section>
 
-    <section id="work" class="container my-5 py-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
-            <div>
-                <h2 class="fw-bold mb-1">What We Do</h2>
-                <p class="opacity-75 mb-0">Click a service to jump to details, examples, and what’s included.</p>
-            </div>
-            <a href="#contact" class="btn btn-outline-light">Request a Quote</a>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-3" data-service="managedVoip">
-                <a class="jump-card" href="#voip">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Managed VoIP</h4>
-                        <p class="small mb-0">Business phone systems, call routing, onboarding, and reliable support.</p>
+    <section id="contact" class="section pb-5">
+        <div class="container">
+            <div class="contact-card">
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-7">
+                        <h2 class="fw-bold mb-2">Ready to talk through your project?</h2>
+                        <p class="muted mb-3">
+                            Call or text for the fastest response. Whether you need remote troubleshooting, on-site help,
+                            connectivity planning, or business support, we can start with a quick conversation.
+                        </p>
+                        <div class="d-flex flex-wrap gap-3 mb-3">
+                            <a class="btn btn-accent" href="tel:14403201989">Call 440-320-1989</a>
+                            <a class="btn btn-soft" href="sms:14403201989">Text 440-320-1989</a>
+                        </div>
+                        <div class="pill-row mt-0">
+                            <span class="pill">North Bloomfield, OH</span>
+                            <span class="pill">Trumbull County</span>
+                            <span class="pill">Surrounding areas</span>
+                            <span class="pill">Remote-first + On-site</span>
+                        </div>
                     </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="managedIt">
-                <a class="jump-card" href="#managed-it">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Managed IT</h4>
-                        <p class="small mb-0">Support, troubleshooting, and keeping systems stable and secure.</p>
+                    <div class="col-lg-5">
+                        <form action="https://api.web3forms.com/submit" method="POST">
+                            <input type="hidden" name="access_key" value="f7b65244-689f-4d00-8391-c10789938b20">
+                            <input type="text" name="name" placeholder="Your Name" required class="form-control mb-3">
+                            <input type="email" name="email" placeholder="Email Address" required class="form-control mb-3">
+                            <select name="customer_type" class="form-control mb-3" required>
+                                <option value="" selected disabled>I am a...</option>
+                                <option>Business customer</option>
+                                <option>Farm / rural property</option>
+                                <option>Residential customer</option>
+                            </select>
+                            <select name="service_interest" class="form-control mb-3" required>
+                                <option value="" selected disabled>I need help with...</option>
+                                <option>Rural connectivity (Starlink / mesh / wireless bridge)</option>
+                                <option>Managed IT / troubleshooting</option>
+                                <option>Networking / Wi‑Fi</option>
+                                <option>Managed VoIP / Business VoIP</option>
+                                <option>PC repair / setup</option>
+                                <option>Home theater / audio</option>
+                                <option>Video production</option>
+                                <option>Logo / design</option>
+                                <option>Printed media</option>
+                                <option>Not sure yet</option>
+                            </select>
+                            <textarea name="message" placeholder="Briefly describe what you need" required rows="5" class="form-control mb-3"></textarea>
+                            <button type="submit" class="btn btn-accent w-100">Send Message</button>
+                        </form>
                     </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="networking">
-                <a class="jump-card" href="#networking">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Networking (Biz & Home)</h4>
-                        <p class="small mb-0">Wi‑Fi, routers, switches, coverage planning, and clean installs.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="ruralConnectivity">
-                <a class="jump-card" href="#rural-connectivity">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Rural Connectivity</h4>
-                        <p class="small mb-0">Starlink setup, mesh Wi‑Fi, and wireless bridges to outbuildings.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="pcRepair">
-                <a class="jump-card" href="#pc-repair">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">PC Repair & Setup</h4>
-                        <p class="small mb-0">Fixes, upgrades, tune-ups, and in-home workstation setups.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="videoProduction">
-                <a class="jump-card" href="#media">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Video Production</h4>
-                        <p class="small mb-0">Promos, social content, training videos, and clean edits.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="brandDesign">
-                <a class="jump-card" href="#design">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Logo & Brand Design</h4>
-                        <p class="small mb-0">Logos, brand refreshes, and assets ready for print & web.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="printedMedia">
-                <a class="jump-card" href="#print">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Printed Media</h4>
-                        <p class="small mb-0">Flyers, posters, business cards, menus, and marketing materials.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="homeAv">
-                <a class="jump-card" href="#home-av">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Home Theater & Audio</h4>
-                        <p class="small mb-0">TV mounting guidance, speaker setups, and clean cabling.</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-md-6 col-lg-3" data-service="shredding">
-                <a class="jump-card" href="#shredding">
-                    <div class="card service-card p-4">
-                        <h4 class="text-teal">Document Shredding & Hard Drive Disposal</h4>
-                        <p class="small mb-0">Secure destruction of sensitive documents and data-bearing drives.</p>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-    </section>
-
-    <section id="about" class="container my-5 py-4">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Local. Family-owned. Built for Rural Reality.</h2>
-                <p class="opacity-75 mb-3">
-                    We're based near <strong>North Bloomfield, Ohio</strong> and serve <strong>Trumbull County</strong> and surrounding areas with a mix of remote support and on-site help.
-                    Our goal is simple: professional results without the runaround—whether you’re running a business network or getting connectivity out to the barn or shop.
-                    My son and I focus on clear communication, clean installs, and support you can trust.
-                </p>
-                <div class="d-flex flex-wrap gap-2">
-                    <span class="pill">Clear communication</span>
-                    <span class="pill">Remote-first support</span>
-                    <span class="pill">On-site installs</span>
-                    <span class="pill">Business + farm-friendly</span>
-                </div>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/rural-tech-service/800/500" alt="Technician on-site at a rural property" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="managed-it" class="container my-5 py-4" data-service="managedIt">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Managed IT</h2>
-                <p class="opacity-75">
-                    Keep your devices, accounts, and day-to-day operations running smoothly. Ideal for small businesses that need a dependable tech partner.
-                </p>
-                <ul>
-                    <li>Remote troubleshooting and on-site visits when needed</li>
-                    <li>User/device cleanup, performance tuning, and best practices</li>
-                    <li>Account security guidance (passwords, MFA, basic hardening)</li>
-                    <li>Hardware recommendations and upgrade planning</li>
-                </ul>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/it-helpdesk-workstation/800/500" alt="IT helpdesk and workstation setup" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="networking" class="container my-5 py-4" data-service="networking">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Networking (Business & Home)</h2>
-                <p class="opacity-75">
-                    Better coverage, better stability, fewer dropouts. We design networks that fit real buildings—homes, offices, shops, and properties with outbuildings.
-                </p>
-                <ul>
-                    <li>Wi‑Fi planning for coverage & performance</li>
-                    <li>Router/switch setup, device placement, and clean configuration</li>
-                    <li>Troubleshooting slow internet, interference, and dead zones</li>
-                    <li>Optional: documentation so you know what you have</li>
-                </ul>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/network-wifi-router/800/500" alt="Network and Wi-Fi equipment" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="rural-connectivity" class="container my-5 py-4" data-service="ruralConnectivity">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Rural Connectivity (Starlink • Mesh • Wireless Bridges)</h2>
-                <p class="opacity-75">
-                    Rural properties need practical solutions: stable Wi‑Fi in the house, and reliable connectivity to the shop, barn, or outbuildings.
-                    We keep it simple, explain options clearly, and document what’s installed.
-                </p>
-                <ul>
-                    <li><strong>Starlink setup & optimization</strong> (placement guidance, network integration)</li>
-                    <li><strong>Mesh Wi‑Fi</strong> for home/office coverage</li>
-                    <li><strong>Wireless bridges</strong> to extend internet to outbuildings (barn/shop)</li>
-                    <li><strong>Remote-first support</strong> to reduce delays and travel time</li>
-                </ul>
-                <div class="d-flex flex-wrap gap-2">
-                    <a class="btn btn-teal" href="tel:14403201989">Call 440-320-1989</a>
-                    <a class="btn btn-outline-light" href="sms:14403201989">Text Us</a>
-                </div>
-                <div class="mt-3">
-                    <a class="back-top text-teal" href="#top">↑ Back to top</a>
-                </div>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/farm-barn-rural-antenna/800/500" alt="Rural barn and outdoor wireless antenna" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="voip" class="container my-5 py-4" data-service="managedVoip">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Managed VoIP & Business VoIP (Ooma Partner)</h2>
-                <p class="opacity-75">
-                    Professional, fully managed calling features for small businesses—set up the right way, with training and ongoing support so your team stays confident.
-                </p>
-                <ul>
-                    <li>New VoIP setup and migration planning</li>
-                    <li>Call routing, ring groups, business hours, voicemail</li>
-                    <li>Multi-user setup and basic onboarding</li>
-                    <li>Ongoing management, updates, and support as your team grows</li>
-                    <li><strong>Note:</strong> VoIP offerings are for business customers</li>
-                </ul>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <a class="btn btn-teal" href="tel:14403201989">Call for Managed VoIP</a>
-                    <a class="btn btn-outline-light" href="sms:14403201989">Text Us</a>
-                </div>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/office-voip-phone/800/500" alt="Business office phone and VoIP setup" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="pc-repair" class="container my-5 py-4" data-service="pcRepair">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">PC Repair & In‑Home Setup</h2>
-                <p class="opacity-75">
-                    From slow computers to new device setup, we make home and small-office tech feel simple again.
-                </p>
-                <ul>
-                    <li>Diagnostics, cleanup, and performance improvements</li>
-                    <li>New PC setup, data transfer, printers, and accounts</li>
-                    <li>Home office setup (monitor docking, webcam/mic, reliability)</li>
-                    <li>Practical recommendations you can actually follow</li>
-                </ul>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/laptop-pc-repair/800/500" alt="Laptop and PC repair workbench" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="home-av" class="container my-5 py-4" data-service="homeAv">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Home Theater & Audio System Setup</h2>
-                <p class="opacity-75">
-                    Clean setups, correct settings, and better sound. Great for living rooms, basements, and dedicated media spaces.
-                </p>
-                <ul>
-                    <li>TV / streaming device setup and optimization</li>
-                    <li>Soundbar / receiver / speaker configuration</li>
-                    <li>Cable management guidance and layout planning</li>
-                    <li>Whole-home audio basics (where applicable)</li>
-                </ul>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/home-theater-audio/800/500" alt="Home theater and audio system setup" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="media" class="container my-5 py-4" data-service="videoProduction">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Video Production</h2>
-                <p class="opacity-75">
-                    Video that looks and sounds professional—whether it’s a promo, a product walkthrough, or content for social media.
-                </p>
-                <ul>
-                    <li>Promo videos, social clips, basic motion graphics</li>
-                    <li>Editing, audio cleanup, and export for web platforms</li>
-                    <li>Business storytelling: services, people, and process</li>
-                    <li>Optional: on-location filming (as scheduling allows)</li>
-                </ul>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/video-production-camera/800/500" alt="Video camera and film production setup" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="design" class="container my-5 py-4" data-service="brandDesign">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Logo & Brand Design</h2>
-                <p class="opacity-75">
-                    Clean branding that works everywhere: websites, signs, social media, and printed materials.
-                </p>
-                <ul>
-                    <li>Logo design or refresh</li>
-                    <li>Color and font guidance (simple brand kit)</li>
-                    <li>Export packages for web + print</li>
-                </ul>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/logo-brand-design/800/500" alt="Logo and brand design mockups" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="print" class="container my-5 py-4" data-service="printedMedia">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Printed Media (Flyers, Posters, Cards)</h2>
-                <p class="opacity-75">
-                    Marketing materials designed to look sharp and print correctly. Perfect for local events, storefronts, and service businesses.
-                </p>
-                <ul>
-                    <li>Flyers, posters, menus, business cards</li>
-                    <li>Print-ready exports (bleed, margins, proper resolution)</li>
-                    <li>Optional: coordinate with your print shop requirements</li>
-                </ul>
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/print-flyers-marketing/800/500" alt="Printed flyers and marketing materials" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="shredding" class="container my-5 py-4" data-service="shredding">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="fw-bold mb-2">Document Shredding & Hard Drive Disposal</h2>
-                <p class="opacity-75">
-                    Protect your privacy and your business. We offer secure, professional destruction of sensitive paper documents
-                    and data-bearing hard drives—so you can retire old equipment and clean out filing cabinets with peace of mind.
-                </p>
-                <ul>
-                    <li><strong>Document shredding</strong> — secure destruction of confidential paperwork, old records, and sensitive files</li>
-                    <li><strong>Hard drive disposal</strong> — physical destruction or certified wiping of HDDs and SSDs before recycling</li>
-                    <li>Ideal for businesses, home offices, and anyone upgrading or decommissioning old equipment</li>
-                    <li>On-site pickup available (North Bloomfield area and surrounding counties)</li>
-                </ul>
-                <div class="d-flex flex-wrap gap-2">
-                    <a class="btn btn-teal" href="tel:14403201989">Call 440-320-1989</a>
-                    <a class="btn btn-outline-light" href="sms:14403201989">Text Us</a>
-                </div>
-                <div class="mt-3">
-                    <a class="back-top text-teal" href="#top">↑ Back to top</a>
-                </div>
-            </div>
-            <div class="col-lg-5">
-                <img src="https://picsum.photos/seed/document-shredding-security/800/500" alt="Secure document shredding and hard drive disposal" class="img-fluid" style="border-radius:12px; width:100%; object-fit:cover; max-height:280px;">
-            </div>
-        </div>
-        <div class="divider"></div>
-    </section>
-
-    <section id="contact" class="container my-5 py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card service-card p-4 p-md-5">
-                    <h2 class="fw-bold mb-2">Contact</h2>
-                    <p class="opacity-75 mb-3">
-                        Call or text first for the fastest response. If you prefer, you can also send a message using the form below.
-                    </p>
-
-                    <div class="d-flex flex-wrap gap-2 mb-4">
-                        <a class="btn btn-teal" href="tel:14403201989">Call 440-320-1989</a>
-                        <a class="btn btn-outline-light" href="sms:14403201989">Text Us</a>
-                    </div>
-
-                    <div class="d-flex flex-wrap gap-2 mb-4">
-                        <span class="pill">North Bloomfield, OH</span>
-                        <span class="pill">Trumbull County</span>
-                        <span class="pill">Surrounding Counties</span>
-                        <span class="pill">Remote-first + On-site</span>
-                    </div>
-
-                    <form action="https://api.web3forms.com/submit" method="POST">
-                        <input type="hidden" name="access_key" value="f7b65244-689f-4d00-8391-c10789938b20">
-
-                        <input type="text" name="name" placeholder="Your Name" required class="form-control mb-3">
-                        <input type="email" name="email" placeholder="Email Address" required class="form-control mb-3">
-
-                        <select name="customer_type" class="form-control mb-3" required>
-                            <option value="" selected disabled>I am a...</option>
-                            <option>Business customer</option>
-                            <option>Farm / rural property</option>
-                            <option>Residential customer</option>
-                        </select>
-
-                        <select name="service_interest" class="form-control mb-3" required>
-                            <option value="" selected disabled>I need help with...</option>
-                            <option data-service="ruralConnectivity">Rural connectivity (Starlink / mesh / wireless bridge)</option>
-                            <option data-service="managedIt">Managed IT / troubleshooting</option>
-                            <option data-service="networking">Networking / Wi‑Fi</option>
-                            <option data-service="managedVoip">Managed VoIP / Business VoIP (Ooma)</option>
-                            <option data-service="pcRepair">PC repair / setup</option>
-                            <option data-service="homeAv">Home theater / audio</option>
-                            <option data-service="videoProduction">Video production</option>
-                            <option data-service="brandDesign">Logo / design</option>
-                            <option data-service="printedMedia">Printed media</option>
-                            <option data-service="shredding">Document shredding / hard drive disposal</option>
-                            <option>Not sure yet</option>
-                        </select>
-
-                        <textarea name="message" placeholder="Briefly describe what you need (your town, timeline, and any details)" required rows="5" class="form-control mb-3"></textarea>
-
-                        <button type="submit" class="btn btn-teal w-100">Send Message</button>
-                    </form>
-
-                    <p class="small opacity-50 mt-3 mb-0">
-                        Tip: If you want on-site service, include your town (or nearest crossroads) and a good time window for a call-back.
-                    </p>
                 </div>
             </div>
         </div>
@@ -696,36 +525,11 @@
 
     <footer class="text-center">
         <div class="container">
-            <p class="mb-0">&copy; 2026 Londo Technologies LTD | <span class="text-teal">Londo.Tech</span></p>
-            <p class="small opacity-50 mb-0">Family-owned technology & media support — North Bloomfield, Ohio • Trumbull County and surrounding areas.</p>
-            <div class="mt-2">
-                <a class="back-top text-teal" href="#top">↑ Back to top</a>
-            </div>
+            <p class="mb-1">&copy; 2026 Londo Technologies LTD | <span class="text-accent">Londo.Tech</span></p>
+            <p class="mb-0">Family-owned technology and media support for North Bloomfield, Trumbull County, and surrounding areas.</p>
         </div>
     </footer>
 
-    <script>
-        const serviceFlags = {
-            managedVoip: true,
-            managedIt: true,
-            networking: true,
-            ruralConnectivity: true,
-            pcRepair: true,
-            homeAv: true,
-            videoProduction: true,
-            brandDesign: true,
-            printedMedia: true,
-            shredding: false
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('[data-service]').forEach((element) => {
-                const serviceKey = element.getAttribute('data-service');
-                if (Object.hasOwn(serviceFlags, serviceKey) && !serviceFlags[serviceKey]) {
-                    element.classList.add('d-none');
-                }
-            });
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
