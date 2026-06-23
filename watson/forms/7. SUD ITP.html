@@ -785,7 +785,7 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Signatures</h3>
                     <div class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                            <div><label class="form-label text-sm">Client’s Signature (sign above)</label><div class="signature-line"></div></div>
+                            <div><label class="form-label text-sm">Client’s Signature (sign above)</label><div class="signature-line"></div><div id="client_signature_text" class="text-xs italic text-gray-500 mt-1"></div><input type="hidden" id="sig_client_signature_text" name="sig_client_signature_text"><label class="flex items-center mt-2"><input type="checkbox" id="client_verbal_consent" name="client_verbal_consent" class="h-4 w-4" checked onchange="handleClientVerbalConsentChange()"><span class="ml-2">verbal consent</span></label></div>
                             <div><label for="sig_client_name" class="form-label text-sm">Printed Name</label><input type="text" id="sig_client_name" name="sig_client_name" class="form-input"></div>
                             <div><label for="sig_client_date" class="form-label text-sm">Date</label><input type="date" id="sig_client_date" name="sig_client_date" class="form-input"></div>
                         </div>
@@ -940,7 +940,7 @@
         return `<tr><td>${service}<br><small>${description}</small></td><td>${frequency}</td></tr>`;
     }).join('');
 
-    let printContents = `<html><head><title>${FORM_NAME_PRINT} - ${getValue('clientName')}</title>
+    let printContents = `<html><head><title>${buildPdfFilename(getValue('clientName'))}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
     body{font-family:'Inter',sans-serif;font-size:10pt;color:#333;margin:0;background-color:#e0e0e0}
@@ -1072,7 +1072,7 @@
     </div>
     <h3 class="section-title">Signatures</h3>
     <div class="signature-section page-break"><div class="signature-grid">
-        <div class="signature-box"><div class="signature-line"></div><div class="signature-label">Client - ${getValue('sig_client_name')} (${formatDate(getValue('sig_client_date'))})</div></div>
+        <div class="signature-box"><div class="signature-line"></div><div class="signature-label">Client - ${getValue('sig_client_name')} (${formatDate(getValue('sig_client_date'))})${getValue('sig_client_signature_text') ? `<br>${getValue('sig_client_signature_text')}` : ''}</div></div>
         <div class="signature-box"><div class="signature-line"></div><div class="signature-label">Parent/Guardian - ${getValue('sig_parent_name')} (${formatDate(getValue('sig_parent_date'))})</div></div>
         <div class="signature-box"><div class="signature-line"></div><div class="signature-label">${getValue('sig_other_specify', 'Other')} - ${getValue('sig_other_name')} (${formatDate(getValue('sig_other_date'))})</div></div>
         <div class="signature-box"><div class="signature-line"></div><div class="signature-label">Staff - ${getValue('sig_staff_name')} (${formatDate(getValue('sig_staff_date'))})</div></div>
@@ -1158,6 +1158,8 @@
             document.body.style.overflow = '';
         }
         function parseClientName(nameStr){let[lastName,firstName]=['Unknown','Client'];if(nameStr){if(nameStr.includes(',')){[lastName,firstName]=nameStr.split(',',2).map(s=>s.trim())}else{const parts=nameStr.trim().split(' ');lastName=parts.pop()||'Unknown';firstName=parts.join(' ')||'Client'}}return[lastName,firstName]}
+        function buildPdfFilename(clientName){const[lastName,firstName]=parseClientName(clientName||'');const normalize=value=>(value||'').trim().replace(/\s+/g,' ').toUpperCase()||'UNKNOWN';const dateForFile=new Date().toISOString().split('T')[0];return `${normalize(lastName)} ${normalize(firstName)} SUD ITP ${dateForFile}.pdf`}
+        function handleClientVerbalConsentChange(){const verbalConsent=document.getElementById('client_verbal_consent');const clientNameInput=document.getElementById('clientName');const sigClientName=document.getElementById('sig_client_name');const sigText=document.getElementById('sig_client_signature_text');const sigTextDisplay=document.getElementById('client_signature_text');const consentText='Client gave verbal consent via telehealth';if(!verbalConsent)return;if(verbalConsent.checked){if(sigClientName)sigClientName.value=clientNameInput?clientNameInput.value:'';if(sigText)sigText.value=consentText;if(sigTextDisplay)sigTextDisplay.textContent=consentText}else{if(sigClientName)sigClientName.value='';if(sigText)sigText.value='';if(sigTextDisplay)sigTextDisplay.textContent=''}}
         function exportData(){const data=getFormData();if(!data.clientName.trim()){alert('Please enter a Client Name before exporting.');return}const[lastName,firstName]=parseClientName(data.clientName);const filename=`${formatDate(data.date)||'NODATE'}_${lastName}_${firstName}_${FORM_ID}.json`;const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=filename;link.click();URL.revokeObjectURL(link.href)}
         function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(data.formId!==FORM_ID){alert(`Error: Incompatible File\n\nThis file is for the '${data.formId||'Unknown Form'}'. You are currently on the '${FORM_ID}' form.`);return}populateForm(data);alert('Client data imported successfully from file!')}catch(error){alert('An error occurred while reading this file.');console.error("Import Error: ",error)}};reader.readAsText(file);event.target.value=''}
         function clearForm(){if(confirm("Are you sure you want to clear all fields on this form? This cannot be undone.")){document.getElementById(treatmentPlanForm).reset();initializeFormDefaults();alert('Form has been cleared.')}}
@@ -1222,20 +1224,16 @@
             document.getElementById('footer_dob').value = document.getElementById('dob').value;
             document.getElementById('footer_record_number').value = document.getElementById('recordNumber').value;
             
-            // Auto-populate signature client name if field exists and is empty
+            // Auto-populate signature client name when verbal consent is enabled
             const sigClientName = document.getElementById('sig_client_name');
-            if (sigClientName && !sigClientName.value && clientName) {
+            const verbalConsent = document.getElementById('client_verbal_consent');
+            if (sigClientName && verbalConsent && verbalConsent.checked) {
                 sigClientName.value = clientName;
             }
+            handleClientVerbalConsentChange();
         }
 function updateNavigation() {
-    const navContainer = document.getElementById('form-nav');document.getElementById('clientName').addEventListener('input', function() {
-    const clientName = document.getElementById('clientName').value;
-    const sigClientName = document.getElementById('sig_client_name');
-    if (sigClientName) {
-        sigClientName.value = clientName; // Full name is passed dynamically
-    }
-});
+    const navContainer = document.getElementById('form-nav');
     if (!navContainer) return;
     navContainer.innerHTML = '';
     document.querySelectorAll('div[id^="section-"]').forEach(section => {
@@ -1290,6 +1288,7 @@ function updateNavigation() {
             setupSignatureToggle('togglePhysicianSig', 'physicianSigBlock');
             updateNavigation();
             initializeFormDefaults();
+            handleClientVerbalConsentChange();
             
             // FIX: Wire date input to trigger setTargetCompletionDates
             const dateInput = document.getElementById('date');

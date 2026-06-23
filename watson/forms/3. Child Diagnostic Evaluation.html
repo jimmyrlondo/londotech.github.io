@@ -2054,6 +2054,7 @@
         if(el)el.value=today
     });
 }
+function buildPdfFilename(clientName){const[lastName,firstName]=parseClientName(clientName||'');const normalize=value=>(value||'').trim().replace(/\s+/g,' ').toUpperCase()||'UNKNOWN';const dateForFile=new Date().toISOString().split('T')[0];return `${normalize(lastName)} ${normalize(firstName)} DE ${dateForFile}.pdf`}
 
 function updateAgeAndFooter(){
     const dobInput=document.getElementById('dob');
@@ -3359,7 +3360,7 @@ mainContent += `<h3 class="section-title">Mental Status Exam</h3>
     </div>`;
 
     const printWindow=window.open('','_blank');
-    printWindow.document.write(`<html><head><title>${FORM_NAME_PRINT} - ${getValue('clientName')}</title><style>
+    printWindow.document.write(`<html><head><title>${buildPdfFilename(getValue('clientName'))}</title><style>
     body{font-family:'Inter',sans-serif;font-size:8pt;color:#333;margin:0;background-color:#e0e0e0;}
     .page-content{width:8.5in;background-color:white;margin:1rem auto;padding:0.6in;box-shadow:0 0 10px rgba(0,0,0,0.2);box-sizing:border-box;overflow:hidden;max-width:8.5in;}
     .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:2px solid #000080;}
