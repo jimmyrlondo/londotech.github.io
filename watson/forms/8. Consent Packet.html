@@ -95,6 +95,13 @@
                         <span class="text-xs text-blue-600 bg-white px-2 py-1 rounded border border-blue-200">Autofill Enabled</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="client_verbal_consent" name="client_verbal_consent" class="h-4 w-4" checked onchange="handleClientVerbalConsentChange()">
+                                <span class="ml-2">verbal consent</span>
+                            </label>
+                            <p id="client_signature_text" class="text-xs italic text-gray-500 mt-1"></p>
+                        </div>
                         <div><label class="form-label">Client Name</label><input type="text" id="clientName" name="clientName" class="form-input" placeholder="Last, First"></div>
                         <div><label class="form-label">Date of Birth</label><input type="date" id="dob" name="dob" class="form-input"></div>
                         <div><label class="form-label">SSN (Last 4)</label><input type="text" id="ssn" name="ssn" class="form-input" maxlength="4"></div>
@@ -763,6 +770,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             initSignaturePads(); 
             setTodayDates(); // Auto-fill dates
+            const clientNameInput = document.getElementById('clientName');
+            if (clientNameInput) clientNameInput.addEventListener('input', handleClientVerbalConsentChange);
+            handleClientVerbalConsentChange();
             
             // Score Calculation Listeners
             const radioInputs = document.querySelectorAll('input[type="radio"]');
@@ -817,6 +827,10 @@
         function clearSig(id) {
             if (signaturePads[id]) signaturePads[id].clear();
         }
+        function parseClientName(nameStr){let[lastName,firstName]=['Unknown','Client'];if(nameStr){if(nameStr.includes(',')){[lastName,firstName]=nameStr.split(',',2).map(s=>s.trim())}else{const parts=nameStr.trim().split(' ');lastName=parts.pop()||'Unknown';firstName=parts.join(' ')||'Client'}}return[lastName,firstName]}
+        function buildPdfFilename(clientName){const[lastName,firstName]=parseClientName(clientName||'');const normalize=value=>(value||'').trim().replace(/\s+/g,' ').toUpperCase()||'UNKNOWN';const dateForFile=new Date().toISOString().split('T')[0];return `${normalize(lastName)} ${normalize(firstName)} CONSENT PACKET ${dateForFile}.pdf`}
+        function fillCanvasWithText(canvas,text){if(!canvas)return;const ctx=canvas.getContext('2d');if(!ctx)return;ctx.save();ctx.fillStyle='white';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#374151';ctx.font=`${Math.max(12,Math.floor(canvas.height/4))}px Inter`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text, canvas.width/2, canvas.height/2, canvas.width-10);ctx.restore()}
+        function handleClientVerbalConsentChange(){const checkbox=document.getElementById('client_verbal_consent');const display=document.getElementById('client_signature_text');const consentText='Client gave verbal consent via telehealth';const clientCanvasIds=sigIds.filter(id=>id.includes('_client'));if(display)display.textContent=checkbox&&checkbox.checked?consentText:'';if(!checkbox)return;if(checkbox.checked){clientCanvasIds.forEach(id=>{const canvas=document.getElementById(id);if(canvas){fillCanvasWithText(canvas,consentText);if(signaturePads[id])signaturePads[id].fromDataURL(canvas.toDataURL())}})}else{clientCanvasIds.forEach(id=>{if(signaturePads[id])signaturePads[id].clear()})}}
 
         // ==================== CALCULATION LOGIC ====================
         function calculateScores() {
@@ -879,6 +893,8 @@
             if(confirm("Clear all data?")) {
                 document.getElementById('consentPacketForm').reset();
                 sigIds.forEach(id => { if(signaturePads[id]) signaturePads[id].clear(); });
+                const sigText = document.getElementById('client_signature_text');
+                if (sigText) sigText.textContent = '';
                 setTodayDates();
                 window.scrollTo(0,0);
             }
@@ -918,7 +934,7 @@
             
             const logoHtml = `<div class="header-logo"><img src="../images/logo.png" alt="Logo"></div>`;
 
-            let html = `<html><head><title>Print Packet</title>
+            let html = `<html><head><title>${buildPdfFilename(val('clientName'))}</title>
             <style>
                 @page { margin: 0.5in; size: letter; }
                 body { font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.2; color: #000; margin: 0; }

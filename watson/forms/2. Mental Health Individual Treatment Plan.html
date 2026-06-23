@@ -377,17 +377,18 @@
 <div class="grid grid-cols-2 gap-4 items-start py-2 border-t">
     <div>
         <label class="flex items-start">
-            <input type="checkbox" name="service[]" value="Psychotherapy Group" class="h-4 w-4 mt-1 flex-shrink-0">
+            <input type="checkbox" name="service[]" value="Diagnostic Evaluation" class="h-4 w-4 mt-1 flex-shrink-0">
             <span class="ml-3 text-sm">
-                <span class="font-semibold">Psychotherapy Group</span>
-                <span class="text-gray-600 block text-xs">(Includes Psychotherapy for individuals, families, interactive complexity, and crisis)<br>Licensed professionals as identified in OAC 5122-29-03</span>
+                <span class="font-semibold">Diagnostic Evaluation</span>
+                <span class="text-gray-600 block text-xs">(Includes Diagnostic Evaluation with and without medical, and Diagnostic Update)<br>Licensed professionals as identified in OAC 5122-29-03</span>
             </span>
         </label>
     </div>
     <div>
-        <select name="service_freq_psychotherapy_group" class="form-select">
+        <select name="service_freq_diag_eval" class="form-select">
             <option value=""></option>
-            <option value="Per Diem">Per Diem</option>
+            <option value="Annually or Clinically Indicated">Annually or Clinically Indicated</option>
+            <option value="Clinically Indicated">Clinically Indicated</option>
         </select>
     </div>
 </div>
@@ -618,11 +619,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="symptom_severity" class="form-label">Severity of Symptoms:</label>
-                            <input type="text" id="symptom_severity" name="symptom_severity" class="form-input">
+                            <select id="symptom_severity" name="symptom_severity" class="form-select">
+                                <option value=""></option>
+                                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                            </select>
                         </div>
                         <div>
                             <label for="functioning_impairment" class="form-label">Levels of functioning impairment:</label>
-                            <input type="text" id="functioning_impairment" name="functioning_impairment" class="form-input">
+                            <select id="functioning_impairment" name="functioning_impairment" class="form-select">
+                                <option value=""></option>
+                                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                            </select>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -639,6 +648,10 @@
                         </div>
                     </div>
                     <div class="mt-4">
+                        <label for="requested_service_intensity_rationale" class="form-label">What is your rational for the requested level and intensity of services?</label>
+                        <textarea id="requested_service_intensity_rationale" name="requested_service_intensity_rationale" class="form-textarea h-28"></textarea>
+                    </div>
+                    <div class="mt-4">
                        <label class="form-label">Does the DSM-5 diagnosis include a description of an individual's functioning and symptoms?</label>
                         <div class="flex items-center space-x-4">
                             <label class="flex items-center"><input type="radio" name="dsm_description_match" value="Yes" class="h-4 w-4"><span class="ml-2">Yes</span></label>
@@ -648,22 +661,30 @@
                 </div>
             </div>
 
-            <!-- Section 8: Recommendations and Transition Plan -->
+            <!-- Section 8: Transition Plan and Discharge Recommendations -->
             <div id="section-recommendations" class="mb-6">
                 <div class="form-field-group">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recommendations and Transition Plan</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Transition Plan and Discharge Recommendations</h3>
                     <div class="space-y-4">
                         <div>
                             <label class="form-label">Without treatment, will the client be expected to suffer prolonged, increased or new psychiatric symptoms or impairment of functioning?</label>
                             <div class="flex items-center space-x-4">
-                                <label class="flex items-center"><input type="radio" name="without_treatment_outcome" value="Yes" class="h-4 w-4"><span class="ml-2">Yes</span></label>
-                                <label class="flex items-center"><input type="radio" name="without_treatment_outcome" value="No" class="h-4 w-4"><span class="ml-2">No</span></label>
+                                <label class="flex items-center"><input type="radio" name="without_treatment_outcome" value="Yes" class="h-4 w-4" onchange="handleWithoutTreatmentOutcomeChange()"><span class="ml-2">Yes</span></label>
+                                <label class="flex items-center"><input type="radio" name="without_treatment_outcome" value="No" class="h-4 w-4" onchange="handleWithoutTreatmentOutcomeChange()"><span class="ml-2">No</span></label>
                             </div>
+                        </div>
+                        <div id="discharge_date_container" class="hidden">
+                            <label for="discharge_date" class="form-label">Discharge Date</label>
+                            <input type="date" id="discharge_date" name="discharge_date" class="form-input">
                         </div>
                         <div>
                             <label for="transition_plan" class="form-label">What is the client's transition plan?</label>
                             <textarea id="transition_plan" name="transition_plan" class="form-textarea h-32"></textarea>
                             <p class="text-xs italic text-gray-500 mt-2">*ITP to be reviewed every annually, at client's request, as clinically indicated, or adding/ terminating of a service</p>
+                        </div>
+                        <div>
+                            <label for="transition_risk_if_reduced" class="form-label">What are the client's risks if services are reduced or discontinued?</label>
+                            <textarea id="transition_risk_if_reduced" name="transition_risk_if_reduced" class="form-textarea h-28"></textarea>
                         </div>
                     </div>
                 </div>
@@ -684,6 +705,9 @@
         <option value="Client Request or Preference Change">Client Request or Preference Change</option>
         <option value="Non-Engagement or Non-Compliance">Non-Engagement or Non-Compliance</option>
         <option value="Transition or Discharge Planning">Transition or Discharge Planning</option>
+        <option value="Prior Authorization for TBS/PSR">Prior Authorization for TBS/PSR</option>
+        <option value="Prior Authorization for MH Day Treatment">Prior Authorization for MH Day Treatment</option>
+        <option value="BH Respite (Ohio RISE)">BH Respite (Ohio RISE)</option>
         <option value="Other">Other</option>
     </select>
 </div>
@@ -692,7 +716,7 @@
     <input type="text" id="review_reason_other" name="review_reason_other" class="form-input" placeholder="Please specify other reason...">
 </div>
                         <div>
-                            <label for="progress" class="form-label">Progress:</label>
+                            <label for="progress" class="form-label">Progress and Continued Need for Services:</label>
                             <input type="text" id="progress" name="progress" class="form-input">
                         </div>
                         <div>
@@ -708,6 +732,7 @@
                         <div>
                             <label for="progress_remarks" class="form-label">Remarks regarding client's progress:</label>
                             <textarea id="progress_remarks" name="progress_remarks" class="form-textarea h-32"></textarea>
+                            <p class="text-xs italic text-gray-500 mt-2">*Why are continued services needed?</p>
                         </div>
                     </div>
                 </div>
@@ -723,6 +748,12 @@
                             <div>
                                 <label class="form-label text-sm">Client's Signature</label>
                                 <div class="signature-line"></div>
+                                <div id="client_signature_text" class="text-xs italic text-gray-500 mt-1"></div>
+                                <input type="hidden" id="sig_client_signature_text" name="sig_client_signature_text">
+                                <label class="flex items-center mt-2">
+                                    <input type="checkbox" id="client_verbal_consent" name="client_verbal_consent" class="h-4 w-4" checked onchange="handleClientVerbalConsentChange()">
+                                    <span class="ml-2">verbal consent</span>
+                                </label>
                             </div>
                             <div>
                                 <label for="sig_client_name" class="form-label text-sm">Printed Name</label>
@@ -944,9 +975,12 @@ function updateFooterInfo() {
     if (footerDobEl) footerDobEl.value = dobEl ? dobEl.value : '';
     if (footerRecordEl) footerRecordEl.value = recordNumberEl ? recordNumberEl.value : '';
 
-    // FIX: keep the client printed-name signature in sync with the main clientName input
+    // Keep the client printed-name signature in sync only when verbal consent is enabled
     const sigClient = document.getElementById('sig_client_name');
-    if (sigClient) sigClient.value = clientNameEl ? clientNameEl.value : '';
+    const verbalConsentEl = document.getElementById('client_verbal_consent');
+    if (sigClient && verbalConsentEl && verbalConsentEl.checked) {
+        sigClient.value = clientNameEl ? clientNameEl.value : '';
+    }
 
     // (Optional) If you also want the staff printed name to default to client name,
     // uncomment the following lines:
@@ -1183,15 +1217,17 @@ function updateFooterInfo() {
                 ${getChecked('impairment_area').map(area => `<span class="checkbox-item">${escapeHtml(area)}</span>`).join('') || '<em>None selected</em>'}
             </div>
         </div>
-        
+        ${createFieldLong('What is your rational for the requested level and intensity of services?', getValue('requested_service_intensity_rationale'))}
         ${createField('Does the DSM-5 diagnosis include a description of an individual\'s functioning and symptoms?', getValue('dsm_description_match'))}
     </div>`;
 
-    // SECTION 8: Recommendations and Transition Plan
-    mainContent += `<h3 class="section-title">Recommendations and Transition Plan</h3>
+    // SECTION 8: Transition Plan and Discharge Recommendations
+    mainContent += `<h3 class="section-title">Transition Plan and Discharge Recommendations</h3>
     <div class="section-wrapper">
         ${createField('Without treatment, will the client be expected to suffer prolonged, increased or new psychiatric symptoms or impairment of functioning?', getValue('without_treatment_outcome'))}
+        ${getValue('without_treatment_outcome') === 'No' ? createField('Discharge Date', formatDate(getValue('discharge_date'))) : ''}
         ${createFieldLong('What is the client\'s transition plan?', getValue('transition_plan'))}
+        ${createFieldLong('What are the client\'s risks if services are reduced or discontinued?', getValue('transition_risk_if_reduced'))}
         <p class="instruction-text small"><em>*ITP to be reviewed every annually, at client's request, as clinically indicated, or adding/terminating of a service</em></p>
     </div>`;
 
@@ -1199,10 +1235,10 @@ function updateFooterInfo() {
     mainContent += `<h3 class="section-title">ITP Goal Review</h3>
     <div class="section-wrapper">
        ${createField('Reason for Review', getValue('review_reason') + (getValue('review_reason') === 'Other' && getValue('review_reason_other') ? ': ' + getValue('review_reason_other') : ''))}
-        ${createField('Progress', getValue('progress'))}
+        ${createField('Progress and Continued Need for Services', getValue('progress'))}
         ${createField('New Target date (if previous goal continued)', formatDate(getValue('new_target_date')))}
         ${createField('Previous goal(s) discontinued', getValue('goals_discontinued') ? 'Yes' : 'No')}
-        ${createFieldLong('Remarks regarding client\'s progress', getValue('progress_remarks'))}
+        ${createFieldLong('Remarks regarding client\'s progress (*Why are continued services needed?)', getValue('progress_remarks'))}
     </div>`;
 
     // Build Signatures
@@ -1213,7 +1249,7 @@ const buildSignatures = () => {
     // Required signatures
     html += `<div class="signature-box">
         <div class="signature-line"></div>
-        <span class="signature-label">Client's Signature: ${escapeHtml(getValue('sig_client_name'))} - Date: ${formatDate(getValue('sig_client_date'))}</span>
+        <span class="signature-label">Client's Signature: ${escapeHtml(getValue('sig_client_name'))} - Date: ${formatDate(getValue('sig_client_date'))}${getValue('sig_client_signature_text') ? `<br>${escapeHtml(getValue('sig_client_signature_text'))}` : ''}</span>
     </div>`;
     html += `<div class="signature-box">
         <div class="signature-line"></div>
@@ -1257,7 +1293,7 @@ const buildSignatures = () => {
 };
 
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`<html><head><title>${FORM_NAME_PRINT} - ${getValue('clientName')}</title>
+    printWindow.document.write(`<html><head><title>${buildPdfFilename(getValue('clientName'))}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body{font-family:'Inter',sans-serif;font-size:9pt;color:#333;margin:0;background-color:#e0e0e0;}
@@ -1530,9 +1566,11 @@ function updateFooterInfo() {
     if (footerDobEl) footerDobEl.value = dobEl ? dobEl.value : '';
     if (footerRecordEl) footerRecordEl.value = recordNumberEl ? recordNumberEl.value : '';
 
-    // Keep the client printed-name signature in sync with the main clientName input
+    // Keep the client printed-name signature in sync only when verbal consent is enabled
     const sigClient = document.getElementById('sig_client_name');
-    if (sigClient) sigClient.value = clientName;
+    const verbalConsentEl = document.getElementById('client_verbal_consent');
+    if (sigClient && verbalConsentEl && verbalConsentEl.checked) sigClient.value = clientName;
+    handleClientVerbalConsentChange();
 
     // (Optional) If you also want the staff printed name to default to client name,
     // uncomment the following lines:
@@ -1584,6 +1622,55 @@ function toggleSignatureSection(sectionType) {
         }
     }
 }
+function handleWithoutTreatmentOutcomeChange() {
+    const selectedOutcome = document.querySelector('input[name="without_treatment_outcome"]:checked')?.value || '';
+    const transitionPlanEl = document.getElementById('transition_plan');
+    const dischargeDateContainer = document.getElementById('discharge_date_container');
+    const dischargeDateEl = document.getElementById('discharge_date');
+    const defaultTransitionText = 'The individual is expected to transition from services upon achievement or treatment goals, improvement in functioning, increased symptom stability, and reduced need for the current level of care. Discharge or transition planning will occur throughout treatment and will included coordination of ongoing supports, referrals, and linage to clinically appropriate services to promote continued recover, independence, and community integration.';
+
+    if (selectedOutcome === 'Yes') {
+        if (transitionPlanEl && !transitionPlanEl.value.trim()) {
+            transitionPlanEl.value = defaultTransitionText;
+        }
+        if (dischargeDateContainer) dischargeDateContainer.classList.add('hidden');
+        if (dischargeDateEl) dischargeDateEl.value = '';
+    } else if (selectedOutcome === 'No') {
+        if (dischargeDateContainer) dischargeDateContainer.classList.remove('hidden');
+    } else if (dischargeDateContainer) {
+        dischargeDateContainer.classList.add('hidden');
+        if (dischargeDateEl) dischargeDateEl.value = '';
+    }
+}
+function handleClientVerbalConsentChange() {
+    const verbalConsentEl = document.getElementById('client_verbal_consent');
+    const clientNameEl = document.getElementById('clientName');
+    const sigClientNameEl = document.getElementById('sig_client_name');
+    const sigClientTextEl = document.getElementById('sig_client_signature_text');
+    const sigClientTextDisplayEl = document.getElementById('client_signature_text');
+    const verbalConsentText = 'Client gave verbal consent via telehealth';
+    const enabled = !!(verbalConsentEl && verbalConsentEl.checked);
+
+    if (enabled) {
+        if (sigClientNameEl) sigClientNameEl.value = clientNameEl ? clientNameEl.value : '';
+        if (sigClientTextEl) sigClientTextEl.value = verbalConsentText;
+        if (sigClientTextDisplayEl) sigClientTextDisplayEl.textContent = verbalConsentText;
+    } else {
+        if (!window.__isRestoring) {
+            if (sigClientNameEl) sigClientNameEl.value = '';
+            if (sigClientTextEl) sigClientTextEl.value = '';
+            if (sigClientTextDisplayEl) sigClientTextDisplayEl.textContent = '';
+        } else if (sigClientTextDisplayEl && sigClientTextEl) {
+            sigClientTextDisplayEl.textContent = sigClientTextEl.value || '';
+        }
+    }
+}
+function buildPdfFilename(clientName) {
+    const [lastName, firstName] = parseClientName(clientName || '');
+    const normalize = value => (value || '').trim().replace(/\s+/g, ' ').toUpperCase() || 'UNKNOWN';
+    const dateForFile = new Date().toISOString().split('T')[0];
+    return `${normalize(lastName)} ${normalize(firstName)} ITP ${dateForFile}.pdf`;
+}
     // PAGE INITIALIZATION
     document.addEventListener('DOMContentLoaded', () => {
 loadPreferences(); // Load saved preferences first
@@ -1621,6 +1708,8 @@ if (clientNameEl) clientNameEl.addEventListener('input', updateFooterInfo);
         dateInput.addEventListener('change', setTargetCompletionDates);
         if (dateInput.value) setTargetCompletionDates();
     }
+    handleWithoutTreatmentOutcomeChange();
+    handleClientVerbalConsentChange();
 });
 
     document.getElementById('treatmentPlanForm').addEventListener('keydown', function(e) {
