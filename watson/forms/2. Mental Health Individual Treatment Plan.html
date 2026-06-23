@@ -20,15 +20,23 @@
     (function() {
         try {
             const prefs = JSON.parse(localStorage.getItem('wchc_user_preferences') || '{}');
+            
+            // Apply high contrast mode immediately
             if (prefs.highContrast === true) {
                 document.documentElement.classList.add('high-contrast-mode');
             }
+            
+            // Apply font size (with 'px' units)
             if (prefs.fontSize) {
                 document.documentElement.style.fontSize = prefs.fontSize + 'px';
             }
+            
+            // Apply line height
             if (prefs.lineHeight) {
                 document.documentElement.style.lineHeight = prefs.lineHeight;
             }
+            
+            // Apply font family
             if (prefs.fontFamily) {
                 document.documentElement.style.fontFamily = prefs.fontFamily;
             }
@@ -104,6 +112,7 @@
                                 <select name="service_freq_diag_eval" class="form-select">
                                     <option value="">Choose One...</option>
                                     <option value="Annually or Clinically Indicated">Annually or Clinically Indicated</option>
+                                    <option value="Clinically Indicated">Clinically Indicated</option>
                                 </select>
                             </div>
                         </div>
@@ -112,5 +121,15 @@
             </div>
         </form>
     </div>
+    <script>
+      function printForm(){
+        const selected = document.querySelector('select[name="service_freq_diag_eval"]')?.value || '';
+        const w = window.open('', '_blank');
+        w.document.write(`<!DOCTYPE html><html><head><title>Print</title><style>body{font-family:Arial,sans-serif;padding:24px;} .row{margin-bottom:12px;}</style></head><body><div class="row"><strong>Diagnostic Evaluation</strong></div><div class="row">Service Frequency: ${selected || '&nbsp;'}</div></body></html>`);
+        w.document.close();
+        w.focus();
+        w.print();
+      }
+    </script>
 </body>
 </html>
