@@ -1238,7 +1238,8 @@ function updateFooterInfo() {
         ${createField('Progress and Continued Need for Services', getValue('progress'))}
         ${createField('New Target date (if previous goal continued)', formatDate(getValue('new_target_date')))}
         ${createField('Previous goal(s) discontinued', getValue('goals_discontinued') ? 'Yes' : 'No')}
-        ${createFieldLong('Remarks regarding client\'s progress (*Why are continued services needed?)', getValue('progress_remarks'))}
+        ${createFieldLong('Remarks regarding client\'s progress:', getValue('progress_remarks'))}
+        <p class="instruction-text small"><em>*Why are continued services needed?</em></p>
     </div>`;
 
     // Build Signatures
@@ -1636,6 +1637,9 @@ function handleWithoutTreatmentOutcomeChange() {
         if (dischargeDateContainer) dischargeDateContainer.classList.add('hidden');
         if (dischargeDateEl) dischargeDateEl.value = '';
     } else if (selectedOutcome === 'No') {
+        if (transitionPlanEl && transitionPlanEl.value.trim() === defaultTransitionText) {
+            transitionPlanEl.value = '';
+        }
         if (dischargeDateContainer) dischargeDateContainer.classList.remove('hidden');
     } else if (dischargeDateContainer) {
         dischargeDateContainer.classList.add('hidden');
