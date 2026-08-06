@@ -285,12 +285,13 @@
                 border-bottom: 2pt solid #000;
             }
 
-            h2 { font-size: 14pt; margin-top: 15pt; border-bottom: 1pt solid #000; padding-bottom: 3pt; text-transform: uppercase; }
+            h2 { font-size: 13pt; margin-top: 14pt; border-bottom: 1pt solid #000; padding-bottom: 3pt; text-transform: uppercase; }
+            h3.print-sub { font-size: 11pt; margin-top: 8pt; margin-bottom: 4pt; border-bottom: none; color: #000; font-weight: bold; }
             
             .p-line {
-                font-size: 11pt;
+                font-size: 10.5pt;
                 line-height: 1.5;
-                margin-bottom: 4pt;
+                margin-bottom: 3pt;
                 display: block;
             }
 
@@ -304,7 +305,7 @@
             .data-table-print th, .data-table-print td {
                 border: 1px solid black;
                 padding: 5pt;
-                font-size: 10pt;
+                font-size: 9.5pt;
                 font-family: monospace;
             }
         }
@@ -350,15 +351,15 @@
             <div class="address-block">
                 <label style="font-size: 14px; margin-bottom: 8px; color: #333;">Personal Home Address</label>
                 <div class="form-group">
-                    <input type="text" id="p_addr1" placeholder="Street Address Line 1">
+                    <input type="text" id="p_addr1" name="p_addr1" placeholder="Street Address Line 1">
                 </div>
                 <div class="form-group">
-                    <input type="text" id="p_addr2" placeholder="Street Address Line 2 (Apt, Suite, Unit)">
+                    <input type="text" id="p_addr2" name="p_addr2" placeholder="Street Address Line 2 (Apt, Suite, Unit)">
                 </div>
                 <div class="address-grid">
-                    <input type="text" id="p_city" placeholder="City">
-                    <input type="text" id="p_state" placeholder="State" maxlength="2">
-                    <input type="text" id="p_zip" placeholder="Zip Code" maxlength="10">
+                    <input type="text" id="p_city" name="p_city" placeholder="City">
+                    <input type="text" id="p_state" name="p_state" placeholder="State" maxlength="2">
+                    <input type="text" id="p_zip" name="p_zip" placeholder="Zip Code" maxlength="10">
                 </div>
             </div>
 
@@ -403,15 +404,15 @@
                 </label>
 
                 <div class="form-group">
-                    <input type="text" id="c_addr1" placeholder="Street Address Line 1">
+                    <input type="text" id="c_addr1" name="c_addr1" placeholder="Street Address Line 1">
                 </div>
                 <div class="form-group">
-                    <input type="text" id="c_addr2" placeholder="Street Address Line 2 (Suite, Building)">
+                    <input type="text" id="c_addr2" name="c_addr2" placeholder="Street Address Line 2 (Suite, Building)">
                 </div>
                 <div class="address-grid">
-                    <input type="text" id="c_city" placeholder="City">
-                    <input type="text" id="c_state" placeholder="State" maxlength="2">
-                    <input type="text" id="c_zip" placeholder="Zip Code" maxlength="10">
+                    <input type="text" id="c_city" name="c_city" placeholder="City">
+                    <input type="text" id="c_state" name="c_state" placeholder="State" maxlength="2">
+                    <input type="text" id="c_zip" name="c_zip" placeholder="Zip Code" maxlength="10">
                 </div>
             </div>
 
@@ -425,15 +426,15 @@
                 </label>
 
                 <div class="form-group">
-                    <input type="text" id="cp_addr1" placeholder="Street Address Line 1">
+                    <input type="text" id="cp_addr1" name="cp_addr1" placeholder="Street Address Line 1">
                 </div>
                 <div class="form-group">
-                    <input type="text" id="cp_addr2" placeholder="Street Address Line 2">
+                    <input type="text" id="cp_addr2" name="cp_addr2" placeholder="Street Address Line 2">
                 </div>
                 <div class="address-grid">
-                    <input type="text" id="cp_city" placeholder="City">
-                    <input type="text" id="cp_state" placeholder="State" maxlength="2">
-                    <input type="text" id="cp_zip" placeholder="Zip Code" maxlength="10">
+                    <input type="text" id="cp_city" name="cp_city" placeholder="City">
+                    <input type="text" id="cp_state" name="cp_state" placeholder="State" maxlength="2">
+                    <input type="text" id="cp_zip" name="cp_zip" placeholder="Zip Code" maxlength="10">
                 </div>
             </div>
 
@@ -585,15 +586,15 @@
             <div class="address-block">
                 <label style="font-size: 14px; margin-bottom: 8px; color: #333;">Bank Branch / Mailing Address</label>
                 <div class="form-group">
-                    <input type="text" id="b_addr1" placeholder="Address Line 1 / P.O. Box">
+                    <input type="text" id="b_addr1" name="b_addr1" placeholder="Address Line 1 / P.O. Box">
                 </div>
                 <div class="form-group">
-                    <input type="text" id="b_addr2" placeholder="Address Line 2">
+                    <input type="text" id="b_addr2" name="b_addr2" placeholder="Address Line 2">
                 </div>
                 <div class="address-grid">
-                    <input type="text" id="b_city" placeholder="City">
-                    <input type="text" id="b_state" placeholder="State" maxlength="2">
-                    <input type="text" id="b_zip" placeholder="Zip Code" maxlength="10">
+                    <input type="text" id="b_city" name="b_city" placeholder="City">
+                    <input type="text" id="b_state" name="b_state" placeholder="State" maxlength="2">
+                    <input type="text" id="b_zip" name="b_zip" placeholder="Zip Code" maxlength="10">
                 </div>
             </div>
 
@@ -648,34 +649,50 @@
 
     <!-- === HIDDEN PRINT-VIEW DATA STRUCTURE === -->
     <div id="printDataView" class="print-data-view">
-        <h2>Contact & Physical Presence</h2>
-        <span class="p-line"><span class="p-label">Contact Person:</span> <span data-p="contact_name"></span> (DOB: <span data-p="personal_dob"></span>)</span>
-        <span class="p-line"><span class="p-label">Personal Home Address:</span> <span id="p_print_personal_addr"></span></span>
-        <span class="p-line"><span class="p-label">Contact Email:</span> <span data-p="contact_email_personal"></span></span>
-        <span class="p-line"><span class="p-label">Primary Phone:</span> <span data-p="contact_phone_primary"></span> | <span class="p-label">Cell:</span> <span data-p="contact_cell_secondary"></span></span>
-        <span class="p-line"><span class="p-label">Social Security Number:</span> <span data-p="personal_ssn"></span></span>
+        <h1>State Filing & Credentials Summary</h1>
 
-        <h2>Employer & Business Entity Details</h2>
-        <span class="p-line"><span class="p-label">Legal Company Name:</span> <span data-p="company_legal_name"></span></span>
-        <span class="p-line"><span class="p-label">Registered Address:</span> <span id="p_print_company_addr"></span></span>
-        <span class="p-line"><span class="p-label">Physical Address:</span> <span id="p_print_company_phys_addr"></span></span>
-        <span class="p-line"><span class="p-label">Company Phone:</span> <span data-p="company_phone"></span> | <span class="p-label">Website:</span> <span data-p="company_website"></span></span>
-        <span class="p-line"><span class="p-label">EIN Number:</span> <span data-p="company_ein"></span> | <span class="p-label">DUNS:</span> <span data-p="company_duns"></span> | <span class="p-label">SAM UEI:</span> <span data-p="company_sam"></span></span>
-        <span class="p-line"><span class="p-label">Create Ozone Email:</span> <span data-p="create_ozone_email"></span> <span id="p_alt_email_show" style="display:none;">(Alt: <span data-p="company_email_alternative"></span>)</span></span>
-        <span class="p-line"><span class="p-label">Other Businesses:</span> <span data-p="other_business"></span> <span id="p_other_bus_show" style="display:none;">(<span data-p="other_business_name"></span>)</span></span>
+        <h2>Section 1: Contact Person</h2>
+        <span class="p-line"><span class="p-label">Contact Person:</span> <span data-p="contact_name">N/A</span> (DOB: <span data-p="personal_dob">N/A</span>)</span>
+        <span class="p-line"><span class="p-label">Personal Home Address:</span> <span id="p_print_personal_addr">N/A</span></span>
+        <span class="p-line"><span class="p-label">Contact Email:</span> <span data-p="contact_email_personal">N/A</span></span>
+        <span class="p-line"><span class="p-label">Primary Phone:</span> <span data-p="contact_phone_primary">N/A</span> | <span class="p-label">Cell:</span> <span data-p="contact_cell_secondary">N/A</span></span>
+        <span class="p-line"><span class="p-label">Social Security Number:</span> <span data-p="personal_ssn">N/A</span></span>
 
-        <h2>ACH Financial Verification</h2>
-        <span class="p-line"><span class="p-label">Bank Name:</span> <span data-p="bank_name"></span></span>
-        <span class="p-line"><span class="p-label">Bank Address:</span> <span id="p_print_bank_addr"></span></span>
-        <span class="p-line"><span class="p-label">Routing Number:</span> <span data-p="bank_routing_num"></span> | <span class="p-label">Account Number:</span> <span data-p="bank_acct_num"></span></span>
+        <h2>Section 2: Company Information</h2>
+        <span class="p-line"><span class="p-label">Legal Company Name:</span> <span data-p="company_legal_name">N/A</span></span>
+        <span class="p-line"><span class="p-label">Registered Address:</span> <span id="p_print_company_addr">N/A</span></span>
+        <span class="p-line"><span class="p-label">Physical Address:</span> <span id="p_print_company_phys_addr">N/A</span></span>
+        <span class="p-line"><span class="p-label">Company Phone:</span> <span data-p="company_phone">N/A</span> | <span class="p-label">Website:</span> <span data-p="company_website">N/A</span></span>
+        <span class="p-line"><span class="p-label">Create Ozone Email:</span> <span data-p="create_ozone_email">N/A</span> <span id="p_alt_email_show" style="display:none;">(Alt: <span data-p="company_email_alternative">N/A</span>)</span></span>
+        <span class="p-line"><span class="p-label">Other Businesses:</span> <span data-p="other_business">N/A</span> <span id="p_other_bus_show" style="display:none;">(<span data-p="other_business_name">N/A</span>)</span></span>
 
-        <h2>Authorized Access Schedule (Digital Logins)</h2>
+        <h2>Section 3: Primary Government Access</h2>
+        <span class="p-line"><span class="p-label">EIN Number:</span> <span data-p="company_ein">N/A</span> | <span class="p-label">DUNS Number:</span> <span data-p="company_duns">N/A</span> | <span class="p-label">SAM UEI:</span> <span data-p="company_sam">N/A</span></span>
+        
+        <h3 class="print-sub">DUN's Login INFO</h3>
+        <span class="p-line"><span class="p-label">Username:</span> <span data-p="duns_username">N/A</span> | <span class="p-label">Password:</span> <span data-p="duns_password">N/A</span> | <span class="p-label">Date Established:</span> <span data-p="duns_date_est">N/A</span></span>
+
+        <h3 class="print-sub">SAM's Login INFO</h3>
+        <span class="p-line"><span class="p-label">Username:</span> <span data-p="sam_username">N/A</span> | <span class="p-label">Password:</span> <span data-p="sam_password">N/A</span> | <span class="p-label">MPIN:</span> <span data-p="sam_mpin">N/A</span> | <span class="p-label">Date Established:</span> <span data-p="sam_date_est">N/A</span></span>
+
+        <h3 class="print-sub">LOGIN.gov Login INFO</h3>
+        <span class="p-line"><span class="p-label">Username (Email):</span> <span data-p="login_gov_username">N/A</span> | <span class="p-label">Password:</span> <span data-p="login_gov_password">N/A</span> | <span class="p-label">Date Established:</span> <span data-p="login_gov_date_est">N/A</span></span>
+
+        <h3 class="print-sub">Ohio Gateway (OH ID) Login INFO</h3>
+        <span class="p-line"><span class="p-label">Username (OH ID):</span> <span data-p="oh_id_username">N/A</span> | <span class="p-label">Password:</span> <span data-p="oh_id_password">N/A</span> | <span class="p-label">Date Established:</span> <span data-p="oh_id_date_est">N/A</span></span>
+
+        <h2>Section 4: Bank Account INFO</h2>
+        <span class="p-line"><span class="p-label">Bank Name:</span> <span data-p="bank_name">N/A</span></span>
+        <span class="p-line"><span class="p-label">Bank Address:</span> <span id="p_print_bank_addr">N/A</span></span>
+        <span class="p-line"><span class="p-label">Routing Number:</span> <span data-p="bank_routing_num">N/A</span> | <span class="p-label">Account Number:</span> <span data-p="bank_acct_num">N/A</span></span>
+
+        <h2>Section 5: Secondary Logins & Other Sources</h2>
         <table id="p_login_table" class="data-table-print">
             <thead>
                 <tr>
-                    <th style="width: 30%">Service / Agency</th>
-                    <th style="width: 35%">Username / Identifier</th>
-                    <th style="width: 35%">Password / Access Credentials</th>
+                    <th style="width: 30%">Agency / Site Name</th>
+                    <th style="width: 35%">Username / Login ID</th>
+                    <th style="width: 35%">Password / Access Code</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -705,11 +722,11 @@
     }
 
     function formatAddressString(prefix) {
-        const a1 = document.getElementById(prefix + 'addr1').value;
-        const a2 = document.getElementById(prefix + 'addr2').value;
-        const city = document.getElementById(prefix + 'city').value;
-        const state = document.getElementById(prefix + 'state').value;
-        const zip = document.getElementById(prefix + 'zip').value;
+        const a1 = (document.getElementById(prefix + 'addr1') || {}).value || '';
+        const a2 = (document.getElementById(prefix + 'addr2') || {}).value || '';
+        const city = (document.getElementById(prefix + 'city') || {}).value || '';
+        const state = (document.getElementById(prefix + 'state') || {}).value || '';
+        const zip = (document.getElementById(prefix + 'zip') || {}).value || '';
         
         let addr = a1;
         if (a2) addr += `, ${a2}`;
@@ -776,7 +793,7 @@
         
         loginTableBody.innerHTML = '';
 
-        // Map basic fields
+        // Map basic fields directly to spans with [data-p="fieldName"]
         formData.forEach((value, key) => {
             const printSpan = printDataContainer.querySelector(`[data-p="${key}"]`);
             if (printSpan) {
@@ -797,23 +814,7 @@
         document.getElementById('p_other_bus_show').style.display = 
             (formData.get('other_business') === 'Yes') ? 'inline' : 'none';
 
-        // Build credential table rows
-        const govLogins = [
-            { name: "DUN's Account", user: 'duns_username', pass: 'duns_password' },
-            { name: "SAM's Account", user: 'sam_username', pass: 'sam_password' },
-            { name: "Login.gov", user: 'login_gov_username', pass: 'login_gov_password' },
-            { name: "Ohio Gateway (OHID)", user: 'oh_id_username', pass: 'oh_id_password' }
-        ];
-
-        govLogins.forEach(login => {
-            const user = formData.get(login.user);
-            const pass = formData.get(login.pass);
-            if (user || pass) {
-                addLoginRowToPrint(loginTableBody, login.name, user, pass);
-            }
-        });
-
-        // Dynamic sources
+        // Dynamic sources from Section 5 ONLY
         const sourceRows = document.querySelectorAll('#sourcesTableBody tr');
         sourceRows.forEach(row => {
             const site = row.querySelector('.sourceSiteName').value;
@@ -821,21 +822,17 @@
             const pass = row.querySelector('.sourcePassword').value;
 
             if (site || user || pass) {
-                addLoginRowToPrint(loginTableBody, site, user, pass);
+                const newRow = loginTableBody.insertRow();
+                newRow.innerHTML = `
+                    <td style="font-weight: bold;">${site || 'N/A'}</td>
+                    <td style="font-family: monospace;">${user || 'N/A'}</td>
+                    <td style="font-family: monospace;">${pass || 'N/A'}</td>
+                `;
             }
         });
 
-        printDataContainer.style.display = 'block';
+        // Trigger native print dialog
         window.print();
-    }
-
-    function addLoginRowToPrint(tbody, site, username, password) {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-            <td style="font-weight: bold;">${site || 'N/A'}</td>
-            <td style="font-family: monospace;">${username || 'N/A'}</td>
-            <td style="font-family: monospace;">${password || 'N/A'}</td>
-        `;
     }
 </script>
 
