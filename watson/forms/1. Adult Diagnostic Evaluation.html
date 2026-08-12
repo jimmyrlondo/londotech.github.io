@@ -319,12 +319,6 @@ html.high-contrast-mode #medication-grid > div {
     border: 1px solid #ffffff !important;
 }
 
-/* Diagnosis Checkbox Container */
-html.high-contrast-mode #diagnosis-checkbox-container {
-    background-color: #2a2a2a !important;
-    border: 2px solid #ffffff !important;
-}
-
 /* Form Field Groups with gray backgrounds */
 html.high-contrast-mode .bg-gray-100,
 html.high-contrast-mode .bg-gray-50,
@@ -2690,13 +2684,12 @@ html.high-contrast-mode textarea:disabled {
                 <div class="form-field-group">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Diagnostic Impression</h3>
                     <div class="mb-4">
-                        <label for="diagnosis-checkbox-container" class="form-label">Select one or more diagnoses:</label>
-                        <div id="diagnosis-checkbox-container" class="h-64 overflow-y-auto border rounded-lg p-3 bg-white space-y-2">
-                            </div>
+                       <label for="diag_impression" class="form-label">Diagnostic Impression (DSM-5 criteria):</label>
+                       <textarea id="diag_impression" name="diag_impression" class="form-textarea h-40"></textarea>
                     </div>
                     <div>
-                        <label for="additional_diagnosis" class="form-label">Additional Diagnosis:</label>
-                        <textarea id="additional_diagnosis" name="additional_diagnosis" class="form-textarea h-24"></textarea>
+                       <label for="additional_diagnosis" class="form-label">Additional Diagnosis:</label>
+                       <textarea id="additional_diagnosis" name="additional_diagnosis" class="form-textarea h-24"></textarea>
                     </div>
                 </div>
             </div>
@@ -3022,7 +3015,6 @@ html.high-contrast-mode textarea:disabled {
         populateSubstanceUseHistory();
         populateSymptomsChecklist();
         populateAsamGrid();
-        populateDiagnosisCheckboxes();
     });
     
     // --- FULL IMPLEMENTATIONS FOR DYNAMIC CONTENT ---
@@ -3124,17 +3116,6 @@ html.high-contrast-mode textarea:disabled {
             html += `<div class="asam-grid border-t py-2"><div><strong>Dimension ${i+1}:</strong> ${dim}</div><div><label class="flex flex-col items-center text-xs"><input type="radio" name="asam_dim_${i+1}" value="0-1">0-1</label></div><div><label class="flex flex-col items-center text-xs"><input type="radio" name="asam_dim_${i+1}" value="2">2</label></div><div><label class="flex flex-col items-center text-xs"><input type="radio" name="asam_dim_${i+1}" value="3">3</label></div><div><label class="flex flex-col items-center text-xs"><input type="radio" name="asam_dim_${i+1}" value="4">4</label></div></div>`;
         });
         container.innerHTML += html;
-    }
-
-    function populateDiagnosisCheckboxes() {
-        const container = document.getElementById('diagnosis-checkbox-container');
-        if (!container) return;
-        const diagnoses = ["Major Depressive Disorder", "Generalized Anxiety Disorder", "Panic Disorder", "Post-Traumatic Stress Disorder (PTSD)", "Bipolar I Disorder", "Bipolar II Disorder", "Schizophrenia", "Schizoaffective Disorder", "Obsessive-Compulsive Disorder (OCD)", "Attention-Deficit/Hyperactivity Disorder (ADHD)", "Alcohol Use Disorder", "Cannabis Use Disorder", "Opioid Use Disorder", "Stimulant Use Disorder", "Other Specified Trauma- and Stressor-Related Disorder", "Unspecified Anxiety Disorder", "Unspecified Depressive Disorder"];
-        let html = '';
-        diagnoses.sort().forEach(dx => {
-            html += `<label class="flex items-center"><input type="checkbox" name="diagnosis[]" value="${dx}" class="h-4 w-4"><span class="ml-2 text-sm">${dx}</span></label>`;
-        });
-        container.innerHTML = html;
     }
 
     // --- ALL INTERACTIVE HELPER/TOGGLE FUNCTIONS ---
@@ -3560,7 +3541,7 @@ function toggleEducationLevelFields() {
                     sectionBody = `${createMseBlock('General Observations', 'mse_appearance', 'mse_comments')}${createMseBlock('Thought Content', 'mse_delusions', 'mse_thought_content_comments')}${createMseBlock('Perception', 'mse_hallucinations', 'mse_perception_comments')}${createMseBlock('Thought Process', 'mse_thought_process', 'mse_thought_process_comments')}${createMseBlock('Mood', 'mse_mood', 'mse_mood_comments')}${createMseBlock('Affect', 'mse_affect', 'mse_affect_comments')}${createMseBlock('Behavior', 'mse_behavior', 'mse_behavior_comments')}${createMseBlock('Cognition', 'mse_cognition', 'mse_cognition_comments')}<div class="sub-section"><h4>Insight/Judgment</h4>${createEntry('Rating', getValue('mse_insight'))}</div>`;
                     break;
                 case 'section-23': // Diagnostic Impression
-                    sectionBody = `${createEntry('Selected Diagnoses', getArray('diagnosis').join(',<br>') || 'None selected')}${createBlockEntry('Additional Diagnosis Info', getValue('additional_diagnosis'))}`;
+                    sectionBody = `${createBlockEntry('Diagnostic Impression', getValue('diag_impression'))}${createBlockEntry('Additional Diagnosis Info', getValue('additional_diagnosis'))}`;
                     break;
                 case 'section-24': // Recommended Services
                     sectionBody = createCheckboxList('Services', 'recommended_services');
