@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /invoice-app/
+Disallow: /ozone/
+Disallow: /Quote/
+Disallow: /watson/
+
+Sitemap: https://www.londo.tech/sitemap.xml
