@@ -816,8 +816,8 @@ html.high-contrast-mode textarea:disabled {
                             </select>
                         </div>
                         <div>
-                            <label for="genderIdentity" class="form-label">Gender Identity (if relevant)</label>
-                            <input type="text" id="genderIdentity" name="genderIdentity" class="form-input" placeholder="e.g., Non-binary, Transgender">
+                            <label for="genderIdentity" class="form-label">Gender Identity (DO NOT PUT N/A, MUST FILL IN)</label>
+                            <input type="text" id="genderIdentity" name="genderIdentity" class="form-input" placeholder="e.g., Male, Female, Cisgender, Non-binary, Transgender">
                         </div>
                         <div>
                             <label for="preferredPronoun" class="form-label">Preferred Pronoun</label>
@@ -831,8 +831,8 @@ html.high-contrast-mode textarea:disabled {
                             </select>
                         </div>
                         <div>
-                            <label for="sexualOrientation" class="form-label">Sexual/Romantic Orientation</label>
-                            <input type="text" id="sexualOrientation" name="sexualOrientation" class="form-input" placeholder="e.g., Straight, Gay, Bisexual, Asexual">
+                            <label for="sexualOrientation" class="form-label">Sexual/Romantic Orientation (DO NOT PUT N/A, MUST FILL IN)</label>
+                            <input type="text" id="sexualOrientation" name="sexualOrientation" class="form-input" placeholder="e.g., Straight, Gay, Bisexual, Asexual, Pansexual">
                         </div>
                         <div>
                             <label for="maritalStatus" class="form-label">Marital Status</label>
@@ -866,6 +866,8 @@ html.high-contrast-mode textarea:disabled {
                     </div>
 
                     <hr class="my-6 border-gray-300">
+
+                    <p class="font-bold text-red-600 mb-4">Emergency Contact Information</p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div>
@@ -930,6 +932,7 @@ html.high-contrast-mode textarea:disabled {
                                 <li>Mental health history</li>
                                 <li>Substance Use Disorder (SUD) history</li>
                                 <li>Dx code and justification</li>
+                                <li>Co-occurring Dx, Comorbidity of Health, Risky Behavior/Suicide or Violence</li>
                                 <li>Severity of the problem</li>
                                 <li>Where the problem occurs (home, work, in the community)</li>
                                 <li>Onset of the problem (acute vs. chronic)</li>
@@ -1166,6 +1169,41 @@ html.high-contrast-mode textarea:disabled {
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <label class="form-label">Need for assistive technology?</label>
+                        <div class="flex items-center space-x-4">
+                            <label><input type="radio" name="assistiveTechNeeded" value="Yes"> Yes</label>
+                            <label><input type="radio" name="assistiveTechNeeded" value="No"> No</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="assistiveTechDescription" class="form-label">In your own words, how would you describe your ability to utilize assistive technology?</label>
+                        <textarea id="assistiveTechDescription" name="assistiveTechDescription" class="form-textarea h-24"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">What is your literacy level?</label>
+                        <div class="space-y-2 mt-2">
+                            <label class="flex items-start">
+                                <input type="radio" name="literacyLevel" value="Below Basic" class="mt-1 flex-shrink-0">
+                                <span class="ml-2 text-sm">Below Basic: Minimal concrete skills; can read short, simple sentences or locate single pieces of familiar information.</span>
+                            </label>
+                            <label class="flex items-start">
+                                <input type="radio" name="literacyLevel" value="Basic" class="mt-1 flex-shrink-0">
+                                <span class="ml-2 text-sm">Basic: Can read and understand direct, uncomplicated texts and perform everyday routine tasks.</span>
+                            </label>
+                            <label class="flex items-start">
+                                <input type="radio" name="literacyLevel" value="Intermediate / Level 3" class="mt-1 flex-shrink-0">
+                                <span class="ml-2 text-sm">Intermediate / Level 3: Can integrate multiple pieces of information, make low-level inferences, and evaluate everyday documents.</span>
+                            </label>
+                            <label class="flex items-start">
+                                <input type="radio" name="literacyLevel" value="Proficient (Levels 4–5)" class="mt-1 flex-shrink-0">
+                                <span class="ml-2 text-sm">Proficient (Levels 4–5): Can synthesize complex information, evaluate abstract arguments, and process dense materials.</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div>
                         <label for="educationAdditionalInfo" class="form-label">Additional information</label>
                         <textarea id="educationAdditionalInfo" name="educationAdditionalInfo" class="form-textarea h-24"></textarea>
@@ -1299,8 +1337,13 @@ html.high-contrast-mode textarea:disabled {
                 <div class="form-field-group">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Medical</h3>
                     <div class="mb-6">
-                        <label for="overallHealth" class="form-label">How would you describe your overall health?</label>
+                        <label for="overallHealth" class="form-label">How would you describe your overall health? (Do not leave blank)</label>
                         <textarea id="overallHealth" name="overallHealth" class="form-textarea h-24"></textarea>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="complementaryHealthApproaches" class="form-label">Do you participate in any complementary health approaches such as chiropractic care, functional wellness, nutrition/dietician, Reiki, Breathwork, meditation, yoga?</label>
+                        <textarea id="complementaryHealthApproaches" name="complementaryHealthApproaches" class="form-textarea h-24"></textarea>
                     </div>
 
                     <div class="mb-6">
@@ -1511,6 +1554,7 @@ html.high-contrast-mode textarea:disabled {
             <div id="section-12" class="mb-6">
                 <div class="form-field-group">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Medications</h3>
+                    <p class="text-sm font-semibold text-gray-700 mb-4">All medications must be reported below</p>
                     <div class="mb-4">
                         <label class="flex items-center">
                             <input type="checkbox" name="notTakingMedication" class="h-4 w-4">
@@ -3363,6 +3407,7 @@ function toggleEducationLevelFields() {
                 <li>Mental health history</li>
                 <li>Substance Use Disorder (SUD) history</li>
                 <li>Dx code and justification</li>
+                <li>Co-occurring Dx, Comorbidity of Health, Risky Behavior/Suicide or Violence</li>
                 <li>Severity of the problem</li>
                 <li>Where the problem occurs (home, work, in the community)</li>
                 <li>Onset of the problem (acute vs. chronic)</li>
@@ -3452,7 +3497,7 @@ function toggleEducationLevelFields() {
     }
     break;
                 case 'section-7': // Education
-                    sectionBody = `${createEntry('Highest grade or education level completed', getValue('educationLevel'))}${createBlockEntry('Why didn’t you finish?', getValue('incompleteReason'))}<div class="grid-2col">${createEntry('Years of college', getValue('yearsCollege'))}${createEntry('Degree', getValue('collegeDegree'))}${createEntry('Where did you study?', getValue('collegeWhere'))}${createEntry('Studying For', getValue('studyingFor'))}</div>${createBlockEntry('Why not finish college?', getValue('collegeReason'))}${createBlockEntry('Specialty or vocational training', getValue('specialtyTraining'))}<div class="sub-section"><div class="grid-3col">${createEntry('In special education', getValue('specialEducation'))}${createEntry('IEP', getValue('iep'))}${createEntry('Severely Emotionally Disturbed', getValue('sed'))}</div></div>${createBlockEntry('Additional Information', getValue('educationAdditionalInfo'))}`;
+                    sectionBody = `${createEntry('Highest grade or education level completed', getValue('educationLevel'))}${createBlockEntry('Why didn't you finish?', getValue('incompleteReason'))}<div class="grid-2col">${createEntry('Years of college', getValue('yearsCollege'))}${createEntry('Degree', getValue('collegeDegree'))}${createEntry('Where did you study?', getValue('collegeWhere'))}${createEntry('Studying For', getValue('studyingFor'))}</div>${createBlockEntry('Why not finish college?', getValue('collegeReason'))}${createBlockEntry('Specialty or vocational training', getValue('specialtyTraining'))}<div class="sub-section"><div class="grid-3col">${createEntry('In special education', getValue('specialEducation'))}${createEntry('IEP', getValue('iep'))}${createEntry('Severely Emotionally Disturbed', getValue('sed'))}</div></div>${createEntry('Need for assistive technology', getValue('assistiveTechNeeded'))}${createBlockEntry('Ability to utilize assistive technology', getValue('assistiveTechDescription'))}${createEntry('Literacy level', getValue('literacyLevel'))}${createBlockEntry('Additional Information', getValue('educationAdditionalInfo'))}`;
                     break;
                 case 'section-8': // Military Experience
                     if (getValue('military_experience') === 'Yes') { sectionBody = `<div class="grid-2col">${createEntry('Branch', getValue('military_branch'))}${createEntry('When', getValue('military_when'))}${createEntry('Type of discharge', getValue('military_discharge'))}${createEntry('Receiving VA Benefits', getValue('va_benefits'))}</div>${createBlockEntry('Additional Information', getValue('military_additional_info'))}`; } else { sectionBody = '<p>No military experience reported.</p>'; }
@@ -3465,7 +3510,7 @@ function toggleEducationLevelFields() {
                     break;
                 case 'section-11': // Medical
                     let femaleSectionHTML = ''; if (getValue('medical_gender') === 'Female') { femaleSectionHTML = `<div class="sub-section"><h4>Pregnancy History</h4><div class="grid-3col">${createEntry('Times Pregnant', getValue('pregnancies'))}${createEntry('Live Births', getValue('liveBirths'))}${createEntry('Miscarriages', getValue('miscarriages'))}${createEntry('Abortions', getValue('abortions'))}${createEntry('Other', getValue('otherPregnancy'))}</div>${createBlockEntry('Additional Pregnancy Info', getValue('pregnancyAdditionalInfo'))}<br>${createEntry('Currently Pregnant?', getValue('currentlyPregnant'))}${getValue('currentlyPregnant') === 'Yes' ? `<div class="grid-2col">${createEntry('Due Date', getValue('dueDate'))}${createEntry('Receiving Prenatal Care?', getValue('prenatalCare') === 'Yes' ? `Yes - Where: ${getValue('prenatalCareLocation')}` : 'No')}</div>` : ''}${createBlockEntry('Additional Current Pregnancy Info', getValue('currentPregnancyAdditionalInfo'))}</div>`; } const createHealthHistoryEntry = (label, baseKey) => { const status = getValue(baseKey); if (status === 'Yes') { const explanation = getValue(`${baseKey}Explain`); return createBlockEntry(label, `Yes<blockquote>${explanation}</blockquote>`); } return createEntry(label, status); };
-                    sectionBody = `${createBlockEntry('Overall Health Description', getValue('overallHealth'))}${createEntry('Primary Care Physician', getValue('pcp') === 'Yes' ? `Yes: ${getValue('pcpNameLocation')}`: 'No')}${createEntry('Date of last medical appointment', getValue('lastMedicalAppointmentDate'))}${createBlockEntry('Reason for last medical appointment', getValue('lastMedicalAppointmentReason'))}${createEntry('Experienced Problems', getArray('healthProblems').join(', '))}${createBlockEntry('Additional Info on Problems', getValue('healthProblemsAdditionalInfo'))}${createBlockEntry('Health problems you would like to see a doctor about', getValue('doctorAppointmentInterest'))}${createBlockEntry('Advanced directives', getValue('advancedDirectives'))}${femaleSectionHTML}<div class="sub-section"><h4>Family Medical History</h4><div class="grid-2col">${createHealthHistoryEntry('Cancer', 'cancer')}${createHealthHistoryEntry('Covid-19', 'covid')}${createHealthHistoryEntry('Diabetes', 'diabetes')}${createHealthHistoryEntry('Heart Disease', 'heartDisease')}${createHealthHistoryEntry('High Blood Pressure', 'highBloodPressure')}${createHealthHistoryEntry('HIV/AIDS', 'hiv')}${createHealthHistoryEntry('Seizures', 'seizures')}${createHealthHistoryEntry('Thyroid Problem', 'thyroid')}${createHealthHistoryEntry('Sickle Cell Anemia', 'sickleCell')}${createHealthHistoryEntry('Other', 'otherHealth')}</div>${createBlockEntry('Additional Family History Info', getValue('familyHistoryAdditionalInfo'))}</div>`;
+                    sectionBody = `${createBlockEntry('Overall Health Description', getValue('overallHealth'))}${createBlockEntry('Complementary health approaches', getValue('complementaryHealthApproaches'))}${createEntry('Primary Care Physician', getValue('pcp') === 'Yes' ? `Yes: ${getValue('pcpNameLocation')}`: 'No')}${createEntry('Date of last medical appointment', getValue('lastMedicalAppointmentDate'))}${createBlockEntry('Reason for last medical appointment', getValue('lastMedicalAppointmentReason'))}${createEntry('Experienced Problems', getArray('healthProblems').join(', '))}${createBlockEntry('Additional Info on Problems', getValue('healthProblemsAdditionalInfo'))}${createBlockEntry('Health problems you would like to see a doctor about', getValue('doctorAppointmentInterest'))}${createBlockEntry('Advanced directives', getValue('advancedDirectives'))}${femaleSectionHTML}<div class="sub-section"><h4>Family Medical History</h4><div class="grid-2col">${createHealthHistoryEntry('Cancer', 'cancer')}${createHealthHistoryEntry('Covid-19', 'covid')}${createHealthHistoryEntry('Diabetes', 'diabetes')}${createHealthHistoryEntry('Heart Disease', 'heartDisease')}${createHealthHistoryEntry('High Blood Pressure', 'highBloodPressure')}${createHealthHistoryEntry('HIV/AIDS', 'hiv')}${createHealthHistoryEntry('Seizures', 'seizures')}${createHealthHistoryEntry('Thyroid Problem', 'thyroid')}${createHealthHistoryEntry('Sickle Cell Anemia', 'sickleCell')}${createHealthHistoryEntry('Other', 'otherHealth')}</div>${createBlockEntry('Additional Family History Info', getValue('familyHistoryAdditionalInfo'))}</div>`;
                     break;
                 case 'section-12': // Medications
                     let medTableHTML = '<h4>Prescribed Medications</h4>'; if (data.notTakingMedication) { medTableHTML += '<p>Client is currently not taking prescribed medication.</p>'; } else { medTableHTML += '<table><tr><th>Medication</th><th>Dosage/Frequency</th><th>Prescribed By</th><th>Reason</th></tr>'; let medRows = ''; for(let i = 0; i < 5; i++) { if (data[`med_name_${i}`]) { medRows += `<tr><td>${getValue(`med_name_${i}`)}</td><td>${getValue(`med_dosage_${i}`)}</td><td>${getValue(`med_prescriber_${i}`)}</td><td>${getValue(`med_reason_${i}`)}</td></tr>`; } } if (medRows) { medTableHTML += medRows + '</table>'; } else { medTableHTML += '</table><p>No current medications listed.</p>'; } } const createTakingEntry = (label, baseKey) => { const status = getValue(baseKey); if (status === 'Yes') { return createEntry(label, `Yes: ${getValue(`${baseKey}_what`)}`); } return createEntry(label, status); };

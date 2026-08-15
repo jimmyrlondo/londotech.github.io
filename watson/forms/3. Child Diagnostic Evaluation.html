@@ -598,6 +598,31 @@
                             <input type="text" id="med_overall_health" name="med_overall_health" class="form-input">
                         </div>
                         <div>
+                            <label class="form-label">Is your child immunized?</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="med_immunized" value="No"> No</label>
+                                <label><input type="radio" name="med_immunized" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Are they up to date?</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="med_immunized_uptodate" value="No"> No</label>
+                                <label><input type="radio" name="med_immunized_uptodate" value="Yes"> Yes</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Did you opt out of any immunizations?</label>
+                            <div class="flex items-center space-x-4">
+                                <label><input type="radio" name="med_immunization_optout" value="No" onchange="toggleImmunizationOptout(this.value)"> No</label>
+                                <label><input type="radio" name="med_immunization_optout" value="Yes" onchange="toggleImmunizationOptout(this.value)"> Yes</label>
+                            </div>
+                        </div>
+                        <div id="med_immunization_optout_detail" class="hidden">
+                            <label for="med_immunization_optout_which" class="form-label">Which Immunizations?</label>
+                            <input type="text" id="med_immunization_optout_which" name="med_immunization_optout_which" class="form-input" placeholder="e.g., Tetanus, Hepatitis B, MMR, Polio, Chicken Pox, MCV4">
+                        </div>
+                        <div>
                             <label class="form-label">Does your child have tubes in his/her ears?</label>
                             <div class="flex items-center space-x-4">
                                 <label><input type="radio" name="med_ear_tubes" value="No"> No</label>
@@ -2086,6 +2111,7 @@ function updateAgeAndFooter(){
     function updateNavigation(){const navContainer=document.getElementById('form-nav');if(!navContainer)return;navContainer.innerHTML='';document.querySelectorAll('div[id^="section-"]').forEach(section=>{const title=section.querySelector('h3')?.textContent;if(title){const link=document.createElement('a');link.href=`#${section.id}`;link.className='nav-link';link.textContent=title;navContainer.appendChild(link)}})}
     
     function toggleDetails(parent,detailsId,show){const details=parent.querySelector('#'+detailsId)||document.getElementById(detailsId);if(details){details.classList.toggle('hidden',!show)}}
+    function toggleImmunizationOptout(value){const detail=document.getElementById('med_immunization_optout_detail');if(!detail)return;/* Always read the actually-checked radio so restore/replay of both events gives correct result */const checkedEl=document.querySelector('input[name="med_immunization_optout"]:checked');const actualValue=checkedEl?checkedEl.value:value;const isYes=actualValue==='Yes';detail.classList.toggle('hidden',!isYes);if(!isYes&&checkedEl){const inp=document.getElementById('med_immunization_optout_which');if(inp&&!window.__isRestoring)inp.value='';}}
     
     function toggleSignatureSection(sectionType){
     const checkbox=document.getElementById(`include_${sectionType}_sig`);
@@ -3017,6 +3043,10 @@ const buildMentalStatusExamPrint = () => {
     mainContent += `<h3 class="section-title">Medical Health History</h3>
     <div class="section-wrapper">
         ${createField('How would you describe your child\'s overall health?', getValue('med_overall_health'))}
+        ${createField('Is your child immunized?', getValue('med_immunized'))}
+        ${createField('Are they up to date?', getValue('med_immunized_uptodate'))}
+        ${createField('Did you opt out of any immunizations?', getValue('med_immunization_optout'))}
+        ${getValue('med_immunization_optout') === 'Yes' ? createField('Which Immunizations?', getValue('med_immunization_optout_which')) : ''}
         ${createField('Does your child have tubes in his/her ears?', getValue('med_ear_tubes'))}
         ${createFieldLong('Additional information', getValue('med_health_addl_info_1'))}
         
