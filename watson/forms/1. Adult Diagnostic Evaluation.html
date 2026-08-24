@@ -3320,8 +3320,21 @@ function toggleEducationLevelFields() {
 }
 
     function generatePrintView(data) {
-        const getValue = (key, fallback = '<em>N/A</em>') => (data[key] || "").trim() || fallback;
-        const getArray = (key) => data[key] || [];
+        const escapeHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        const getValue = (key, fallback = '<em>N/A</em>') => {
+            const value = String(data[key] ?? '').trim();
+            return value ? escapeHtml(value) : fallback;
+        };
+        const getArray = (key) => {
+            const value = data[key];
+            const values = Array.isArray(value) ? value : (value ? [value] : []);
+            return values.map(item => escapeHtml(String(item).trim())).filter(Boolean);
+        };
         const createEntry = (label, value) => `<div class="field"><span class="label">${label}</span><div class="value">${value}</div></div>`;
         const createBlockEntry = (label, value) => `<div class="field full-width"><span class="label">${label}</span><div class="value value-long">${value}</div></div>`;
         const createCheckboxList = (label, key) => {
@@ -3497,7 +3510,7 @@ function toggleEducationLevelFields() {
     }
     break;
                 case 'section-7': // Education
-                    sectionBody = `${createEntry('Highest grade or education level completed', getValue('educationLevel'))}${createBlockEntry('Why didn't you finish?', getValue('incompleteReason'))}<div class="grid-2col">${createEntry('Years of college', getValue('yearsCollege'))}${createEntry('Degree', getValue('collegeDegree'))}${createEntry('Where did you study?', getValue('collegeWhere'))}${createEntry('Studying For', getValue('studyingFor'))}</div>${createBlockEntry('Why not finish college?', getValue('collegeReason'))}${createBlockEntry('Specialty or vocational training', getValue('specialtyTraining'))}<div class="sub-section"><div class="grid-3col">${createEntry('In special education', getValue('specialEducation'))}${createEntry('IEP', getValue('iep'))}${createEntry('Severely Emotionally Disturbed', getValue('sed'))}</div></div>${createEntry('Need for assistive technology', getValue('assistiveTechNeeded'))}${createBlockEntry('Ability to utilize assistive technology', getValue('assistiveTechDescription'))}${createEntry('Literacy level', getValue('literacyLevel'))}${createBlockEntry('Additional Information', getValue('educationAdditionalInfo'))}`;
+                    sectionBody = `${createEntry('Highest grade or education level completed', getValue('educationLevel'))}${createBlockEntry("Why didn't you finish?", getValue('incompleteReason'))}<div class="grid-2col">${createEntry('Years of college', getValue('yearsCollege'))}${createEntry('Degree', getValue('collegeDegree'))}${createEntry('Where did you study?', getValue('collegeWhere'))}${createEntry('Studying For', getValue('studyingFor'))}</div>${createBlockEntry('Why not finish college?', getValue('collegeReason'))}${createBlockEntry('Specialty or vocational training', getValue('specialtyTraining'))}<div class="sub-section"><div class="grid-3col">${createEntry('In special education', getValue('specialEducation'))}${createEntry('IEP', getValue('iep'))}${createEntry('Severely Emotionally Disturbed', getValue('sed'))}</div></div>${createEntry('Need for assistive technology', getValue('assistiveTechNeeded'))}${createBlockEntry('Ability to utilize assistive technology', getValue('assistiveTechDescription'))}${createEntry('Literacy level', getValue('literacyLevel'))}${createBlockEntry('Additional Information', getValue('educationAdditionalInfo'))}`;
                     break;
                 case 'section-8': // Military Experience
                     if (getValue('military_experience') === 'Yes') { sectionBody = `<div class="grid-2col">${createEntry('Branch', getValue('military_branch'))}${createEntry('When', getValue('military_when'))}${createEntry('Type of discharge', getValue('military_discharge'))}${createEntry('Receiving VA Benefits', getValue('va_benefits'))}</div>${createBlockEntry('Additional Information', getValue('military_additional_info'))}`; } else { sectionBody = '<p>No military experience reported.</p>'; }
@@ -3871,6 +3884,10 @@ function toggleEducationLevelFields() {
         </div></body></html>`;
             
         const printWindow = window.open('', '_blank');
+        if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+            alert('Pop-up blocked. Please allow pop-ups for this site and click "Print Summary" again.');
+            return;
+        }
         printWindow.document.write(printContents);
         printWindow.document.close();
         printWindow.focus();
@@ -3891,11 +3908,14 @@ function getFormData() {
     
     for (const [key, value] of formData.entries()) {
         const cleanKey = key.replace(/\[\]$/, '');
-        if (key.endsWith('[]')) {
-            if (!data[cleanKey]) data[cleanKey] = [];
+        const isMultiValueKey = key.endsWith('[]');
+        if (isMultiValueKey || Object.prototype.hasOwnProperty.call(data, cleanKey)) {
+            if (!Array.isArray(data[cleanKey])) {
+                data[cleanKey] = data[cleanKey] !== undefined ? [data[cleanKey]] : [];
+            }
             data[cleanKey].push(value);
         } else {
-            data[key] = value;
+            data[cleanKey] = value;
         }
     }
     
