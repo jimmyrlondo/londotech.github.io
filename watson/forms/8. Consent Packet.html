@@ -213,6 +213,7 @@
                         <label class="flex items-center"><input type="checkbox" name="choice_sud_serv" class="h-5 w-5 text-blue-600"> <span class="ml-2">SUD Services (Case Mgmt, Counsel)</span></label>
                         <label class="flex items-center"><input type="checkbox" name="choice_iop" class="h-5 w-5 text-blue-600"> <span class="ml-2">Intensive Outpatient Treatment</span></label>
                         <label class="flex items-center"><input type="checkbox" name="choice_lab" class="h-5 w-5 text-blue-600"> <span class="ml-2">Laboratory Analysis</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="choice_ohio_rise_respite" class="h-5 w-5 text-blue-600"> <span class="ml-2">OhioRISE Respite Care</span></label>
                     </div>
 
                     <p class="legal-text">I attest that I have been provided with the information necessary to make an informed choice about service, informed about the range of other services in a way that in non-coercive and protects my right to self-determination.</p>
@@ -956,6 +957,11 @@
                 th { background-color: #f0f0f0; }
                 .footer { border-top: 1px solid #000; padding-top: 5px; margin-top: 30px; font-size: 9pt; display: flex; justify-content: space-between; font-style: italic; }
                 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                @media print {
+                    .page { padding-top: 170px; }
+                    .page .header-logo { visibility: hidden; height: 0; margin: 0; }
+                    .page:first-of-type .header-logo { visibility: visible; position: fixed; top: 0.5in; left: 0; right: 0; height: auto; margin: 0; }
+                }
             </style></head><body>`;
 
             // --- PAGE 1: ACKNOWLEDGEMENT ---
@@ -1026,7 +1032,7 @@
                 <p>I have selected to receive the following service(s) from Watson Community Health Centre:</p>
                 <div class="grid-2">
                     <div>${chk('choice_de', 'on')} Diagnostic Eval & Update<br>${chk('choice_med', 'on')} Psychiatry/Med Mgmt<br>${chk('choice_cpst', 'on')} CPST<br>${chk('choice_psychotherapy', 'on')} Psychotherapy<br>${chk('choice_psychoed', 'on')} Psychoeducation<br>${chk('choice_act', 'on')} ACT</div>
-                    <div>${chk('choice_ihbt', 'on')} IHBT<br>${chk('choice_sud_assess', 'on')} SUD Assessment<br>${chk('choice_sud_serv', 'on')} SUD Services<br>${chk('choice_iop', 'on')} IOP<br>${chk('choice_lab', 'on')} Lab Analysis</div>
+                    <div>${chk('choice_ihbt', 'on')} IHBT<br>${chk('choice_sud_assess', 'on')} SUD Assessment<br>${chk('choice_sud_serv', 'on')} SUD Services<br>${chk('choice_iop', 'on')} IOP<br>${chk('choice_lab', 'on')} Lab Analysis<br>${chk('choice_ohio_rise_respite', 'on')} OhioRISE Respite Care</div>
                 </div>
                 <p style="margin-top:20px">I attest that I have been provided with the information necessary to make an informed choice about service, informed about the range of other services in a way that in non-coercive and protects my right to self-determination. My selection of a service provider was based solely upon my identified needs, diagnosis, preference, and provider availability. By signing this Statement of Provider Choice, I acknowledge that I was given choice of provider and that the screening discussed location, available times, specialty, culture and linguistic preferences with me.</p>
                 
