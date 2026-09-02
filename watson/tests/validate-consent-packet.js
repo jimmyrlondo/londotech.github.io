@@ -31,12 +31,20 @@ assert(
 const pageBlocks = [...printScript.matchAll(/html \+= `<div class="page">([\s\S]*?)<\/div>`;/g)].map(match => match[1]);
 assert(pageBlocks.length === 13, `Expected 13 printed form page blocks, found ${pageBlocks.length}.`);
 assert(
-  pageBlocks.every(block => block.includes('${logoHtml}')),
-  'Every printed form page must include the Watson logo.'
+  pageBlocks.every(block => block.includes('${headerHtml(')),
+  'Every printed form page section must include the header with Watson logo.'
 );
 assert(
-  /@media print[\s\S]*?\.page:first-of-type \.header-logo \{[^}]*position:\s*fixed/.test(printScript),
-  'Print output must repeat the Watson logo on physical overflow pages.'
+  /\.header-container img \{[^}]*height:\s*80px/.test(printScript),
+  'Watson logo height must be set to 80px.'
+);
+assert(
+  /\.header-container \{[^}]*display:\s*flex/.test(printScript),
+  'Header layout must place logo and title side-by-side using flexbox.'
+);
+assert(
+  !/position:\s*fixed/.test(printScript),
+  'Watson logo must not use fixed positioning on overflow pages.'
 );
 
 console.log('PASS: Consent Packet branding, OhioRISE service capture, and print output validated.');

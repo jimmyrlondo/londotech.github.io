@@ -933,41 +933,42 @@
                     <span>Date: ${val('packetDate')}</span>
                 </div>`;
             
-            const logoHtml = `<div class="header-logo"><img src="../images/logo.png" alt="Logo"></div>`;
+            const headerHtml = (title) => `
+                <div class="header-container">
+                    <img src="../images/logo.png" alt="Watson Community Health Center">
+                    <h1>${title}</h1>
+                </div>`;
 
             let html = `<html><head><title>${buildPdfFilename(val('clientName'))}</title>
             <style>
                 @page { margin: 0.5in; size: letter; }
                 body { font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.2; color: #000; margin: 0; }
                 .page { position: relative; padding: 0; margin-bottom: 20px; page-break-after: always; }
-                .header-logo { text-align: center; margin-bottom: 20px; }
-                .header-logo img { height: 150px; width: auto; }
-                h1 { font-size: 16pt; text-align: center; text-transform: uppercase; font-weight: bold; margin: 15px 0; border-bottom: 2px solid #000; padding-bottom: 5px; }
+                .header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+                .header-container img { height: 80px; width: auto; flex-shrink: 0; }
+                .header-container h1 { font-size: 15pt; text-align: right; text-transform: uppercase; font-weight: bold; margin: 0; padding-left: 15px; flex-grow: 1; border-bottom: none; }
                 p, li { margin-bottom: 6px; text-align: justify; }
                 ul, ol { padding-left: 25px; margin-top: 5px; }
                 
-                .sig-box { margin-top: 30px; display: flex; gap: 30px; }
+                .sig-box { margin-top: 20px; display: flex; gap: 30px; }
                 .sig-wrapper { flex: 1; display: flex; flex-direction: column; }
-                .sig-content { height: 45px; border-bottom: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; }
+                .sig-content { height: 40px; border-bottom: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; }
                 .sig-label { font-size: 9pt; margin-top: 4px; }
-                .sig-img { max-height: 40px; }
+                .sig-img { max-height: 35px; }
 
                 table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10pt; page-break-inside: avoid; }
                 th, td { border: 1px solid #000; padding: 6px; }
                 th { background-color: #f0f0f0; }
-                .footer { border-top: 1px solid #000; padding-top: 5px; margin-top: 30px; font-size: 9pt; display: flex; justify-content: space-between; font-style: italic; }
+                .footer { border-top: 1px solid #000; padding-top: 5px; margin-top: 20px; font-size: 9pt; display: flex; justify-content: space-between; font-style: italic; }
                 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
                 @media print {
-                    .page { padding-top: 170px; }
-                    .page .header-logo { visibility: hidden; height: 0; margin: 0; }
-                    .page:first-of-type .header-logo { visibility: visible; position: fixed; top: 0.5in; left: 0; right: 0; height: auto; margin: 0; }
+                    .page { page-break-after: always; margin-bottom: 0; }
                 }
             </style></head><body>`;
 
             // --- PAGE 1: ACKNOWLEDGEMENT ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Acknowledgement of Receipt</h1>
+                ${headerHtml('Acknowledgement of Receipt')}
                 <p><strong>ACKNOWLEDGEMENT OF RECEIPT OF:</strong></p>
                 <ol>
                     <li>Consumer Rights Policy and DMH Consumer Rights Statement</li>
@@ -996,8 +997,7 @@
 
             // --- PAGE 2: FINANCIAL ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Patient Financial Responsibility & Authorization Form</h1>
+                ${headerHtml('Patient Financial Responsibility & Authorization Form')}
                 <p>Thank you for choosing Watson Community Health Centre for your medical needs. We are committed to providing you with the highest quality healthcare. We ask that you read and sign this form to acknowledge your understanding of our Client Financial policies.</p>
                 <p><strong>Client Financial Responsibilities</strong></p>
                 <ul>
@@ -1027,8 +1027,7 @@
 
             // --- PAGE 3: PROVIDER CHOICE ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Statement of Provider Choice</h1>
+                ${headerHtml('Statement of Provider Choice')}
                 <p>I have selected to receive the following service(s) from Watson Community Health Centre:</p>
                 <div class="grid-2">
                     <div>${chk('choice_de', 'on')} Diagnostic Eval & Update<br>${chk('choice_med', 'on')} Psychiatry/Med Mgmt<br>${chk('choice_cpst', 'on')} CPST<br>${chk('choice_psychotherapy', 'on')} Psychotherapy<br>${chk('choice_psychoed', 'on')} Psychoeducation<br>${chk('choice_act', 'on')} ACT</div>
@@ -1050,8 +1049,7 @@
 
             // --- PAGE 4: ROI ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Authorization to Release Confidential Information</h1>
+                ${headerHtml('Authorization to Release Confidential Information')}
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px;">
                     <div style="width:40%"><strong>Client:</strong> ${val('clientName')}</div>
                     <div style="width:20%"><strong>DOB:</strong> ${val('dob')}</div>
@@ -1101,8 +1099,7 @@
 
             // --- PAGE 5: CONSENT ADULT ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>CONSENT FOR TREATMENT (18 yrs and above)</h1>
+                ${headerHtml('CONSENT FOR TREATMENT (18 yrs and above)')}
                 <p>I/We hereby give consent for mental health treatment (which may include services, supports) for the above-named Consumer. Services may include one or more of the following: 1. Diagnostic Evaluation, 2. CPST, 3. Psychotherapy, 4. Psychoeducation, 5. ACT, 6. IHBT, 7. SUD Assessment, 8. SUD Services, 9. IOP, 10. Lab Analysis, 11. Psych Eval, 12. Psych Diagnostic, 13. Med Admin.</p>
                 <p>I understand that all information shared with service providers at Watson Community Health Centre is confidential and no information will be released without my consent. During the course of treatment at Watson Community Health Centre, it may be necessary for my service provider to communicate with providers at Watson Community Health Centre. While written authorization will not be requested, prior to any discussion with Watson Community Health Centre providers, I understand that only provider will discuss all communications with me.</p>
                 <p>I further understand that there are specific and limited exceptions to this confidentiality which include: A. Risk of imminent danger to myself or others; B. Suspicion of child or elder abuse; C. Valid court order.</p>
@@ -1122,8 +1119,7 @@
 
             // --- PAGE 6: CONSENT MINOR ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>CONSENT FOR TREATMENT (Minor)</h1>
+                ${headerHtml('CONSENT FOR TREATMENT (Minor)')}
                 <p>As the parent or legal guardian with the authority to consent on behalf of the consumer named above, I hereby give my consent to receive behavioral health treatment (which may include services, supports, and/or medication) for the above named Consumer.</p>
                 <p>Services may include one or more of the following: 1. Diagnostic Evaluation, 2. CPST, 3. Psychotherapy, 4. Psychoeducation, 5. ACT, 6. IHBT, 7. SUD Assessment, 8. SUD Services, 9. IOP, 10. Lab Analysis, 11. Psych Eval, 12. Psych Diagnostic, 13. Med Admin.</p>
                 <p>I understand that all information shared with service providers at Watson Community Health Centre is confidential... (Same exceptions as Adult form apply).</p>
@@ -1144,8 +1140,7 @@
 
             // --- PAGE 7: PHOTO RELEASE ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Photo Release Form</h1>
+                ${headerHtml('Photo Release Form')}
                 <p>I (Parent/Legal Guardian, if minor) grant to Watson Community Health Centre, its representatives and employees the right to take photographs of me in connection with any activities I may participate in connected with services offered by Watson Community Health Centre. I authorize Watson Community Health Centre, its assigns and transferees to copyright, use and publish the same in print and/or electronically.</p>
                 <p>I agree that Watson Community Health Centre may use such photographs of me with / without my name and for any lawful purpose.</p>
                 <p><strong>Selection:</strong> ${val('photo_consent')}</p>
@@ -1160,8 +1155,7 @@
 
             // --- PAGE 8: TELEHEALTH (FULL COMPLIANCE) ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>CONSENT TO TELE-MENTAL HEALTH</h1>
+                ${headerHtml('CONSENT TO TELE-MENTAL HEALTH')}
                 
                 <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding-bottom:5px; margin-bottom:15px;">
                     <div style="width:40%"><strong>Name:</strong> ${val('clientName')}</div>
@@ -1218,8 +1212,7 @@
 
             // --- PAGE 9: TRANSPORT ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Transportation Permission Slip</h1>
+                ${headerHtml('Transportation Permission Slip')}
                 <p>This permission slip must be signed by the parent or guardian of the child. If you do not give permission, please indicate in the appropriate space.</p>
                 <p style="font-size:14pt; font-weight:bold; margin:30px 0;">${val('transport_perm') === 'Granted' ? '☑' : '☐'} I hereby give my full permission to Watson Community Health Centre to have consumer named above transported.</p>
                 <p style="font-size:14pt; font-weight:bold; margin:30px 0;">${val('transport_perm') === 'Denied' ? '☑' : '☐'} I do NOT give permission to Watson Community Health Centre to have consumer named above transported.</p>
@@ -1242,8 +1235,7 @@
 
             // --- PAGE 10: PROVIDER CHANGE ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Behavioral Health Provider Change Form</h1>
+                ${headerHtml('Behavioral Health Provider Change Form')}
                 <p>As the consumer of behavioral health services, I acknowledge that: I am enacting my Consumer Right of provider choice... I am choosing to do so and that no promise or guarantee that any services received by my previous provider will be continued... I will be required to complete a diagnostic evaluation... I will be required to complete a Release of Information...</p>
                 <p><strong>Previous Provider:</strong> ${val('prev_prov_name')} | <strong>Phone:</strong> ${val('prev_prov_phone')}</p>
                 <p><strong>Previous Case Manager:</strong> ${val('prev_cm')}</p>
@@ -1265,8 +1257,7 @@
 
             // --- PAGE 11: MED LIST ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>Medication List</h1>
+                ${headerHtml('Medication List')}
                 <p>Allergies: ${val('med_allergies')} | Pharmacy: ${val('med_pharm')}</p>
                 <table>
                     <tr><th>Medication</th><th>Dose</th><th>Freq</th><th>Reason</th></tr>
@@ -1283,8 +1274,7 @@
 
             // --- PAGE 12: PHQ-9 (SEPARATED FULL PAGE) ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>PATIENT HEALTH QUESTIONNAIRE-9 (PHQ-9)</h1>
+                ${headerHtml('PATIENT HEALTH QUESTIONNAIRE-9 (PHQ-9)')}
                 <p style="margin-bottom:10px;">Over the last 2 weeks, how often have you been bothered by any of the following problems?</p>
                 
                 <table style="font-size:10pt;">
@@ -1316,8 +1306,7 @@
 
             // --- PAGE 13: GAD-7 (SEPARATED FULL PAGE) ---
             html += `<div class="page">
-                ${logoHtml}
-                <h1>GAD-7 ANXIETY SCREENING</h1>
+                ${headerHtml('GAD-7 ANXIETY SCREENING')}
                 <p style="margin-bottom:10px;">Over the last two weeks, how often have you been bothered by the following problems?</p>
                 
                 <table style="font-size:10pt;">
