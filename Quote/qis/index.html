@@ -6,7 +6,6 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Quality Imaging Solutions - Professional Quote Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
@@ -36,9 +35,23 @@
         .summary-row { display: flex; justify-content: space-between; gap: 12px; }
         .summary-row dt { color: #6b7280; }
         .summary-row dd { font-weight: 600; margin: 0; }
+        @page { size: letter; margin: 0.5in; }
         @media print {
             body { background: #fff !important; }
             .no-print { display: none !important; }
+            /* When printing a quote, hoist just the quote document to the page. */
+            body.printing-quote > *:not(#quote-document) { display: none !important; }
+            body.printing-quote #quote-document {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                background: #fff !important;
+            }
+            body.printing-quote #quote-document .qd { width: 100% !important; margin: 0 !important; }
         }
         .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         @media (max-width: 768px) { .feature-grid { grid-template-columns: 1fr; } }
@@ -687,9 +700,9 @@
 
                 <div class="mb-3 flex justify-center space-x-4 flex-wrap gap-2 no-print">
                     <button type="button" id="refreshPreviewBtn" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition">🔄 Refresh Preview</button>
-                    <button type="button" id="exportBtn" class="px-6 py-3 btn-success text-white rounded-lg font-semibold">📄 Save as PDF</button>
+                    <button type="button" id="exportBtn" class="px-6 py-3 btn-success text-white rounded-lg font-semibold">🖨️ Print / Save as PDF</button>
                 </div>
-                <p class="text-center text-xs text-gray-500 mb-6 no-print">"Save as PDF" downloads a two-page PDF straight to your downloads folder.</p>
+                <p class="text-center text-xs text-gray-500 mb-6 no-print">Opens your print dialog — choose <strong>Save as PDF</strong> as the destination. Prints as two clean pages.</p>
 
                 <div id="quote-preview-container" class="bg-white rounded-xl shadow-2xl overflow-hidden">
                     <div id="quote-document">
@@ -1865,9 +1878,10 @@ table.pcmp tr{break-inside:avoid}
         }
 
         // ====================================
-        // EXPORT — generate the PDF client-side and download it directly
-        // (no print dialog). The quote document is a self-contained two-page
-        // layout with an explicit page break, so html2pdf paginates cleanly.
+        // EXPORT — native print. The quote document is temporarily hoisted to
+        // <body> and everything else hidden (print CSS), so the browser
+        // paginates it directly: two clean pages, selectable text, small file.
+        // The user picks "Save as PDF" (or a real printer) in the dialog.
         // ====================================
 
         function exportToPDF() {
@@ -1876,20 +1890,26 @@ table.pcmp tr{break-inside:avoid}
                 showMessage('No Preview', 'Generate the preview first, then export.');
                 return;
             }
-            if (typeof html2pdf === 'undefined') {
-                showMessage('Still Loading', 'The PDF library is still loading — give it a second and try again.');
-                return;
-            }
-            const opt = {
-                margin: [0.5, 0.5, 0.55, 0.5],
-                filename: buildQuoteFilename() + '.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 820 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'], before: '.qd-break', avoid: ['tr', '.qd-equip', '.qd-price', '.qd-foot', '.pcmp'] }
+
+            const slot = document.createComment('quote-doc-slot');
+            doc.parentNode.insertBefore(slot, doc);
+            document.body.appendChild(doc);
+            document.body.classList.add('printing-quote');
+            const prevTitle = document.title;
+            document.title = buildQuoteFilename(); // seeds the "Save as PDF" filename
+
+            let restored = false;
+            const restore = function () {
+                if (restored) return;
+                restored = true;
+                document.body.classList.remove('printing-quote');
+                document.title = prevTitle;
+                if (slot.parentNode) slot.parentNode.replaceChild(doc, slot);
+                window.removeEventListener('afterprint', restore);
             };
-            html2pdf().set(opt).from(doc).save();
-            showAutoSave('PDF saved');
+            window.addEventListener('afterprint', restore);
+            setTimeout(function () { window.print(); }, 60);
+            setTimeout(restore, 60000); // safety net if afterprint never fires
         }
 
 
