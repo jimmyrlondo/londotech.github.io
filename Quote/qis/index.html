@@ -7,7 +7,6 @@
     <title>Quality Imaging Solutions - Professional Quote Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
@@ -32,15 +31,19 @@
         .badge-fmv { background-color: #dbeafe; color: #1e40af; }
         .badge-buyout { background-color: #fef3c7; color: #92400e; }
         .badge-rental { background-color: #d1fae5; color: #065f46; }
-        #quote-document { background-color: white; padding: 3rem; max-width: 850px; margin: 0 auto; }
+        #quote-document { background-color: white; padding: 1.25rem; max-width: 820px; margin: 0 auto; overflow-x: auto; }
+        .summary-row { display: flex; justify-content: space-between; gap: 12px; }
+        .summary-row dt { color: #6b7280; }
+        .summary-row dd { font-weight: 600; margin: 0; }
+        @media print {
+            body { background: #fff !important; }
+            .no-print { display: none !important; }
+        }
         .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         @media (max-width: 768px) { .feature-grid { grid-template-columns: 1fr; } }
         .auto-save-indicator { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; z-index: 999; }
         .auto-save-indicator.show { opacity: 1; }
         .section-header { border-left: 4px solid #667eea; padding-left: 16px; margin-bottom: 20px; }
-        .price-comparison-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .price-comparison-table th, .price-comparison-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-        .price-comparison-table th { background-color: #f9fafb; font-weight: 600; }
         .progress-bar { width: 100%; height: 4px; background-color: #e5e7eb; border-radius: 2px; overflow: hidden; margin-bottom: 20px; }
         .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); transition: width 0.3s ease; }
     </style>
@@ -79,7 +82,7 @@
         <img id="companyLogoHeader" src="" alt="Quality Imaging Solutions" class="h-20 w-auto hidden">
     </div>
             <p class="text-lg text-gray-600 mb-2">Professional Quote Generator</p>
-            <p class="text-sm text-gray-500">Sales Representative: <strong id="salesRepDisplay">Jimmy Londo</strong> | Date: <strong id="currentDate"></strong></p>
+            <p class="text-sm text-gray-500">Prepared by: <strong id="salesRepDisplay">Jimmy Londo</strong> | Date: <strong id="currentDate"></strong></p>
             
             <div class="flex justify-center space-x-4 mt-6 flex-wrap gap-2">
                 <button type="button" id="newQuoteBtn" class="px-6 py-2 bg-white border-2 border-indigo-600 text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition">+ New Quote</button>
@@ -149,12 +152,12 @@
                     </div>
 
                     <div>
-                        <label for="salesRep" class="block text-sm font-semibold text-gray-800 mb-2">Sales Representative</label>
+                        <label for="salesRep" class="block text-sm font-semibold text-gray-800 mb-2">Prepared By</label>
                         <select id="salesRep" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
-                            <option value="Jimmy Londo">Jimmy Londo</option>
-                            <option value="Mike Keenan">Mike Keenan</option>
-                            <option value="Sales Rep 3">Sales Rep 3</option>
+                            <option value="Jimmy Londo">Jimmy Londo — Sales Manager</option>
+                            <option value="Mike Keenan">Mike Keenan — President</option>
                         </select>
+                        <p class="text-xs text-gray-500 mt-1">Autofills the name, title, phone, and email on the quote.</p>
                     </div>
                 </div>
 
@@ -236,8 +239,8 @@
 
                             <div class="mb-4">
                                 <label for="originalPrice" class="block text-sm font-semibold text-gray-800 mb-2">Equipment Cost ($) *</label>
-                                <input type="number" id="originalPrice" placeholder="e.g., 5000.00" step="0.01" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2" required>
-                                <p class="text-xs text-gray-500 mt-1">Original price before trade-in or discounts</p>
+                                <input type="number" id="originalPrice" placeholder="e.g., 5000.00" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2" required>
+                                <p class="text-xs text-gray-500 mt-1">List price before trade-in or discounts. Financing needs at least $1,000; below that it's a cash sale.</p>
                             </div>
 
                             <div class="mb-4">
@@ -248,14 +251,15 @@
                                 <label class="block text-sm font-semibold text-gray-800 mb-2">Equipment Condition</label>
                                 <div class="space-y-2">
                                     <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-white transition">
-                                        <input type="radio" name="equipmentCondition" value="new" class="h-4 w-4 text-blue-600" checked>
+                                        <input type="radio" name="equipmentCondition" id="conditionNew" value="new" class="h-4 w-4 text-blue-600" checked>
                                         <span class="ml-3 text-sm font-medium text-gray-900">New Equipment</span>
                                     </label>
                                     <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-white transition">
-                                        <input type="radio" name="equipmentCondition" value="certified" class="h-4 w-4 text-blue-600">
+                                        <input type="radio" name="equipmentCondition" id="conditionCertified" value="certified" class="h-4 w-4 text-blue-600">
                                         <span class="ml-3 text-sm font-medium text-gray-900">Certified Pre-Owned</span>
                                     </label>
                                 </div>
+                                <p id="conditionNote" class="hidden text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">The rental program covers Certified Pre-Owned equipment only.</p>
                             </div>
                         </div>
 
@@ -276,7 +280,7 @@
                                 </div>
                                 <div>
                                     <label for="tradeInAmount" class="block text-sm font-semibold text-gray-800 mb-2">Trade-in Allowance ($)</label>
-                                    <input type="number" id="tradeInAmount" placeholder="e.g., 500.00" step="0.01" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
+                                    <input type="number" id="tradeInAmount" placeholder="e.g., 500.00" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
                                 </div>
                             </div>
                         </div>
@@ -285,7 +289,7 @@
                             <label class="block text-sm font-semibold text-gray-800 mb-2">Net Equipment Cost (After Trade-in)</label>
                             <div class="text-3xl font-bold text-green-700" id="outrightPriceDisplay">$0.00</div>
                             <input type="hidden" id="outrightPrice">
-                            <p class="text-xs text-gray-600 mt-2">This is the amount to be financed</p>
+                            <p class="text-xs text-gray-600 mt-2">Cash purchase price. For rentals, the amount financed is this minus any down payment.</p>
                         </div>
                     </div>
 
@@ -334,22 +338,38 @@
                                 </select>
                             </div>
 
-                            <div id="downPaymentFields" class="hidden mb-4">
-                                <label for="downPaymentAmount" class="block text-sm font-semibold text-gray-800 mb-2">Down Payment ($)</label>
-                                <input type="number" id="downPaymentAmount" placeholder="e.g., 500.00" step="0.01" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
-                                <p class="text-xs text-gray-500 mt-1">Optional upfront payment to reduce monthly cost</p>
+                            <div id="downPaymentFields" class="hidden mb-4 space-y-4">
+                                <div>
+                                    <label for="downPaymentAmount" class="block text-sm font-semibold text-gray-800 mb-2">Down Payment ($)</label>
+                                    <input type="number" id="downPaymentAmount" placeholder="e.g., 500.00" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
+                                    <p class="text-xs text-gray-500 mt-1">Optional. Reduces the amount financed, and therefore the monthly.</p>
+                                </div>
+                                <div>
+                                    <label for="securityDeposit" class="block text-sm font-semibold text-gray-800 mb-2">Security Deposit ($)</label>
+                                    <input type="number" id="securityDeposit" value="500" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
+                                    <p class="text-xs text-gray-500 mt-1">$500 standard, refundable. Shown on the quote; not applied to payments.</p>
+                                </div>
                             </div>
 
                             <div class="mb-4">
                                 <label for="monthlyPrice" class="block text-sm font-semibold text-gray-800 mb-2">Monthly Payment ($)</label>
-                                <input type="number" id="monthlyPrice" placeholder="Calculated automatically" step="0.01" class="w-full rounded-lg border-gray-300 shadow-sm input-focus bg-gray-50 p-2">
-                                <p class="text-xs text-gray-500 mt-1">You can manually override this if needed</p>
+                                <input type="number" id="monthlyPrice" placeholder="Calculated automatically" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus bg-gray-50 p-2">
+                                <p class="text-xs text-gray-500 mt-1">Type a target here to solve the equipment price backward.</p>
                             </div>
 
-                            <div class="p-4 bg-white rounded-lg border border-gray-200">
-                                <div class="text-xs text-gray-600">Applied Rate Factor:</div>
-                                <div class="text-lg font-bold text-indigo-600" id="rateFactorDisplay">-</div>
-                                <div class="text-xs text-gray-500 mt-1" id="rateFactorCategory">Select options to see rate</div>
+                            <div class="p-4 bg-white rounded-lg border border-gray-200" id="quoteSummaryPanel">
+                                <div class="text-sm font-bold text-gray-800 mb-2">Live Quote Summary</div>
+                                <dl class="text-sm space-y-1">
+                                    <div class="summary-row"><dt>Program</dt><dd id="sumProgram">—</dd></div>
+                                    <div class="summary-row"><dt>Amount financed</dt><dd id="sumFinanced">—</dd></div>
+                                    <div class="summary-row"><dt>Cost band</dt><dd id="sumBand">—</dd></div>
+                                    <div class="summary-row"><dt>Term</dt><dd id="sumTerm">—</dd></div>
+                                    <div class="summary-row"><dt>Rate factor</dt><dd id="sumFactor" class="text-indigo-600">—</dd></div>
+                                    <div class="summary-row border-t border-gray-200 pt-1 mt-1"><dt class="text-gray-800">Monthly payment</dt><dd id="sumMonthly" class="text-indigo-700 text-base">—</dd></div>
+                                    <div class="summary-row"><dt>Solving from</dt><dd id="sumDirection" class="text-xs">Equipment price ▸ monthly</dd></div>
+                                </dl>
+                                <div id="sumWarning" class="hidden mt-2 text-xs font-semibold text-red-700 bg-red-50 rounded p-2"></div>
+                                <div id="sumSource" class="mt-2 text-xs text-gray-400"></div>
                             </div>
                         </div>
 
@@ -631,11 +651,11 @@
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label for="serviceBlackCost" class="block text-sm font-semibold text-gray-800 mb-2">Black Copy Cost ($)</label>
-                                <input type="number" id="serviceBlackCost" value="0.01" step="0.001" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
+                                <input type="number" id="serviceBlackCost" value="0.01" step="0.0001" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
                             </div>
                             <div>
                                 <label for="serviceColorCost" class="block text-sm font-semibold text-gray-800 mb-2">Color Copy Cost ($)</label>
-                                <input type="number" id="serviceColorCost" value="0.06" step="0.001" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
+                                <input type="number" id="serviceColorCost" value="0.07" step="0.0001" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
                             </div>
                         </div>
                         <p class="text-xs text-gray-500 bg-white p-3 rounded-lg">These rates will be displayed on the quote. Adjust if your costs are different for this customer.</p>
@@ -660,10 +680,11 @@
                     <p class="text-gray-600 text-sm mt-1">Review your quote before exporting</p>
                 </div>
 
-                <div class="mb-6 flex justify-center space-x-4 flex-wrap gap-2">
+                <div class="mb-3 flex justify-center space-x-4 flex-wrap gap-2 no-print">
                     <button type="button" id="refreshPreviewBtn" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition">🔄 Refresh Preview</button>
-                    <button type="button" id="exportBtn" class="px-6 py-3 btn-success text-white rounded-lg font-semibold">📄 Export to PDF</button>
+                    <button type="button" id="exportBtn" class="px-6 py-3 btn-success text-white rounded-lg font-semibold">📄 Save as PDF</button>
                 </div>
+                <p class="text-center text-xs text-gray-500 mb-6 no-print">"Save as PDF" opens a clean, print-ready copy — choose <strong>Save as PDF</strong> as the printer. Designed to land on two pages.</p>
 
                 <div id="quote-preview-container" class="bg-white rounded-xl shadow-2xl overflow-hidden">
                     <div id="quote-document" class="p-12">
@@ -689,22 +710,68 @@
           const STATE = {
             logoDataUrl: '',
             lastEditedPriceType: 'original',
+            validation: {},
             customFeatureCount: 0,
             autoSaveTimer: null,
             currentQuoteId: null,
             companyLogoBase64: 'data:image/png;base64,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'
         };
 
-        // PEAC Solutions Rate Factors
-        const LEASE_RATES = {
-            FMV: {
-                LOW: { 12: 0.08590, 24: 0.04450, 36: 0.03010, 39: 0.02850, 48: 0.02540, 60: 0.02100, 63: 0.02060 },
-                HIGH: { 12: 0.08480, 24: 0.04285, 36: 0.02850, 39: 0.02690, 48: 0.02375, 60: 0.01950, 63: 0.01900 }
+        // ====================================
+        // RATE FACTOR TABLES
+        // ====================================
+        // Lease (FMV / $1 Buyout): PEAC Solutions "Copier Equipment Rates", effective 10/1/24.
+        // Rental: Quality Imaging Solutions Rental Program rate card.
+        // Financing floor on every program is $1,000 (below that = cash purchase only).
+        // Bands are matched by "first band whose max >= amount financed".
+        // ==> UPDATE THESE VALUES WHENEVER THE RATE CARDS CHANGE. <==
+
+        const RATE_CONFIG = {
+            lease: {
+                label: 'Fair Market Value (FMV) Lease',
+                shortLabel: 'FMV Lease',
+                source: 'PEAC Solutions — rates effective 10/1/24',
+                terms: [12, 24, 36, 39, 48, 60, 63],
+                bands: [
+                    { min: 1000, max: 3000,   name: '$1,000 – $3,000',
+                      factors: { 12: 0.08590, 24: 0.04450, 36: 0.03010, 39: 0.02850, 48: 0.02540, 60: 0.02100, 63: 0.02060 } },
+                    { min: 3001, max: 400000, name: '$3,001 – $400,000',
+                      factors: { 12: 0.08480, 24: 0.04285, 36: 0.02850, 39: 0.02690, 48: 0.02375, 60: 0.01950, 63: 0.01900 } }
+                ]
             },
-            BUYOUT: {
-                LOW: { 12: 0.09710, 24: 0.05100, 36: 0.03530, 39: 0.03380, 48: 0.02930, 60: 0.02530, 63: 0.02430 },
-                HIGH: { 12: 0.09170, 24: 0.04880, 36: 0.03260, 39: 0.03060, 48: 0.02570, 60: 0.02160, 63: 0.02090 }
+            buyout: {
+                label: '$1.00 Buyout Lease',
+                shortLabel: '$1 Buyout',
+                source: 'PEAC Solutions — rates effective 10/1/24',
+                terms: [12, 24, 36, 39, 48, 60, 63],
+                bands: [
+                    { min: 1000, max: 3000,   name: '$1,000 – $3,000',
+                      factors: { 12: 0.09710, 24: 0.05100, 36: 0.03530, 39: 0.03380, 48: 0.02930, 60: 0.02530, 63: 0.02430 } },
+                    { min: 3001, max: 400000, name: '$3,001 – $400,000',
+                      factors: { 12: 0.09170, 24: 0.04880, 36: 0.03260, 39: 0.03060, 48: 0.02570, 60: 0.02160, 63: 0.02090 } }
+                ]
+            },
+            rental: {
+                label: 'Rental Agreement',
+                shortLabel: 'Rental',
+                source: 'QIS Rental Program rate card',
+                terms: [12, 24, 36, 39, 48, 60, 63],
+                bands: [
+                    { min: 1000, max: 2999,  name: '$1,000 – $2,999',
+                      factors: { 12: 0.0933, 24: 0.0536, 36: 0.0395, 39: 0.0381, 48: 0.0345, 60: 0.0296, 63: 0.0288 } },
+                    { min: 3000, max: 99999, name: '$3,000 – $99,999',
+                      factors: { 12: 0.0899, 24: 0.0477, 36: 0.0333, 39: 0.0312, 48: 0.0263, 60: 0.0221, 63: 0.0213 } }
+                ]
             }
+        };
+
+        const FINANCE_FLOOR = 1000;
+        const DEFAULT_SECURITY_DEPOSIT = 500;
+
+        // Prepared-by directory — selecting a rep autofills the quote letterhead.
+        const REP_INFO = {
+            'Jimmy Londo': { name: 'Jimmy Londo', title: 'Sales Manager', phone: '440-320-1989', email: 'jimmy@quality-imaging.com' },
+            'Mike Keenan': { name: 'Mike Keenan', title: 'President',     phone: '440-466-2679', email: 'mike@quality-imaging.com' }
         };
 
 // ====================================
@@ -1087,37 +1154,101 @@ function clearAllFeatures() {
         // RATE CALCULATION
         // ====================================
 
-        function getRateFactor(quoteType, equipmentCost, term) {
-            if (!equipmentCost || !term) return null;
-            const costTier = equipmentCost <= 3000 ? 'LOW' : 'HIGH';
-            let rates;
-            if (quoteType === 'lease') {
-                rates = LEASE_RATES.FMV[costTier];
-            } else if (quoteType === 'buyout') {
-                rates = LEASE_RATES.BUYOUT[costTier];
-            } else {
-                rates = LEASE_RATES.FMV[costTier];
-            }
-            return rates[term] || null;
+        // Look up a rate factor for a program / amount financed / term.
+        // Returns { ok:true, factor, band, program, term } or
+        //         { ok:false, reason: 'incomplete' | 'below_floor' | 'above_ceiling' | 'no_term', program?, band?, ceiling? }
+        function getRateFactor(quoteType, amountFinanced, term) {
+            const program = RATE_CONFIG[quoteType] || RATE_CONFIG.lease;
+            const amt = parseFloat(amountFinanced) || 0;
+            const t = parseInt(term);
+            if (!amt || !t) return { ok: false, reason: 'incomplete', program };
+            if (amt < program.bands[0].min) return { ok: false, reason: 'below_floor', program };
+            const lastBand = program.bands[program.bands.length - 1];
+            if (amt > lastBand.max) return { ok: false, reason: 'above_ceiling', program, ceiling: lastBand.max };
+            const band = program.bands.find(b => amt <= b.max) || lastBand;
+            const factor = band.factors[t];
+            if (!factor) return { ok: false, reason: 'no_term', program, band };
+            return { ok: true, factor, band, program, term: t };
         }
 
-        function updateRateFactorDisplay() {
-            const quoteType = document.querySelector('input[name="quoteType"]:checked').value;
-            const equipmentCost = parseFloat(document.getElementById('outrightPrice').value) || 0;
-            const term = parseInt(document.getElementById('term').value);
-            const rateFactor = getRateFactor(quoteType, equipmentCost, term);
-            const display = document.getElementById('rateFactorDisplay');
-            const category = document.getElementById('rateFactorCategory');
+        // Numeric factor only (or null) — for the comparison table.
+        function rateFactorValue(quoteType, amountFinanced, term) {
+            const rf = getRateFactor(quoteType, amountFinanced, term);
+            return rf.ok ? rf.factor : null;
+        }
 
-            if (rateFactor) {
-                display.textContent = rateFactor.toFixed(5);
-                let typeLabel = quoteType === 'lease' ? 'FMV Lease' : quoteType === 'buyout' ? '$1 Buyout' : 'Rental';
-                let tierLabel = equipmentCost <= 3000 ? '$1K-$3K' : '$3K-$400K';
-                category.textContent = `${typeLabel} | ${tierLabel} | ${term} months`;
+        function currentQuoteType() {
+            return document.querySelector('input[name="quoteType"]:checked').value;
+        }
+
+        // Show/hide rental-only fields and enforce "Certified Pre-Owned only" for rentals.
+        function applyQuoteTypeUI() {
+            const quoteType = currentQuoteType();
+            const isRental = quoteType === 'rental';
+            document.getElementById('downPaymentFields').classList.toggle('hidden', !isRental);
+            document.getElementById('conditionNote').classList.toggle('hidden', !isRental);
+            const newRadio = document.getElementById('conditionNew');
+            const cpoRadio = document.getElementById('conditionCertified');
+            if (isRental) {
+                cpoRadio.checked = true;
+                newRadio.disabled = true;
             } else {
-                display.textContent = '-';
-                category.textContent = 'Select pricing options';
+                newRadio.disabled = false;
+                document.getElementById('downPaymentAmount').value = '';
             }
+        }
+
+        // Autofill the "prepared by" name shown in the header from REP_INFO.
+        function applyRepInfo() {
+            const key = document.getElementById('salesRep').value;
+            const rep = REP_INFO[key];
+            document.getElementById('salesRepDisplay').textContent = rep ? rep.name : key;
+        }
+
+        // Live "Quote Summary" panel on the Pricing tab.
+        function updateQuoteSummary() {
+            const quoteType = currentQuoteType();
+            const program = RATE_CONFIG[quoteType] || RATE_CONFIG.lease;
+            const netCost = parseFloat(document.getElementById('outrightPrice').value) || 0;
+            const term = document.getElementById('term').value;
+            const monthly = parseFloat(document.getElementById('monthlyPrice').value) || 0;
+            const deposit = (quoteType === 'rental') ? (parseFloat(document.getElementById('downPaymentAmount').value) || 0) : 0;
+            const amountFinanced = Math.max(0, netCost - deposit);
+
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+            set('sumProgram', program.shortLabel);
+            set('sumFinanced', netCost ? formatCurrency(amountFinanced) : '—');
+            set('sumTerm', term ? term + ' months' : '—');
+            set('sumDirection', STATE.lastEditedPriceType === 'monthly' ? 'Target monthly ▸ price' : 'Equipment price ▸ monthly');
+            set('sumSource', program.source);
+
+            const rf = getRateFactor(quoteType, amountFinanced, term);
+            const warnEl = document.getElementById('sumWarning');
+            let warn = '';
+
+            if (rf.ok) {
+                set('sumBand', rf.band.name);
+                set('sumFactor', rf.factor.toFixed(5));
+                set('sumMonthly', monthly ? formatCurrency(monthly) : '—');
+            } else {
+                set('sumBand', '—');
+                set('sumFactor', '—');
+                set('sumMonthly', '—');
+                if (rf.reason === 'below_floor' && netCost > 0) {
+                    warn = `Amount financed is under the ${formatCurrency(FINANCE_FLOOR)} minimum for ${program.shortLabel}. This is a cash purchase — no monthly option.`;
+                } else if (rf.reason === 'above_ceiling') {
+                    warn = `Amount financed exceeds the ${formatCurrency(rf.ceiling)} ceiling for ${program.shortLabel}.`;
+                } else if (rf.reason === 'no_term') {
+                    warn = 'Choose a lease/rental term to calculate the payment.';
+                }
+            }
+
+            const v = STATE.validation || {};
+            if (v.tradeInError) warn = 'Trade-in allowance can’t be more than the equipment price.';
+            if (v.dpError) warn = 'Down payment can’t be equal to or more than the net equipment cost.';
+
+            if (warn) { warnEl.textContent = warn; warnEl.classList.remove('hidden'); }
+            else { warnEl.textContent = ''; warnEl.classList.add('hidden'); }
         }
 
         // ====================================
@@ -1130,97 +1261,117 @@ function clearAllFeatures() {
             } else {
                 calculateBackward();
             }
-            updateRateFactorDisplay();
+            updateQuoteSummary();
         }
 
+        // Equipment price entered -> solve the monthly payment.
         function calculateForward() {
             const originalPrice = parseFloat(document.getElementById('originalPrice').value) || 0;
-            const tradeInAmount = document.getElementById('tradeInCheckbox').checked ? 
-                (parseFloat(document.getElementById('tradeInAmount').value) || 0) : 0;
+            const tradeInOn = document.getElementById('tradeInCheckbox').checked;
+            let tradeInAmount = tradeInOn ? (parseFloat(document.getElementById('tradeInAmount').value) || 0) : 0;
+            const quoteType = currentQuoteType();
             const downPaymentAmount = parseFloat(document.getElementById('downPaymentAmount').value) || 0;
-            const quoteType = document.querySelector('input[name="quoteType"]:checked').value;
-            
-            const outrightPrice = originalPrice - tradeInAmount;
-            document.getElementById('outrightPrice').value = outrightPrice.toFixed(2);
-            document.getElementById('outrightPriceDisplay').textContent = formatCurrency(outrightPrice);
 
-            let amountToFinance = outrightPrice;
+            const tradeInError = tradeInOn && originalPrice > 0 && tradeInAmount > originalPrice;
+            if (tradeInError) tradeInAmount = originalPrice;
+
+            const netEquipmentCost = Math.max(0, originalPrice - tradeInAmount);
+            document.getElementById('outrightPrice').value = netEquipmentCost.toFixed(2);
+            document.getElementById('outrightPriceDisplay').textContent = formatCurrency(netEquipmentCost);
+
+            let amountToFinance = netEquipmentCost;
+            let dpError = false;
             if (quoteType === 'rental' && downPaymentAmount > 0) {
-                amountToFinance -= downPaymentAmount;
+                dpError = downPaymentAmount >= netEquipmentCost && netEquipmentCost > 0;
+                amountToFinance = Math.max(0, netEquipmentCost - downPaymentAmount);
             }
 
-            const term = parseInt(document.getElementById('term').value);
-            const rateFactor = getRateFactor(quoteType, outrightPrice, term);
+            const term = document.getElementById('term').value;
+            const rf = getRateFactor(quoteType, amountToFinance, term);
 
-            if (!isNaN(amountToFinance) && rateFactor) {
-                const monthlyPayment = amountToFinance * rateFactor;
-                document.getElementById('monthlyPrice').value = monthlyPayment.toFixed(2);
+            if (rf.ok && !dpError) {
+                document.getElementById('monthlyPrice').value = (amountToFinance * rf.factor).toFixed(2);
             } else {
                 document.getElementById('monthlyPrice').value = '';
             }
+            STATE.validation = { tradeInError, dpError };
         }
 
+        // Target monthly entered -> solve the equipment price (no magic numbers:
+        // try each band and keep the one whose implied amount actually lands in that band).
         function calculateBackward() {
             const monthlyPrice = parseFloat(document.getElementById('monthlyPrice').value) || 0;
             const term = parseInt(document.getElementById('term').value);
-            const quoteType = document.querySelector('input[name="quoteType"]:checked').value;
-            const downPaymentAmount = parseFloat(document.getElementById('downPaymentAmount').value) || 0;
+            const quoteType = currentQuoteType();
+            const deposit = (quoteType === 'rental') ? (parseFloat(document.getElementById('downPaymentAmount').value) || 0) : 0;
+            const program = RATE_CONFIG[quoteType] || RATE_CONFIG.lease;
 
-            let estimatedCost = monthlyPrice / 0.03;
-            let rateFactor = getRateFactor(quoteType, estimatedCost, term);
+            if (!monthlyPrice || !term) { clearSolvedOutputs(); return; }
 
-            if (!isNaN(monthlyPrice) && rateFactor && term) {
-                let amountFinanced = monthlyPrice / rateFactor;
-                let outrightPrice = amountFinanced;
-                
-                if (quoteType === 'rental') {
-                    outrightPrice += downPaymentAmount;
-                }
-
-                document.getElementById('outrightPrice').value = outrightPrice.toFixed(2);
-                document.getElementById('outrightPriceDisplay').textContent = formatCurrency(outrightPrice);
-
-                const tradeInAmount = document.getElementById('tradeInCheckbox').checked ? 
-                    (parseFloat(document.getElementById('tradeInAmount').value) || 0) : 0;
-                
-                document.getElementById('originalPrice').value = (outrightPrice + tradeInAmount).toFixed(2);
-            } else {
-                document.getElementById('originalPrice').value = '';
-                document.getElementById('outrightPrice').value = '';
-                document.getElementById('outrightPriceDisplay').textContent = '$0.00';
+            let solved = null;
+            for (const band of program.bands) {
+                const f = band.factors[term];
+                if (!f) continue;
+                const amt = monthlyPrice / f;
+                if (amt >= band.min - 0.01 && amt <= band.max + 0.01) { solved = { amt, f }; break; }
             }
+            if (!solved) {
+                let best = null;
+                for (const band of program.bands) {
+                    const f = band.factors[term];
+                    if (!f) continue;
+                    const amt = monthlyPrice / f;
+                    const dist = amt < band.min ? band.min - amt : amt - band.max;
+                    if (!best || dist < best.dist) best = { amt, f, dist };
+                }
+                solved = best;
+            }
+            if (!solved) { clearSolvedOutputs(); return; }
+
+            const netEquipmentCost = solved.amt + deposit;
+            document.getElementById('outrightPrice').value = netEquipmentCost.toFixed(2);
+            document.getElementById('outrightPriceDisplay').textContent = formatCurrency(netEquipmentCost);
+
+            const tradeInAmount = document.getElementById('tradeInCheckbox').checked
+                ? (parseFloat(document.getElementById('tradeInAmount').value) || 0) : 0;
+            document.getElementById('originalPrice').value = (netEquipmentCost + tradeInAmount).toFixed(2);
+            STATE.validation = { tradeInError: false, dpError: false };
+        }
+
+        function clearSolvedOutputs() {
+            document.getElementById('originalPrice').value = '';
+            document.getElementById('outrightPrice').value = '';
+            document.getElementById('outrightPriceDisplay').textContent = '$0.00';
         }
 
         function generatePaymentComparisonTable() {
-            const outrightPrice = parseFloat(document.getElementById('outrightPrice').value) || 0;
-            const quoteType = document.querySelector('input[name="quoteType"]:checked').value;
-            const downPayment = parseFloat(document.getElementById('downPaymentAmount').value) || 0;
+            const netCost = parseFloat(document.getElementById('outrightPrice').value) || 0;
+            const quoteType = currentQuoteType();
+            const deposit = (quoteType === 'rental') ? (parseFloat(document.getElementById('downPaymentAmount').value) || 0) : 0;
+            if (!netCost) return '';
 
-            if (!outrightPrice) return '';
+            const amountToFinance = Math.max(0, netCost - deposit);
+            const program = RATE_CONFIG[quoteType] || RATE_CONFIG.lease;
+            const totalLabel = quoteType === 'buyout' ? 'Total to Own' : 'Total of Payments';
 
-            let amountToFinance = outrightPrice;
-            if (quoteType === 'rental' && downPayment > 0) {
-                amountToFinance -= downPayment;
-            }
-
-            const terms = [12, 24, 36, 39, 48, 60, 63];
-            let tableHtml = '<table class="price-comparison-table"><thead><tr><th>Term</th><th>Monthly Payment</th><th>Total Cost</th></tr></thead><tbody>';
-
-            terms.forEach(term => {
-                const rateFactor = getRateFactor(quoteType, outrightPrice, term);
-                if (rateFactor) {
-                    const monthly = amountToFinance * rateFactor;
-                    const total = monthly * term;
-                    tableHtml += `<tr>
-                        <td><strong>${term} months</strong></td>
-                        <td>${formatCurrency(monthly)}/mo</td>
-                        <td>${formatCurrency(total)}</td>
-                    </tr>`;
-                }
+            let rows = '';
+            program.terms.forEach(term => {
+                const f = rateFactorValue(quoteType, amountToFinance, term);
+                if (!f) return;
+                const monthly = amountToFinance * f;
+                let total = monthly * term;
+                if (quoteType === 'buyout') total += 1;
+                rows += `<tr><td class="pcmp-term">${term} mo</td><td class="pcmp-num">${formatCurrency(monthly)}</td><td class="pcmp-num">${formatCurrency(total)}</td></tr>`;
             });
+            if (!rows) return '';
 
-            tableHtml += '</tbody></table>';
-            return tableHtml;
+            const note = quoteType === 'lease'
+                ? 'FMV lease — total of payments shown. A fair-market-value purchase option applies at the end of the term.'
+                : quoteType === 'buyout'
+                ? 'Ownership transfers for $1.00 at the end of the term (included in the total).'
+                : `Rental — total of payments shown; a ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is additional. Upgradable anytime with remaining payments applied as buyout.`;
+
+            return `<table class="pcmp"><thead><tr><th>Term</th><th>Monthly</th><th>${totalLabel}</th></tr></thead><tbody>${rows}</tbody></table><p class="pcmp-note">${note}</p>`;
         }
 
         // ====================================
@@ -1261,6 +1412,7 @@ function clearAllFeatures() {
                 showAllTerms: document.getElementById('showAllTerms').checked,
                 quoteType: document.querySelector('input[name="quoteType"]:checked').value,
                 downPaymentAmount: document.getElementById('downPaymentAmount').value,
+                securityDeposit: document.getElementById('securityDeposit').value,
                 quoteValidDays: document.getElementById('quoteValidDays').value,
                 salesRep: document.getElementById('salesRep').value,
                 includeServiceContract: document.getElementById('includeServiceContract').checked,
@@ -1295,15 +1447,18 @@ function clearAllFeatures() {
             document.getElementById('includeServiceContract').checked = data.includeServiceContract !== false;
           
             document.getElementById('serviceBlackCost').value = data.serviceBlackCost || '0.01';
-            document.getElementById('serviceColorCost').value = data.serviceColorCost || '0.06';
+            document.getElementById('serviceColorCost').value = data.serviceColorCost || '0.07';
             document.getElementById('downPaymentAmount').value = data.downPaymentAmount || '';
+            document.getElementById('securityDeposit').value = data.securityDeposit || '500';
 
             if (data.quoteType) {
                 document.querySelector(`input[name="quoteType"][value="${data.quoteType}"]`).checked = true;
             }
             if (data.equipmentCondition) {
-    document.querySelector(`input[name="equipmentCondition"][value="${data.equipmentCondition}"]`).checked = true;
-}
+                document.querySelector(`input[name="equipmentCondition"][value="${data.equipmentCondition}"]`).checked = true;
+            }
+            applyQuoteTypeUI();
+            if (data.salesRep) applyRepInfo();
             document.querySelectorAll('input[name="features"]').forEach(cb => cb.checked = false);
 
             if (data.features && Array.isArray(data.features)) {
@@ -1423,8 +1578,17 @@ function clearAllFeatures() {
                     document.getElementById('term').value = '';
                     document.getElementById('printSpeed').value = '';
                     document.getElementById('additionalNotes').value = '';
+                    document.getElementById('downPaymentAmount').value = '';
+                    document.getElementById('securityDeposit').value = '500';
+                    document.getElementById('outrightPrice').value = '';
                     document.getElementById('outrightPriceDisplay').textContent = '$0.00';
+                    document.querySelectorAll('input[name="features"]').forEach(cb => { if (!cb.disabled) cb.checked = false; });
                     document.querySelectorAll('.custom-feature-item').forEach(item => item.remove());
+                    document.getElementById('quoteTypeLease').checked = true;
+                    STATE.lastEditedPriceType = 'original';
+                    STATE.validation = {};
+                    applyQuoteTypeUI();
+                    updateQuoteSummary();
                     switchTab('basic');
                     updateProgressBar();
                     showAutoSave('New quote created');
@@ -1457,211 +1621,268 @@ function clearAllFeatures() {
         // QUOTE PREVIEW GENERATION
         // ====================================
 
+        // HTML-escape a user-supplied value before it goes into the quote markup.
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        // Cost-per-copy: show 2–4 decimals so fractions of a cent survive.
+        function formatCPC(n) {
+            let s = (Number(n) || 0).toFixed(4).replace(/(\d)0+$/, '$1');
+            if (/\.\d$/.test(s)) s += '0';
+            return '$' + s;
+        }
+
+        function buildQuoteFilename() {
+            const customerName = document.getElementById('customerCompanyName').value || 'Customer';
+            const modelName = document.getElementById('modelName').value || 'Model';
+            const t = new Date();
+            const date = `${t.getMonth() + 1}-${t.getDate()}-${t.getFullYear()}`;
+            let modelShort = modelName;
+            const m = modelName.match(/bizhub\s+([A-Za-z0-9]+)/i)
+                || modelName.match(/taskalfa\s+([A-Za-z0-9]+)/i)
+                || modelName.match(/(MX-[A-Za-z0-9]+)/i);
+            if (m) modelShort = m[1];
+            return `${date}-${customerName.replace(/[^a-zA-Z0-9]/g, '_')}-${modelShort.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        }
+
+        // Program-specific terms & conditions block for the printed quote.
+        function quoteFinePrint(quoteType, validDays) {
+            const valid = validDays ? `This quote is valid for ${esc(validDays)} days from the date above.` : '';
+            if (quoteType === 'rental') {
+                return `Rental payments shown are subject to credit approval. A ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is required unless otherwise approved. A copy of the signer's driver's license and a voided check are required. Only Certified Pre-Owned equipment is eligible for the rental program. You may upgrade at any time, with the remaining payments applied as a buyout. ${valid}`;
+            }
+            const peac = `Payments shown use PEAC Solutions rate factors effective 10/1/24 and are subject to credit approval and PEAC documentation requirements. Rates apply to businesses with at least two years in operation. Equipment cost may not exceed 125% of MSRP on new equipment.`;
+            if (quoteType === 'buyout') {
+                return `${peac} Ownership of the equipment transfers to you for $1.00 at the end of the term. ${valid}`;
+            }
+            return `${peac} This is a fair-market-value (FMV) lease: at the end of the term you may return the equipment or purchase it at its then-current fair market value. ${valid}`;
+        }
+
         function generateQuotePreview() {
             const formData = getQuoteData();
- if (!formData.customerCompanyName || !formData.modelName) {
-    showMessage('Missing Information', 'Please fill in at least Customer Company Name and Model Name.');
-    return;
-}
-
-// Equipment condition badge - moved to correct location
-const equipmentCondition = document.querySelector('input[name="equipmentCondition"]:checked').value;
-const conditionBadge = equipmentCondition === 'new' ? 
-    '<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded ml-2">New</span>' : 
-    '<span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded ml-2">Certified Pre-Owned</span>';
-
-            let features = formData.features;
-            if (formData.printSpeed) {
-                features.unshift(`Print Speed: ${formData.printSpeed}`);
+            if (!formData.customerCompanyName || !formData.modelName) {
+                showMessage('Missing Information', 'Please fill in at least Customer Company Name and Model Name.');
+                return;
             }
 
-            let featuresHtml = '';
-            if (features.length > 0) {
-                featuresHtml = `
-                    <div class="mt-8">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Features Included:</h3>
-                        <div class="feature-grid text-sm text-gray-700">
-                            ${features.map(f => `<div class="flex items-start"><span class="text-indigo-600 mr-2">•</span><span>${f}</span></div>`).join('')}
-                        </div>
-                    </div>
-                `;
-            }
+            const quoteType = formData.quoteType;
+            const program = RATE_CONFIG[quoteType] || RATE_CONFIG.lease;
 
+            // Rental is Certified Pre-Owned only.
+            const condition = (quoteType === 'rental') ? 'certified' : formData.equipmentCondition;
+            const conditionBadge = condition === 'new'
+                ? '<span class="qd-badge new">New Equipment</span>'
+                : '<span class="qd-badge cpo">Certified Pre-Owned</span>';
+
+            // ----- Trade-in -----
             let tradeInHtml = '';
-            if (document.getElementById('tradeInCheckbox').checked && parseFloat(formData.tradeInAmount) > 0) {
-                tradeInHtml = `
-                    <div class="mt-4 p-4 bg-gray-100 rounded-lg border-l-4 border-amber-500">
-                        <p class="text-sm font-semibold text-gray-700">Original Price: ${formatCurrency(parseFloat(formData.originalPrice))}</p>
-                        <p class="text-sm font-semibold text-red-600">Trade-in Allowance: -${formatCurrency(parseFloat(formData.tradeInAmount))}</p>
-                        <p class="text-xs text-gray-500 mt-1">For: ${formData.tradeInItem}</p>
-                    </div>
-                `;
+            const tradeAmt = parseFloat(formData.tradeInAmount) || 0;
+            if (document.getElementById('tradeInCheckbox').checked && tradeAmt > 0) {
+                tradeInHtml = `<div class="qd-trade">
+                    <div>List price: ${formatCurrency(parseFloat(formData.originalPrice) || 0)}</div>
+                    <div class="neg">Trade-in allowance: &minus;${formatCurrency(tradeAmt)}${formData.tradeInItem ? ' (' + esc(formData.tradeInItem) + ')' : ''}</div>
+                </div>`;
             }
 
-            let pricingHtml = '';
-            if (formData.showOutright && formData.outrightPrice) {
-                pricingHtml += `<p class="text-2xl font-bold text-indigo-900">Total Outright Price: ${formatCurrency(parseFloat(formData.outrightPrice))}</p>`;
+            // ----- Pricing summary -----
+            const netCost = parseFloat(formData.outrightPrice) || 0;
+            const downAmt = (quoteType === 'rental') ? (parseFloat(formData.downPaymentAmount) || 0) : 0;
+            const depositAmt = (quoteType === 'rental') ? (parseFloat(formData.securityDeposit) || DEFAULT_SECURITY_DEPOSIT) : 0;
+            let priceRows = '';
+            if (formData.showOutright && netCost) {
+                priceRows += `<div class="lead">Cash purchase price: ${formatCurrency(netCost)}</div>`;
             }
-
-            if (formData.quoteType === 'rental' && parseFloat(formData.downPaymentAmount) > 0) {
-                pricingHtml += `<p class="text-md font-semibold text-gray-700 mt-2">Down Payment: ${formatCurrency(parseFloat(formData.downPaymentAmount))}</p>`;
+            if (downAmt > 0) {
+                priceRows += `<div class="sub">Down payment (applied to reduce monthly): ${formatCurrency(downAmt)}</div>`;
             }
-
+            if (quoteType === 'rental') {
+                priceRows += `<div class="sub">Security deposit (refundable, not applied to payments): ${formatCurrency(depositAmt)}</div>`;
+            }
             if (formData.showMonthly && formData.monthlyPrice && formData.term) {
-                const monthlyLabel = formData.quoteType === 'rental' ? 'monthly rental payment' : 
-                                    formData.quoteType === 'buyout' ? 'monthly payment ($1 buyout)' : 
-                                    'monthly lease payment (FMV)';
-                const prefix = formData.showOutright ? `Or ${monthlyLabel} of` : `${monthlyLabel.charAt(0).toUpperCase() + monthlyLabel.slice(1)} of`;
-                pricingHtml += `<p class="text-2xl font-bold text-indigo-900 mt-2">${prefix} ${formatCurrency(parseFloat(formData.monthlyPrice))} for ${formData.term} months</p>`;
+                const label = quoteType === 'rental' ? 'Monthly rental payment'
+                            : quoteType === 'buyout' ? 'Monthly payment ($1.00 buyout)'
+                            : 'Monthly lease payment (FMV)';
+                priceRows += `<div class="monthly">${label}: ${formatCurrency(parseFloat(formData.monthlyPrice))} / mo &times; ${esc(formData.term)} months</div>`;
             }
+            if (!priceRows) priceRows = '<div class="sub">Contact us for pricing on this configuration.</div>';
 
-            let comparisonTableHtml = '';
+            // ----- Features -----
+            const features = formData.features.slice();
+            let featuresHtml = '';
+            if (formData.printSpeed) {
+                featuresHtml += `<p style="font-size:11px;margin-bottom:6px"><strong>Rated speed:</strong> ${esc(formData.printSpeed)}</p>`;
+            }
+            if (features.length) {
+                featuresHtml += `<div class="qd-feat">${features.map(f => `<div><span class="dot">&bull;</span>${esc(f)}</div>`).join('')}</div>`;
+            }
+            const alwaysIncluded = `<p style="font-size:11px;margin-top:8px"><strong>Always included:</strong> free delivery, professional installation, and on-site training.</p>`;
+
+            // ----- Comparison table -----
+            let comparisonHtml = '';
             if (formData.showAllTerms) {
-                comparisonTableHtml = `
-                    <div class="mt-8">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Payment Options Comparison:</h3>
-                        ${generatePaymentComparisonTable()}
-                    </div>
-                `;
+                const t = generatePaymentComparisonTable();
+                if (t) comparisonHtml = `<div class="qd-section"><h3>Payment Options by Term</h3>${t}</div>`;
             }
 
+            // ----- Service contract -----
+            let serviceHtml = '';
+            if (formData.includeServiceContract) {
+                const blackCost = parseFloat(formData.serviceBlackCost) || 0.01;
+                const colorCost = parseFloat(formData.serviceColorCost) || 0.07;
+                serviceHtml = `<div class="qd-section"><h3>Service Contract</h3>
+                    <p style="font-size:11px;margin-bottom:6px">Our service contract is usage-based:</p>
+                    <ul class="qd-list" style="font-size:11px">
+                        <li><strong>${formatCPC(blackCost)}</strong> per black &amp; white copy</li>
+                        <li><strong>${formatCPC(colorCost)}</strong> per color copy</li>
+                    </ul>
+                    <p style="font-size:11px;margin-top:6px">While on a service contract, all toner, drums, developer, service, support, and training are included at no additional cost. We provide a 4-hour response time and typically address requests the same day if received before noon, or the next business day if received after noon.</p>
+                </div>`;
+            }
+
+            // ----- Notes -----
             let notesHtml = '';
             if (formData.additionalNotes) {
-                notesHtml = `
-                    <div class="mt-8 pt-4 border-t-2 border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Additional Notes:</h3>
-                        <p class="text-gray-700 whitespace-pre-wrap">${formData.additionalNotes}</p>
-                    </div>
-                `;
+                notesHtml = `<div class="qd-section"><h3>Additional Notes</h3><p style="font-size:11px;white-space:pre-wrap">${esc(formData.additionalNotes)}</p></div>`;
             }
 
-            let serviceContractHtml = '';
-if (formData.includeServiceContract) {
-    const blackCost = parseFloat(document.getElementById('serviceBlackCost').value) || 0.01;
-    const colorCost = parseFloat(document.getElementById('serviceColorCost').value) || 0.06;
-    
-    serviceContractHtml = `
-        <div class="mt-8 pt-4 border-t-2 border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-800 mb-3">Service Contract:</h3>
-            <p class="text-gray-700 mb-3">Our service contract is based on usage, with a cost of:</p>
-            <ul class="list-disc list-inside text-gray-700 ml-4 space-y-1">
-                <li><strong>${formatCurrency(blackCost)} per black copy</strong></li>
-                <li><strong>${formatCurrency(colorCost)} per color copy</strong></li>
-                             </ul>
-                        <p class="text-gray-700 mt-3">As long as you are on a service contract with us, all toner, drums, developer, service, support, and training are included at no additional cost. We provide a 4-hour response time for service requests, and we typically address them on the same day if received before noon, or the next business day if received after noon.</p>
-                    </div>
-                `;
-            }
+            // ----- Letterhead -----
+            const rep = REP_INFO[formData.salesRep] || { name: formData.salesRep || '', title: '', phone: '', email: '' };
+            const customerLogoHtml = STATE.logoDataUrl ? `<img src="${STATE.logoDataUrl}" alt="" style="height:52px;width:auto;margin-bottom:8px">` : '';
+            const companyLogoHtml = (STATE.companyLogoBase64 && STATE.companyLogoBase64.indexOf('base64,') > -1 && STATE.companyLogoBase64.indexOf('YOUR_BASE64') === -1)
+                ? `<img src="${STATE.companyLogoBase64}" alt="Quality Imaging Solutions">`
+                : `<div style="font-size:18px;font-weight:800;color:#4338ca">Quality Imaging Solutions</div>`;
 
-                        const customerLogoHtml = STATE.logoDataUrl ? `<img src="${STATE.logoDataUrl}" alt="Customer Logo" class="h-16 w-auto mb-4">` : '';
-            const companyLogoHtml = STATE.companyLogoBase64 && STATE.companyLogoBase64 !== 'data:image/png;base64,YOUR_BASE64_HERE' ? 
-                `<img src="${STATE.companyLogoBase64}" alt="Quality Imaging Solutions" class="h-16 w-auto">` : 
-                '<h2 class="text-2xl font-bold text-indigo-700 mb-2">Quality Imaging Solutions</h2>';
+            const styleBlock = `<style>
+.qd{width:720px;margin:0 auto;font-family:'Inter',Arial,Helvetica,sans-serif;color:#1e293b;font-size:12px;line-height:1.5}
+.qd h1,.qd h2,.qd h3,.qd p,.qd ul{margin:0}
+.qd-page{padding-top:6px}
+.qd-break{page-break-before:always;break-before:page;height:0}
+.qd-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #cbd5e1;padding-bottom:14px;margin-bottom:14px}
+.qd-head img{height:54px;width:auto}
+.qd-head .co-addr{font-size:11px;color:#64748b;margin-top:4px}
+.qd-rep{text-align:right;font-size:11px;color:#475569}
+.qd-rep .nm{font-size:12px;font-weight:700;color:#1e293b}
+.qd-rep .meta{margin-top:8px}
+.qd-section{margin-top:16px}
+.qd-section>h3{font-size:13px;font-weight:700;color:#334155;border-left:3px solid #4338ca;padding-left:8px;margin-bottom:8px}
+.qd-cust .co{font-size:22px;font-weight:800;color:#4338ca}
+.qd-cust p{font-size:11px;color:#475569}
+.qd-equip{border:1px solid #c7d2fe;background:#eef2ff;border-radius:8px;padding:16px}
+.qd-equip .model{font-size:16px;font-weight:800;color:#3730a3}
+.qd-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle}
+.qd-badge.new{background:#dbeafe;color:#1e40af}
+.qd-badge.cpo{background:#fef3c7;color:#92400e}
+.qd-trade{margin-top:10px;font-size:11px;background:#f8fafc;border-left:3px solid #f59e0b;border-radius:4px;padding:8px 10px}
+.qd-trade .neg{color:#dc2626;font-weight:600}
+.qd-price{margin-top:12px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:12px}
+.qd-price .lead{font-size:17px;font-weight:800;color:#1e293b}
+.qd-price .sub{font-size:11px;color:#475569;margin-top:4px}
+.qd-price .monthly{font-size:17px;font-weight:800;color:#4338ca;margin-top:6px}
+.qd-feat{-webkit-columns:2;columns:2;column-gap:24px;font-size:11px}
+.qd-feat div{-webkit-column-break-inside:avoid;break-inside:avoid;padding:2px 0}
+.qd-feat .dot{color:#4338ca;font-weight:700;margin-right:6px}
+table.pcmp{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+table.pcmp th{background:#f1f5f9;text-align:left;padding:6px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#475569;border-bottom:1px solid #cbd5e1}
+table.pcmp td{padding:5px 8px;border-bottom:1px solid #e2e8f0}
+table.pcmp tr{break-inside:avoid}
+.pcmp-term{font-weight:700}
+.pcmp-num{text-align:right;font-variant-numeric:tabular-nums}
+.pcmp-note{font-size:10px;color:#64748b;margin-top:6px;font-style:italic}
+.qd-fine{font-size:10px;color:#64748b;line-height:1.5}
+.qd-list{list-style:disc;padding-left:18px}
+.qd-list li{margin:2px 0}
+.qd-foot{margin-top:20px;border-top:2px solid #cbd5e1;padding-top:12px;text-align:center}
+.qd-foot .ty{font-weight:700;color:#334155}
+.qd-foot .sm{font-size:11px;color:#64748b}
+@media print{.qd{width:100%}}
+</style>`;
 
-            const quoteHtml = `
-                               <div class="flex justify-between items-start mb-6 pb-6 border-b-2 border-gray-300">
-                    <div class="text-left">
-                        ${companyLogoHtml}
-                        <p class="text-sm text-gray-600">7757 Auburn Rd #18, Concord, OH 44077</p>
-                        <p class="text-sm text-gray-600">(440) 466-2077</p>
+            const quoteHtml = `${styleBlock}<div class="qd">
+                <div class="qd-page">
+                    <div class="qd-head">
+                        <div>
+                            ${companyLogoHtml}
+                            <div class="co-addr">7757 Auburn Rd #18, Concord, OH 44077<br>(440) 466-2077 &nbsp;&middot;&nbsp; quality-imaging.com</div>
+                        </div>
+                        <div class="qd-rep">
+                            <div class="nm">${esc(rep.name)}</div>
+                            <div>${esc(rep.title)}</div>
+                            <div>${esc(rep.phone)}</div>
+                            <div>${esc(rep.email)}</div>
+                            <div class="meta">Date: ${formatDate(new Date())}</div>
+                            <div>Quote #: ${esc(formData.quoteNumber)}</div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm font-semibold text-gray-800">${formData.salesRep}</p>
-                        <p class="text-sm text-gray-600">Sales Manager</p>
-                        <p class="text-sm text-gray-600">440-320-1989</p>
-                        <p class="text-sm font-semibold text-gray-800 mt-3">Date: ${formatDate(new Date())}</p>
-                        <p class="text-xs text-gray-500 mt-1">Quote #: ${formData.quoteNumber}</p>
+
+                    <div class="qd-section qd-cust">
+                        <h3>Quote Prepared For</h3>
+                        ${customerLogoHtml}
+                        <div class="co">${esc(formData.customerCompanyName)}</div>
+                        ${formData.customerContactName ? `<p>Attn: ${esc(formData.customerContactName)}</p>` : ''}
+                        ${formData.customerEmail ? `<p>${esc(formData.customerEmail)}</p>` : ''}
+                        ${formData.customerPhone ? `<p>${esc(formData.customerPhone)}</p>` : ''}
                     </div>
+
+                    <div class="qd-section">
+                        <h3>Equipment &amp; Pricing</h3>
+                        <div class="qd-equip">
+                            <div class="model">${esc(formData.modelName)}${conditionBadge}</div>
+                            ${tradeInHtml}
+                            <div class="qd-price">${priceRows}</div>
+                        </div>
+                    </div>
+
+                    ${featuresHtml || alwaysIncluded ? `<div class="qd-section"><h3>Features &amp; What's Included</h3>${featuresHtml}${alwaysIncluded}</div>` : ''}
                 </div>
 
-                            ${customerLogoHtml ? `<div class="mb-6">${customerLogoHtml}</div>` : ''}
+                <div class="qd-break"></div>
 
-                <div class="mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-2">Quote Prepared For:</h2>
-                    <h3 class="text-3xl font-bold text-indigo-700 mb-1">${formData.customerCompanyName}</h3>
-                    ${formData.customerContactName ? `<p class="text-gray-600">Attn: ${formData.customerContactName}</p>` : ''}
-                    ${formData.customerEmail ? `<p class="text-sm text-gray-600">${formData.customerEmail}</p>` : ''}
-                    ${formData.customerPhone ? `<p class="text-sm text-gray-600">${formData.customerPhone}</p>` : ''}
-                </div>
-
-                <div class="mb-6 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200">
-    <h3 class="text-2xl font-bold text-indigo-800 mb-4">
-        Equipment: ${formData.modelName}
-    </h3>
-    <div class="mb-2">${conditionBadge}</div>
-                    ${tradeInHtml}
-                    <div class="mt-4 p-4 bg-white rounded-lg shadow-sm">
-                        ${pricingHtml}
+                <div class="qd-page">
+                    ${comparisonHtml}
+                    ${serviceHtml}
+                    <div class="qd-section"><h3>${program.shortLabel} — Terms</h3><p class="qd-fine">${quoteFinePrint(quoteType, formData.quoteValidDays)}</p></div>
+                    ${notesHtml}
+                    <div class="qd-foot">
+                        <div class="ty">Thank you for your business.</div>
+                        <div class="sm">Quality Imaging Solutions &nbsp;&middot;&nbsp; (440) 466-2077 &nbsp;&middot;&nbsp; We look forward to serving your imaging needs.</div>
                     </div>
                 </div>
-
-                ${featuresHtml}
-                ${comparisonTableHtml}
-                ${serviceContractHtml}
-                ${notesHtml}
-
-                <footer class="mt-12 pt-6 border-t-2 border-gray-300 text-center">
-                    <p class="text-gray-600 font-semibold mb-2">Thank you for your business!</p>
-                    <p class="text-sm text-gray-500">We look forward to serving your imaging needs.</p>
-                </footer>
-            `;
+            </div>`;
 
             document.getElementById('quote-document').innerHTML = quoteHtml;
         }
 
         // ====================================
-        // PDF EXPORT
+        // EXPORT — open a clean, self-contained copy and let the browser
+        // paginate it natively (reliable page breaks, selectable text, small file).
         // ====================================
 
-       function exportToPDF() {
-    const element = document.getElementById('quote-document');
-    
-    if (!element.innerHTML.trim() || element.innerHTML.includes('Click "Refresh Preview"')) {
-        showMessage('No Preview', 'Please generate a preview first before exporting to PDF.');
-        return;
-    }
-
-    const customerName = document.getElementById('customerCompanyName').value || 'Customer';
-    const modelName = document.getElementById('modelName').value || 'Model';
-    const today = new Date();
-    const formattedDate = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
-
-    // Extract just the model number from the full model name
-    // E.g., "Konica Minolta bizhub C458" becomes "C458"
-    let modelShort = modelName;
-    if (modelName.toLowerCase().includes('bizhub')) {
-        // Extract the model number after "bizhub"
-        const match = modelName.match(/bizhub\s+([A-Za-z0-9]+)/i);
-        if (match) {
-            modelShort = match[1];
+        function exportToPDF() {
+            const doc = document.getElementById('quote-document');
+            if (!doc.innerHTML.trim() || doc.innerHTML.indexOf('Refresh Preview') > -1) {
+                showMessage('No Preview', 'Generate the preview first, then export.');
+                return;
+            }
+            const title = buildQuoteFilename();
+            const w = window.open('', '_blank', 'width=900,height=1200');
+            if (!w) {
+                showMessage('Pop-up Blocked', 'Allow pop-ups for this page, then click Save as PDF again.');
+                return;
+            }
+            w.document.open();
+            w.document.write(
+                '<!doctype html><html><head><meta charset="utf-8"><title>' + title + '</title>' +
+                '<style>@page{size:letter;margin:0.5in}html,body{margin:0;padding:0;background:#fff}</style>' +
+                '</head><body>' + doc.innerHTML + '</body></html>'
+            );
+            w.document.close();
+            w.focus();
+            setTimeout(function () { try { w.print(); } catch (e) {} }, 400);
+            showAutoSave('Opening print dialog…');
         }
-    } else if (modelName.toLowerCase().includes('taskalfa')) {
-        // Extract Kyocera model
-        const match = modelName.match(/taskalfa\s+([A-Za-z0-9]+)/i);
-        if (match) {
-            modelShort = match[1];
-        }
-    } else if (modelName.toLowerCase().includes('mx-')) {
-        // Extract Sharp model
-        const match = modelName.match(/(MX-[A-Za-z0-9]+)/i);
-        if (match) {
-            modelShort = match[1];
-        }
-    }
-
-    const filename = `${formattedDate}-${customerName.replace(/[^a-zA-Z0-9]/g, '_')}-${modelShort.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-
-    const opt = {
-        margin: 0.5,
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, logging: false, scrollY: 0, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save();
-    showAutoSave('PDF exported');
-}
 
 
         // ====================================
@@ -1817,6 +2038,11 @@ document.getElementById('loadKMModel').addEventListener('click', loadSelectedMod
                 scheduleAutoSave();
             });
 
+            document.getElementById('securityDeposit').addEventListener('input', () => {
+                updateQuoteSummary();
+                scheduleAutoSave();
+            });
+
             // Trade-in toggle
             document.getElementById('tradeInCheckbox').addEventListener('change', (event) => {
                 const fields = document.getElementById('tradeInFields');
@@ -1834,16 +2060,7 @@ document.getElementById('loadKMModel').addEventListener('click', loadSelectedMod
             // Quote type change
             document.querySelectorAll('input[name="quoteType"]').forEach(radio => {
                 radio.addEventListener('change', () => {
-                    const downPaymentFields = document.getElementById('downPaymentFields');
-                    const quoteType = document.querySelector('input[name="quoteType"]:checked').value;
-                    
-                    if (quoteType === 'rental') {
-                        downPaymentFields.classList.remove('hidden');
-                    } else {
-                        downPaymentFields.classList.add('hidden');
-                        document.getElementById('downPaymentAmount').value = '';
-                    }
-                    
+                    applyQuoteTypeUI();
                     calculatePrices();
                     scheduleAutoSave();
                 });
@@ -1862,8 +2079,8 @@ document.getElementById('clearAllFeaturesBtn').addEventListener('click', clearAl
             document.getElementById('quoteValidDays').addEventListener('input', scheduleAutoSave);
 
             // Sales rep change
-            document.getElementById('salesRep').addEventListener('change', (e) => {
-                document.getElementById('salesRepDisplay').textContent = e.target.value;
+            document.getElementById('salesRep').addEventListener('change', () => {
+                applyRepInfo();
                 scheduleAutoSave();
             });
 
@@ -1883,7 +2100,10 @@ document.getElementById('clearAllFeaturesBtn').addEventListener('click', clearAl
             document.getElementById('customerCompanyName').addEventListener('input', updateProgressBar);
             document.getElementById('modelName').addEventListener('input', updateProgressBar);
 
-            // Initialize calculations
+            // Initialize
+            applyRepInfo();
+            applyQuoteTypeUI();
+            updateQuoteSummary();
             updateProgressBar();
             
             console.log('Initialization complete!');
