@@ -3,12 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Londo Technologies LTD | IT Support, Networking, VoIP & Media Services in Trumbull County, Ohio</title>
-    <meta name="description" content="Londo Technologies LTD provides IT support, networking and Wi-Fi, rural connectivity and Starlink setup, business VoIP, PC repair, and media services in North Bloomfield, Trumbull County, Ohio, with remote-first and on-site support.">
+    <title>Londo Technologies LTD | Local IT, VoIP, Wi-Fi &amp; Starlink Support in Trumbull County, Ohio</title>
+    <meta name="description" content="Londo Technologies is a family-owned shop near North Bloomfield, Ohio, providing IT support, networking and Wi-Fi, rural connectivity and Starlink setup, business VoIP, PC repair, and media services across Trumbull County. Remote-first with on-site help.">
     <link rel="canonical" href="https://www.londo.tech/">
+    <meta name="theme-color" content="#1b467f">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Londo Technologies LTD">
+    <meta property="og:title" content="Londo Technologies LTD | Local IT, VoIP, Wi-Fi &amp; Starlink Support">
+    <meta property="og:description" content="Family-owned IT, connectivity, VoIP, and media support for businesses, farms, and homes in North Bloomfield, Trumbull County, and surrounding Ohio areas.">
+    <meta property="og:url" content="https://www.londo.tech/">
+    <meta property="og:locale" content="en_US">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Londo Technologies LTD | IT Support, Networking, VoIP & Media Services">
+    <meta name="twitter:title" content="Londo Technologies LTD | Local IT, VoIP, Wi-Fi &amp; Starlink Support">
     <meta name="twitter:description" content="IT support, Wi-Fi, rural connectivity, Starlink setup, business VoIP, PC repair, and media services for North Bloomfield, Trumbull County, and surrounding Ohio areas.">
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -16,21 +27,19 @@
       "@id": "https://www.londo.tech/#business",
       "name": "Londo Technologies LTD",
       "url": "https://www.londo.tech/",
+      "logo": "https://www.londo.tech/favicon.svg",
       "telephone": "+1-440-320-1989",
-      "description": "Londo Technologies LTD provides IT support, networking and Wi-Fi, rural connectivity and Starlink setup, business VoIP, PC repair, and media services with remote-first and on-site support.",
+      "description": "Londo Technologies LTD is a family-owned provider of IT support, networking and Wi-Fi, rural connectivity and Starlink setup, business VoIP, PC repair, and media services with remote-first and on-site support.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "North Bloomfield",
+        "addressRegion": "OH",
+        "addressCountry": "US"
+      },
       "areaServed": [
-        {
-          "@type": "Place",
-          "name": "North Bloomfield, Ohio"
-        },
-        {
-          "@type": "AdministrativeArea",
-          "name": "Trumbull County, Ohio"
-        },
-        {
-          "@type": "State",
-          "name": "Ohio"
-        }
+        { "@type": "Place", "name": "North Bloomfield, Ohio" },
+        { "@type": "AdministrativeArea", "name": "Trumbull County, Ohio" },
+        { "@type": "State", "name": "Ohio" }
       ],
       "serviceType": [
         "IT support",
@@ -54,572 +63,424 @@
       ]
     }
     </script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+
     <style>
-        :root {
-            --bg: #f4f7fb;
-            --surface: #ffffff;
-            --surface-soft: #eef4ff;
-            --accent: #1b467f;
-            --accent-dark: #14345f;
-            --accent-soft: rgba(27, 70, 127, 0.12);
-            --text: #18212f;
-            --muted: #5d6b82;
-            --border: #d7e0ee;
-            --shadow: 0 18px 40px rgba(24, 33, 47, 0.08);
-        }
-
+        *, *::before, *::after { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
-
         body {
             margin: 0;
-            background:
-                radial-gradient(circle at top left, rgba(27, 70, 127, 0.10), transparent 32%),
-                linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
+            background: #f7f3ea;
+            color: #211c15;
+            font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+            font-size: 17px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
-
-        a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        a:hover { color: var(--accent-dark); }
-
-        .topbar {
-            background: #eef4fb;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.95rem;
-        }
-
-        .topbar a,
-        .topbar span {
-            color: var(--muted);
-        }
-
-        .topbar strong {
-            color: var(--accent);
-        }
-
-        .topbar .dot {
-            opacity: 0.45;
-            padding: 0 10px;
-        }
-
-        .site-nav {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .navbar-brand {
-            letter-spacing: 0.04em;
-        }
-
-        .brand-accent,
-        .text-accent {
-            color: var(--accent);
-        }
-
-        .nav-link {
-            color: var(--muted);
-            font-weight: 500;
-        }
-
-        .nav-link:hover,
-        .nav-link:focus {
-            color: var(--accent);
-        }
-
-        .hero {
-            padding: 92px 0 56px;
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            border-radius: 999px;
-            border: 1px solid rgba(27, 70, 127, 0.22);
-            background: var(--accent-soft);
-            color: var(--accent);
-            font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        .hero-card,
-        .info-card,
-        .service-card,
-        .contact-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            box-shadow: var(--shadow);
-        }
-
-        .hero-card {
-            padding: 42px;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4.5rem);
-            line-height: 1.05;
-            letter-spacing: -0.03em;
-            margin: 18px 0 18px;
-        }
-
-        .lead-copy {
-            max-width: 720px;
-            font-size: 1.1rem;
-            color: var(--muted);
-        }
-
-        .pill-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 24px;
-        }
-
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            padding: 9px 14px;
-            background: #f8fbff;
-            color: var(--text);
-            font-size: 0.92rem;
-            font-weight: 500;
-        }
-
-        .btn-accent {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 999px;
-            padding: 14px 24px;
-            font-weight: 700;
-            box-shadow: 0 12px 24px rgba(27, 70, 127, 0.28);
-        }
-
-        .btn-accent:hover {
-            background: var(--accent-dark);
-            color: #fff;
-        }
-
-        .btn-soft {
-            border: 1px solid var(--border);
-            background: #fff;
-            color: var(--text);
-            border-radius: 999px;
-            padding: 14px 24px;
-            font-weight: 700;
-        }
-
-        .btn-soft:hover {
-            background: var(--surface-soft);
-            color: var(--accent-dark);
-            border-color: #bfd0e8;
-        }
-
-        .section {
-            padding: 24px 0;
-        }
-
-        .section-heading {
-            margin-bottom: 20px;
-        }
-
-        .section-heading p {
-            color: var(--muted);
-            max-width: 760px;
-            margin-bottom: 0;
-        }
-
-        .info-card,
-        .service-card,
-        .contact-card {
-            padding: 28px;
-            height: 100%;
-        }
-
-        .service-card h3,
-        .info-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 12px;
-        }
-
-        .muted {
-            color: var(--muted);
-        }
-
-        .service-list,
-        .check-list {
-            padding-left: 1.1rem;
-            margin-bottom: 0;
-        }
-
-        .service-list li,
-        .check-list li {
-            margin-bottom: 0.55rem;
-            color: var(--muted);
-        }
-
-        .service-list li:last-child,
-        .check-list li:last-child {
-            margin-bottom: 0;
-        }
-
-        .service-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
-        }
-
-        .contact-card {
-            background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
-        }
-
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border), transparent);
-            margin: 30px 0 6px;
-        }
-
-        footer {
-            padding: 36px 0 44px;
-            color: var(--muted);
-        }
-
-        @media (max-width: 767.98px) {
-            .hero {
-                padding-top: 56px;
-            }
-
-            .hero-card,
-            .info-card,
-            .service-card,
-            .contact-card {
-                padding: 24px;
-            }
-
-            .topbar .status-line {
-                width: 100%;
-            }
-
-            .service-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (min-width: 768px) and (max-width: 991.98px) {
-            .service-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+        .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+        .serif { font-family: "Newsreader", Georgia, "Times New Roman", serif; }
+        a { color: #1b467f; text-decoration: none; }
+        a:hover { color: #14345f; text-decoration: underline; }
+        h1, h2, h3 { margin: 0; font-family: "Newsreader", Georgia, "Times New Roman", serif; font-weight: 500; line-height: 1.12; letter-spacing: -0.01em; color: #211c15; }
+        h1 { font-size: 52px; }
+        h2 { font-size: 34px; }
+        h3 { font-size: 20px; font-weight: 600; letter-spacing: 0; }
+        p { margin: 0; }
+        img, svg { max-width: 100%; }
+        .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #1b467f; }
+        .muted { color: #5c5346; }
+        .section { padding: 66px 0; }
+        .btn { display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; border-radius: 8px; font-weight: 600; font-size: 15.5px; border: 1.5px solid transparent; cursor: pointer; line-height: 1; }
+        .btn-primary { background: #1b467f; color: #fff; }
+        .btn-primary:hover { background: #14345f; color: #fff; text-decoration: none; }
+        .btn-ghost { background: transparent; color: #211c15; border-color: #cdbfa6; }
+        .btn-ghost:hover { border-color: #1b467f; color: #1b467f; text-decoration: none; }
+        .card { background: #fffdf8; border: 1px solid #ddd3c0; border-radius: 8px; padding: 26px; }
+        .pill { display: inline-flex; align-items: center; padding: 8px 15px; border-radius: 999px; border: 1px solid #ddd3c0; background: #fffdf8; font-size: 14px; font-weight: 500; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+        .stack { display: flex; flex-direction: column; }
+        .slist { margin: 0; padding-left: 18px; font-size: 14.5px; color: #5c5346; display: flex; flex-direction: column; gap: 6px; }
+        .lbl { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #5c5346; }
+        .field { font-family: inherit; font-size: 15px; color: #211c15; background: #fffdf8; border: 1px solid #cdbfa6; border-radius: 6px; padding: 11px 12px; width: 100%; }
+        .field:focus { outline: 2px solid #1b467f; outline-offset: 1px; border-color: #1b467f; }
+        .split { display: grid; gap: 44px; align-items: center; }
+        .skip-link { position: absolute; left: -999px; top: 0; background: #1b467f; color: #fff; padding: 10px 16px; border-radius: 0 0 8px 0; z-index: 50; }
+        .skip-link:focus { left: 0; color: #fff; text-decoration: none; }
+        @media (max-width: 860px) {
+            h1 { font-size: 38px; }
+            h2 { font-size: 28px; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .split { grid-template-columns: 1fr !important; }
+            .section { padding: 48px 0; }
         }
     </style>
 </head>
 <body id="top">
 
-    <div class="topbar py-2">
-        <div class="container d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <div class="d-flex flex-wrap align-items-center gap-2 status-line">
-                <strong>Call/Text:</strong>
-                <a href="tel:14403201989">440-320-1989</a>
-                <span class="dot">•</span>
-                <span>On-site available in North Bloomfield and surrounding areas</span>
-            </div>
-            <div class="d-flex gap-3">
-                <a href="tel:14403201989">Call 440-320-1989</a>
-                <a href="sms:14403201989">Text 440-320-1989</a>
-            </div>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div style="background: #1b467f; color: #eaf1fa; font-size: 13.5px;">
+        <div class="wrap" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-top: 9px; padding-bottom: 9px;">
+            <span style="display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5 3.5-2 1.5a11 11 0 0 0 5 5l1.5-2 3.5 1.5V19a2 2 0 0 1-2 2A16 16 0 0 1 4 8z"/></svg>
+                <strong style="color: #fff; font-weight: 600;">Call or text 440-320-1989</strong>
+            </span>
+            <span style="color: #c5d6ea;">On-site in North Bloomfield &amp; Trumbull County &nbsp;&middot;&nbsp; Remote-first everywhere else</span>
         </div>
     </div>
 
-    <nav class="navbar navbar-expand-md site-nav sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#top">LONDO <span class="brand-accent">TECHNOLOGIES</span></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="mainNav">
-                <div class="navbar-nav ms-auto gap-md-2">
-                    <a class="nav-link" href="#services">What We Do</a>
-                    <a class="nav-link" href="support.html">Remote Support</a>
-                    <a class="nav-link" href="#about">About</a>
-                    <a class="nav-link" href="#contact">Contact</a>
-                    <a class="nav-link" href="privacy.html">Privacy Policy</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <header class="hero">
-        <div class="container">
-            <div class="hero-card">
-                <span class="eyebrow">North Bloomfield, Ohio • Remote-first + On-site</span>
-                <h1>Practical IT, connectivity, and media support for local businesses, farms, and homes.</h1>
-                <p class="lead-copy mb-0">
-                    Londo Technologies helps clients solve real-world tech problems with clear communication, dependable support,
-                    and services built for both small businesses and rural properties. No stock-photo fluff — just quality service,
-                    explained simply and delivered professionally.
-                </p>
-
-                <div class="d-flex flex-wrap gap-3 mt-4">
-                    <a href="tel:14403201989" class="btn btn-accent">Call 440-320-1989</a>
-                    <a href="sms:14403201989" class="btn btn-soft">Text for Fast Help</a>
-                    <a href="#services" class="btn btn-soft">Explore Services</a>
-                </div>
-
-                <div class="pill-row">
-                    <span class="pill">Managed IT</span>
-                    <span class="pill">Networking & Wi‑Fi</span>
-                    <span class="pill">Rural Connectivity</span>
-                    <span class="pill">Business VoIP</span>
-                    <span class="pill">PC Repair & Setup</span>
-                    <span class="pill">Audio, Video & Design</span>
-                </div>
-            </div>
+    <header style="position: sticky; top: 0; z-index: 20; background: rgba(247, 243, 234, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid #ddd3c0;">
+        <div class="wrap" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-top: 16px; padding-bottom: 16px;">
+            <a href="#top" style="letter-spacing: 0.16em; font-weight: 700; font-size: 16px; color: #211c15;">LONDO <span style="color: #1b467f; font-weight: 500;">TECHNOLOGIES</span></a>
+            <nav aria-label="Primary" style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; font-size: 15px; font-weight: 500;">
+                <a href="#services" style="color: #5c5346;">What we do</a>
+                <a href="#area" style="color: #5c5346;">Service area</a>
+                <a href="#about" style="color: #5c5346;">About</a>
+                <a href="support.html" style="color: #5c5346;">Remote support</a>
+                <a href="tel:14403201989" class="btn btn-primary" style="padding: 10px 18px;">Call 440-320-1989</a>
+            </nav>
         </div>
     </header>
 
-    <section class="section" aria-labelledby="who-we-support">
-        <div class="container">
-            <div class="section-heading">
-                <h2 id="who-we-support" class="fw-bold mb-2">Who we support</h2>
-                <p>Local support for North Bloomfield, Trumbull County, and nearby Ohio communities, plus remote-first help when on-site service is not required.</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="info-card">
-                        <h3>For businesses</h3>
-                        <p class="muted mb-3">Reliable support for teams that need stable systems, better communication tools, and a partner who can keep things moving.</p>
-                        <ul class="check-list">
-                            <li>Managed IT and troubleshooting</li>
-                            <li>Network setup, Wi‑Fi improvements, and security guidance</li>
-                            <li>Managed VoIP and call-flow setup</li>
-                            <li>Branding, print assets, and media support</li>
-                        </ul>
-                    </div>
+    <main id="main">
+
+    <section class="section" style="position: relative; overflow: hidden; padding-top: 74px; padding-bottom: 82px;">
+        <svg aria-hidden="true" viewBox="0 0 1200 620" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0;">
+            <g fill="none" stroke="#1b467f" stroke-opacity="0.07" stroke-width="2">
+                <path d="M-20,120 C300,80 600,170 1220,110"/>
+                <path d="M-20,210 C280,180 640,260 1220,200"/>
+                <path d="M-20,300 C320,270 600,350 1220,290"/>
+                <path d="M-20,390 C260,360 660,440 1220,380"/>
+                <path d="M-20,480 C340,450 600,520 1220,470"/>
+                <path d="M-20,560 C300,540 640,610 1220,545"/>
+            </g>
+        </svg>
+        <div class="wrap split" style="position: relative; z-index: 1; grid-template-columns: 1.05fr 0.95fr;">
+            <div class="stack" style="gap: 22px;">
+                <span class="eyebrow">Family-owned &nbsp;&middot;&nbsp; North Bloomfield, Ohio</span>
+                <h1>Tech help with a face<br>and a phone number.</h1>
+                <p class="muted" style="font-size: 19px; max-width: 34em;">Londo Technologies is a family shop near North Bloomfield handling IT, connectivity, phones, and media for local businesses, farms, and homes. Remote-first when that&#39;s faster &mdash; on your property when it isn&#39;t.</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+                    <a href="tel:14403201989" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5 3.5-2 1.5a11 11 0 0 0 5 5l1.5-2 3.5 1.5V19a2 2 0 0 1-2 2A16 16 0 0 1 4 8z"/></svg>
+                        Call 440-320-1989
+                    </a>
+                    <a href="sms:14403201989" class="btn btn-ghost">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg>
+                        Text for fast help
+                    </a>
                 </div>
-                <div class="col-lg-6">
-                    <div class="info-card">
-                        <h3>For farms, rural properties, and homes</h3>
-                        <p class="muted mb-3">On-site help and remote support for connectivity, devices, and home technology that has to work across real buildings and real distances.</p>
-                        <ul class="check-list">
-                            <li>Starlink and mesh Wi‑Fi setup</li>
-                            <li>Wireless bridge planning for barns and shops</li>
-                            <li>PC repair, tune-ups, and device setup</li>
-                            <li>Home theater, audio, and in-home tech guidance</li>
-                        </ul>
-                    </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; font-weight: 500; color: #5c5346;">
+                    <span>Serving Trumbull County &amp; NE Ohio</span>
+                    <span aria-hidden="true" style="color: #b9ab90;">&middot;</span>
+                    <span>No call centers, no scripts</span>
+                    <span aria-hidden="true" style="color: #b9ab90;">&middot;</span>
+                    <span>Straight, fair pricing</span>
                 </div>
             </div>
-            <div class="divider"></div>
+            <div style="position: relative;">
+                <svg viewBox="0 0 520 420" role="img" aria-label="Line illustration of a farmhouse, barn, and silo with a connectivity signal" style="width: 100%; height: auto; display: block;">
+                    <path d="M300,330 V262 H410 V330 Z" fill="#9c4a2c" fill-opacity="0.06"/>
+                    <g fill="none" stroke="#211c15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M0,330 C120,300 200,360 320,330 C420,305 470,340 520,325"/>
+                        <path d="M0,372 C140,350 240,392 380,368 C450,356 500,376 520,368" stroke-opacity="0.45"/>
+                        <path d="M70,330 V250 H170 V330"/>
+                        <path d="M58,252 L120,205 L182,252"/>
+                        <path d="M150,222 V200 H162 V233"/>
+                        <path d="M108,330 V292 H132 V330"/>
+                        <rect x="80" y="266" width="18" height="18"/>
+                        <rect x="142" y="266" width="18" height="18"/>
+                        <circle cx="120" cy="230" r="7"/>
+                        <path d="M120,205 V182"/>
+                        <path d="M132,180 A18,18 0 0 1 132,206" stroke="#1b467f"/>
+                        <path d="M140,172 A28,28 0 0 1 140,214" stroke="#1b467f" stroke-opacity="0.7"/>
+                        <path d="M148,164 A38,38 0 0 1 148,222" stroke="#1b467f" stroke-opacity="0.42"/>
+                        <path d="M225,330 V300"/>
+                        <path d="M225,302 C205,302 200,278 214,270 C210,255 232,248 240,260 C254,252 266,270 256,282 C264,292 252,306 240,300 C236,308 228,308 225,302 Z"/>
+                        <path d="M282,330 V308"/>
+                        <circle cx="282" cy="297" r="14"/>
+                        <path d="M300,330 V262 H410 V330"/>
+                        <path d="M292,264 L316,232 L355,214 L394,232 L418,264"/>
+                        <path d="M338,330 V284 H372 V330"/>
+                        <path d="M338,284 L372,330 M372,284 L338,330" stroke-opacity="0.5"/>
+                        <path d="M348,250 h14 v14 h-14 z"/>
+                        <path d="M430,330 V238"/>
+                        <path d="M462,330 V238"/>
+                        <path d="M430,238 A16,16 0 0 1 462,238"/>
+                        <path d="M430,264 H462 M430,288 H462 M430,312 H462" stroke-opacity="0.35"/>
+                        <path d="M486,330 V210"/>
+                        <path d="M474,224 H498"/>
+                        <path d="M478,224 V218 M494,224 V218" stroke-opacity="0.55"/>
+                        <path d="M486,214 C420,240 300,205 132,196" stroke="#1b467f" stroke-opacity="0.45"/>
+                        <path d="M486,330 L472,302 M486,330 L500,302" stroke-opacity="0.4"/>
+                        <path d="M356,120 q8,-8 16,0 q8,-8 16,0" stroke-opacity="0.55"/>
+                        <path d="M398,102 q6,-6 12,0 q6,-6 12,0" stroke-opacity="0.4"/>
+                    </g>
+                </svg>
+            </div>
         </div>
     </section>
 
-    <section id="services" class="section">
-        <div class="container">
-            <div class="section-heading">
-                <h2 class="fw-bold mb-2">Services</h2>
-                <p>
-                    Practical support for businesses, farms, and homes across IT, connectivity, communications, and media.
-                </p>
+    <section class="section" aria-labelledby="who-heading" style="background: #efe8da; border-top: 1px solid #ddd3c0; border-bottom: 1px solid #ddd3c0;">
+        <div class="wrap">
+            <div class="stack" style="gap: 10px; margin-bottom: 34px;">
+                <span class="eyebrow">Who we help</span>
+                <h2 id="who-heading">Three kinds of customer, one number to call.</h2>
             </div>
+            <div class="grid-3">
+                <div class="card stack" style="gap: 12px;">
+                    <span style="color: #1b467f;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10h16V9"/><path d="M4 9a2.4 2.4 0 0 0 5 0 2.4 2.4 0 0 0 5 0 2.4 2.4 0 0 0 5 0"/><path d="M9 19v-5h6v5"/></svg></span>
+                    <h3>Businesses</h3>
+                    <p class="muted" style="font-size: 15.5px;">Stable systems, better phones, and someone who actually picks up. Managed IT, networking, and VoIP for local teams.</p>
+                </div>
+                <div class="card stack" style="gap: 12px;">
+                    <span style="color: #1b467f;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V8l9-5 9 5v13"/><path d="M3 21h18"/><path d="M9 21v-7h6v7"/><path d="M3 8l9 4 9-4"/></svg></span>
+                    <h3>Farms &amp; rural property</h3>
+                    <p class="muted" style="font-size: 15.5px;">Connectivity built for distance and outbuildings &mdash; Starlink, mesh, and wireless bridges that hold up in real weather.</p>
+                </div>
+                <div class="card stack" style="gap: 12px;">
+                    <span style="color: #1b467f;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg></span>
+                    <h3>Homes</h3>
+                    <p class="muted" style="font-size: 15.5px;">Slow computers, spotty Wi-Fi, new devices, home theater. The house call that tech support forgot.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-            <div class="service-grid">
-                <div class="service-card">
-                    <h3 class="text-accent">Managed IT</h3>
-                    <p class="muted">Day-to-day support, system cleanup, practical troubleshooting, and dependable help when something breaks.</p>
-                    <ul class="service-list">
+    <section id="services" class="section" aria-labelledby="services-heading">
+        <div class="wrap">
+            <div class="stack" style="gap: 10px; margin-bottom: 34px; max-width: 660px;">
+                <span class="eyebrow">What we do</span>
+                <h2 id="services-heading">Practical help across IT, connectivity, phones, and media.</h2>
+                <p class="muted">The same clear communication whether it&#39;s a server closet, a barn 400 feet from the house, or a laptop that won&#39;t boot.</p>
+            </div>
+            <div class="grid-3">
+
+                <article class="card stack" style="gap: 13px;">
+                    <span style="color: #1b467f;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16v4"/><circle cx="12" cy="10" r="2.1"/><path d="M12 6.6v1.3M12 12.1v1.3M15.4 10h-1.3M9.9 10H8.6"/></svg></span>
+                    <h3>Managed IT</h3>
+                    <p class="muted" style="font-size: 15px;">Day-to-day support, cleanup, and dependable help when something breaks.</p>
+                    <ul class="slist">
                         <li>Remote-first problem solving</li>
-                        <li>Device and account cleanup</li>
-                        <li>Upgrade planning and recommendations</li>
+                        <li>Device &amp; account cleanup</li>
+                        <li>Upgrade planning &amp; recommendations</li>
                     </ul>
-                </div>
+                </article>
 
-                <div class="service-card">
-                    <h3 class="text-accent">Networking & Wi‑Fi</h3>
-                    <p class="muted">Coverage planning, better stability, and cleaner setups for homes, shops, and offices.</p>
-                    <ul class="service-list">
-                        <li>Router and switch setup</li>
-                        <li>Dead-zone and performance troubleshooting</li>
-                        <li>Documentation and layout guidance</li>
+                <article class="card stack" style="gap: 13px;">
+                    <span style="color: #1b467f;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8 15.5a6 6 0 0 1 8 0"/><circle cx="12" cy="18.6" r="1.3" fill="currentColor" stroke="none"/></svg></span>
+                    <h3>Networking &amp; Wi-Fi</h3>
+                    <p class="muted" style="font-size: 15px;">Coverage planning and cleaner setups for homes, shops, and offices.</p>
+                    <ul class="slist">
+                        <li>Router &amp; switch setup</li>
+                        <li>Dead-zone &amp; performance troubleshooting</li>
+                        <li>Layout guidance and documentation</li>
                     </ul>
-                </div>
+                </article>
 
-                <div class="service-card">
-                    <h3 class="text-accent">Rural Connectivity</h3>
-                    <p class="muted">Solutions built for rural reality, including Starlink, mesh systems, and wireless bridge installs.</p>
-                    <ul class="service-list">
-                        <li>Starlink setup and optimization</li>
-                        <li>Connectivity to barns and outbuildings</li>
+                <article class="card stack" style="gap: 13px;">
+                    <span style="color: #1b467f;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 13a7 7 0 0 0-7 7"/><path d="M5 20h4"/><ellipse cx="13.5" cy="9" rx="5" ry="3.2" transform="rotate(-35 13.5 9)"/><path d="M15 4.5l1.6 1.6"/><circle cx="18.4" cy="6" r="1.4"/></svg></span>
+                    <h3>Rural Connectivity &amp; Starlink</h3>
+                    <p class="muted" style="font-size: 15px;">Solutions built for rural reality &mdash; distance, trees, and outbuildings.</p>
+                    <ul class="slist">
+                        <li>Starlink setup &amp; optimization</li>
+                        <li>Connectivity to barns &amp; shops</li>
                         <li>Remote-first follow-up support</li>
                     </ul>
-                </div>
+                </article>
 
-                <div class="service-card">
-                    <h3 class="text-accent">Business VoIP</h3>
-                    <p class="muted">Professional phone systems with setup, routing, onboarding, and ongoing support.</p>
-                    <ul class="service-list">
-                        <li>Managed VoIP service and support</li>
+                <article class="card stack" style="gap: 13px;">
+                    <span style="color: #1b467f;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h3l1.5 3.5-2 1.5a11 11 0 0 0 5 5l1.5-2 3.5 1.5V17a2 2 0 0 1-2 2A16 16 0 0 1 4 8z"/></svg></span>
+                    <h3>Business VoIP</h3>
+                    <p class="muted" style="font-size: 15px;">Professional phone systems, set up, migrated, and supported as you grow.</p>
+                    <ul class="slist">
+                        <li>Managed VoIP service &amp; support</li>
                         <li>New system setup and migrations</li>
                         <li>Ring groups, voicemail, and schedules</li>
-                        <li>Support as the business grows</li>
                     </ul>
-                </div>
+                </article>
 
-                <div class="service-card">
-                    <h3 class="text-accent">PC Repair & Setup</h3>
-                    <p class="muted">Practical help for slow computers, new devices, home office setups, and general tech frustration.</p>
-                    <ul class="service-list">
+                <article class="card stack" style="gap: 13px;">
+                    <span style="color: #1b467f;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8 7.2 20l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.1-2.1z"/><path d="M15 15l5 5"/></svg></span>
+                    <h3>PC Repair &amp; Setup</h3>
+                    <p class="muted" style="font-size: 15px;">Practical help for slow computers, new devices, and home-office setups.</p>
+                    <ul class="slist">
                         <li>Diagnostics and tune-ups</li>
-                        <li>New computer setup and transfers</li>
+                        <li>New computer setup &amp; data transfers</li>
                         <li>Printer and workstation support</li>
                     </ul>
-                </div>
+                </article>
 
-                <div class="service-card">
-                    <h3 class="text-accent">Media, Design & Audio Production</h3>
-                    <p class="muted">Clear, useful creative work that supports the business — from audio/video production to branding and print materials.</p>
-                    <ul class="service-list">
-                        <li>Audio production for music, radio, and social media</li>
+                <article class="card stack" style="gap: 13px;">
+                    <span style="color: #1b467f;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h3l2-6 3.5 15L16 6l2 5 2-2.4h2"/></svg></span>
+                    <h3>Media, Design &amp; Audio</h3>
+                    <p class="muted" style="font-size: 15px;">Creative work that supports the business, not stock-photo filler.</p>
+                    <ul class="slist">
+                        <li>Audio production for music, radio &amp; social</li>
                         <li>Promo and social video production</li>
-                        <li>Logo and brand design</li>
-                        <li>Flyers, cards, posters, and printed materials</li>
+                        <li>Logos, flyers, cards &amp; printed materials</li>
                     </ul>
-                </div>
+                </article>
+
             </div>
-            <div class="divider"></div>
         </div>
     </section>
 
-    <section id="about" class="section">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-7">
-                    <div class="info-card">
-                        <h2 class="fw-bold mb-3">Local. Family-owned. Built around real service.</h2>
-                        <p class="muted mb-3">
-                            Based near North Bloomfield, Londo Technologies supports clients throughout Trumbull County and surrounding areas.
-                            The focus is simple: solve the problem, communicate clearly, and make sure customers feel taken care of.
-                        </p>
-                        <div class="pill-row mt-0">
-                            <span class="pill">Clear communication</span>
-                            <span class="pill">Professional installs</span>
-                            <span class="pill">Remote-first support</span>
-                            <span class="pill">On-site when needed</span>
-                        </div>
-                    </div>
+    <section class="section" aria-labelledby="how-heading" style="background: #efe8da; border-top: 1px solid #ddd3c0; border-bottom: 1px solid #ddd3c0;">
+        <div class="wrap">
+            <div class="stack" style="gap: 10px; margin-bottom: 34px;">
+                <span class="eyebrow">How working with us goes</span>
+                <h2 id="how-heading">No tickets. No phone tree. Just a fix.</h2>
+            </div>
+            <div class="grid-3">
+                <div class="stack" style="gap: 12px;">
+                    <div class="serif" aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #1b467f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 19px;">1</div>
+                    <h3>Call or text</h3>
+                    <p class="muted" style="font-size: 15px;">Tell us what&#39;s going on in plain words. 440-320-1989, and a person answers.</p>
                 </div>
-                <div class="col-lg-5">
-                    <div class="info-card h-100">
-                        <h3>Why clients choose Londo Technologies</h3>
-                        <ul class="check-list">
-                            <li>Fast response by call, text, or remote support</li>
-                            <li>Practical recommendations tailored to your setup</li>
-                            <li>Consistent help for both immediate fixes and long-term planning</li>
-                            <li>On-site service when hands-on work is needed</li>
-                        </ul>
-                    </div>
+                <div class="stack" style="gap: 12px;">
+                    <div class="serif" aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #1b467f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 19px;">2</div>
+                    <h3>We look &mdash; usually remotely</h3>
+                    <p class="muted" style="font-size: 15px;">Most problems get diagnosed, and often fixed, without anyone driving out.</p>
                 </div>
-            </div>
-            <div class="divider"></div>
-        </div>
-    </section>
-
-    <section id="service-area" class="section" aria-labelledby="service-area-heading">
-        <div class="container">
-            <div class="section-heading">
-                <h2 id="service-area-heading" class="fw-bold mb-2">Service area</h2>
-                <p>Londo Technologies is based near North Bloomfield and serves Trumbull County and surrounding Ohio communities with remote-first and on-site support.</p>
-            </div>
-            <div class="info-card">
-                <ul class="check-list">
-                    <li>North Bloomfield, Ohio</li>
-                    <li>Trumbull County, Ohio</li>
-                    <li>Surrounding Northeast Ohio areas</li>
-                    <li>Remote support available beyond immediate on-site range</li>
-                </ul>
-            </div>
-            <div class="divider"></div>
-        </div>
-    </section>
-
-    <section id="contact" class="section pb-5">
-        <div class="container">
-            <div class="contact-card">
-                <div class="row g-4 align-items-center">
-                    <div class="col-lg-7">
-                        <h2 class="fw-bold mb-2">Ready to talk through your project?</h2>
-                        <p class="muted mb-3">
-                            Call or text for the fastest response. Whether you need remote troubleshooting, on-site help,
-                            connectivity planning, or business support, we can start with a quick conversation.
-                        </p>
-                        <div class="d-flex flex-wrap gap-3 mb-3">
-                            <a class="btn btn-accent" href="tel:14403201989">Call 440-320-1989</a>
-                            <a class="btn btn-soft" href="sms:14403201989">Text 440-320-1989</a>
-                        </div>
-                        <div class="pill-row mt-0">
-                            <span class="pill">North Bloomfield, OH</span>
-                            <span class="pill">Trumbull County</span>
-                            <span class="pill">Surrounding areas</span>
-                            <span class="pill">Remote-first + On-site</span>
-                        </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <form action="https://api.web3forms.com/submit" method="POST">
-                            <input type="hidden" name="access_key" value="f7b65244-689f-4d00-8391-c10789938b20">
-                            <input type="text" name="name" placeholder="Your Name" required class="form-control mb-3">
-                            <input type="email" name="email" placeholder="Email Address" required class="form-control mb-3">
-                            <select name="customer_type" class="form-control mb-3" required>
-                                <option value="" selected disabled>I am a...</option>
-                                <option>Business customer</option>
-                                <option>Farm / rural property</option>
-                                <option>Residential customer</option>
-                            </select>
-                            <select name="service_interest" class="form-control mb-3" required>
-                                <option value="" selected disabled>I need help with...</option>
-                                <option>Rural connectivity (Starlink / mesh / wireless bridge)</option>
-                                <option>Managed IT / troubleshooting</option>
-                                <option>Networking / Wi‑Fi</option>
-                                <option>Managed VoIP / Business VoIP</option>
-                                <option>PC repair / setup</option>
-                                <option>Home theater / audio</option>
-                                <option>Audio production (music / radio / social media)</option>
-                                <option>Video production</option>
-                                <option>Logo / design</option>
-                                <option>Printed media</option>
-                                <option>Not sure yet</option>
-                            </select>
-                            <textarea name="message" placeholder="Briefly describe what you need" required rows="5" class="form-control mb-3"></textarea>
-                            <button type="submit" class="btn btn-accent w-100">Send Message</button>
-                        </form>
-                    </div>
+                <div class="stack" style="gap: 12px;">
+                    <div class="serif" aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #1b467f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 19px;">3</div>
+                    <h3>We fix it, or we show up</h3>
+                    <p class="muted" style="font-size: 15px;">On-site in North Bloomfield and the surrounding area whenever hands-on work is the right call.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="text-center">
-        <div class="container">
-            <p class="mb-1">&copy; 2026 Londo Technologies LTD | <span class="text-accent">Londo.Tech</span></p>
-            <p class="mb-1">
-                <a href="support.html">Remote Support Portal</a> •
-                <a href="/resume/">Resume</a> •
+    <section id="area" class="section" aria-labelledby="area-heading">
+        <div class="wrap split" style="grid-template-columns: 0.85fr 1.15fr;">
+            <div style="display: flex; justify-content: center;">
+                <svg viewBox="0 0 300 330" role="img" aria-label="Stylized map of Trumbull County, Ohio, with North Bloomfield marked" style="width: 100%; max-width: 320px; height: auto;">
+                    <defs>
+                        <clipPath id="cty"><path d="M40,30 L250,26 Q262,26 262,40 L266,270 Q266,284 252,284 L52,290 Q38,290 38,276 L34,44 Q34,30 40,30 Z"/></clipPath>
+                    </defs>
+                    <path d="M40,30 L250,26 Q262,26 262,40 L266,270 Q266,284 252,284 L52,290 Q38,290 38,276 L34,44 Q34,30 40,30 Z" fill="#1b467f" fill-opacity="0.06" stroke="#1b467f" stroke-width="2" stroke-linejoin="round"/>
+                    <g clip-path="url(#cty)" stroke="#1b467f" stroke-opacity="0.16" stroke-width="1">
+                        <path d="M90,20 V300 M142,20 V300 M194,20 V300 M246,20 V300"/>
+                        <path d="M20,76 H280 M20,120 H280 M20,164 H280 M20,208 H280 M20,252 H280"/>
+                    </g>
+                    <path d="M129,66 C114,66 104,77 104,90 C104,106 129,128 129,128 C129,128 154,106 154,90 C154,77 144,66 129,66 Z" fill="#9c4a2c" stroke="#7a3720" stroke-width="1.5" stroke-linejoin="round"/>
+                    <circle cx="129" cy="88" r="6" fill="#f7f3ea"/>
+                    <text x="129" y="150" text-anchor="middle" font-family="Hanken Grotesk, sans-serif" font-size="13" font-weight="600" fill="#211c15">North Bloomfield</text>
+                    <text x="150" y="314" text-anchor="middle" font-family="Hanken Grotesk, sans-serif" font-size="11" fill="#5c5346">Trumbull County, Ohio</text>
+                </svg>
+            </div>
+            <div class="stack" style="gap: 16px;">
+                <span class="eyebrow">Service area</span>
+                <h2 id="area-heading">Based near North Bloomfield.</h2>
+                <p class="muted">On-site across Trumbull County and the surrounding Northeast Ohio communities. Past that, remote support works just about anywhere.</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span class="pill">North Bloomfield</span>
+                    <span class="pill">Bristolville</span>
+                    <span class="pill">Cortland</span>
+                    <span class="pill">Warren</span>
+                    <span class="pill">Middlefield</span>
+                    <span class="pill">Orwell</span>
+                    <span class="pill">Trumbull County</span>
+                    <span class="pill">Surrounding NE Ohio</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="section" aria-labelledby="about-heading" style="background: #1b467f; color: #eef3f9;">
+        <div class="wrap split" style="grid-template-columns: 1fr 1fr;">
+            <div class="stack" style="gap: 18px;">
+                <span class="eyebrow" style="color: #b9d0ea;">About</span>
+                <h2 id="about-heading" style="color: #fff;">Family-owned, and it shows.</h2>
+                <p style="color: #d7e2f0;">Londo Technologies is run by the Londo family out of North Bloomfield. When you call, you get us &mdash; not a ticket queue three states away. We explain what&#39;s wrong in words that make sense, we don&#39;t upsell what you don&#39;t need, and we stand behind the work.</p>
+            </div>
+            <div style="border-left: 2px solid rgba(255, 255, 255, 0.25); padding-left: 28px;">
+                <p class="serif" style="font-size: 24px; font-style: italic; color: #fff; line-height: 1.4;">&ldquo;Solve the problem, communicate clearly, and make sure the customer feels taken care of.&rdquo;</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px;">
+                    <span class="pill" style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); color: #eef3f9;">Clear communication</span>
+                    <span class="pill" style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); color: #eef3f9;">No scripts or call centers</span>
+                    <span class="pill" style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); color: #eef3f9;">Remote-first</span>
+                    <span class="pill" style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); color: #eef3f9;">On-site when it matters</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section" aria-labelledby="contact-heading">
+        <div class="wrap split" style="grid-template-columns: 0.85fr 1.15fr; align-items: start;">
+            <div class="stack" style="gap: 16px;">
+                <span class="eyebrow">Contact</span>
+                <h2 id="contact-heading">Tell us what&#39;s going on.</h2>
+                <p class="muted">Call or text for the fastest answer. Prefer to write it out? Fill this in and we&#39;ll get back to you as soon as we can.</p>
+                <a href="tel:14403201989" style="display: inline-flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5 3.5-2 1.5a11 11 0 0 0 5 5l1.5-2 3.5 1.5V19a2 2 0 0 1-2 2A16 16 0 0 1 4 8z"/></svg>
+                    440-320-1989
+                </a>
+                <span class="muted" style="font-size: 14.5px;">North Bloomfield, Ohio</span>
+            </div>
+            <form action="https://api.web3forms.com/submit" method="POST" class="card" style="display: flex; flex-direction: column; gap: 14px;">
+                <input type="hidden" name="access_key" value="f7b65244-689f-4d00-8391-c10789938b20">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <label class="lbl">Your name
+                        <input class="field" type="text" name="name" required>
+                    </label>
+                    <label class="lbl">Email
+                        <input class="field" type="email" name="email" required>
+                    </label>
+                </div>
+                <label class="lbl">I am a&hellip;
+                    <select class="field" name="customer_type" required>
+                        <option value="" selected disabled>Choose one</option>
+                        <option>Business</option>
+                        <option>Farm / rural property</option>
+                        <option>Home / residential</option>
+                    </select>
+                </label>
+                <label class="lbl">I need help with&hellip;
+                    <select class="field" name="service_interest" required>
+                        <option value="" selected disabled>Choose one</option>
+                        <option>Rural connectivity (Starlink / mesh / wireless bridge)</option>
+                        <option>Managed IT / troubleshooting</option>
+                        <option>Networking / Wi-Fi</option>
+                        <option>Business VoIP</option>
+                        <option>PC repair / setup</option>
+                        <option>Home theater / audio</option>
+                        <option>Media production (audio / video)</option>
+                        <option>Logo / design / print</option>
+                        <option>Not sure yet</option>
+                    </select>
+                </label>
+                <label class="lbl">What&#39;s going on?
+                    <textarea class="field" name="message" rows="5" required style="resize: vertical;"></textarea>
+                </label>
+                <button type="submit" class="btn btn-primary" style="justify-content: center; padding-top: 14px; padding-bottom: 14px;">Send it over</button>
+            </form>
+        </div>
+    </section>
+
+    </main>
+
+    <footer style="background: #efe8da; border-top: 1px solid #ddd3c0;">
+        <div class="wrap" style="padding-top: 44px; padding-bottom: 44px; display: flex; flex-wrap: wrap; gap: 28px; justify-content: space-between; align-items: flex-start;">
+            <div class="stack" style="gap: 10px; max-width: 420px;">
+                <span style="letter-spacing: 0.16em; font-weight: 700; font-size: 15px;">LONDO <span style="color: #1b467f; font-weight: 500;">TECHNOLOGIES</span></span>
+                <p class="muted" style="font-size: 14px;">Family-owned technology and media support for North Bloomfield, Trumbull County, and surrounding Ohio areas.</p>
+            </div>
+            <div class="stack" style="gap: 8px; font-size: 14.5px;">
+                <a href="support.html">Remote Support Portal</a>
+                <a href="/resume/">Resume</a>
                 <a href="privacy.html">Privacy Policy</a>
-            </p>
-            <p class="mb-0">Family-owned technology and media support for North Bloomfield, Trumbull County, and surrounding areas.</p>
+            </div>
+            <div class="stack" style="gap: 6px; font-size: 14.5px;">
+                <a href="tel:14403201989" style="font-weight: 600;">440-320-1989</a>
+                <span class="muted" style="font-size: 13px;">&copy; 2026 Londo Technologies LTD</span>
+            </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
