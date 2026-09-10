@@ -1,0 +1,19 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Editor settings
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Node (only if we add tooling later)
+node_modules/
+npm-debug.log*
+
+# Local scratch
+/scratch/
+*.local
