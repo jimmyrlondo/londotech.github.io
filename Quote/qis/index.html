@@ -1670,17 +1670,10 @@ function clearAllFeatures() {
             return `${date}-${customerName.replace(/[^a-zA-Z0-9]/g, '_')}-${modelShort.replace(/[^a-zA-Z0-9]/g, '_')}`;
         }
 
-        // Program-specific terms & conditions block for the printed quote.
-        function quoteFinePrint(quoteType, validDays) {
-            const valid = validDays ? `This quote is valid for ${esc(validDays)} days from the date above.` : '';
-            if (quoteType === 'rental') {
-                return `Rental payments shown are subject to credit approval. A ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is required unless otherwise approved. A copy of the signer's driver's license and a voided check are required. Only Certified Pre-Owned equipment is eligible for the rental program. You may upgrade at any time, with the remaining payments applied as a buyout. ${valid}`;
-            }
-            const peac = `Payments shown use PEAC Solutions rate factors effective 10/1/24 and are subject to credit approval and PEAC documentation requirements. Rates apply to businesses with at least two years in operation. Equipment cost may not exceed 125% of MSRP on new equipment.`;
-            if (quoteType === 'buyout') {
-                return `${peac} Ownership of the equipment transfers to you for $1.00 at the end of the term. ${valid}`;
-            }
-            return `${peac} This is a fair-market-value (FMV) lease: at the end of the term you may return the equipment or purchase it at its then-current fair market value. ${valid}`;
+        // Rental-only requirements block for the printed quote (lease/buyout no
+        // longer print a boilerplate terms paragraph — just the numbers).
+        function rentalRequirements() {
+            return `Rental payments shown are subject to credit approval. A ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is required unless otherwise approved. A copy of the signer's driver's license and a voided check are required. Only Certified Pre-Owned equipment is eligible for the rental program. You may upgrade at any time, with the remaining payments applied as a buyout.`;
         }
 
         function generateQuotePreview() {
@@ -1692,6 +1685,11 @@ function clearAllFeatures() {
 
             const quoteType = formData.quoteType;
             const program = RATE_CONFIG[quoteType] || RATE_CONFIG.lease;
+
+            // Prepared date + auto-filled expiration (quoteValidDays out from today).
+            const preparedDate = new Date();
+            const validUntilDate = new Date(preparedDate.getTime());
+            validUntilDate.setDate(validUntilDate.getDate() + (parseInt(formData.quoteValidDays) || 30));
 
             // Rental is Certified Pre-Owned only.
             const condition = (quoteType === 'rental') ? 'certified' : formData.equipmentCondition;
@@ -1834,8 +1832,9 @@ table.pcmp tr{break-inside:avoid}
                             <div>${esc(rep.title)}</div>
                             <div>${esc(rep.phone)}</div>
                             <div>${esc(rep.email)}</div>
-                            <div class="meta">Date: ${formatDate(new Date())}</div>
+                            <div class="meta">Date: ${formatDate(preparedDate)}</div>
                             <div>Quote #: ${esc(formData.quoteNumber)}</div>
+                            <div>Valid until: ${formatDate(validUntilDate)}</div>
                         </div>
                     </div>
 
@@ -1865,7 +1864,7 @@ table.pcmp tr{break-inside:avoid}
                 <div class="qd-page">
                     ${comparisonHtml}
                     ${serviceHtml}
-                    <div class="qd-section"><h3>${program.shortLabel} — Terms</h3><p class="qd-fine">${quoteFinePrint(quoteType, formData.quoteValidDays)}</p></div>
+                    ${quoteType === 'rental' ? `<div class="qd-section"><h3>Rental Requirements</h3><p class="qd-fine">${rentalRequirements()}</p></div>` : ''}
                     ${notesHtml}
                     <div class="qd-foot">
                         <div class="ty">Thank you for your business.</div>
