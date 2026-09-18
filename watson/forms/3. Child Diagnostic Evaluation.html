@@ -3390,6 +3390,10 @@ mainContent += `<h3 class="section-title">Mental Status Exam</h3>
     </div>`;
 
     const printWindow=window.open('','_blank');
+    if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+        alert('Pop-up blocked. Please allow pop-ups for this site and click "Print Summary" again.');
+        return;
+    }
     printWindow.document.write(`<html><head><title>${buildPdfFilename(getValue('clientName'))}</title><style>
     body{font-family:'Inter',sans-serif;font-size:8pt;color:#333;margin:0;background-color:#e0e0e0;}
     .page-content{width:8.5in;background-color:white;margin:1rem auto;padding:0.6in;box-shadow:0 0 10px rgba(0,0,0,0.2);box-sizing:border-box;overflow:hidden;max-width:8.5in;}

@@ -386,6 +386,10 @@
         </div></body></html>`;
 
         const printWindow = window.open('', '_blank');
+        if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+            alert('Pop-up blocked. Please allow pop-ups for this site and click "Print Summary" again.');
+            return;
+        }
         printWindow.document.write(printContents);
         printWindow.document.close();
         printWindow.focus();

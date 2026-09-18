@@ -1295,6 +1295,10 @@ const buildSignatures = () => {
 };
 
     const printWindow = window.open('', '_blank');
+    if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+        alert('Pop-up blocked. Please allow pop-ups for this site and click "Print Summary" again.');
+        return;
+    }
     printWindow.document.write(`<html><head><title>${buildPdfFilename(getValue('clientName'), getValue('review_reason'))}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>

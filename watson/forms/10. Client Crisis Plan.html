@@ -109,7 +109,11 @@
             <div class="footer"><span>Client: ${getValue('clientName')}</span><span>DOB: ${formatDate(getValue('dob'))}</span></div>
             </div></body></html>`;
 
-            const printWindow=window.open('','_blank');printWindow.document.write(printContents);printWindow.document.close();printWindow.focus();setTimeout(()=>{printWindow.print()},500)
+            const printWindow=window.open('','_blank');if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+                alert('Pop-up blocked. Please allow pop-ups for this site and click "Print Summary" again.');
+                return;
+            }
+            printWindow.document.write(printContents);printWindow.document.close();printWindow.focus();setTimeout(()=>{printWindow.print()},500)
         }
         
         // --- UNIVERSAL FUNCTIONS ---

@@ -1084,6 +1084,10 @@
     </div></body></html>`;
 
     const printWindow = window.open('', '_blank');
+    if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+        alert('Pop-up blocked. Please allow pop-ups for this site and click "Print Summary" again.');
+        return;
+    }
     printWindow.document.write(printContents);
     printWindow.document.close();
     printWindow.focus();
@@ -1102,9 +1106,19 @@
                     data[cleanKey].push(value);
                 } else { data[key] = value; }
             });
-            data.toggleProviderSig = document.getElementById('toggleProviderSig').checked;
-            data.toggleSupervisorSig = document.getElementById('toggleSupervisorSig').checked;
-            data.togglePhysicianSig = document.getElementById('togglePhysicianSig').checked;
+            // Fixed 2026-09-18: these three lookups had no null-check, unlike
+            // the equivalent lookups in the sibling forms this file was
+            // cloned from - if any of these three checkboxes is ever
+            // renamed or removed in a future edit, getFormData() (called
+            // first by printForm()) would throw immediately here and
+            // Print would produce NOTHING at all, not just a missing
+            // section, with no visible error.
+            var toggleProviderSigEl = document.getElementById('toggleProviderSig');
+            var toggleSupervisorSigEl = document.getElementById('toggleSupervisorSig');
+            var togglePhysicianSigEl = document.getElementById('togglePhysicianSig');
+            data.toggleProviderSig = toggleProviderSigEl ? toggleProviderSigEl.checked : false;
+            data.toggleSupervisorSig = toggleSupervisorSigEl ? toggleSupervisorSigEl.checked : false;
+            data.togglePhysicianSig = togglePhysicianSigEl ? togglePhysicianSigEl.checked : false;
             return data;
         }
         // FIX: Enhanced populateForm to handle boolean checkbox values properly

@@ -1440,6 +1440,10 @@
             html += `</body></html>`;
 
             const printWindow = window.open('', '_blank');
+            if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+                alert('Pop-up blocked. Please allow pop-ups for this site and click "Print Summary" again.');
+                return;
+            }
             printWindow.document.write(html);
             printWindow.document.close();
             setTimeout(() => { printWindow.print(); }, 500);
