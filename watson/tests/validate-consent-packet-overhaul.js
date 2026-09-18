@@ -32,8 +32,9 @@ assert(
 function renderPrint(mockData) {
   let capturedHtml = '';
   global.window = {
-    open: () => ({ document: { write: (h) => { capturedHtml = h; }, close: () => {} }, print: () => {} })
+    open: () => ({ closed: false, document: { write: (h) => { capturedHtml = h; }, close: () => {} }, print: () => {} })
   };
+  global.alert = () => {};
   global.setTimeout = (fn) => fn();
   global.document = { addEventListener: () => {}, querySelectorAll: () => [], getElementById: () => null };
 

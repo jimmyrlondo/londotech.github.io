@@ -869,6 +869,7 @@
                 ${createField('Client Name', getValue('clientName'))} ${createField('Date of Birth', formatDate(getValue('dob')))} ${createField('Age', getValue('age'))}
                 ${createField('Date of Assessment', formatDate(getValue('date')))} ${createField('Record #', getValue('recordNumber'))} ${createField('Phone', getValue('clientPhone'))}
             </div>`;
+            html += `${createFieldLong('Address', getValue('address'))}`;
             if (getValue('legalGuardian') === 'Yes') { html += `<div class="sub-section grid-2col">${createField('Guardian Name', getValue('guardianName'))}${createField('Guardian Phone', getValue('guardianPhone'))}</div>`; }
             html += `<div class="sub-section grid-2col">${createField('Race/Ethnicity', getValue('raceEthnicity'))}${createField('Gender', getValue('gender'))}${createField('Sexual Orientation', getValue('sexualOrientation'))}${createField('Preferred Pronoun', getValue('preferredPronoun'))}</div>`;
             html += `${createFieldLong('Additional Info (Orientation)', getValue('orientation_additional_info'))}`;
@@ -1031,13 +1032,74 @@
                 if(info) {
                     html += `<tr><td colspan="5" style="border-top:none; padding-top:0; font-style:italic;"><strong>Notes:</strong> ${info}</td></tr>`;
                 }
+                if (getValue(`asam_no_further_treatment_${dimIndex}`)) {
+                    html += `<tr><td colspan="5" style="border-top:none; padding-top:0;"><strong>No further treatment required for this dimension.</strong></td></tr>`;
+                }
             });
             html += '</tbody></table>';
             return html;
         };
 
         const buildMse = () => {
-            return `<div class="grid-3col">${createField('Appearance', getChecked('generalobservations_appearance').join(', '))}${createField('Mood', getChecked('mood_mood').join(', '))}${createField('Affect', getChecked('affect_affect').join(', '))}${createField('Speech', getChecked('generalobservations_speech').join(', '))}${createField('Thought Process', getChecked('thoughtprocess_thoughtprocess').join(', '))}${createField('Insight/Judgment', getValue('insightjudgment_insightjudgment'))}</div>${createFieldLong('MSE Comments', getValue('generalobservations_comments'))}`;
+            // Fixed 2026-09-19: rebuilt to match buildMseSection()'s actual
+            // field-naming scheme (groupKey_labelKey, one comments field
+            // PER group) instead of the 6 hardcoded keys this used to read.
+            // The old version silently dropped Build, Demeanor, Eye Contact,
+            // Activity, all of Thought Content (including the safety-critical
+            // Self-Abuse/Self-Mutilation checklist), all of Perception, the
+            // entire Behavior group, both Cognition items, and 7 of the 9
+            // groups' own separate Comments fields.
+            const thoughtOther = [...getChecked('thoughtcontent_other'), getValue('thoughtcontent_other_text')].filter(Boolean).join(', ');
+            const selfMutilationText = getValue('self_mutilation_other_text');
+            const selfAbuse = [...getChecked('thoughtcontent_selfabuse'), selfMutilationText ? ('Self-mutilization: ' + selfMutilationText) : ''].filter(Boolean).join(', ');
+            return `
+                <div class="sub-section"><h4>General Observations</h4>
+                    ${createField('Appearance', getChecked('generalobservations_appearance').join(', '))}
+                    ${createField('Build', getChecked('generalobservations_build').join(', '))}
+                    ${createField('Demeanor', getChecked('generalobservations_demeanor').join(', '))}
+                    ${createField('Eye Contact', getChecked('generalobservations_eyecontact').join(', '))}
+                    ${createField('Activity', getChecked('generalobservations_activity').join(', '))}
+                    ${createField('Speech', getChecked('generalobservations_speech').join(', '))}
+                    ${createFieldLong('Comments', getValue('generalobservations_comments'))}
+                </div>
+                <div class="sub-section"><h4>Thought Content</h4>
+                    ${createField('Delusions', getChecked('thoughtcontent_delusions').join(', '))}
+                    ${createField('Other', thoughtOther)}
+                    ${createField('Self-Abuse', selfAbuse)}
+                    ${createField('Aggressive', getChecked('thoughtcontent_aggressive').join(', '))}
+                    ${createFieldLong('Comments', getValue('thoughtcontent_comments'))}
+                </div>
+                <div class="sub-section"><h4>Perception</h4>
+                    ${createField('Hallucinations', getChecked('perception_hallucinations').join(', '))}
+                    ${createField('Other', getChecked('perception_other').join(', '))}
+                    ${createFieldLong('Comments', getValue('perception_comments'))}
+                </div>
+                <div class="sub-section"><h4>Thought Process</h4>
+                    ${createField('Observations', getChecked('thoughtprocess_thoughtprocess').join(', '))}
+                    ${createFieldLong('Comments', getValue('thoughtprocess_comments'))}
+                </div>
+                <div class="sub-section"><h4>Mood</h4>
+                    ${createField('Observations', getChecked('mood_mood').join(', '))}
+                    ${createFieldLong('Comments', getValue('mood_comments'))}
+                </div>
+                <div class="sub-section"><h4>Affect</h4>
+                    ${createField('Observations', getChecked('affect_affect').join(', '))}
+                    ${createFieldLong('Comments', getValue('affect_comments'))}
+                </div>
+                <div class="sub-section"><h4>Behavior</h4>
+                    ${createField('Observations', getChecked('behavior_behavior').join(', '))}
+                    ${createFieldLong('Comments', getValue('behavior_comments'))}
+                </div>
+                <div class="sub-section"><h4>Cognition</h4>
+                    ${createField('Impairment of', getChecked('cognition_impairmentof').join(', '))}
+                    ${createField('Intelligence Estimate', getChecked('cognition_intelligenceestimate').join(', '))}
+                    ${createFieldLong('Comments', getValue('cognition_comments'))}
+                </div>
+                <div class="sub-section"><h4>Insight/Judgment</h4>
+                    ${createField('Rating', getValue('insightjudgment_insightjudgment'))}
+                    ${createFieldLong('Comments', getValue('insightjudgment_comments'))}
+                </div>
+            `;
         };
 
         // --- Iterate Through Sections ---
@@ -1054,7 +1116,7 @@
                 case 'section-cage-treatment': sectionHtml = buildCageTreatment(); break;
                 case 'section-mse': sectionHtml = buildMse(); break;
                 case 'section-narrative': sectionHtml = createFieldLong('Narrative Summary', getValue('narrative_summary')); break;
-                case 'section-new-diagnosis': sectionHtml = createFieldLong('New/Additional DSM Diagnosis', getValue('new_diagnosis_notes')); break;
+                case 'section-new-diagnosis': sectionHtml = `${createField('Diagnostic Evaluation Update Recommended', getValue('de_update_recommended') ? 'Yes' : 'No')}${createFieldLong('New/Additional DSM Diagnosis', getValue('new_diagnosis_notes'))}`; break;
                 case 'section-asam': sectionHtml = buildAsamGrid(); break; // Uses new function
                 case 'section-asam-recommendation': sectionHtml = createField('Recommended Level', getValue('asam_recommendation').replace('3.1','3.1 Intensive Outpatient w/Residential Support').replace('3.5','3.5 Non-Medical Community Residential')); break;
                 case 'section-treatment-recs': sectionHtml = `${createField('Treatment Recs', getChecked('treatment_recs').join(', '))}${createFieldLong('Additional Info', getValue('treatment_recs_additional_info'))}`; break;
