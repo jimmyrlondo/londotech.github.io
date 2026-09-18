@@ -97,7 +97,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="md:col-span-3">
                             <label class="flex items-center">
-                                <input type="checkbox" id="client_verbal_consent" name="client_verbal_consent" class="h-4 w-4" checked onchange="handleClientVerbalConsentChange()">
+                                <input type="checkbox" id="client_verbal_consent" name="client_verbal_consent" class="h-4 w-4" onchange="handleClientVerbalConsentChange()">
                                 <span class="ml-2">verbal consent</span>
                             </label>
                             <p id="client_signature_text" class="text-xs italic text-gray-500 mt-1"></p>
@@ -115,7 +115,7 @@
                                 <span class="ml-2 font-semibold">Parent/Legal Guardian present and consenting?</span>
                             </label>
                             <p class="text-xs italic text-gray-500 mt-1">If checked, the name below will auto-fill every Parent/Legal Guardian signature line in the packet.</p>
-                            <div class="mt-2"><label class="form-label">Guardian/Parent Name</label><input type="text" id="guardianName" name="guardianName" class="form-input"></div>
+                            <div class="mt-2"><label class="form-label">Guardian/Parent Name</label><input type="text" id="guardianName" name="guardianName" class="form-input" oninput="applyGuardianAutofillToSignatures()"></div>
                         </div>
                     </div>
                 </div>
@@ -818,6 +818,34 @@
             const checkbox = document.getElementById('guardian_present');
             const guardianBlock = document.getElementById('section5_guardian_block');
             if (guardianBlock) guardianBlock.style.display = (checkbox && checkbox.checked) ? '' : 'none';
+            applyGuardianAutofillToSignatures();
+        }
+        // Fixed 2026-09-18: this checkbox's own help text has always
+        // promised "the name below will auto-fill every Parent/Legal
+        // Guardian signature line in the packet," but that never
+        // existed - guardianName was only ever printed as a text label,
+        // leaving every guardian/parent signature box blank on the
+        // printed packet even when staff followed the instructions
+        // exactly as written. Mirrors the same stamp-onto-canvas
+        // mechanism client_verbal_consent already uses just below.
+        function applyGuardianAutofillToSignatures() {
+            const checkbox = document.getElementById('guardian_present');
+            const nameInput = document.getElementById('guardianName');
+            const guardianName = nameInput ? nameInput.value.trim() : '';
+            const guardianCanvasIds = sigIds.filter(id => id.includes('guardian') || id.includes('parent'));
+            if (checkbox && checkbox.checked && guardianName) {
+                guardianCanvasIds.forEach(id => {
+                    const canvas = document.getElementById(id);
+                    if (canvas) {
+                        fillCanvasWithText(canvas, guardianName);
+                        if (signaturePads[id]) signaturePads[id].fromDataURL(canvas.toDataURL());
+                    }
+                });
+            } else {
+                guardianCanvasIds.forEach(id => {
+                    if (signaturePads[id]) signaturePads[id].clear();
+                });
+            }
         }
 
 
@@ -842,11 +870,22 @@
                     signaturePads[id] = pad;
                     
                     function resizeCanvas() {
+                        // Fixed 2026-09-18: unconditionally clearing on
+                        // every resize wiped out a real, already-captured
+                        // signature (or the verbal-consent/guardian stamp)
+                        // if the browser window changed at all before
+                        // printing. Save first and restore after, same as
+                        // every other resize-safe signature pad
+                        // implementation - only actually clears when the
+                        // pad was already empty (e.g. the very first call
+                        // right after the canvas is created).
+                        const wasEmpty = pad.isEmpty();
+                        const data = wasEmpty ? null : pad.toDataURL();
                         const ratio = Math.max(window.devicePixelRatio || 1, 1);
                         canvas.width = canvas.offsetWidth * ratio;
                         canvas.height = canvas.offsetHeight * ratio;
                         canvas.getContext("2d").scale(ratio, ratio);
-                        pad.clear(); 
+                        if (data) pad.fromDataURL(data); else pad.clear();
                     }
                     window.addEventListener("resize", resizeCanvas);
                     resizeCanvas();
@@ -860,7 +899,7 @@
         function parseClientName(nameStr){let[lastName,firstName]=['Unknown','Client'];if(nameStr){if(nameStr.includes(',')){[lastName,firstName]=nameStr.split(',',2).map(s=>s.trim())}else{const parts=nameStr.trim().split(' ');lastName=parts.pop()||'Unknown';firstName=parts.join(' ')||'Client'}}return[lastName,firstName]}
         function buildPdfFilename(clientName){const[lastName,firstName]=parseClientName(clientName||'');const normalize=value=>(value||'').trim().replace(/\s+/g,' ').toUpperCase()||'UNKNOWN';const dateForFile=new Date().toISOString().split('T')[0];return `${normalize(lastName)} ${normalize(firstName)} CONSENT PACKET ${dateForFile}.pdf`}
         function fillCanvasWithText(canvas,text){if(!canvas)return;const ctx=canvas.getContext('2d');if(!ctx)return;ctx.save();ctx.fillStyle='white';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#374151';ctx.font=`${Math.max(12,Math.floor(canvas.height/4))}px Inter`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text, canvas.width/2, canvas.height/2, canvas.width-10);ctx.restore()}
-        function handleClientVerbalConsentChange(){const checkbox=document.getElementById('client_verbal_consent');const display=document.getElementById('client_signature_text');const consentText='Client gave verbal consent via telehealth';const clientCanvasIds=sigIds.filter(id=>id.includes('_client'));if(display)display.textContent=checkbox&&checkbox.checked?consentText:'';if(!checkbox)return;if(checkbox.checked){clientCanvasIds.forEach(id=>{const canvas=document.getElementById(id);if(canvas){fillCanvasWithText(canvas,consentText);if(signaturePads[id])signaturePads[id].fromDataURL(canvas.toDataURL())}})}else{clientCanvasIds.forEach(id=>{if(signaturePads[id])signaturePads[id].clear()})}}
+        function handleClientVerbalConsentChange(){const checkbox=document.getElementById('client_verbal_consent');const display=document.getElementById('client_signature_text');const consentText='Client gave verbal consent in lieu of signature';const clientCanvasIds=sigIds.filter(id=>id.includes('_client'));if(display)display.textContent=checkbox&&checkbox.checked?consentText:'';if(!checkbox)return;if(checkbox.checked){clientCanvasIds.forEach(id=>{const canvas=document.getElementById(id);if(canvas){fillCanvasWithText(canvas,consentText);if(signaturePads[id])signaturePads[id].fromDataURL(canvas.toDataURL())}})}else{clientCanvasIds.forEach(id=>{if(signaturePads[id])signaturePads[id].clear()})}}
 
         // ==================== CALCULATION LOGIC ====================
         function calculateScores() {
@@ -1269,11 +1308,11 @@
                 <p style="font-size:14pt; font-weight:bold; margin:30px 0;">${val('transport_perm') === 'Denied' ? '☑' : '☐'} I do NOT give permission to Watson Community Health Centre to have consumer named above transported.</p>
                 <div class="sig-box">
                     <div class="sig-wrapper">
-                        <div class="sig-content">${val('transport_perm') === 'Denied' ? (data['sig_trans_deny_parent'] ? `<img src="${data['sig_trans_deny_parent']}" class="sig-img">` : '') : (data['sig_trans_grant_parent'] ? `<img src="${data['sig_trans_grant_parent']}" class="sig-img">` : '')}</div>
+                        <div class="sig-content">${data['sig_trans_deny_parent'] ? `<img src="${data['sig_trans_deny_parent']}" class="sig-img">` : (data['sig_trans_grant_parent'] ? `<img src="${data['sig_trans_grant_parent']}" class="sig-img">` : '')}</div>
                         <div class="sig-label">Parent/Guardian Signature</div>
                     </div>
                     <div class="sig-wrapper">
-                        <div class="sig-content">${val('transport_perm') === 'Denied' ? (data['sig_trans_deny_client'] ? `<img src="${data['sig_trans_deny_client']}" class="sig-img">` : '') : (data['sig_trans_grant_client'] ? `<img src="${data['sig_trans_grant_client']}" class="sig-img">` : '')}</div>
+                        <div class="sig-content">${data['sig_trans_deny_client'] ? `<img src="${data['sig_trans_deny_client']}" class="sig-img">` : (data['sig_trans_grant_client'] ? `<img src="${data['sig_trans_grant_client']}" class="sig-img">` : '')}</div>
                         <div class="sig-label">Client Signature</div>
                     </div>
                     <div class="sig-wrapper" style="flex: 0 0 150px;">
