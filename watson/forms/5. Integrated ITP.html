@@ -665,13 +665,36 @@
                     const lastModified = new Date(item.data.lastModified).toLocaleString();
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'modal-item';
-                    itemDiv.innerHTML = `
-                        <div class="flex-grow" onclick="loadSelectedForm('${item.key}')">
-                            <strong class="item-name">${clientName}</strong><br>
-                            <small>Last saved: ${lastModified}</small>
-                        </div>
-                        <button onclick="deleteSavedForm(event, '${item.key}')" class="delete-btn">Delete</button>
-                    `;
+
+                    // Fixed 2026-09-18: a client name containing a quote
+                    // character (e.g. Dorothy "Dottie" Jones) used to break
+                    // out of the onclick="..." attribute when interpolated
+                    // straight into innerHTML, silently corrupting the
+                    // handler with no error — that name's row would then do
+                    // nothing when clicked. Building the row with real DOM
+                    // methods and addEventListener (closing over item.key
+                    // directly, never round-tripping it through an HTML
+                    // string) makes this safe regardless of what characters
+                    // are in the name.
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'flex-grow';
+                    const nameEl = document.createElement('strong');
+                    nameEl.className = 'item-name';
+                    nameEl.textContent = clientName;
+                    const smallEl = document.createElement('small');
+                    smallEl.textContent = `Last saved: ${lastModified}`;
+                    infoDiv.appendChild(nameEl);
+                    infoDiv.appendChild(document.createElement('br'));
+                    infoDiv.appendChild(smallEl);
+                    infoDiv.addEventListener('click', () => loadSelectedForm(item.key));
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.addEventListener('click', (event) => deleteSavedForm(event, item.key));
+
+                    itemDiv.appendChild(infoDiv);
+                    itemDiv.appendChild(deleteBtn);
                     savedFormsList.appendChild(itemDiv);
                 });
             }
@@ -690,10 +713,24 @@
         }
 
         function loadSelectedForm(key) {
-             const data = JSON.parse(localStorage.getItem(key));
-             populateForm(data);
-             closeModal();
-             alert(`Data for ${data.clientName} has been loaded.`);
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw === null) {
+                    alert('That saved entry could not be found. It may have been deleted in another tab. Refresh and try again.');
+                    return;
+                }
+                const data = JSON.parse(raw);
+                populateForm(data);
+                closeModal();
+                alert(`Data for ${data.clientName} has been loaded.`);
+            } catch (e) {
+                // Fixed 2026-09-18, part of the same fix as the row-click
+                // bug above: any future load failure (corrupted JSON, a
+                // populateForm mismatch) used to throw silently, with the
+                // click appearing to do nothing at all. Now it says so.
+                console.error('loadSelectedForm error:', key, e);
+                alert('Something went wrong loading that saved entry, so nothing was changed on the form. Please try again, and if it keeps happening, let your administrator know.');
+            }
         }
 
         function deleteSavedForm(event, key) {
