@@ -945,8 +945,6 @@ const PREFS_KEY = 'wchc_user_preferences';
     const FORM_NAME_PRINT = 'Mental Health Individual Treatment Plan';
     const FORM_ELEMENT_ID = 'treatmentPlanForm';
 
-<!-- Add the following inside the existing <script> block, near the top (after the FORM_* constants) -->
-
 /* FIX: global formatDate helper (used by exportData, printing, etc.)
    Accepts YYYY-MM-DD and returns MM/DD/YYYY, returns '' for invalid input.
 */
@@ -1350,9 +1348,9 @@ const buildSignatures = () => {
             <h1>${printTitle}</h1>
             <h2>Watson Community Health Center</h2>
             <div style="margin-top:3px;font-size:8pt;color:#333;text-align:right;">
-                <strong>Client:</strong> ${getValue('clientName') || 'N/A'}<br>
-                <strong>Record #:</strong> ${getValue('recordNumber') || 'N/A'}<br>
-                <strong>DOB:</strong> ${formatDate(getValue('dob')) || 'N/A'}
+                <strong>Client:</strong> ${escapeHtml(getValue('clientName') || 'N/A')}<br>
+                <strong>Record #:</strong> ${escapeHtml(getValue('recordNumber') || 'N/A')}<br>
+                <strong>DOB:</strong> ${escapeHtml(formatDate(getValue('dob')) || 'N/A')}
             </div>
         </div>
     </div>
