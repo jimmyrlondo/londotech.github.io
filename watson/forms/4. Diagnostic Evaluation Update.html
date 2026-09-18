@@ -862,7 +862,7 @@
         const buildDemographics = () => {
             let html = `<div class="grid-3col">
                 ${createField('Client Name', getValue('clientName'))} ${createField('Date of Birth', formatDate(getValue('dob')))} ${createField('Age', getValue('age'))}
-                ${createField('Date of Assessment', formatDate(getValue('date')))} ${createField('Record #', getValue('recordNumber'))} ${createField('Phone', getValue('phoneNumber'))}
+                ${createField('Date of Assessment', formatDate(getValue('date')))} ${createField('Record #', getValue('recordNumber'))} ${createField('Phone', getValue('phoneNumber'))} ${createField('Email', getValue('clientEmail'))}
             </div>`;
             html += `<div class="sub-section grid-2col">${createField('Race/Ethnicity', getValue('raceEthnicity'))}${createField('Gender', getValue('gender'))}${createField('Sexual Orientation', getValue('sexualOrientation'))}${createField('Preferred Pronoun', getValue('preferredPronoun'))}</div>`;
             html += `<div class="sub-section">${createField('Address', getValue('address'))}${createFieldLong('Additional Information', getValue('demographics_additional_info'))}</div>`;
@@ -933,7 +933,7 @@
                 html += `<tr>
                             <td><b>${item.d}</b></td>
                             <td>${getChecked(`asam_dim${index+1}`).join(', ')}</td>
-                            <td>${getValue(`asam_dim${index+1}_additional_info`)}</td>
+                            <td>${getValue(`asam_dim${index+1}_additional_info`)}${getValue(`asam_no_further_treatment_${index+1}`) ? '<br><strong>No further treatment required</strong>' : ''}</td>
                          </tr>`;
             });
             html += '</tbody></table>';
@@ -1122,7 +1122,8 @@ case 'section-psychiatric-symptoms':
         'angermanagement': 'Anger Management',
         'addictivebehaviorsgamblingsexualsubstance': 'Addictive Behaviors (gambling, sexual, substance)',
         'otheraddictivebehaviors': 'Other Addictive Behaviors',
-        'sleepproblems': 'Sleep Problems'
+        'sleepproblems': 'Sleep Problems',
+        'other': 'Other'
     };
     
     Object.keys(symptomLabels).forEach(key => {
