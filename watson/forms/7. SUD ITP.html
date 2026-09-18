@@ -921,8 +921,9 @@
     };
 
     const data = getFormData();
-    const getValue = (key, fallback = '') => data[key] ? (String(data[key]).trim()) : fallback;
-    const getChecked = key => Array.isArray(data[key]) ? data[key] : (data[key] ? [data[key]] : []);
+    const escapeHtml = (text) => String(text == null ? '' : text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        const getValue = (key, fallback = '') => escapeHtml(data[key] ? (String(data[key]).trim()) : fallback);
+    const getChecked = key => (Array.isArray(data[key]) ? data[key] : (data[key] ? [data[key]] : [])).map(escapeHtml);
     const formatDate = (d) => { 
         if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return ''; 
         const [y,m,dy] = d.split('-'); 

@@ -3432,9 +3432,9 @@ h5{font-size:7pt;font-weight:600;color:#444;margin:4px 0 2px 0;}
             <h1>${FORM_NAME_PRINT}</h1>
             <h2>Watson Community Health Center</h2>
             <div style="margin-top:3px;font-size:7pt;color:#333;text-align:right;">
-                <strong>Client:</strong> ${getValue('clientName') || 'N/A'}<br>
-                <strong>Record #:</strong> ${getValue('recordNumber') || 'N/A'}<br>
-                <strong>DOB:</strong> ${formatDate(getValue('dob')) || 'N/A'}
+                <strong>Client:</strong> ${escapeHtml(getValue('clientName') || 'N/A')}<br>
+                <strong>Record #:</strong> ${escapeHtml(getValue('recordNumber') || 'N/A')}<br>
+                <strong>DOB:</strong> ${escapeHtml(formatDate(getValue('dob')) || 'N/A')}
             </div>
         </div>
     </div><main>${mainContent}</main><div class="signature-section"><h3 class="section-title">Evaluation Completed By</h3>${buildSignatures()}</div></div></body></html>`);

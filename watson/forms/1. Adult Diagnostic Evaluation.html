@@ -3457,35 +3457,36 @@ function toggleEducationLevelFields() {
         const numChildren = parseInt(getValue('howManyChildren', '0')); 
         if (numChildren > 0) { 
             for (let i = 0; i < numChildren; i++) { 
-                const lastName = data[`childLastname_${i}`] || '';
-                const firstName = data[`childFirstname_${i}`] || '';
-                const age = data[`childAge_${i}`] || '';
-                const livesAtHome = data[`childLivesAtHome_${i}`] || 'N/A';
+                // Fixed 2026-09-18: this block bypassed getValue() (which already escapes) and read data[...] directly, interpolating raw, unescaped user text into the print template. Switched to getValue() for the same escaping every other field in this file already gets.
+                const lastName = getValue(`childLastname_${i}`, '');
+                const firstName = getValue(`childFirstname_${i}`, '');
+                const age = getValue(`childAge_${i}`, '');
+                const livesAtHome = getValue(`childLivesAtHome_${i}`, 'N/A');
                 
-                let physicalCustody = data[`childPhysicalCustody_${i}`] || 'N/A';
-                if (physicalCustody === 'Other' && data[`childPhysicalCustodyOther_${i}`]) {
-                    physicalCustody += `: ${data[`childPhysicalCustodyOther_${i}`]}`;
+                let physicalCustody = getValue(`childPhysicalCustody_${i}`, 'N/A');
+                if (physicalCustody === 'Other' && getValue(`childPhysicalCustodyOther_${i}`, '')) {
+                    physicalCustody += `: ${getValue(`childPhysicalCustodyOther_${i}`, '')}`;
                 }
                 
-                let legalCustody = data[`childLegalCustody_${i}`] || 'N/A';
-                if (legalCustody === 'Other' && data[`childLegalCustodyOther_${i}`]) {
-                    legalCustody += `: ${data[`childLegalCustodyOther_${i}`]}`;
+                let legalCustody = getValue(`childLegalCustody_${i}`, 'N/A');
+                if (legalCustody === 'Other' && getValue(`childLegalCustodyOther_${i}`, '')) {
+                    legalCustody += `: ${getValue(`childLegalCustodyOther_${i}`, '')}`;
                 }
                 
-                let contact = data[`childContact_${i}`] || 'N/A';
-                const contactComments = data[`childContactComments_${i}`] || '';
+                let contact = getValue(`childContact_${i}`, 'N/A');
+                const contactComments = getValue(`childContactComments_${i}`, '');
                 if (contact !== 'N/A' && contactComments) {
                     contact += ` - Comments: ${contactComments}`;
                 }
                 
-                let alwaysInCare = data[`childAlwaysInCare_${i}`] || 'N/A';
-                const alwaysInCareWhy = data[`childAlwaysInCareWhy_${i}`] || '';
+                let alwaysInCare = getValue(`childAlwaysInCare_${i}`, 'N/A');
+                const alwaysInCareWhy = getValue(`childAlwaysInCareWhy_${i}`, '');
                 if (alwaysInCare === 'No' && alwaysInCareWhy) {
                     alwaysInCare += ` - Why not: ${alwaysInCareWhy}`;
                 }
                 
-                const specialCircumstances = data[`childSpecialCircumstances_${i}`] || '';
-                const additionalInfo = data[`childAdditionalInfo_${i}`] || '';
+                const specialCircumstances = getValue(`childSpecialCircumstances_${i}`, '');
+                const additionalInfo = getValue(`childAdditionalInfo_${i}`, '');
                 
                 childrenHtml += `
                     <div class="sub-section">
