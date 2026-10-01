@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Authorization: an admin is any signed-in user whose UID has a doc in
+    // /admins. There is no public sign-up flow anywhere in this app -
+    // accounts are created manually (Firebase console or a one-off script),
+    // so this is a deliberate allow-list, not a self-service system.
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Catalog metadata (e.g. "Hole Making", "Threading" once it exists).
+    // Public can read (the live customer-facing catalog page needs this),
+    // only admins can write.
+    match /catalogs/{catalogId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Individual product lines. Same read/write split as catalogs.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // The admin allow-list itself. A user may read their own membership
+    // doc (so the admin UI can check "am I actually allowed in here"),
+    // but nobody can write it from the client - only managed directly in
+    // the Firebase console or via the Admin SDK.
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}
