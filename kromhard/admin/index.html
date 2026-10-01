@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Kromhard Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <!-- Login -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>Kromhard Admin</h1>
+            <p class="sub">Catalog management &mdash; staff only.</p>
+            <div class="login-error" id="loginError"></div>
+            <div class="field">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" autocomplete="username" placeholder="you@kromhard.com">
+            </div>
+            <div class="field">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" autocomplete="current-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+            </div>
+            <button class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center;">Sign In</button>
+        </div>
+    </div>
+
+    <!-- App -->
+    <div class="app-shell" id="appShell">
+        <header class="admin-topbar">
+            <div class="brand">KROMHARD ADMIN <span>Catalog Management</span></div>
+            <div class="who">
+                <span id="whoEmail"></span>
+                <button class="btn btn-ghost btn-sm" id="signOutBtn" style="color:#fff;border-color:rgba(255,255,255,0.4);">Sign Out</button>
+            </div>
+        </header>
+        <div class="admin-body">
+            <aside class="admin-sidebar">
+                <div class="sidebar-section">
+                    <h4>Catalog</h4>
+                    <select class="catalog-select" id="catalogSelect"></select>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Category</h4>
+                    <div class="category-chip-list" id="categoryChips"></div>
+                </div>
+                <div class="product-list" id="productList"></div>
+                <div class="sidebar-footer">
+                    <button class="btn btn-rust" id="newProductBtn">+ New Product Line</button>
+                    <button class="btn btn-ghost btn-sm" id="exportJsonBtn">Export Catalog (JSON)</button>
+                    <button class="btn btn-ghost btn-sm" id="importJsonBtn">Import / Seed (JSON)</button>
+                </div>
+            </aside>
+            <main class="admin-main">
+                <div class="empty-state" id="emptyState">
+                    <h3>Pick a product from the list</h3>
+                    <p>Or create a new product line to get started. If this catalog is empty, use "Import / Seed (JSON)" to load the existing 93-line Hole Making catalog from the live site.</p>
+                </div>
+                <div id="editorRoot" style="display:none;"></div>
+            </main>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Delete confirm modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <h3>Delete this product line?</h3>
+            <p class="muted" id="deleteModalText">This removes it from the live catalog immediately. This can't be undone from here.</p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="deleteCancelBtn">Cancel</button>
+                <button class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON import/seed modal -->
+    <div class="modal-overlay" id="jsonImportModal">
+        <div class="modal-box">
+            <h3>Import / Seed Catalog (JSON)</h3>
+            <p class="muted">Upload a JSON file (an array of product-line objects matching the catalog schema). Matching IDs are updated in place; new IDs are created. Nothing is deleted.</p>
+            <div class="field">
+                <input type="file" id="jsonFileInput" accept="application/json">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="jsonImportCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="jsonImportConfirmBtn">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSV row import modal -->
+    <div class="modal-overlay" id="csvImportModal">
+        <div class="modal-box">
+            <h3>Import Rows (CSV)</h3>
+            <p class="muted">First row must be headers matching this product's column keys. Rows are matched by their first column (size) &mdash; matches update in place, new sizes are appended.</p>
+            <div class="field">
+                <input type="file" id="csvFileInput" accept=".csv,text/csv">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="csvImportCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="csvImportConfirmBtn">Import Rows</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
