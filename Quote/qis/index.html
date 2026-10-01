@@ -1702,6 +1702,13 @@ function clearAllFeatures() {
                 showAutoSave('Updated: ' + label);
             } else {
                 STATE.equipmentList.push(item);
+                // First machine ever added (no standard set yet) establishes
+                // the standard automatically, so you don't have to remember to
+                // click "Save as Standard Set" before adding machine 2+.
+                if (!STATE.standardFeatures.length && item.features.length) {
+                    STATE.standardFeatures = item.features.slice();
+                    localStorage.setItem('qis_standard_features', JSON.stringify(STATE.standardFeatures));
+                }
                 showAutoSave('Added: ' + label);
             }
 
