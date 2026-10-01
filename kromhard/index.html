@@ -110,7 +110,7 @@
     <section class="cta-band">
         <div class="wrap">
             <h2>Like the direction?</h2>
-            <p>This is a small slice, built to show what's possible. The full build indexes every category, adds a backend for Kromhard's team to manage products, and turns the catalog into real quote &amp; invoice workflows.</p>
+            <p>The Hole Making catalog is now fully indexed &mdash; 93 product lines, 4,800+ sizes. The full build does the same for every other category, adds a backend for Kromhard's team to manage products, and turns the catalog into real quote &amp; invoice workflows.</p>
             <a class="btn btn-rust" href="catalog/">Try the Catalog Demo</a>
         </div>
     </section>
@@ -198,7 +198,7 @@
             </div>
         `).join('');
 
-        const previewIds = ["100-jobber-hss", "200co-cobalt-screw-machine", "160sds-masonry"];
+        const previewIds = ["100-jobber-hss", "15hs-bimetal-hole-saw", "2521-annular-cutter-cobalt"];
         const previewItems = KROMHARD_CATALOG.filter(p => previewIds.includes(p.id));
         document.getElementById('previewGrid').innerHTML = previewItems.map(p => `
             <a class="mini-card" href="catalog/?q=${encodeURIComponent(p.listNumbers[0])}" style="text-decoration:none;color:inherit;">
