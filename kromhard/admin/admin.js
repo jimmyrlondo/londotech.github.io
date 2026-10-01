@@ -670,7 +670,7 @@ document.getElementById("jsonImportConfirmBtn").addEventListener("click", async 
     }
 
     showToast(`Importing ${items.length} product lines…`);
-    let ok = 0, fail = 0;
+    let ok = 0, fail = 0, firstError = null;
     for (const item of items) {
         try {
             const id = item.id || slugify(item.listNumbers?.[0] || item.name);
@@ -678,11 +678,16 @@ document.getElementById("jsonImportConfirmBtn").addEventListener("click", async 
             delete data.id;
             await setDoc(doc(db, "products", id), data);
             ok++;
-        } catch (err) { fail++; }
+        } catch (err) {
+            fail++;
+            if (!firstError) firstError = err;
+            console.error("Import failed for item", item.id || item.name, err);
+        }
     }
     await upsertCatalogMeta(currentCatalogId);
     document.getElementById("jsonImportModal").classList.remove("open");
     fileInput.value = "";
-    showToast(`Import complete: ${ok} saved${fail ? `, ${fail} failed` : ""}.`, fail > 0);
+    const summary = `Import complete: ${ok} saved${fail ? `, ${fail} failed` : ""}.`;
+    showToast(fail && firstError ? `${summary} First error: ${firstError.code || firstError.message}` : summary, fail > 0);
     await loadProducts();
 });
