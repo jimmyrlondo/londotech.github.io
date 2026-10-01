@@ -172,7 +172,13 @@
                 const db = getFirestore(initializeApp(firebaseConfig));
                 const snap = await getDocs(collection(db, 'products'));
                 const products = [];
-                snap.forEach(d => products.push({ id: d.id, ...d.data() }));
+                snap.forEach(d => {
+                    const data = d.data();
+                    // Firestore can't store a bare array-of-arrays, so the admin app
+                    // wraps each row as {values:[...]} on write -- unwrap it back here.
+                    const rows = (data.rows || []).map(r => (r && r.values) || r);
+                    products.push({ id: d.id, ...data, rows });
+                });
                 // Missing `active` (older docs) counts as active, matching the admin app's own default.
                 return products.filter(p => p.active !== false);
             } catch (err) {

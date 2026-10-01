@@ -66,6 +66,19 @@ function escapeHtml(s) {
     return String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 }
 
+// Firestore rejects an array that directly contains other arrays (a bare
+// array-of-arrays), which is exactly what "rows" is everywhere else in this
+// app (one array per size). So rows only get wrapped as [{values:[...]}]
+// right at the write boundary, and unwrapped right at the read boundary --
+// every other function in this file and in the public catalog page keeps
+// working with plain arrays-of-arrays, unaware this translation happens.
+function wrapRowsForFirestore(rows) {
+    return (rows || []).map(r => ({ values: r }));
+}
+function unwrapRowsFromFirestore(rows) {
+    return (rows || []).map(r => (r && r.values) || r);
+}
+
 async function loadKnownSizes() {
     if (knownSizes) return knownSizes;
     const res = await fetch("known-sizes.json");
@@ -188,7 +201,10 @@ async function loadProducts() {
     try {
         const q = query(collection(db, "products"), where("catalogId", "==", currentCatalogId));
         const snap = await getDocs(q);
-        snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+        snap.forEach(d => {
+            const data = d.data();
+            allProducts.push({ id: d.id, ...data, rows: unwrapRowsFromFirestore(data.rows) });
+        });
     } catch (err) {
         showToast("Couldn't load products: " + err.message, true);
     }
@@ -528,7 +544,7 @@ async function saveProduct() {
         description: d.description,
         bullets: d.bullets.filter(b => b.trim()),
         columns: d.columns,
-        rows: d.rows,
+        rows: wrapRowsForFirestore(d.rows),
         active: d.active !== false,
         updatedAt: serverTimestamp(),
     };
@@ -674,7 +690,7 @@ document.getElementById("jsonImportConfirmBtn").addEventListener("click", async 
     for (const item of items) {
         try {
             const id = item.id || slugify(item.listNumbers?.[0] || item.name);
-            const data = { ...item, catalogId: item.catalogId || currentCatalogId, updatedAt: serverTimestamp() };
+            const data = { ...item, catalogId: item.catalogId || currentCatalogId, rows: wrapRowsForFirestore(item.rows), updatedAt: serverTimestamp() };
             delete data.id;
             await setDoc(doc(db, "products", id), data);
             ok++;
