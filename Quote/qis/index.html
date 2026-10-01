@@ -2140,14 +2140,23 @@ function clearAllFeatures() {
 
             // Page 1 carries the letterhead/customer info plus the first machine's
             // equipment+features (matches the original single-machine layout
-            // exactly when there's only one item). Its comparison table, any
-            // additional machines (each on its own fresh page), and the shared
-            // closing sections all follow on page 2+.
+            // exactly when there's only one item). From there, every machine
+            // gets a clean, fixed 2-page spread of its own -- equipment+features,
+            // then its payment table on a fresh page -- so each one prints
+            // front-to-back consistently no matter how much content it has.
+            // The shared closing sections (service contract, notes, etc.)
+            // follow after the last machine's table.
             const firstItemHtml = buildEquipmentFeaturesHtml(items[0]);
-            let restHtml = buildComparisonSectionHtml(items[0]);
-            for (let i = 1; i < items.length; i++) {
-                restHtml += `<div class="qd-break"></div><div class="qd-page">${buildEquipmentFeaturesHtml(items[i])}${buildComparisonSectionHtml(items[i])}</div>`;
-            }
+            let restHtml = '';
+            items.forEach((item, i) => {
+                if (i > 0) {
+                    restHtml += `<div class="qd-break"></div><div class="qd-page">${buildEquipmentFeaturesHtml(item)}</div>`;
+                }
+                const comparisonHtml = buildComparisonSectionHtml(item);
+                if (comparisonHtml) {
+                    restHtml += `<div class="qd-break"></div><div class="qd-page">${comparisonHtml}</div>`;
+                }
+            });
 
             // ----- Service contract -----
             let serviceHtml = '';
@@ -2255,10 +2264,9 @@ table.pcmp-split .pcmp-term{text-align:left}
                     ${firstItemHtml}
                 </div>
 
-                <div class="qd-break"></div>
-
+                ${restHtml}
+                ${restHtml ? '' : '<div class="qd-break"></div>'}
                 <div class="qd-page">
-                    ${restHtml}
                     ${serviceHtml}
                     ${anyRental ? `<div class="qd-section"><h3>Rental Requirements</h3><p class="qd-fine">${rentalRequirements()}</p></div>` : ''}
                     ${notesHtml}
