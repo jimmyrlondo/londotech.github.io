@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Kromhard Digital Catalog — Concept Preview</title>
+    <meta name="description" content="Concept preview: a searchable, indexed online catalog for Kromhard Twist Drill, built from their own Hole Making catalog data.">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="../assets/catalog.css">
+</head>
+<body>
+
+    <div class="preview-banner">
+        Concept preview built by <a href="https://londo.tech" target="_blank" rel="noopener">Londo Technologies</a> from Kromhard's own catalog data &mdash; not a live store yet. <a href="../">See the full site concept</a>
+    </div>
+
+    <header class="app-header">
+        <div class="wrap">
+            <div class="app-brand">
+                <span class="name">KROMHARD</span>
+                <span class="tag">Twist Drill &middot; Est. 1958</span>
+            </div>
+            <nav class="app-nav" aria-label="Primary">
+                <a href="../">Home</a>
+                <a href="./" class="current">Catalog</a>
+                <a href="../#about">About</a>
+                <a href="../#contact">Contact</a>
+            </nav>
+            <div class="app-header-actions">
+                <span class="app-phone"><strong>330-535-7129</strong></span>
+                <button class="cart-btn" id="cartBtn" type="button">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    Quote Cart
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="search-bar">
+        <div class="wrap">
+            <div class="search-row">
+                <div class="search-input-wrap">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <input type="text" id="searchInput" placeholder="Search by name, LIST number, or size (try &quot;3/8&quot;, &quot;cobalt&quot;, &quot;100TN&quot;, &quot;SDS&quot;)&hellip;" autocomplete="off">
+                </div>
+                <span class="result-count" id="resultCount"></span>
+            </div>
+            <div class="chip-row" id="chipRow"></div>
+        </div>
+    </div>
+
+    <main class="catalog-main">
+        <div class="wrap">
+            <div class="catalog-grid" id="catalogGrid"></div>
+            <div class="no-results" id="noResults" style="display:none;">
+                <h3>No matches</h3>
+                <p>Try a different size, LIST number, or product name. In the full build this search would run across every item in every Kromhard catalog.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="wrap">
+            This is a working preview of ~150 sizes from one Kromhard catalog &mdash; the full product would index everything, across every category. &middot;
+            <a href="../">Back to home</a>
+        </div>
+    </footer>
+
+    <!-- Cart drawer -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <aside class="cart-drawer" id="cartDrawer">
+        <div class="cart-head">
+            <h3>Quote Cart</h3>
+            <button class="cart-close" id="cartCloseBtn" aria-label="Close cart">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-foot">
+            <p>No prices are shown because Kromhard prices by account. Submitting sends this list as a quote request &mdash; in the full build it lands directly in Kromhard's admin backend.</p>
+            <button class="btn-quote" id="requestQuoteBtn" disabled>Request a Quote</button>
+        </div>
+    </aside>
+
+    <!-- Quote request modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box" id="modalBox">
+            <div id="formView">
+                <h3>Request a Quote</h3>
+                <p class="muted">We'll send this list to Kromhard's sales team along with your contact info.</p>
+                <div class="field">
+                    <label for="qName">Name</label>
+                    <input type="text" id="qName" placeholder="Jane Smith">
+                </div>
+                <div class="field">
+                    <label for="qCompany">Company</label>
+                    <input type="text" id="qCompany" placeholder="Acme Manufacturing">
+                </div>
+                <div class="field">
+                    <label for="qEmail">Email</label>
+                    <input type="email" id="qEmail" placeholder="jane@acme.com">
+                </div>
+                <div class="field">
+                    <label for="qNotes">Notes (optional)</label>
+                    <textarea id="qNotes" rows="3" placeholder="Quantities, timeline, anything else to know"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-ghost-sm" id="modalCancelBtn" type="button">Cancel</button>
+                    <button class="btn-quote" id="modalSubmitBtn" type="button">Submit Request</button>
+                </div>
+            </div>
+            <div id="successView" style="display:none;">
+                <div class="success-box">
+                    <div class="check">&#10003;</div>
+                    <h3>Quote request captured</h3>
+                    <p class="muted" style="margin-top:8px;">In the live version, this creates a quote in Kromhard's admin panel and notifies their sales team &mdash; same flow, real backend.</p>
+                    <button class="btn-ghost-sm" id="modalCloseSuccessBtn" type="button" style="margin-top:16px;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="catalog-data.js"></script>
+    <script>
+        const grid = document.getElementById('catalogGrid');
+        const chipRow = document.getElementById('chipRow');
+        const searchInput = document.getElementById('searchInput');
+        const resultCount = document.getElementById('resultCount');
+        const noResults = document.getElementById('noResults');
+
+        const urlParams = new URLSearchParams(location.search);
+        const categories = ['All', ...new Set(KROMHARD_CATALOG.map(p => p.category))];
+        const catFromUrl = categories.find(c => c.toLowerCase() === (urlParams.get('cat') || '').toLowerCase());
+
+        let activeCategory = catFromUrl || 'All';
+        let cart = []; // {productId, productName, listNumbers, size, rowLabel}
+
+        if (urlParams.get('q')) searchInput.value = urlParams.get('q');
+
+        chipRow.innerHTML = categories.map(c =>
+            `<button class="chip${c === activeCategory ? ' active' : ''}" data-cat="${c}">${c}</button>`
+        ).join('');
+
+        chipRow.addEventListener('click', e => {
+            const btn = e.target.closest('.chip');
+            if (!btn) return;
+            activeCategory = btn.dataset.cat;
+            chipRow.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === btn));
+            render();
+        });
+
+        searchInput.addEventListener('input', render);
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        }
+
+        function highlight(text, q) {
+            if (!q) return escapeHtml(text);
+            const t = String(text);
+            const idx = t.toLowerCase().indexOf(q.toLowerCase());
+            if (idx === -1) return escapeHtml(text);
+            return escapeHtml(t.slice(0, idx)) + '<span class="highlight">' + escapeHtml(t.slice(idx, idx + q.length)) + '</span>' + escapeHtml(t.slice(idx + q.length));
+        }
+
+        function matchesSearch(product, q) {
+            if (!q) return true;
+            q = q.toLowerCase();
+            if (product.name.toLowerCase().includes(q)) return true;
+            if (product.category.toLowerCase().includes(q)) return true;
+            if (product.listNumbers.some(n => n.toLowerCase().includes(q))) return true;
+            if (product.description.toLowerCase().includes(q)) return true;
+            if (product.rows.some(row => row.some(cell => String(cell).toLowerCase().includes(q)))) return true;
+            return false;
+        }
+
+        function render() {
+            const q = searchInput.value.trim();
+            const filtered = KROMHARD_CATALOG.filter(p =>
+                (activeCategory === 'All' || p.category === activeCategory) && matchesSearch(p, q)
+            );
+
+            resultCount.textContent = filtered.length === KROMHARD_CATALOG.length
+                ? `${filtered.length} product lines shown`
+                : `${filtered.length} of ${KROMHARD_CATALOG.length} product lines match`;
+
+            noResults.style.display = filtered.length ? 'none' : 'block';
+            grid.innerHTML = filtered.map(p => renderCard(p, q)).join('');
+
+            grid.querySelectorAll('.view-sizes-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const panel = document.getElementById('sizes-' + btn.dataset.id);
+                    const open = panel.classList.toggle('open');
+                    btn.textContent = open ? 'Hide sizes' : `View all ${btn.dataset.count} sizes`;
+                });
+            });
+
+            grid.querySelectorAll('.add-size-btn').forEach(btn => {
+                btn.addEventListener('click', () => addToCart(btn));
+            });
+        }
+
+        function renderCard(p, q) {
+            const matchingSizeRows = q ? p.rows.filter(row => row.some(cell => String(cell).toLowerCase().includes(q.toLowerCase()))) : [];
+            return `
+            <div class="product-card">
+                <div class="product-photo"><img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy"></div>
+                <div class="product-body">
+                    <span class="product-cat">${escapeHtml(p.category)}</span>
+                    <h3>${highlight(p.name, q)}</h3>
+                    <div class="list-num-row">
+                        ${p.listNumbers.map(n => `<span class="list-num">${highlight('LIST ' + n, q)}</span>`).join('')}
+                    </div>
+                    <p class="product-desc">${escapeHtml(p.description)}</p>
+                    <ul class="product-bullets">
+                        ${p.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+                    </ul>
+                    ${q && matchingSizeRows.length ? `<p style="font-size:12.5px;color:var(--rust);font-weight:700;">${matchingSizeRows.length} matching size${matchingSizeRows.length === 1 ? '' : 's'} below &darr;</p>` : ''}
+                    <div class="product-meta">
+                        <span>${p.rows.length} sizes indexed</span>
+                        <span>${escapeHtml(p.brand)}</span>
+                    </div>
+                    <button class="view-sizes-btn" data-id="${p.id}" data-count="${p.rows.length}">View all ${p.rows.length} sizes</button>
+                </div>
+                <div class="sizes-panel${q && matchingSizeRows.length ? ' open' : ''}" id="sizes-${p.id}">
+                    <div class="sizes-scroll">
+                        <table class="sizes-table">
+                            <thead>
+                                <tr>
+                                    ${p.columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${p.rows.map((row, i) => renderRow(p, row, i, q)).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderRow(p, row, i, q) {
+            const cells = row.map((val, ci) => {
+                const key = p.columns[ci].key;
+                const isYesNo = val === 'Yes' || val === 'No';
+                const cls = isYesNo ? (val === 'Yes' ? ' class="yes"' : ' class="no"') : '';
+                return `<td${cls}>${highlight(val, q)}</td>`;
+            }).join('');
+            const sizeLabel = row[0];
+            const key = p.id + '::' + i;
+            const inCart = cart.some(c => c.key === key);
+            return `<tr>${cells}<td><button class="add-size-btn${inCart ? ' added' : ''}" data-key="${key}" data-product="${p.id}" data-row="${i}" data-size="${escapeHtml(sizeLabel)}" data-name="${escapeHtml(p.name)}" data-list="${escapeHtml(p.listNumbers.join('/'))}">${inCart ? 'Added' : 'Add'}</button></td></tr>`;
+        }
+
+        function addToCart(btn) {
+            const key = btn.dataset.key;
+            if (cart.some(c => c.key === key)) return;
+            cart.push({
+                key,
+                productName: btn.dataset.name,
+                listNumbers: btn.dataset.list,
+                size: btn.dataset.size,
+            });
+            btn.textContent = 'Added';
+            btn.classList.add('added');
+            updateCartUI();
+        }
+
+        function removeFromCart(key) {
+            cart = cart.filter(c => c.key !== key);
+            updateCartUI();
+            render();
+        }
+
+        function updateCartUI() {
+            document.getElementById('cartCount').textContent = cart.length;
+            const itemsEl = document.getElementById('cartItems');
+            const quoteBtn = document.getElementById('requestQuoteBtn');
+            quoteBtn.disabled = cart.length === 0;
+
+            if (!cart.length) {
+                itemsEl.innerHTML = '<div class="cart-empty">Your quote cart is empty.<br>Add sizes from any product line to get started.</div>';
+                return;
+            }
+
+            itemsEl.innerHTML = cart.map(c => `
+                <div class="cart-line">
+                    <div class="cart-line-info">
+                        <div class="pname">${escapeHtml(c.productName)}</div>
+                        <div class="pmeta">Size ${escapeHtml(c.size)} &middot; ${escapeHtml(c.listNumbers)}</div>
+                    </div>
+                    <button class="cart-line-remove" data-key="${c.key}">Remove</button>
+                </div>
+            `).join('');
+
+            itemsEl.querySelectorAll('.cart-line-remove').forEach(b => {
+                b.addEventListener('click', () => removeFromCart(b.dataset.key));
+            });
+        }
+
+        // Cart drawer open/close
+        const cartDrawer = document.getElementById('cartDrawer');
+        const cartOverlay = document.getElementById('cartOverlay');
+        function openCart() { cartDrawer.classList.add('open'); cartOverlay.classList.add('open'); }
+        function closeCart() { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('open'); }
+        document.getElementById('cartBtn').addEventListener('click', openCart);
+        document.getElementById('cartCloseBtn').addEventListener('click', closeCart);
+        cartOverlay.addEventListener('click', closeCart);
+
+        // Quote modal
+        const modalOverlay = document.getElementById('modalOverlay');
+        const formView = document.getElementById('formView');
+        const successView = document.getElementById('successView');
+        document.getElementById('requestQuoteBtn').addEventListener('click', () => {
+            formView.style.display = 'block';
+            successView.style.display = 'none';
+            modalOverlay.classList.add('open');
+        });
+        document.getElementById('modalCancelBtn').addEventListener('click', () => modalOverlay.classList.remove('open'));
+        modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('open'); });
+
+        document.getElementById('modalSubmitBtn').addEventListener('click', () => {
+            formView.style.display = 'none';
+            successView.style.display = 'block';
+        });
+        document.getElementById('modalCloseSuccessBtn').addEventListener('click', () => {
+            modalOverlay.classList.remove('open');
+            closeCart();
+        });
+
+        updateCartUI();
+        render();
+    </script>
+
+</body>
+</html>
