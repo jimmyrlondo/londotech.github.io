@@ -200,7 +200,11 @@ img { max-width: 100%; display: block; }
 
 /* Catalog grid */
 .catalog-main { padding: 28px 0 70px; }
-.catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); gap: 20px; margin-top: 20px; }
+
+/* The catalog page runs wider than the marketing homepage so expanded
+   size tables have room to breathe without horizontal scrolling. */
+body.catalog-page .wrap { max-width: 1680px; }
 
 .product-card {
     background: var(--surface);
@@ -254,8 +258,8 @@ img { max-width: 100%; display: block; }
 .sizes-panel { display: none; border-top: 1px solid var(--line); background: var(--bg); }
 .sizes-panel.open { display: block; }
 .sizes-scroll { max-height: 320px; overflow: auto; }
-table.sizes-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.sizes-table th, table.sizes-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.sizes-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.sizes-table th, table.sizes-table td { padding: 8px 8px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
 table.sizes-table thead th { position: sticky; top: 0; background: var(--surface-2); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-soft); }
 table.sizes-table tbody tr:hover { background: #fff; }
 table.sizes-table td.yes { color: var(--ok); font-weight: 700; }
@@ -335,4 +339,5 @@ table.sizes-table td.no { color: var(--line-strong); }
     .search-bar { position: static; }
     .hero h1 { font-size: 30px; }
     .cat-grid, .preview-grid, .contact-grid { grid-template-columns: 1fr; }
+    .catalog-grid { grid-template-columns: 1fr; }
 }
