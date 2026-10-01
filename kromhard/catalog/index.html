@@ -80,7 +80,7 @@
         </div>
         <div class="cart-items" id="cartItems"></div>
         <div class="cart-foot">
-            <p>No prices are shown because Kromhard prices by account. Submitting sends this list as a quote request &mdash; in the full build it lands directly in Kromhard's admin backend.</p>
+            <p>No prices are shown because Kromhard prices by account. Submitting sends this list as a quote request &mdash; in the full build it lands directly in Kromhard's admin backend. Prefer to call it in? <a href="tel:13305357129">330-535-7129</a>.</p>
             <button class="btn-quote" id="requestQuoteBtn" disabled>Request a Quote</button>
         </div>
     </aside>
@@ -95,22 +95,30 @@
         <div class="modal-box" id="modalBox">
             <div id="formView">
                 <h3>Request a Quote</h3>
-                <p class="muted">We'll send this list to Kromhard's sales team along with your contact info.</p>
+                <p class="muted">We'll send this list to Kromhard's sales team along with your contact info. Prefer to call it in? <a href="tel:13305357129">330-535-7129</a>.</p>
                 <div class="field">
-                    <label for="qName">Name</label>
-                    <input type="text" id="qName" placeholder="Jane Smith">
+                    <label for="qName">Full name</label>
+                    <input type="text" id="qName" name="name" autocomplete="name" placeholder="Jane Smith">
                 </div>
                 <div class="field">
-                    <label for="qCompany">Company</label>
-                    <input type="text" id="qCompany" placeholder="Acme Manufacturing">
+                    <label for="qCompany">Company name</label>
+                    <input type="text" id="qCompany" name="organization" autocomplete="organization" placeholder="Acme Manufacturing">
+                </div>
+                <div class="field">
+                    <label for="qAddress">Company address</label>
+                    <textarea id="qAddress" name="street-address" autocomplete="street-address" rows="2" placeholder="Street, city, state, ZIP"></textarea>
+                </div>
+                <div class="field">
+                    <label for="qPhone">Phone number</label>
+                    <input type="tel" id="qPhone" name="tel" autocomplete="tel" inputmode="tel" placeholder="(330) 555-1234">
                 </div>
                 <div class="field">
                     <label for="qEmail">Email</label>
-                    <input type="email" id="qEmail" placeholder="jane@acme.com">
+                    <input type="email" id="qEmail" name="email" autocomplete="email" placeholder="jane@acme.com">
                 </div>
                 <div class="field">
                     <label for="qNotes">Notes (optional)</label>
-                    <textarea id="qNotes" rows="3" placeholder="Quantities, timeline, anything else to know"></textarea>
+                    <textarea id="qNotes" rows="3" placeholder="Timeline, delivery preference, anything else to know"></textarea>
                 </div>
                 <div class="modal-actions">
                     <button class="btn-ghost-sm" id="modalCancelBtn" type="button">Cancel</button>
@@ -284,37 +292,62 @@
             }).join('');
             const sizeLabel = row[0];
             const key = p.id + '::' + i;
-            const inCart = cart.some(c => c.key === key);
-            return `<tr>${cells}<td><button class="add-size-btn${inCart ? ' added' : ''}" data-key="${key}" data-product="${p.id}" data-row="${i}" data-size="${escapeHtml(sizeLabel)}" data-name="${escapeHtml(p.name)}" data-list="${escapeHtml(p.listNumbers.join('/'))}">${inCart ? 'Added' : 'Add'}</button></td></tr>`;
+            const cartItem = cart.find(c => c.key === key);
+            return `<tr>${cells}<td><button class="add-size-btn${cartItem ? ' added' : ''}" data-key="${key}" data-product="${p.id}" data-row="${i}" data-size="${escapeHtml(sizeLabel)}" data-name="${escapeHtml(p.name)}" data-list="${escapeHtml(p.listNumbers.join('/'))}">${cartItem ? `Added &times;${cartItem.qty}` : 'Add'}</button></td></tr>`;
+        }
+
+        function updateAddButtonLabel(key) {
+            const item = cart.find(c => c.key === key);
+            sizesModalBox.querySelectorAll(`.add-size-btn[data-key="${CSS.escape(key)}"]`).forEach(btn => {
+                if (item) {
+                    btn.textContent = `Added ×${item.qty}`;
+                    btn.classList.add('added');
+                } else {
+                    btn.textContent = 'Add';
+                    btn.classList.remove('added');
+                }
+            });
         }
 
         function addToCart(btn) {
             const key = btn.dataset.key;
-            if (cart.some(c => c.key === key)) return;
-            cart.push({
-                key,
-                productName: btn.dataset.name,
-                listNumbers: btn.dataset.list,
-                size: btn.dataset.size,
-            });
-            btn.textContent = 'Added';
-            btn.classList.add('added');
+            const existing = cart.find(c => c.key === key);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    key,
+                    productName: btn.dataset.name,
+                    listNumbers: btn.dataset.list,
+                    size: btn.dataset.size,
+                    qty: 1,
+                });
+            }
+            updateAddButtonLabel(key);
+            updateCartUI();
+        }
+
+        function changeQty(key, delta) {
+            const item = cart.find(c => c.key === key);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty < 1) {
+                removeFromCart(key);
+                return;
+            }
+            updateAddButtonLabel(key);
             updateCartUI();
         }
 
         function removeFromCart(key) {
             cart = cart.filter(c => c.key !== key);
             updateCartUI();
-            render();
-            const modalBtn = sizesModalBox.querySelector(`.add-size-btn[data-key="${key}"]`);
-            if (modalBtn) {
-                modalBtn.textContent = 'Add';
-                modalBtn.classList.remove('added');
-            }
+            updateAddButtonLabel(key);
         }
 
         function updateCartUI() {
-            document.getElementById('cartCount').textContent = cart.length;
+            const totalUnits = cart.reduce((sum, c) => sum + c.qty, 0);
+            document.getElementById('cartCount').textContent = totalUnits;
             const itemsEl = document.getElementById('cartItems');
             const quoteBtn = document.getElementById('requestQuoteBtn');
             quoteBtn.disabled = cart.length === 0;
@@ -329,13 +362,21 @@
                     <div class="cart-line-info">
                         <div class="pname">${escapeHtml(c.productName)}</div>
                         <div class="pmeta">Size ${escapeHtml(c.size)} &middot; ${escapeHtml(c.listNumbers)}</div>
+                        <div class="qty-stepper">
+                            <button class="qty-btn" type="button" data-key="${c.key}" data-delta="-1" aria-label="Decrease quantity">&minus;</button>
+                            <span class="qty-value" aria-live="polite">${c.qty}</span>
+                            <button class="qty-btn" type="button" data-key="${c.key}" data-delta="1" aria-label="Increase quantity">+</button>
+                        </div>
                     </div>
-                    <button class="cart-line-remove" data-key="${c.key}">Remove</button>
+                    <button class="cart-line-remove" type="button" data-key="${c.key}">Remove</button>
                 </div>
             `).join('');
 
             itemsEl.querySelectorAll('.cart-line-remove').forEach(b => {
                 b.addEventListener('click', () => removeFromCart(b.dataset.key));
+            });
+            itemsEl.querySelectorAll('.qty-btn').forEach(b => {
+                b.addEventListener('click', () => changeQty(b.dataset.key, parseInt(b.dataset.delta, 10)));
             });
         }
 
