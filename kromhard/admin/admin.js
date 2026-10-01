@@ -8,7 +8,7 @@ import {
 import {
     getStorage, ref, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig } from "../assets/firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -16,14 +16,26 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 // ---------- State ----------
-let currentCatalogId = "holemaking";
+let currentCatalogId = "cutting-drilling-milling";
 let allProducts = [];
 let activeCategory = "All";
 let activeProductId = null; // null = nothing selected; "__new__" = unsaved new product
 let editingDraft = null;
 let knownSizes = null;
 
-const DEFAULT_CATALOGS = [{ id: "holemaking", name: "Hole Making" }];
+// The 6 real Kromhard catalogs, matching their actual site categories.
+// Only "Cutting, Drilling and Milling" has real product data so far (from
+// the Hole Making PDF) -- the other 5 exist here so the admin picker shows
+// the full planned structure, and so new catalogs don't need code changes
+// to appear, just products tagged with their catalogId.
+const DEFAULT_CATALOGS = [
+    { id: "cutting-drilling-milling", name: "Cutting, Drilling and Milling" },
+    { id: "threading-thread-repair", name: "Threading & Thread Repair Tools" },
+    { id: "hand-power-tools", name: "Hand Tools and Power Tools" },
+    { id: "precision-measuring", name: "Precision Measuring Tools" },
+    { id: "industrial-chemicals", name: "Industrial Chemicals & Fluids" },
+    { id: "workholding-material-handling", name: "Workholding & Material Handling" },
+];
 
 // ---------- DOM refs ----------
 const loginScreen = document.getElementById("loginScreen");
@@ -138,16 +150,28 @@ onAuthStateChanged(auth, async (user) => {
 
 // ---------- Catalogs ----------
 async function loadCatalogs() {
-    let catalogs = [];
+    let existing = new Map();
     try {
         const snap = await getDocs(collection(db, "catalogs"));
-        snap.forEach(d => catalogs.push({ id: d.id, ...d.data() }));
+        snap.forEach(d => existing.set(d.id, { id: d.id, ...d.data() }));
     } catch (err) {
         showToast("Couldn't load catalogs: " + err.message, true);
     }
-    if (!catalogs.length) catalogs = DEFAULT_CATALOGS;
+
+    // Bootstrap any of the 6 real catalogs that don't exist yet, so the
+    // picker always shows the full planned structure (most will be empty
+    // of products until their own PDFs get indexed, which is expected).
+    const missing = DEFAULT_CATALOGS.filter(c => !existing.has(c.id));
+    for (const c of missing) {
+        try {
+            await setDoc(doc(db, "catalogs", c.id), { name: c.name });
+            existing.set(c.id, c);
+        } catch (err) { /* non-fatal -- will just show via DEFAULT_CATALOGS below */ }
+    }
+
+    const catalogs = DEFAULT_CATALOGS.map(c => existing.get(c.id) || c);
     catalogSelect.innerHTML = catalogs.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name || c.id)}</option>`).join("");
-    currentCatalogId = catalogs[0].id;
+    if (!catalogs.some(c => c.id === currentCatalogId)) currentCatalogId = catalogs[0].id;
     catalogSelect.value = currentCatalogId;
 }
 
@@ -190,8 +214,8 @@ function renderCategoryChips() {
 function renderProductList() {
     const filtered = allProducts.filter(p => activeCategory === "All" || p.category === activeCategory);
     productList.innerHTML = filtered.map(p => `
-        <div class="product-list-item${p.id === activeProductId ? " active" : ""}" data-id="${escapeHtml(p.id)}">
-            <span class="pname">${escapeHtml(p.name || "(untitled)")}</span>
+        <div class="product-list-item${p.id === activeProductId ? " active" : ""}${p.active === false ? " inactive-item" : ""}" data-id="${escapeHtml(p.id)}">
+            <span class="pname">${escapeHtml(p.name || "(untitled)")}${p.active === false ? ' <span class="inactive-tag">Inactive</span>' : ""}</span>
             <span class="pmeta">${escapeHtml((p.listNumbers || []).join(", "))} &middot; ${(p.rows || []).length} sizes</span>
         </div>
     `).join("") || `<div style="padding:18px;color:var(--ink-soft);font-size:13.5px;">No products in this category yet.</div>`;
@@ -215,6 +239,7 @@ function blankDraft() {
         bullets: [],
         note: "",
         price: "",
+        active: true,
         columns: [{ key: "size", label: "Size" }],
         rows: [],
     };
@@ -225,6 +250,7 @@ function selectProduct(id) {
     if (!p) return;
     activeProductId = id;
     editingDraft = JSON.parse(JSON.stringify(p));
+    if (editingDraft.active === undefined) editingDraft.active = true; // older docs predate this field
     renderProductList();
     renderEditor();
 }
@@ -250,7 +276,13 @@ function renderEditor() {
 
     editorRoot.innerHTML = `
         <div class="editor-head">
-            <h2>${isNew ? "New Product Line" : escapeHtml(d.name || "(untitled)")}</h2>
+            <div>
+                <h2>${isNew ? "New Product Line" : escapeHtml(d.name || "(untitled)")}</h2>
+                <label class="active-toggle">
+                    <input type="checkbox" id="f_active" ${d.active !== false ? "checked" : ""}>
+                    <span id="activeLabel">${d.active !== false ? "Active — visible on the public catalog" : "Inactive — hidden from the public catalog"}</span>
+                </label>
+            </div>
             <div class="editor-actions">
                 <button class="btn btn-ghost btn-sm" id="exportCsvBtn" ${isNew ? "disabled" : ""}>Export Rows (CSV)</button>
                 <button class="btn btn-ghost btn-sm" id="importCsvBtn" ${isNew ? "disabled" : ""}>Import Rows (CSV)</button>
@@ -349,6 +381,12 @@ function renderEditor() {
     editorRoot.querySelector("#f_description").addEventListener("input", e => d.description = e.target.value);
     editorRoot.querySelector("#f_note").addEventListener("input", e => d.note = e.target.value);
     editorRoot.querySelector("#f_price").addEventListener("input", e => d.price = e.target.value);
+    editorRoot.querySelector("#f_active").addEventListener("change", e => {
+        d.active = e.target.checked;
+        editorRoot.querySelector("#activeLabel").textContent = d.active
+            ? "Active — visible on the public catalog"
+            : "Inactive — hidden from the public catalog";
+    });
 
     editorRoot.querySelector("#addBulletBtn").addEventListener("click", () => { d.bullets.push(""); renderBullets(); });
 
@@ -491,6 +529,7 @@ async function saveProduct() {
         bullets: d.bullets.filter(b => b.trim()),
         columns: d.columns,
         rows: d.rows,
+        active: d.active !== false,
         updatedAt: serverTimestamp(),
     };
     if (d.note && d.note.trim()) data.note = d.note.trim();
@@ -513,7 +552,8 @@ async function upsertCatalogMeta(catalogId) {
         const ref_ = doc(db, "catalogs", catalogId);
         const snap = await getDoc(ref_);
         if (!snap.exists()) {
-            await setDoc(ref_, { name: catalogId === "holemaking" ? "Hole Making" : catalogId });
+            const known = DEFAULT_CATALOGS.find(c => c.id === catalogId);
+            await setDoc(ref_, { name: known ? known.name : catalogId });
         }
     } catch (err) { /* non-fatal */ }
 }

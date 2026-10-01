@@ -78,6 +78,9 @@ button, input, textarea, select { font-family: inherit; }
 .product-list-item.active .pname, .product-list-item.active .pmeta { color: #fff; }
 .product-list-item .pname { font-weight: 700; font-size: 14px; }
 .product-list-item .pmeta { font-size: 12px; color: var(--ink-soft); }
+.product-list-item.inactive-item:not(.active) { opacity: 0.55; }
+.inactive-tag { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--err); border: 1px solid var(--err); border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+.product-list-item.active .inactive-tag { color: #ffb4b4; border-color: #ffb4b4; }
 .sidebar-footer { padding: 14px 18px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
 
 .admin-main { flex: 1; overflow-y: auto; padding: 28px 36px; }
@@ -87,6 +90,8 @@ button, input, textarea, select { font-family: inherit; }
 .editor-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
 .editor-head h2 { font-size: 24px; }
 .editor-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.active-toggle { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
+.active-toggle input { width: 16px; height: 16px; cursor: pointer; }
 
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
 .panel h3 { font-size: 15px; margin-bottom: 16px; }

@@ -150,26 +150,54 @@
         const resultCount = document.getElementById('resultCount');
         const noResults = document.getElementById('noResults');
 
-        const urlParams = new URLSearchParams(location.search);
-        const categories = ['All', ...new Set(KROMHARD_CATALOG.map(p => p.category))];
-        const catFromUrl = categories.find(c => c.toLowerCase() === (urlParams.get('cat') || '').toLowerCase());
+        // catalogData starts as the static bundled dataset (catalog-data.js)
+        // and gets swapped for a live Firestore fetch in init() below, if one
+        // succeeds and returns products. Keeping the static file as a
+        // fallback means the page still works if Firestore is unreachable.
+        let catalogData = KROMHARD_CATALOG;
 
-        let activeCategory = catFromUrl || 'All';
+        const urlParams = new URLSearchParams(location.search);
+        let activeCategory = 'All';
         let cart = []; // {productId, productName, listNumbers, size, rowLabel}
 
         if (urlParams.get('q')) searchInput.value = urlParams.get('q');
 
-        chipRow.innerHTML = categories.map(c =>
-            `<button class="chip${c === activeCategory ? ' active' : ''}" data-cat="${c}">${c}</button>`
-        ).join('');
+        async function fetchLiveCatalog() {
+            try {
+                const [{ initializeApp }, { getFirestore, collection, getDocs }, { firebaseConfig }] = await Promise.all([
+                    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js'),
+                    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js'),
+                    import('../assets/firebase-config.js'),
+                ]);
+                const db = getFirestore(initializeApp(firebaseConfig));
+                const snap = await getDocs(collection(db, 'products'));
+                const products = [];
+                snap.forEach(d => products.push({ id: d.id, ...d.data() }));
+                // Missing `active` (older docs) counts as active, matching the admin app's own default.
+                return products.filter(p => p.active !== false);
+            } catch (err) {
+                console.warn('Live catalog fetch failed, using bundled static data instead:', err);
+                return null;
+            }
+        }
 
-        chipRow.addEventListener('click', e => {
-            const btn = e.target.closest('.chip');
-            if (!btn) return;
-            activeCategory = btn.dataset.cat;
-            chipRow.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === btn));
-            render();
-        });
+        function setupChips() {
+            const categories = ['All', ...new Set(catalogData.map(p => p.category))];
+            const catFromUrl = categories.find(c => c.toLowerCase() === (urlParams.get('cat') || '').toLowerCase());
+            activeCategory = catFromUrl || 'All';
+
+            chipRow.innerHTML = categories.map(c =>
+                `<button class="chip${c === activeCategory ? ' active' : ''}" data-cat="${c}">${c}</button>`
+            ).join('');
+
+            chipRow.addEventListener('click', e => {
+                const btn = e.target.closest('.chip');
+                if (!btn) return;
+                activeCategory = btn.dataset.cat;
+                chipRow.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === btn));
+                render();
+            });
+        }
 
         searchInput.addEventListener('input', render);
 
@@ -198,13 +226,13 @@
 
         function render() {
             const q = searchInput.value.trim();
-            const filtered = KROMHARD_CATALOG.filter(p =>
+            const filtered = catalogData.filter(p =>
                 (activeCategory === 'All' || p.category === activeCategory) && matchesSearch(p, q)
             );
 
-            resultCount.textContent = filtered.length === KROMHARD_CATALOG.length
+            resultCount.textContent = filtered.length === catalogData.length
                 ? `${filtered.length} product lines shown`
-                : `${filtered.length} of ${KROMHARD_CATALOG.length} product lines match`;
+                : `${filtered.length} of ${catalogData.length} product lines match`;
 
             noResults.style.display = filtered.length ? 'none' : 'block';
             grid.innerHTML = filtered.map(p => renderCard(p, q)).join('');
@@ -258,7 +286,7 @@
         const sizesModalBox = document.getElementById('sizesModalBox');
 
         function openSizesModal(productId, q) {
-            const p = KROMHARD_CATALOG.find(x => x.id === productId);
+            const p = catalogData.find(x => x.id === productId);
             if (!p) return;
             sizesModalBox.innerHTML = `
                 <div class="sizes-modal-head">
@@ -416,8 +444,14 @@
             closeCart();
         });
 
-        updateCartUI();
-        render();
+        async function init() {
+            const live = await fetchLiveCatalog();
+            if (live && live.length) catalogData = live;
+            setupChips();
+            updateCartUI();
+            render();
+        }
+        init();
 
         // Back to top button
         const backToTopBtn = document.getElementById('backToTopBtn');
