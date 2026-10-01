@@ -187,12 +187,25 @@
                     <p class="text-gray-600 text-sm mt-1">Configure equipment pricing and financing terms</p>
                 </div>
 
+                <div class="mb-6 p-5 bg-white rounded-xl border-2 border-gray-200">
+                    <h3 class="text-base font-bold text-gray-800 mb-1">Equipment on This Quote</h3>
+                    <p class="text-xs text-gray-500 mb-3">Quoting one machine? Fill in the details below and skip straight to Preview. Quoting more than one (or a few model options), add each one here.</p>
+                    <div id="equipmentListItems" class="space-y-2">
+                        <p class="text-sm text-gray-400">No equipment added yet.</p>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    
+
                     <div class="space-y-6">
                         <div class="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Equipment Details</h3>
-                            
+
+                            <div class="mb-4">
+                                <label for="equipmentLabel" class="block text-sm font-semibold text-gray-800 mb-2">Option Label <span class="text-xs text-gray-500">(only shown on the quote with 2+ machines)</span></label>
+                                <input type="text" id="equipmentLabel" placeholder="e.g., Option 1, Front Desk Copier" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
+                            </div>
+
                            <!-- Quick Load Multi-Brand Section -->
 <div class="mb-4 p-4 bg-gradient-to-br from-green-50 to-teal-50 rounded-lg border-2 border-green-200">
     <h4 class="font-semibold text-gray-800 mb-3">🚀 Quick Load Equipment</h4>
@@ -304,6 +317,11 @@
                             <div class="text-3xl font-bold text-green-700" id="outrightPriceDisplay">$0.00</div>
                             <input type="hidden" id="outrightPrice">
                             <p class="text-xs text-gray-600 mt-2">Cash purchase price. For rentals, the amount financed is this minus any down payment.</p>
+                        </div>
+
+                        <div class="p-5 bg-white rounded-xl border-2 border-indigo-200 text-center">
+                            <button type="button" id="addEquipmentBtn" class="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">+ Add This Machine to the Quote</button>
+                            <p class="text-xs text-gray-500 mt-2">Quoting a second machine or model option? Add this one, then fill in the next below.</p>
                         </div>
                     </div>
 
@@ -759,6 +777,8 @@
             logoDataUrl: '',
             lastEditedPriceType: 'original',
             validation: {},
+            equipmentList: [],
+            editingEquipmentIndex: null,
             customFeatureCount: 0,
             autoSaveTimer: null,
             currentQuoteId: null,
@@ -1400,10 +1420,12 @@ function clearAllFeatures() {
             return checked.length ? all.filter(t => checked.includes(t)) : all;
         }
 
-        function generatePaymentComparisonTable() {
-            const netCost = parseFloat(document.getElementById('outrightPrice').value) || 0;
-            const quoteType = currentQuoteType();
-            const deposit = (quoteType === 'rental') ? (parseFloat(document.getElementById('downPaymentAmount').value) || 0) : 0;
+        // `item` is the equipment-item data shape (see captureDraftAsEquipmentItem) —
+        // either a snapshot from STATE.equipmentList or the live draft captured fresh.
+        function generatePaymentComparisonTable(item) {
+            const netCost = parseFloat(item.outrightPrice) || 0;
+            const quoteType = item.quoteType;
+            const deposit = (quoteType === 'rental') ? (parseFloat(item.downPaymentAmount) || 0) : 0;
             if (!netCost) return '';
 
             const amountToFinance = Math.max(0, netCost - deposit);
@@ -1469,6 +1491,189 @@ function clearAllFeatures() {
         }
 
         // ====================================
+        // MULTIPLE EQUIPMENT ON ONE QUOTE
+        // The Pricing/Features tabs always represent "the machine currently
+        // being configured" (the draft). Adding it to the quote snapshots the
+        // draft's fields into STATE.equipmentList and clears the draft for the
+        // next one. If nothing's ever added, the preview falls back to using
+        // the draft directly, so a single-machine quote needs no extra step.
+        // ====================================
+
+        function captureDraftAsEquipmentItem(label) {
+            const features = [];
+            document.querySelectorAll('input[name="features"]:checked').forEach(cb => features.push(cb.value));
+            document.querySelectorAll('.custom-feature-item').forEach(item => {
+                const checkbox = item.querySelector('.custom-feature-checkbox');
+                const input = item.querySelector('.custom-feature-input');
+                if (checkbox.checked && input.value.trim()) features.push(input.value.trim());
+            });
+            return {
+                label: label || '',
+                modelName: document.getElementById('modelName').value,
+                originalPrice: document.getElementById('originalPrice').value,
+                tradeInChecked: document.getElementById('tradeInCheckbox').checked,
+                tradeInAmount: document.getElementById('tradeInAmount').value,
+                tradeInItem: document.getElementById('tradeInItem').value,
+                outrightPrice: document.getElementById('outrightPrice').value,
+                monthlyPrice: document.getElementById('monthlyPrice').value,
+                quoteType: document.querySelector('input[name="quoteType"]:checked').value,
+                term: document.getElementById('term').value,
+                downPaymentAmount: document.getElementById('downPaymentAmount').value,
+                securityDeposit: document.getElementById('securityDeposit').value,
+                printSpeed: document.getElementById('printSpeed').value,
+                equipmentCondition: document.querySelector('input[name="equipmentCondition"]:checked').value,
+                features: features
+            };
+        }
+
+        function loadDraftFromEquipmentItem(item) {
+            document.getElementById('equipmentLabel').value = item.label || '';
+            document.getElementById('modelName').value = item.modelName || '';
+            document.getElementById('originalPrice').value = item.originalPrice || '';
+            document.getElementById('printSpeed').value = item.printSpeed || '';
+            document.getElementById('tradeInCheckbox').checked = !!item.tradeInChecked;
+            document.getElementById('tradeInFields').classList.toggle('hidden', !item.tradeInChecked);
+            document.getElementById('tradeInAmount').value = item.tradeInAmount || '';
+            document.getElementById('tradeInItem').value = item.tradeInItem || '';
+            document.getElementById('monthlyPrice').value = item.monthlyPrice || '';
+            document.getElementById('term').value = item.term || '';
+            document.getElementById('downPaymentAmount').value = item.downPaymentAmount || '';
+            document.getElementById('securityDeposit').value = item.securityDeposit || '500';
+            if (item.quoteType) {
+                document.querySelector(`input[name="quoteType"][value="${item.quoteType}"]`).checked = true;
+            }
+            if (item.equipmentCondition) {
+                document.querySelector(`input[name="equipmentCondition"][value="${item.equipmentCondition}"]`).checked = true;
+            }
+            document.querySelectorAll('input[name="features"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.custom-feature-item').forEach(el => el.remove());
+            (item.features || []).forEach(feature => {
+                const checkbox = Array.from(document.querySelectorAll('input[name="features"]')).find(cb => cb.value === feature);
+                if (checkbox) {
+                    checkbox.checked = true;
+                } else {
+                    addCustomFeature();
+                    const lastFeature = document.querySelector('#customFeaturesContainer .custom-feature-item:last-child');
+                    if (lastFeature) {
+                        lastFeature.querySelector('.custom-feature-input').value = feature;
+                        lastFeature.querySelector('.custom-feature-checkbox').checked = true;
+                    }
+                }
+            });
+            STATE.lastEditedPriceType = 'original';
+            applyQuoteTypeUI();
+            calculatePrices();
+        }
+
+        // Resets just the equipment/financing/features draft — not customer
+        // info, sales rep, service contract, or notes.
+        function clearEquipmentDraft() {
+            document.getElementById('equipmentLabel').value = '';
+            document.getElementById('modelName').value = '';
+            document.getElementById('originalPrice').value = '';
+            document.getElementById('printSpeed').value = '';
+            document.getElementById('tradeInCheckbox').checked = false;
+            document.getElementById('tradeInFields').classList.add('hidden');
+            document.getElementById('tradeInAmount').value = '';
+            document.getElementById('tradeInItem').value = '';
+            document.getElementById('monthlyPrice').value = '';
+            document.getElementById('term').value = '';
+            document.getElementById('downPaymentAmount').value = '';
+            document.getElementById('securityDeposit').value = '500';
+            document.getElementById('outrightPrice').value = '';
+            document.getElementById('outrightPriceDisplay').textContent = '$0.00';
+            document.getElementById('conditionNew').checked = true;
+            document.getElementById('quoteTypeLease').checked = true;
+            document.querySelectorAll('input[name="features"]').forEach(cb => { if (!cb.disabled) cb.checked = false; });
+            document.querySelectorAll('.custom-feature-item').forEach(item => item.remove());
+            STATE.lastEditedPriceType = 'original';
+            STATE.validation = {};
+            applyQuoteTypeUI();
+            updateQuoteSummary();
+        }
+
+        function renderEquipmentList() {
+            const container = document.getElementById('equipmentListItems');
+            const list = STATE.equipmentList;
+            const addBtn = document.getElementById('addEquipmentBtn');
+
+            if (!list.length) {
+                container.innerHTML = '<p class="text-sm text-gray-400">No equipment added yet.</p>';
+                addBtn.textContent = '+ Add This Machine to the Quote';
+                return;
+            }
+
+            container.innerHTML = list.map((item, i) => {
+                const programLabel = item.quoteType === 'rental' ? 'Rental' : item.quoteType === 'buyout' ? '$1 Buyout' : 'FMV Lease';
+                const monthlyNum = parseFloat(item.monthlyPrice);
+                const monthly = monthlyNum ? formatCurrency(monthlyNum) + '/mo' : 'no price set';
+                const editing = STATE.editingEquipmentIndex === i;
+                return `<div class="flex items-center justify-between p-3 ${editing ? 'bg-indigo-50 ring-2 ring-indigo-400' : 'bg-gray-50'} rounded-lg border border-gray-200">
+                    <div>
+                        <div class="font-semibold text-gray-800 text-sm">${esc(item.label || ('Option ' + (i + 1)))} &mdash; ${esc(item.modelName || 'Unnamed model')}</div>
+                        <div class="text-xs text-gray-500">${programLabel}${item.term ? ', ' + esc(item.term) + ' mo' : ''} &middot; ${monthly}</div>
+                    </div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button type="button" class="text-xs px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded font-semibold hover:bg-indigo-200" onclick="editEquipmentItem(${i})">Edit</button>
+                        <button type="button" class="text-xs px-3 py-1.5 bg-red-100 text-red-700 rounded font-semibold hover:bg-red-200" onclick="removeEquipmentItem(${i})">Remove</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            addBtn.textContent = STATE.editingEquipmentIndex !== null ? 'Update This Item' : '+ Add Another Machine to the Quote';
+        }
+
+        function addOrUpdateEquipmentItem() {
+            const modelName = document.getElementById('modelName').value.trim();
+            if (!modelName) {
+                showMessage('Missing Information', 'Enter a Model Name before adding this machine to the quote.');
+                return;
+            }
+            const labelInput = document.getElementById('equipmentLabel').value.trim();
+            const index = STATE.editingEquipmentIndex;
+            const label = labelInput || (index !== null ? STATE.equipmentList[index].label : ('Option ' + (STATE.equipmentList.length + 1)));
+            const item = captureDraftAsEquipmentItem(label);
+
+            if (index !== null && index >= 0 && index < STATE.equipmentList.length) {
+                STATE.equipmentList[index] = item;
+                STATE.editingEquipmentIndex = null;
+                showAutoSave('Updated: ' + label);
+            } else {
+                STATE.equipmentList.push(item);
+                showAutoSave('Added: ' + label);
+            }
+
+            clearEquipmentDraft();
+            renderEquipmentList();
+            updateProgressBar();
+            scheduleAutoSave();
+        }
+
+        function editEquipmentItem(index) {
+            const item = STATE.equipmentList[index];
+            if (!item) return;
+            loadDraftFromEquipmentItem(item);
+            STATE.editingEquipmentIndex = index;
+            renderEquipmentList();
+            switchTab('pricing');
+        }
+
+        function removeEquipmentItem(index) {
+            showMessage('Remove Equipment', 'Remove this item from the quote?', true, (confirmed) => {
+                if (!confirmed) return;
+                STATE.equipmentList.splice(index, 1);
+                if (STATE.editingEquipmentIndex === index) {
+                    STATE.editingEquipmentIndex = null;
+                    clearEquipmentDraft();
+                } else if (STATE.editingEquipmentIndex !== null && STATE.editingEquipmentIndex > index) {
+                    STATE.editingEquipmentIndex--;
+                }
+                renderEquipmentList();
+                scheduleAutoSave();
+            });
+        }
+
+        // ====================================
         // QUOTE MANAGEMENT
         // ====================================
 
@@ -1518,6 +1723,7 @@ function clearAllFeatures() {
                 features: features,
                 equipmentCondition: document.querySelector('input[name="equipmentCondition"]:checked').value,
                 logoDataUrl: STATE.logoDataUrl,
+                equipmentList: STATE.equipmentList,
                 createdDate: new Date().toISOString()
             };
         }
@@ -1577,6 +1783,9 @@ function clearAllFeatures() {
             }
 
             STATE.currentQuoteId = data.quoteNumber;
+            STATE.equipmentList = Array.isArray(data.equipmentList) ? data.equipmentList : [];
+            STATE.editingEquipmentIndex = null;
+            renderEquipmentList();
             calculatePrices();
             updateProgressBar();
         }
@@ -1672,27 +1881,13 @@ function clearAllFeatures() {
                     document.getElementById('customerContactName').value = '';
                     document.getElementById('customerEmail').value = '';
                     document.getElementById('customerPhone').value = '';
-                    document.getElementById('modelName').value = '';
-                    document.getElementById('originalPrice').value = '';
-                    document.getElementById('tradeInAmount').value = '';
-                    document.getElementById('tradeInItem').value = '';
-                    document.getElementById('monthlyPrice').value = '';
-                    document.getElementById('term').value = '';
-                    document.getElementById('printSpeed').value = '';
                     document.getElementById('additionalNotes').value = '';
-                    document.getElementById('downPaymentAmount').value = '';
-                    document.getElementById('securityDeposit').value = '500';
-                    document.getElementById('outrightPrice').value = '';
-                    document.getElementById('outrightPriceDisplay').textContent = '$0.00';
-                    document.querySelectorAll('input[name="features"]').forEach(cb => { if (!cb.disabled) cb.checked = false; });
-                    document.querySelectorAll('.custom-feature-item').forEach(item => item.remove());
-                    document.getElementById('quoteTypeLease').checked = true;
                     document.getElementById('compareSideBySide').checked = false;
                     document.querySelectorAll('.term-checkbox').forEach(cb => { cb.checked = true; });
-                    STATE.lastEditedPriceType = 'original';
-                    STATE.validation = {};
-                    applyQuoteTypeUI();
-                    updateQuoteSummary();
+                    STATE.equipmentList = [];
+                    STATE.editingEquipmentIndex = null;
+                    clearEquipmentDraft();
+                    renderEquipmentList();
                     switchTab('basic');
                     updateProgressBar();
                     showAutoSave('New quote created');
@@ -1758,43 +1953,32 @@ function clearAllFeatures() {
             return `Rental payments shown are subject to credit approval. A ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is required unless otherwise approved. A copy of the signer's driver's license and a voided check are required. Only Certified Pre-Owned equipment is eligible for the rental program. You may upgrade at any time, with the remaining payments applied as a buyout.`;
         }
 
-        function generateQuotePreview() {
-            const formData = getQuoteData();
-            if (!formData.customerCompanyName || !formData.modelName) {
-                showMessage('Missing Information', 'Please fill in at least Customer Company Name and Model Name.');
-                return;
-            }
-
-            const quoteType = formData.quoteType;
-            const program = RATE_CONFIG[quoteType] || RATE_CONFIG.lease;
-
-            // Prepared date + auto-filled expiration (quoteValidDays out from today).
-            const preparedDate = new Date();
-            const validUntilDate = new Date(preparedDate.getTime());
-            validUntilDate.setDate(validUntilDate.getDate() + (parseInt(formData.quoteValidDays) || 30));
-
-            // Rental is Certified Pre-Owned only.
-            const condition = (quoteType === 'rental') ? 'certified' : formData.equipmentCondition;
+        // One equipment item's "Equipment & Pricing" + "Features" sections
+        // (everything that's self-contained per machine, minus the comparison
+        // table, which is built separately so page breaks can fall between them).
+        function buildEquipmentFeaturesHtml(item) {
+            const quoteType = item.quoteType;
+            const condition = (quoteType === 'rental') ? 'certified' : item.equipmentCondition;
             const conditionBadge = condition === 'new'
                 ? '<span class="qd-badge new">New Equipment</span>'
                 : '<span class="qd-badge cpo">Certified Pre-Owned</span>';
 
-            // ----- Trade-in -----
             let tradeInHtml = '';
-            const tradeAmt = parseFloat(formData.tradeInAmount) || 0;
-            if (document.getElementById('tradeInCheckbox').checked && tradeAmt > 0) {
+            const tradeAmt = parseFloat(item.tradeInAmount) || 0;
+            if (item.tradeInChecked && tradeAmt > 0) {
                 tradeInHtml = `<div class="qd-trade">
-                    <div>List price: ${formatCurrency(parseFloat(formData.originalPrice) || 0)}</div>
-                    <div class="neg">Trade-in allowance: &minus;${formatCurrency(tradeAmt)}${formData.tradeInItem ? ' (' + esc(formData.tradeInItem) + ')' : ''}</div>
+                    <div>List price: ${formatCurrency(parseFloat(item.originalPrice) || 0)}</div>
+                    <div class="neg">Trade-in allowance: &minus;${formatCurrency(tradeAmt)}${item.tradeInItem ? ' (' + esc(item.tradeInItem) + ')' : ''}</div>
                 </div>`;
             }
 
-            // ----- Pricing summary -----
-            const netCost = parseFloat(formData.outrightPrice) || 0;
-            const downAmt = (quoteType === 'rental') ? (parseFloat(formData.downPaymentAmount) || 0) : 0;
-            const depositAmt = (quoteType === 'rental') ? (parseFloat(formData.securityDeposit) || DEFAULT_SECURITY_DEPOSIT) : 0;
+            const netCost = parseFloat(item.outrightPrice) || 0;
+            const downAmt = (quoteType === 'rental') ? (parseFloat(item.downPaymentAmount) || 0) : 0;
+            const depositAmt = (quoteType === 'rental') ? (parseFloat(item.securityDeposit) || DEFAULT_SECURITY_DEPOSIT) : 0;
+            const showOutright = document.getElementById('showOutright').checked;
+            const showMonthly = document.getElementById('showMonthly').checked;
             let priceRows = '';
-            if (formData.showOutright && netCost) {
+            if (showOutright && netCost) {
                 priceRows += `<div class="lead">Cash purchase price: ${formatCurrency(netCost)}</div>`;
             }
             if (downAmt > 0) {
@@ -1803,30 +1987,82 @@ function clearAllFeatures() {
             if (quoteType === 'rental') {
                 priceRows += `<div class="sub">Security deposit (refundable, not applied to payments): ${formatCurrency(depositAmt)}</div>`;
             }
-            if (formData.showMonthly && formData.monthlyPrice && formData.term) {
+            if (showMonthly && item.monthlyPrice && item.term) {
                 const label = quoteType === 'rental' ? 'Monthly rental payment'
                             : quoteType === 'buyout' ? 'Monthly payment ($1.00 buyout)'
                             : 'Monthly lease payment (FMV)';
-                priceRows += `<div class="monthly">${label}: ${formatCurrency(parseFloat(formData.monthlyPrice))} / mo &times; ${esc(formData.term)} months</div>`;
+                priceRows += `<div class="monthly">${label}: ${formatCurrency(parseFloat(item.monthlyPrice))} / mo &times; ${esc(item.term)} months</div>`;
             }
             if (!priceRows) priceRows = '<div class="sub">Contact us for pricing on this configuration.</div>';
 
-            // ----- Features -----
-            const features = formData.features.slice();
+            const features = (item.features || []).slice();
             let featuresHtml = '';
-            if (formData.printSpeed) {
-                featuresHtml += `<p style="font-size:11px;margin-bottom:6px"><strong>Rated speed:</strong> ${esc(formData.printSpeed)}</p>`;
+            if (item.printSpeed) {
+                featuresHtml += `<p style="font-size:11px;margin-bottom:6px"><strong>Rated speed:</strong> ${esc(item.printSpeed)}</p>`;
             }
             if (features.length) {
                 featuresHtml += `<div class="qd-feat">${features.map(f => `<div><span class="dot">&bull;</span>${esc(f)}</div>`).join('')}</div>`;
             }
             const alwaysIncluded = `<p style="font-size:11px;margin-top:8px"><strong>Always included:</strong> free delivery, professional installation, and on-site training.</p>`;
 
-            // ----- Comparison table -----
-            let comparisonHtml = '';
-            if (formData.showAllTerms) {
-                const t = generatePaymentComparisonTable();
-                if (t) comparisonHtml = `<div class="qd-section"><h3>Payment Options by Term</h3>${t}</div>`;
+            const heading = item.label ? `Equipment &amp; Pricing &mdash; ${esc(item.label)}` : 'Equipment &amp; Pricing';
+
+            return `<div class="qd-section">
+                <h3>${heading}</h3>
+                <div class="qd-equip">
+                    <div class="model">${esc(item.modelName)}${conditionBadge}</div>
+                    ${tradeInHtml}
+                    <div class="qd-price">${priceRows}</div>
+                </div>
+            </div>
+            ${featuresHtml || alwaysIncluded ? `<div class="qd-section"><h3>Features &amp; What's Included</h3>${featuresHtml}${alwaysIncluded}</div>` : ''}`;
+        }
+
+        // One equipment item's payment comparison table, if the quote-wide
+        // "show comparison table" option is on.
+        function buildComparisonSectionHtml(item) {
+            if (!document.getElementById('showAllTerms').checked) return '';
+            const t = generatePaymentComparisonTable(item);
+            if (!t) return '';
+            const heading = item.label ? `Payment Options by Term &mdash; ${esc(item.label)}` : 'Payment Options by Term';
+            return `<div class="qd-section"><h3>${heading}</h3>${t}</div>`;
+        }
+
+        function generateQuotePreview() {
+            const formData = getQuoteData();
+            if (!formData.customerCompanyName) {
+                showMessage('Missing Information', 'Please fill in at least the Customer Company Name.');
+                return;
+            }
+
+            // Equipment to render: whatever's been added to the quote, or (if
+            // nothing has) the current draft as an implicit single item — so a
+            // one-machine quote needs no extra "Add" click.
+            let items = STATE.equipmentList.slice();
+            if (!items.length) {
+                if (!document.getElementById('modelName').value.trim()) {
+                    showMessage('Missing Information', 'Fill in a Model Name, or add equipment to the quote, before previewing.');
+                    return;
+                }
+                items = [captureDraftAsEquipmentItem('')];
+            }
+
+            // Prepared date + auto-filled expiration (quoteValidDays out from today).
+            const preparedDate = new Date();
+            const validUntilDate = new Date(preparedDate.getTime());
+            validUntilDate.setDate(validUntilDate.getDate() + (parseInt(formData.quoteValidDays) || 30));
+
+            const anyRental = items.some(it => it.quoteType === 'rental');
+
+            // Page 1 carries the letterhead/customer info plus the first machine's
+            // equipment+features (matches the original single-machine layout
+            // exactly when there's only one item). Its comparison table, any
+            // additional machines (each on its own fresh page), and the shared
+            // closing sections all follow on page 2+.
+            const firstItemHtml = buildEquipmentFeaturesHtml(items[0]);
+            let restHtml = buildComparisonSectionHtml(items[0]);
+            for (let i = 1; i < items.length; i++) {
+                restHtml += `<div class="qd-break"></div><div class="qd-page">${buildEquipmentFeaturesHtml(items[i])}${buildComparisonSectionHtml(items[i])}</div>`;
             }
 
             // ----- Service contract -----
@@ -1932,24 +2168,15 @@ table.pcmp-split .pcmp-term{text-align:left}
                         ${formData.customerPhone ? `<p>${esc(formData.customerPhone)}</p>` : ''}
                     </div>
 
-                    <div class="qd-section">
-                        <h3>Equipment &amp; Pricing</h3>
-                        <div class="qd-equip">
-                            <div class="model">${esc(formData.modelName)}${conditionBadge}</div>
-                            ${tradeInHtml}
-                            <div class="qd-price">${priceRows}</div>
-                        </div>
-                    </div>
-
-                    ${featuresHtml || alwaysIncluded ? `<div class="qd-section"><h3>Features &amp; What's Included</h3>${featuresHtml}${alwaysIncluded}</div>` : ''}
+                    ${firstItemHtml}
                 </div>
 
                 <div class="qd-break"></div>
 
                 <div class="qd-page">
-                    ${comparisonHtml}
+                    ${restHtml}
                     ${serviceHtml}
-                    ${quoteType === 'rental' ? `<div class="qd-section"><h3>Rental Requirements</h3><p class="qd-fine">${rentalRequirements()}</p></div>` : ''}
+                    ${anyRental ? `<div class="qd-section"><h3>Rental Requirements</h3><p class="qd-fine">${rentalRequirements()}</p></div>` : ''}
                     ${notesHtml}
                     <div class="qd-foot">
                         <div class="ty">Thank you for your business.</div>
@@ -2200,6 +2427,9 @@ document.getElementById('clearAllFeaturesBtn').addEventListener('click', clearAl
             document.getElementById('refreshPreviewBtn').addEventListener('click', generateQuotePreview);
             document.getElementById('exportBtn').addEventListener('click', exportToPDF);
 
+            // Add/update equipment on this quote
+            document.getElementById('addEquipmentBtn').addEventListener('click', addOrUpdateEquipmentItem);
+
             // Auto-save on all input changes
             document.querySelectorAll('input, select, textarea').forEach(input => {
                 if (!input.id.includes('monthlyPrice') && !input.id.includes('originalPrice')) {
@@ -2217,13 +2447,16 @@ document.getElementById('clearAllFeaturesBtn').addEventListener('click', clearAl
             applyQuoteTypeUI();
             updateQuoteSummary();
             updateProgressBar();
-            
+            renderEquipmentList();
+
             console.log('Initialization complete!');
         });
 
         // Make functions global for onclick handlers
         window.loadQuoteById = loadQuoteById;
         window.deleteQuote = deleteQuote;
+        window.editEquipmentItem = editEquipmentItem;
+        window.removeEquipmentItem = removeEquipmentItem;
     </script>
 
 </body>
