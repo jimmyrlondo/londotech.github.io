@@ -166,7 +166,32 @@ img { max-width: 100%; display: block; }
 }
 
 /* Search / filter bar */
-.search-bar { background: var(--surface); border-bottom: 1px solid var(--line); padding: 20px 0; position: sticky; top: 0; z-index: 15; }
+.sticky-top { position: sticky; top: 0; z-index: 20; }
+.search-bar { background: var(--surface); border-bottom: 1px solid var(--line); padding: 20px 0; }
+
+.back-to-top {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--steel);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 30;
+}
+.back-to-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+.back-to-top:hover { background: var(--steel-deep); }
 .search-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .search-input-wrap { position: relative; flex: 1 1 320px; min-width: 240px; }
 .search-input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); }

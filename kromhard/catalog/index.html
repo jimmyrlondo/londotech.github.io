@@ -18,39 +18,41 @@
         Concept preview built by <a href="https://londo.tech" target="_blank" rel="noopener">Londo Technologies</a> from Kromhard's own catalog data &mdash; not a live store yet. <a href="../">See the full site concept</a>
     </div>
 
-    <header class="app-header">
-        <div class="wrap">
-            <div class="app-brand">
-                <span class="name">KROMHARD</span>
-                <span class="tag">Twist Drill &middot; Est. 1958</span>
-            </div>
-            <nav class="app-nav" aria-label="Primary">
-                <a href="../">Home</a>
-                <a href="./" class="current">Catalog</a>
-                <a href="../#about">About</a>
-                <a href="../#contact">Contact</a>
-            </nav>
-            <div class="app-header-actions">
-                <span class="app-phone"><strong>330-535-7129</strong></span>
-                <button class="cart-btn" id="cartBtn" type="button">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                    Quote Cart
-                    <span class="cart-count" id="cartCount">0</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <div class="search-bar">
-        <div class="wrap">
-            <div class="search-row">
-                <div class="search-input-wrap">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                    <input type="text" id="searchInput" placeholder="Search by name, LIST number, or size (try &quot;3/8&quot;, &quot;cobalt&quot;, &quot;100TN&quot;, &quot;SDS&quot;)&hellip;" autocomplete="off">
+    <div class="sticky-top">
+        <header class="app-header">
+            <div class="wrap">
+                <div class="app-brand">
+                    <span class="name">KROMHARD</span>
+                    <span class="tag">Twist Drill &middot; Est. 1958</span>
                 </div>
-                <span class="result-count" id="resultCount"></span>
+                <nav class="app-nav" aria-label="Primary">
+                    <a href="../">Home</a>
+                    <a href="./" class="current">Catalog</a>
+                    <a href="../#about">About</a>
+                    <a href="../#contact">Contact</a>
+                </nav>
+                <div class="app-header-actions">
+                    <span class="app-phone"><strong>330-535-7129</strong></span>
+                    <button class="cart-btn" id="cartBtn" type="button">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        Quote Cart
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                </div>
             </div>
-            <div class="chip-row" id="chipRow"></div>
+        </header>
+
+        <div class="search-bar">
+            <div class="wrap">
+                <div class="search-row">
+                    <div class="search-input-wrap">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                        <input type="text" id="searchInput" placeholder="Search by name, LIST number, or size (try &quot;3/8&quot;, &quot;cobalt&quot;, &quot;100TN&quot;, &quot;SDS&quot;)&hellip;" autocomplete="off">
+                    </div>
+                    <span class="result-count" id="resultCount"></span>
+                </div>
+                <div class="chip-row" id="chipRow"></div>
+            </div>
         </div>
     </div>
 
@@ -70,6 +72,10 @@
             <a href="../">Back to home</a>
         </div>
     </footer>
+
+    <button class="back-to-top" id="backToTopBtn" type="button" aria-label="Back to top">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+    </button>
 
     <!-- Cart drawer -->
     <div class="cart-overlay" id="cartOverlay"></div>
@@ -412,6 +418,15 @@
 
         updateCartUI();
         render();
+
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTopBtn');
+        window.addEventListener('scroll', () => {
+            backToTopBtn.classList.toggle('visible', window.scrollY > 500);
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     </script>
 
 </body>
