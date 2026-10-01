@@ -274,7 +274,7 @@
                                 <label for="printSpeed" class="block text-sm font-semibold text-gray-800 mb-2">Print Speed (PPM)</label>
                                 <input type="text" id="printSpeed" placeholder="e.g., 40 ppm" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
                             </div>
-                                                        <div class="mb-4">
+                                                        <div class="mb-4" id="conditionRadioBlock">
                                 <label class="block text-sm font-semibold text-gray-800 mb-2">Equipment Condition</label>
                                 <div class="space-y-2">
                                     <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-white transition">
@@ -287,6 +287,19 @@
                                     </label>
                                 </div>
                                 <p id="conditionNote" class="hidden text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">The rental program covers Certified Pre-Owned equipment only.</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="compareConditions" class="h-5 w-5 text-blue-600 rounded">
+                                    <span class="ml-3 text-sm font-medium text-gray-700">Compare New vs. Certified Pre-Owned pricing side-by-side</span>
+                                </label>
+                                <p id="compareConditionsRentalNote" class="hidden text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">Not available for rentals &mdash; the rental program covers Certified Pre-Owned equipment only, so there's no "new" price to compare.</p>
+                                <div id="cpoPriceFields" class="hidden mt-3">
+                                    <label for="cpoPrice" class="block text-sm font-semibold text-gray-800 mb-2">Certified Pre-Owned Price ($)</label>
+                                    <input type="number" id="cpoPrice" placeholder="e.g., 6500.00" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
+                                    <p class="text-xs text-gray-500 mt-1">Shown next to the new-equipment price above on the quote, using the same trade-in, term, and financing program.</p>
+                                </div>
                             </div>
                         </div>
 
@@ -1257,12 +1270,31 @@ function clearAllFeatures() {
             document.getElementById('conditionNote').classList.toggle('hidden', !isRental);
             const newRadio = document.getElementById('conditionNew');
             const cpoRadio = document.getElementById('conditionCertified');
+            const compareBox = document.getElementById('compareConditions');
             if (isRental) {
                 cpoRadio.checked = true;
                 newRadio.disabled = true;
+                compareBox.checked = false;
+                compareBox.disabled = true;
             } else {
                 newRadio.disabled = false;
+                compareBox.disabled = false;
                 document.getElementById('downPaymentAmount').value = '';
+            }
+            document.getElementById('compareConditionsRentalNote').classList.toggle('hidden', !isRental);
+            applyCompareConditionsUI();
+        }
+
+        // Toggles the single Equipment Condition radio vs. the "show both
+        // prices" field, and the matching Certified Pre-Owned price input.
+        function applyCompareConditionsUI() {
+            const comparing = document.getElementById('compareConditions').checked;
+            document.getElementById('conditionRadioBlock').classList.toggle('hidden', comparing);
+            document.getElementById('cpoPriceFields').classList.toggle('hidden', !comparing);
+            if (comparing) {
+                document.getElementById('conditionNew').checked = true;
+            } else {
+                document.getElementById('cpoPrice').value = '';
             }
         }
 
@@ -1522,6 +1554,8 @@ function clearAllFeatures() {
                 securityDeposit: document.getElementById('securityDeposit').value,
                 printSpeed: document.getElementById('printSpeed').value,
                 equipmentCondition: document.querySelector('input[name="equipmentCondition"]:checked').value,
+                compareConditions: document.getElementById('compareConditions').checked,
+                cpoPrice: document.getElementById('cpoPrice').value,
                 features: features
             };
         }
@@ -1545,6 +1579,8 @@ function clearAllFeatures() {
             if (item.equipmentCondition) {
                 document.querySelector(`input[name="equipmentCondition"][value="${item.equipmentCondition}"]`).checked = true;
             }
+            document.getElementById('compareConditions').checked = !!item.compareConditions;
+            document.getElementById('cpoPrice').value = item.cpoPrice || '';
             document.querySelectorAll('input[name="features"]').forEach(cb => cb.checked = false);
             document.querySelectorAll('.custom-feature-item').forEach(el => el.remove());
             (item.features || []).forEach(feature => {
@@ -1584,6 +1620,8 @@ function clearAllFeatures() {
             document.getElementById('outrightPriceDisplay').textContent = '$0.00';
             document.getElementById('conditionNew').checked = true;
             document.getElementById('quoteTypeLease').checked = true;
+            document.getElementById('compareConditions').checked = false;
+            document.getElementById('cpoPrice').value = '';
             document.querySelectorAll('input[name="features"]').forEach(cb => { if (!cb.disabled) cb.checked = false; });
             document.querySelectorAll('.custom-feature-item').forEach(item => item.remove());
             STATE.lastEditedPriceType = 'original';
@@ -1956,6 +1994,50 @@ function clearAllFeatures() {
         // One equipment item's "Equipment & Pricing" + "Features" sections
         // (everything that's self-contained per machine, minus the comparison
         // table, which is built separately so page breaks can fall between them).
+        // When an item has "compare New vs CPO" on and a CPO price set, builds
+        // a side-by-side pricing block for both conditions, using the same
+        // trade-in, term, and financing program (not available for rentals,
+        // which are Certified Pre-Owned only — gated in the UI already).
+        function buildConditionComparisonHtml(item) {
+            const cpoPriceNum = parseFloat(item.cpoPrice) || 0;
+            if (!item.compareConditions || !cpoPriceNum) return '';
+
+            const showOutright = document.getElementById('showOutright').checked;
+            const showMonthly = document.getElementById('showMonthly').checked;
+            const tradeAmt = item.tradeInChecked ? (parseFloat(item.tradeInAmount) || 0) : 0;
+
+            const newNetCost = parseFloat(item.outrightPrice) || 0;
+            const newMonthly = parseFloat(item.monthlyPrice) || null;
+
+            const cpoNetCost = Math.max(0, cpoPriceNum - tradeAmt);
+            const cpoRf = getRateFactor(item.quoteType, cpoNetCost, item.term);
+            const cpoMonthly = cpoRf.ok ? cpoNetCost * cpoRf.factor : null;
+
+            const monthlyLabel = item.quoteType === 'buyout' ? 'Monthly ($1.00 buyout)' : 'Monthly lease (FMV)';
+
+            function col(labelText, badgeClass, netCost, monthly, financingOk) {
+                let rows = '';
+                if (showOutright) rows += `<div style="font-weight:700;color:#1e293b;font-size:13px">${formatCurrency(netCost)}</div>`;
+                if (showMonthly) {
+                    if (monthly != null) {
+                        rows += `<div style="color:#4338ca;font-weight:700;margin-top:4px">${monthlyLabel}: ${formatCurrency(monthly)}/mo</div>`;
+                    } else if (!financingOk) {
+                        rows += `<div style="color:#dc2626;margin-top:4px;font-size:10px">No financing available at this price/term</div>`;
+                    }
+                }
+                return `<div style="flex:1;min-width:0"><span class="qd-badge ${badgeClass}">${labelText}</span><div style="margin-top:6px">${rows || '&nbsp;'}</div></div>`;
+            }
+
+            const tradeNote = (item.tradeInChecked && tradeAmt > 0)
+                ? `<p style="font-size:10px;color:#64748b;margin-bottom:8px">Trade-in allowance of ${formatCurrency(tradeAmt)}${item.tradeInItem ? ' (' + esc(item.tradeInItem) + ')' : ''} applied to both prices below.</p>`
+                : '';
+
+            return `${tradeNote}<div class="qd-price" style="display:flex;gap:16px;">
+                ${col('New Equipment', 'new', newNetCost, newMonthly, true)}
+                ${col('Certified Pre-Owned', 'cpo', cpoNetCost, cpoMonthly, cpoRf.ok)}
+            </div>`;
+        }
+
         function buildEquipmentFeaturesHtml(item) {
             const quoteType = item.quoteType;
             const condition = (quoteType === 'rental') ? 'certified' : item.equipmentCondition;
@@ -1963,9 +2045,11 @@ function clearAllFeatures() {
                 ? '<span class="qd-badge new">New Equipment</span>'
                 : '<span class="qd-badge cpo">Certified Pre-Owned</span>';
 
+            const conditionComparisonHtml = buildConditionComparisonHtml(item);
+
             let tradeInHtml = '';
             const tradeAmt = parseFloat(item.tradeInAmount) || 0;
-            if (item.tradeInChecked && tradeAmt > 0) {
+            if (!conditionComparisonHtml && item.tradeInChecked && tradeAmt > 0) {
                 tradeInHtml = `<div class="qd-trade">
                     <div>List price: ${formatCurrency(parseFloat(item.originalPrice) || 0)}</div>
                     <div class="neg">Trade-in allowance: &minus;${formatCurrency(tradeAmt)}${item.tradeInItem ? ' (' + esc(item.tradeInItem) + ')' : ''}</div>
@@ -2010,9 +2094,9 @@ function clearAllFeatures() {
             return `<div class="qd-section">
                 <h3>${heading}</h3>
                 <div class="qd-equip">
-                    <div class="model">${esc(item.modelName)}${conditionBadge}</div>
+                    <div class="model">${esc(item.modelName)}${conditionComparisonHtml ? '' : conditionBadge}</div>
                     ${tradeInHtml}
-                    <div class="qd-price">${priceRows}</div>
+                    ${conditionComparisonHtml || `<div class="qd-price">${priceRows}</div>`}
                 </div>
             </div>
             ${featuresHtml || alwaysIncluded ? `<div class="qd-section"><h3>Features &amp; What's Included</h3>${featuresHtml}${alwaysIncluded}</div>` : ''}`;
@@ -2403,6 +2487,12 @@ document.getElementById('loadKMModel').addEventListener('click', loadSelectedMod
                     calculatePrices();
                     scheduleAutoSave();
                 });
+            });
+
+            // New-vs-Certified-Pre-Owned side-by-side toggle
+            document.getElementById('compareConditions').addEventListener('change', () => {
+                applyCompareConditionsUI();
+                scheduleAutoSave();
             });
 
           // Feature selection buttons
