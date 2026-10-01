@@ -487,13 +487,15 @@
     </div>
 
     <div class="p-6 bg-gray-50 rounded-xl border-2 border-gray-200">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-2">
             <h3 class="text-lg font-bold text-gray-800">Features & Options</h3>
             <div class="flex gap-2">
+                <button type="button" id="setStandardFeaturesBtn" class="text-sm px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200 transition">Save as Standard Set</button>
                 <button type="button" id="selectAllFeaturesBtn" class="text-sm px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition">Select All</button>
                 <button type="button" id="clearAllFeaturesBtn" class="text-sm px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">Clear All</button>
             </div>
         </div>
+        <p class="text-xs text-gray-500 mb-4">Every new machine on a quote starts with your standard feature set. Edit the checkboxes for an individual machine as needed &mdash; that won't change the standard. Click "Save as Standard Set" to update what future machines start with.</p>
 
         <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
             
@@ -792,6 +794,7 @@
             validation: {},
             equipmentList: [],
             editingEquipmentIndex: null,
+            standardFeatures: [],
             customFeatureCount: 0,
             autoSaveTimer: null,
             currentQuoteId: null,
@@ -1560,6 +1563,42 @@ function clearAllFeatures() {
             };
         }
 
+        // Checks the built-in feature boxes matching `features`, and recreates
+        // a custom-feature row for any entry that isn't a built-in checkbox.
+        // Wipes whatever feature state was on the form first.
+        function applyFeaturesToForm(features) {
+            document.querySelectorAll('input[name="features"]').forEach(cb => { if (!cb.disabled) cb.checked = false; });
+            document.querySelectorAll('.custom-feature-item').forEach(el => el.remove());
+            (features || []).forEach(feature => {
+                const checkbox = Array.from(document.querySelectorAll('input[name="features"]')).find(cb => cb.value === feature);
+                if (checkbox) {
+                    checkbox.checked = true;
+                } else {
+                    addCustomFeature();
+                    const lastFeature = document.querySelector('#customFeaturesContainer .custom-feature-item:last-child');
+                    if (lastFeature) {
+                        lastFeature.querySelector('.custom-feature-input').value = feature;
+                        lastFeature.querySelector('.custom-feature-checkbox').checked = true;
+                    }
+                }
+            });
+        }
+
+        // Captures whatever's currently checked on the Features tab as the
+        // standard set every new machine on any quote starts with.
+        function setStandardFeaturesFromDraft() {
+            const features = [];
+            document.querySelectorAll('input[name="features"]:checked').forEach(cb => features.push(cb.value));
+            document.querySelectorAll('.custom-feature-item').forEach(item => {
+                const checkbox = item.querySelector('.custom-feature-checkbox');
+                const input = item.querySelector('.custom-feature-input');
+                if (checkbox.checked && input.value.trim()) features.push(input.value.trim());
+            });
+            STATE.standardFeatures = features;
+            localStorage.setItem('qis_standard_features', JSON.stringify(features));
+            showAutoSave('Standard features updated (' + features.length + ')');
+        }
+
         function loadDraftFromEquipmentItem(item) {
             document.getElementById('equipmentLabel').value = item.label || '';
             document.getElementById('modelName').value = item.modelName || '';
@@ -1581,21 +1620,7 @@ function clearAllFeatures() {
             }
             document.getElementById('compareConditions').checked = !!item.compareConditions;
             document.getElementById('cpoPrice').value = item.cpoPrice || '';
-            document.querySelectorAll('input[name="features"]').forEach(cb => cb.checked = false);
-            document.querySelectorAll('.custom-feature-item').forEach(el => el.remove());
-            (item.features || []).forEach(feature => {
-                const checkbox = Array.from(document.querySelectorAll('input[name="features"]')).find(cb => cb.value === feature);
-                if (checkbox) {
-                    checkbox.checked = true;
-                } else {
-                    addCustomFeature();
-                    const lastFeature = document.querySelector('#customFeaturesContainer .custom-feature-item:last-child');
-                    if (lastFeature) {
-                        lastFeature.querySelector('.custom-feature-input').value = feature;
-                        lastFeature.querySelector('.custom-feature-checkbox').checked = true;
-                    }
-                }
-            });
+            applyFeaturesToForm(item.features || []);
             STATE.lastEditedPriceType = 'original';
             applyQuoteTypeUI();
             calculatePrices();
@@ -1622,8 +1647,7 @@ function clearAllFeatures() {
             document.getElementById('quoteTypeLease').checked = true;
             document.getElementById('compareConditions').checked = false;
             document.getElementById('cpoPrice').value = '';
-            document.querySelectorAll('input[name="features"]').forEach(cb => { if (!cb.disabled) cb.checked = false; });
-            document.querySelectorAll('.custom-feature-item').forEach(item => item.remove());
+            applyFeaturesToForm(STATE.standardFeatures);
             STATE.lastEditedPriceType = 'original';
             STATE.validation = {};
             applyQuoteTypeUI();
@@ -2138,27 +2162,10 @@ function clearAllFeatures() {
 
             const anyRental = items.some(it => it.quoteType === 'rental');
 
-            // Page 1 carries the letterhead/customer info plus the first machine's
-            // equipment+features (matches the original single-machine layout
-            // exactly when there's only one item). From there, every machine
-            // gets a clean, fixed 2-page spread of its own -- equipment+features,
-            // then its payment table on a fresh page -- so each one prints
-            // front-to-back consistently no matter how much content it has.
-            // The shared closing sections (service contract, notes, etc.)
-            // follow after the last machine's table.
-            const firstItemHtml = buildEquipmentFeaturesHtml(items[0]);
-            let restHtml = '';
-            items.forEach((item, i) => {
-                if (i > 0) {
-                    restHtml += `<div class="qd-break"></div><div class="qd-page">${buildEquipmentFeaturesHtml(item)}</div>`;
-                }
-                const comparisonHtml = buildComparisonSectionHtml(item);
-                if (comparisonHtml) {
-                    restHtml += `<div class="qd-break"></div><div class="qd-page">${comparisonHtml}</div>`;
-                }
-            });
-
             // ----- Service contract -----
+            // Same terms regardless of machine, so it's computed once but
+            // repeated on every machine's spread (see the loop below) rather
+            // than shown only once at the end.
             let serviceHtml = '';
             if (formData.includeServiceContract) {
                 const blackCost = parseFloat(formData.serviceBlackCost) || 0.01;
@@ -2171,6 +2178,32 @@ function clearAllFeatures() {
                     </ul>
                     <p style="font-size:11px;margin-top:6px">While on a service contract, all toner, drums, developer, service, support, and training are included at no additional cost. We provide a 4-hour response time and typically address requests the same day if received before noon, or the next business day if received after noon.</p>
                 </div>`;
+            }
+
+            // Page 1 carries the letterhead/customer info plus the first machine's
+            // equipment+features (matches the original single-machine layout
+            // exactly when there's only one item). From there, every machine
+            // gets a clean, fixed 2-page spread of its own -- equipment+features,
+            // then its payment table on a fresh page -- so each one prints
+            // front-to-back consistently no matter how much content it has.
+            // The service contract is attached to the last page of EVERY
+            // machine's spread (its table page if shown, else its equipment
+            // page), since the terms are the same no matter which machine it's
+            // quoted on. Rental requirements/notes/footer stay as one shared
+            // closing section after the last machine.
+            const firstComparisonHtml = buildComparisonSectionHtml(items[0]);
+            const firstItemHtml = buildEquipmentFeaturesHtml(items[0]) + (firstComparisonHtml ? '' : serviceHtml);
+            let restHtml = '';
+            if (firstComparisonHtml) {
+                restHtml += `<div class="qd-break"></div><div class="qd-page">${firstComparisonHtml}${serviceHtml}</div>`;
+            }
+            for (let i = 1; i < items.length; i++) {
+                const item = items[i];
+                const comparisonHtml = buildComparisonSectionHtml(item);
+                restHtml += `<div class="qd-break"></div><div class="qd-page">${buildEquipmentFeaturesHtml(item)}${comparisonHtml ? '' : serviceHtml}</div>`;
+                if (comparisonHtml) {
+                    restHtml += `<div class="qd-break"></div><div class="qd-page">${comparisonHtml}${serviceHtml}</div>`;
+                }
             }
 
             // ----- Notes -----
@@ -2267,7 +2300,6 @@ table.pcmp-split .pcmp-term{text-align:left}
                 ${restHtml}
                 ${restHtml ? '' : '<div class="qd-break"></div>'}
                 <div class="qd-page">
-                    ${serviceHtml}
                     ${anyRental ? `<div class="qd-section"><h3>Rental Requirements</h3><p class="qd-fine">${rentalRequirements()}</p></div>` : ''}
                     ${notesHtml}
                     <div class="qd-foot">
@@ -2368,7 +2400,19 @@ if (STATE.companyLogoBase64) {
 }
             document.getElementById('currentDate').textContent = formatDate(new Date());
             document.getElementById('quoteNumber').value = generateQuoteNumber();
-            
+
+            // Load the standard feature set (persists across quotes) and apply
+            // it to the empty draft so the first machine starts with it too.
+            try {
+                const savedStandard = JSON.parse(localStorage.getItem('qis_standard_features') || '[]');
+                if (Array.isArray(savedStandard)) {
+                    STATE.standardFeatures = savedStandard;
+                    applyFeaturesToForm(savedStandard);
+                }
+            } catch (e) {
+                console.error('Error loading standard features:', e);
+            }
+
             // Load auto-save if exists
             setTimeout(loadAutoSave, 500);
 
@@ -2506,6 +2550,7 @@ document.getElementById('loadKMModel').addEventListener('click', loadSelectedMod
           // Feature selection buttons
 document.getElementById('selectAllFeaturesBtn').addEventListener('click', selectAllFeatures);
 document.getElementById('clearAllFeaturesBtn').addEventListener('click', clearAllFeatures);
+document.getElementById('setStandardFeaturesBtn').addEventListener('click', setStandardFeaturesFromDraft);
 
             // Add custom feature
             document.getElementById('addCustomFeatureBtn').addEventListener('click', () => {
