@@ -200,11 +200,7 @@ img { max-width: 100%; display: block; }
 
 /* Catalog grid */
 .catalog-main { padding: 28px 0 70px; }
-.catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); gap: 20px; margin-top: 20px; }
-
-/* The catalog page runs wider than the marketing homepage so expanded
-   size tables have room to breathe without horizontal scrolling. */
-body.catalog-page .wrap { max-width: 1680px; }
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
 
 .product-card {
     background: var(--surface);
@@ -254,12 +250,8 @@ body.catalog-page .wrap { max-width: 1680px; }
 }
 .view-sizes-btn:hover { background: var(--steel-deep); }
 
-/* Sizes panel (expanded in-card) */
-.sizes-panel { display: none; border-top: 1px solid var(--line); background: var(--bg); }
-.sizes-panel.open { display: block; }
-.sizes-scroll { max-height: 320px; overflow: auto; }
-table.sizes-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-table.sizes-table th, table.sizes-table td { padding: 8px 8px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.sizes-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.sizes-table th, table.sizes-table td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
 table.sizes-table thead th { position: sticky; top: 0; background: var(--surface-2); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-soft); }
 table.sizes-table tbody tr:hover { background: #fff; }
 table.sizes-table td.yes { color: var(--ok); font-weight: 700; }
@@ -320,6 +312,16 @@ table.sizes-table td.no { color: var(--line-strong); }
 .modal-box { background: #fff; border-radius: 12px; max-width: 480px; width: 100%; padding: 28px; max-height: 90vh; overflow-y: auto; }
 .modal-box h3 { margin-bottom: 6px; }
 .modal-box .muted { color: var(--ink-soft); font-size: 14px; margin-bottom: 18px; }
+
+/* Sizes modal — deliberately much wider than the standard modal-box so
+   size tables never need their own horizontal scrollbar, regardless of
+   how narrow the 3-up product card grid runs. */
+.sizes-modal-box { max-width: 1240px; padding: 0; display: flex; flex-direction: column; max-height: 85vh; }
+.sizes-modal-head { padding: 22px 28px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.sizes-modal-head h3 { margin-bottom: 4px; }
+.sizes-modal-head .list-num-row { margin-top: 8px; }
+.sizes-modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink-soft); line-height: 1; flex-shrink: 0; }
+.sizes-modal-scroll { overflow: auto; padding: 0 28px 24px; }
 .field { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
 .field label { font-size: 13px; font-weight: 700; }
 .field input, .field textarea {

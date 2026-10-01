@@ -85,6 +85,11 @@
         </div>
     </aside>
 
+    <!-- Sizes modal -->
+    <div class="modal-overlay" id="sizesModalOverlay">
+        <div class="modal-box sizes-modal-box" id="sizesModalBox"></div>
+    </div>
+
     <!-- Quote request modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box" id="modalBox">
@@ -191,15 +196,7 @@
             grid.innerHTML = filtered.map(p => renderCard(p, q)).join('');
 
             grid.querySelectorAll('.view-sizes-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const panel = document.getElementById('sizes-' + btn.dataset.id);
-                    const open = panel.classList.toggle('open');
-                    btn.textContent = open ? 'Hide sizes' : `View all ${btn.dataset.count} sizes`;
-                });
-            });
-
-            grid.querySelectorAll('.add-size-btn').forEach(btn => {
-                btn.addEventListener('click', () => addToCart(btn));
+                btn.addEventListener('click', () => openSizesModal(btn.dataset.id, searchInput.value.trim()));
             });
         }
 
@@ -218,30 +215,65 @@
                     <ul class="product-bullets">
                         ${p.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
                     </ul>
-                    ${q && matchingSizeRows.length ? `<p style="font-size:12.5px;color:var(--rust);font-weight:700;">${matchingSizeRows.length} matching size${matchingSizeRows.length === 1 ? '' : 's'} below &darr;</p>` : ''}
+                    ${q && matchingSizeRows.length ? `<p style="font-size:12.5px;color:var(--rust);font-weight:700;">${matchingSizeRows.length} matching size${matchingSizeRows.length === 1 ? '' : 's'} &mdash; view sizes to see them</p>` : ''}
                     <div class="product-meta">
                         <span>${p.rows.length} sizes indexed</span>
                         <span>${escapeHtml(p.brand)}</span>
                     </div>
                     <button class="view-sizes-btn" data-id="${p.id}" data-count="${p.rows.length}">View all ${p.rows.length} sizes</button>
                 </div>
-                <div class="sizes-panel${q && matchingSizeRows.length ? ' open' : ''}" id="sizes-${p.id}">
-                    <div class="sizes-scroll">
-                        <table class="sizes-table">
-                            <thead>
-                                <tr>
-                                    ${p.columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${p.rows.map((row, i) => renderRow(p, row, i, q)).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </div>`;
         }
+
+        function buildSizesTable(p, q) {
+            return `
+                <table class="sizes-table">
+                    <thead>
+                        <tr>
+                            ${p.columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${p.rows.map((row, i) => renderRow(p, row, i, q)).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        const sizesModalOverlay = document.getElementById('sizesModalOverlay');
+        const sizesModalBox = document.getElementById('sizesModalBox');
+
+        function openSizesModal(productId, q) {
+            const p = KROMHARD_CATALOG.find(x => x.id === productId);
+            if (!p) return;
+            sizesModalBox.innerHTML = `
+                <div class="sizes-modal-head">
+                    <div>
+                        <h3>${escapeHtml(p.name)}</h3>
+                        <div class="list-num-row">
+                            ${p.listNumbers.map(n => `<span class="list-num">LIST ${escapeHtml(n)}</span>`).join('')}
+                        </div>
+                    </div>
+                    <button class="sizes-modal-close" id="sizesModalCloseBtn" aria-label="Close">&times;</button>
+                </div>
+                <div class="sizes-modal-scroll">${buildSizesTable(p, q || '')}</div>
+            `;
+            sizesModalBox.querySelector('#sizesModalCloseBtn').addEventListener('click', closeSizesModal);
+            sizesModalOverlay.classList.add('open');
+        }
+
+        function closeSizesModal() {
+            sizesModalOverlay.classList.remove('open');
+        }
+
+        sizesModalOverlay.addEventListener('click', e => { if (e.target === sizesModalOverlay) closeSizesModal(); });
+
+        // Event delegation: add-to-cart buttons live inside dynamically
+        // rendered modal content, so bind once on a stable ancestor.
+        sizesModalBox.addEventListener('click', e => {
+            const btn = e.target.closest('.add-size-btn');
+            if (btn) addToCart(btn);
+        });
 
         function renderRow(p, row, i, q) {
             const cells = row.map((val, ci) => {
@@ -274,6 +306,11 @@
             cart = cart.filter(c => c.key !== key);
             updateCartUI();
             render();
+            const modalBtn = sizesModalBox.querySelector(`.add-size-btn[data-key="${key}"]`);
+            if (modalBtn) {
+                modalBtn.textContent = 'Add';
+                modalBtn.classList.remove('added');
+            }
         }
 
         function updateCartUI() {
