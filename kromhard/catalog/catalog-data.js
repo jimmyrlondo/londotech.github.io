@@ -1,4 +1,4 @@
-/* Kromhard Twist Drill: full catalog data
+/* Kromhard Twist Drill - full catalog data
    Transcribed from Kromhard's own "Hole Making" PDF catalog (holemaking.pdf),
    covering every product line in the catalog (pages A:8 through A:118),
    indexed into a searchable, structured format. */
@@ -7,7 +7,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "100b-drill-blanks",
     "category": "Drill Blanks",
-    "name": "Drill Blanks: HSS",
+    "name": "Drill Blanks - HSS",
     "listNumbers": [
       "100B"
     ],
@@ -779,7 +779,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "100-jobber-hss",
     "category": "Jobber Drills",
-    "name": "Jobber Length Drills: HSS General Purpose",
+    "name": "Jobber Length Drills - HSS General Purpose",
     "listNumbers": [
       "100OJ",
       "100BR",
@@ -789,9 +789,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/jobber-length-drills-hss-general-purpose.jpg",
     "description": "Standard jobber-length high speed steel twist drills for general-purpose drilling in steel, non-ferrous metals and plastics. Available in fractional, number and letter sizes in three finishes.",
     "bullets": [
-      "List 100OJ: Black oxide, 118° point. Oxide layer holds cutting oil and resists abrasion.",
-      "List 100BR: Bright finish, 118° point. Better chip ejection in low-carbon, non-ferrous metals.",
-      "List 100TN: Titanium Nitride, 135° split point. Added lubricity, split point aids self-centering."
+      "List 100OJ - Black oxide, 118° point. Oxide layer holds cutting oil and resists abrasion.",
+      "List 100BR - Bright finish, 118° point. Better chip ejection in low-carbon, non-ferrous metals.",
+      "List 100TN - Titanium Nitride, 135° split point. Added lubricity, split point aids self-centering."
     ],
     "note": "TiN (100TN) pack qty is 6 up to 9/32\", then 3 to 1/2\"; number sizes pack 6. Sizes marked * are 118° point (not split point).",
     "columns": [
@@ -2288,7 +2288,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "100-hd-jobber",
     "category": "Jobber Drills",
-    "name": "HD Jobber Drills: 135° Split Point",
+    "name": "HD Jobber Drills - 135° Split Point",
     "listNumbers": [
       "100BS",
       "100HM",
@@ -2298,9 +2298,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/hd-jobber-drills-135-split-point.jpg",
     "description": "Heavy-duty jobber drills with a 135° split point that aids self-centering, in three material/finish options for medium-hardness metals through tough alloys.",
     "bullets": [
-      "List 100BS: HSS, oxide finish, for medium hardness metals",
-      "List 100HM: HSS, black/gold Hi-Molybdenum, precision ground",
-      "List 100CO: Cobalt, for tough materials, high temp alloys and free machining stainless steel"
+      "List 100BS - HSS, oxide finish, for medium hardness metals",
+      "List 100HM - HSS, black/gold Hi-Molybdenum, precision ground",
+      "List 100CO - Cobalt, for tough materials, high temp alloys and free machining stainless steel"
     ],
     "columns": [
       {
@@ -3698,9 +3698,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/metric-jobber-drills.jpg",
     "description": "Metric-sized jobber drills from 0.15mm up to 20.00mm in oxide, bright and cobalt split-point options.",
     "bullets": [
-      "List 150OJ: HSS, oxide 118°, general purpose for steel and cast iron",
-      "List 150BR: HSS, bright 118°, better chip ejection in non-ferrous metals",
-      "List 150CO: Cobalt, 135° split point, for tough materials and high temp alloys"
+      "List 150OJ - HSS, oxide 118°, general purpose for steel and cast iron",
+      "List 150BR - HSS, bright 118°, better chip ejection in non-ferrous metals",
+      "List 150CO - Cobalt, 135° split point, for tough materials and high temp alloys"
     ],
     "columns": [
       {
@@ -8876,7 +8876,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "200br-screw-machine-bright",
     "category": "Screw Machine / Stub Drills",
-    "name": "Screw Machine (Stub) Drills: Bright 118°",
+    "name": "Screw Machine (Stub) Drills - Bright 118°",
     "listNumbers": [
       "200BR"
     ],
@@ -9782,7 +9782,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "200os-screw-machine-oxide",
     "category": "Screw Machine / Stub Drills",
-    "name": "Screw Machine (Stub) Drills: Black Oxide 135° Split Point",
+    "name": "Screw Machine (Stub) Drills - Black Oxide 135° Split Point",
     "listNumbers": [
       "200OS"
     ],
@@ -10790,7 +10790,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "200co-cobalt-screw-machine",
     "category": "Screw Machine / Stub Drills",
-    "name": "Cobalt Screw Machine Drills: 135° Split Point",
+    "name": "Cobalt Screw Machine Drills - 135° Split Point",
     "listNumbers": [
       "200CO"
     ],
@@ -10799,7 +10799,7 @@ const KROMHARD_CATALOG = [
     "description": "Short-flute cobalt drills with a 135° split point for self-centering starts and minimal deflection. Performs well in stainless steels and tough alloys. Fractional, numbered, lettered and metric sizes.",
     "bullets": [
       "Cobalt construction for heat resistance in tough materials",
-      "135° split point, self-centering: reduces walking on hard starts",
+      "135° split point, self-centering - reduces walking on hard starts",
       "Short overall length for rigidity in screw-machine and handheld use"
     ],
     "columns": [
@@ -13791,7 +13791,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "180-sd-half-inch-shank",
     "category": "Silver & Deming Drills",
-    "name": "Silver & Deming Drills: 1/2\" Round Shank",
+    "name": "Silver & Deming Drills - 1/2\" Round Shank",
     "listNumbers": [
       "180HS",
       "180CO"
@@ -13800,8 +13800,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/silver-deming-drills-1-2-round-shank.jpg",
     "description": "Large-diameter drills reduced to a 1/2\" round shank (6\" overall, 3\" flute) so they fit standard drill chucks that can't hold the full cutting diameter.",
     "bullets": [
-      "List 180HS: HSS, 118° point, general purpose, black/bright finish",
-      "List 180CO: Cobalt for tough materials, 135° notched point, bronze oxide finish",
+      "List 180HS - HSS, 118° point, general purpose, black/bright finish",
+      "List 180CO - Cobalt for tough materials, 135° notched point, bronze oxide finish",
       "Standard pack = 1"
     ],
     "columns": [
@@ -14154,7 +14154,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "190hs-metric-sd",
     "category": "Silver & Deming Drills",
-    "name": "Metric Silver & Deming Drills: 1/2\" Shank",
+    "name": "Metric Silver & Deming Drills - 1/2\" Shank",
     "listNumbers": [
       "190HS"
     ],
@@ -14331,7 +14331,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "195hs-sd-3-4-shank",
     "category": "Silver & Deming Drills",
-    "name": "Silver & Deming Drills: 3/4\" Shank",
+    "name": "Silver & Deming Drills - 3/4\" Shank",
     "listNumbers": [
       "195HS"
     ],
@@ -14509,9 +14509,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/taper-length-drills-straight-shank.jpg",
     "description": "Straight-shank drills with the same flute length as taper shank drills, for extra reach when a standard jobber drill isn't long enough.",
     "bullets": [
-      "List 125BR: HSS bright finish, 118° point, good in non-ferrous metals",
-      "List 125OX: HSS oxide finish, 118° point, good in mild steels/cast iron",
-      "List 125CO: Cobalt, 135° split point, for tougher metals"
+      "List 125BR - HSS bright finish, 118° point, good in non-ferrous metals",
+      "List 125OX - HSS oxide finish, 118° point, good in mild steels/cast iron",
+      "List 125CO - Cobalt, 135° split point, for tougher metals"
     ],
     "columns": [
       {
@@ -16414,7 +16414,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "106hs-aircraft-extension-6",
     "category": "Extended Length Drills",
-    "name": "Aircraft Extension Drills: 6\" Overall",
+    "name": "Aircraft Extension Drills - 6\" Overall",
     "listNumbers": [
       "106HS"
     ],
@@ -16689,7 +16689,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "112hs-aircraft-extension-12",
     "category": "Extended Length Drills",
-    "name": "Aircraft Extension Drills: 12\" Overall",
+    "name": "Aircraft Extension Drills - 12\" Overall",
     "listNumbers": [
       "112HS"
     ],
@@ -17084,7 +17084,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "20x-hs-extended-length-straight",
     "category": "Extended Length Drills",
-    "name": "Extended Length Drills: 6\", 8\" & 10\" Overall",
+    "name": "Extended Length Drills - 6\", 8\" & 10\" Overall",
     "listNumbers": [
       "206HS",
       "208HS",
@@ -17094,9 +17094,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/extended-length-drills-6-8-10-overall.jpg",
     "description": "Straight shank high speed steel drills in 6\", 8\" and 10\" overall lengths, 118° point, available in oxide or bright finish.",
     "bullets": [
-      "List 206HS: 6\" overall, 4\" flute, 118° point",
-      "List 208HS: 8\" overall, 5-1/2\" flute, 118° point",
-      "List 210HS: 10\" overall, 7-1/2\" flute, 118° point"
+      "List 206HS - 6\" overall, 4\" flute, 118° point",
+      "List 208HS - 8\" overall, 5-1/2\" flute, 118° point",
+      "List 210HS - 10\" overall, 7-1/2\" flute, 118° point"
     ],
     "columns": [
       {
@@ -17296,7 +17296,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "212-extended-length-12",
     "category": "Extended Length Drills",
-    "name": "Extended Length Drills: 12\" Overall",
+    "name": "Extended Length Drills - 12\" Overall",
     "listNumbers": [
       "212OX",
       "212BR",
@@ -17306,9 +17306,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/extended-length-drills-12-overall.jpg",
     "description": "Straight shank high speed steel drills, 12\" overall with a 9\" flute, 118° point, in oxide or bright finish, plus a 1/2\" reduced-shank version with 3 flats.",
     "bullets": [
-      "List 212OX: Oxide finish, 118° point",
-      "List 212BR: Bright finish, 118° point",
-      "List 212RS: 1/2\" reduced shank with 3 flats, available in 9/16\", 5/8\", 3/4\", 7/8\" and 1\"",
+      "List 212OX - Oxide finish, 118° point",
+      "List 212BR - Bright finish, 118° point",
+      "List 212RS - 1/2\" reduced shank with 3 flats, available in 9/16\", 5/8\", 3/4\", 7/8\" and 1\"",
       "Sizes marked * may be Brazil or France import"
     ],
     "columns": [
@@ -17626,7 +17626,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "21x-hs-extended-length-long",
     "category": "Extended Length Drills",
-    "name": "Extended Length Drills: 15\", 18\" & 24\" Overall",
+    "name": "Extended Length Drills - 15\", 18\" & 24\" Overall",
     "listNumbers": [
       "215HS",
       "218HS",
@@ -17636,9 +17636,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/extended-length-drills-15-18-24-overall.jpg",
     "description": "Straight shank high speed steel drills for maximum reach, 15\", 18\" and 24\" overall lengths, 118° point, typically oxide finish (may come in bright).",
     "bullets": [
-      "List 215HS: 15\" overall, 11\" flute",
-      "List 218HS: 18\" overall, 12\" flute",
-      "List 224HS: 24\" overall, 18\" flute"
+      "List 215HS - 15\" overall, 11\" flute",
+      "List 218HS - 18\" overall, 12\" flute",
+      "List 224HS - 24\" overall, 18\" flute"
     ],
     "columns": [
       {
@@ -18030,7 +18030,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "175-taper-shank-standard",
     "category": "Taper Shank Drills",
-    "name": "Taper Shank Drills: Standard Length",
+    "name": "Taper Shank Drills - Standard Length",
     "listNumbers": [
       "175OX",
       "175BR"
@@ -18039,8 +18039,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/taper-shank-drills-standard-length.jpg",
     "description": "High speed steel drills with a Morse taper shank (1MT through 5MT depending on size) for direct mounting in a drill press or lathe spindle without a chuck.",
     "bullets": [
-      "List 175OX: Black oxide, 118° point",
-      "List 175BR: Black/bright finish, 118° point",
+      "List 175OX - Black oxide, 118° point",
+      "List 175BR - Black/bright finish, 118° point",
       "Sizes marked * indicate a non-standard size shank"
     ],
     "columns": [
@@ -19803,7 +19803,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "31x-ts-extended-taper-shank-12-15",
     "category": "Taper Shank Drills",
-    "name": "Extended Length Taper Shank Drills: 12\" & 15\" Overall",
+    "name": "Extended Length Taper Shank Drills - 12\" & 15\" Overall",
     "listNumbers": [
       "312TS",
       "315TS"
@@ -19812,8 +19812,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/extended-length-taper-shank-drills-12-15-overall.jpg",
     "description": "High speed steel taper shank drills with extra-long flutes for deep hole drilling. Oxide finish, 118° point.",
     "bullets": [
-      "List 312TS: 12\" overall",
-      "List 315TS: 15\" overall",
+      "List 312TS - 12\" overall",
+      "List 315TS - 15\" overall",
       "Sizes marked * use a smaller than standard shank"
     ],
     "columns": [
@@ -20250,7 +20250,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "31x-ts-extended-taper-shank-18-24",
     "category": "Taper Shank Drills",
-    "name": "Extended Length Taper Shank Drills: 18\" & 24\" Overall",
+    "name": "Extended Length Taper Shank Drills - 18\" & 24\" Overall",
     "listNumbers": [
       "318TS",
       "324TS"
@@ -20259,8 +20259,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/extended-length-taper-shank-drills-18-24-overall.jpg",
     "description": "High speed steel taper shank drills with extra-long flutes for maximum-depth hole drilling. Oxide finish, 118° point.",
     "bullets": [
-      "List 318TS: 18\" overall",
-      "List 324TS: 24\" overall (fewer sizes offered)"
+      "List 318TS - 18\" overall",
+      "List 324TS - 24\" overall (fewer sizes offered)"
     ],
     "note": "\"N/A\" means that size is not offered in the 324TS (24\") length.",
     "columns": [
@@ -21465,7 +21465,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "101cd-combined-drill-countersink",
     "category": "Center / Combined Drills",
-    "name": "Combined Drill & Countersinks: Standard Length",
+    "name": "Combined Drill & Countersinks - Standard Length",
     "listNumbers": [
       "101CD",
       "10182",
@@ -21477,11 +21477,11 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/combined-drill-countersinks-standard-length.jpg",
     "description": "Double-ended \"center drills\" used to spot a hole for a lathe or machine center, or for centering work held between centers. 60° is the standard angle.",
     "bullets": [
-      "List 101CD: Standard HSS, 60° point",
-      "List 10182: HSS, 82° point",
-      "List 10190: HSS, 90° point",
-      "List 10160: Cobalt, 60° point, for tougher materials",
-      "List 101CDI: Import HSS, 60° point (separate smaller size range, see table)"
+      "List 101CD - Standard HSS, 60° point",
+      "List 10182 - HSS, 82° point",
+      "List 10190 - HSS, 90° point",
+      "List 10160 - Cobalt, 60° point, for tougher materials",
+      "List 101CDI - Import HSS, 60° point (separate smaller size range, see table)"
     ],
     "note": "List 101CDI (import) is offered in sizes #1–#8 only, at the same body/point dimensions shown for those sizes above.",
     "columns": [
@@ -21822,8 +21822,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/extended-length-combined-drill-countersinks.jpg",
     "description": "Long-series \"center drills\" for reaching further into a part before spotting the center. 60° angle, HSS.",
     "bullets": [
-      "List 102LC: Long series, HSS, 60°, USA (KEO)",
-      "List 102LCI: Long series import, HSS, 60°, narrower size/length offering"
+      "List 102LC - Long series, HSS, 60°, USA (KEO)",
+      "List 102LCI - Long series import, HSS, 60°, narrower size/length offering"
     ],
     "columns": [
       {
@@ -22167,8 +22167,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/spotting-centering-drills.jpg",
     "description": "Short, rigid high speed steel drills used to start a hole accurately before drilling with a jobber or screw machine drill. Chucked close to the point, they prevent misalignment and walking.",
     "bullets": [
-      "List 103S90: 90° point",
-      "List 103S118: 118° point",
+      "List 103S90 - 90° point",
+      "List 103S118 - 118° point",
       "Short flute length for maximum rigidity on the start"
     ],
     "columns": [
@@ -22283,7 +22283,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "104s-nc-spotting-standard",
     "category": "Spotting & Centering Drills",
-    "name": "NC Spotting Drills: Standard Length",
+    "name": "NC Spotting Drills - Standard Length",
     "listNumbers": [
       "104S90",
       "104S120"
@@ -22292,8 +22292,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/nc-spotting-drills-standard-length.jpg",
     "description": "KEO NC spotting drills designed with a narrow chisel edge for quick starting and a constant web that allows resharpening without web thinning. Standard length, cobalt.",
     "bullets": [
-      "List 104S90: 90° point",
-      "List 104S120: 120° point"
+      "List 104S90 - 90° point",
+      "List 104S120 - 120° point"
     ],
     "columns": [
       {
@@ -22365,7 +22365,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "105s-nc-spotting-long",
     "category": "Spotting & Centering Drills",
-    "name": "NC Spotting Drills: Longer Lengths",
+    "name": "NC Spotting Drills - Longer Lengths",
     "listNumbers": [
       "105S90",
       "105S120",
@@ -22375,8 +22375,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/nc-spotting-drills-longer-lengths.jpg",
     "description": "KEO NC spotting drills in longer lengths for reaching further before spotting the center, cobalt (90°/120°) or HSS (90°).",
     "bullets": [
-      "List 105S90 / 105S120: Longer lengths, cobalt, 90° / 120°",
-      "List 103L90: Longer lengths, HSS, 90°"
+      "List 105S90 / 105S120 - Longer lengths, cobalt, 90° / 120°",
+      "List 103L90 - Longer lengths, HSS, 90°"
     ],
     "columns": [
       {
@@ -22507,8 +22507,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/spotweld-drills.jpg",
     "description": "Rugged, high performance cobalt drills designed to cut through auto body spot welds. The spur point design cuts through the weld on one panel while leaving the second panel free of holes.",
     "bullets": [
-      "List 110SW: Single end",
-      "List 110SWD: Double end",
+      "List 110SW - Single end",
+      "List 110SWD - Double end",
       "Standard pack quantity = 5"
     ],
     "note": "Overall length: 1.75\" for the single-end (110SW) version, 3.62\" for the double-end (110SWD) version.",
@@ -22741,9 +22741,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/micro-flush-drills.jpg",
     "description": "High speed steel, fast-spiral drills with a short flute for rigidity and less breakage, sized by decimal wire-gauge diameter. 135° point for longer tool life.",
     "bullets": [
-      "List 302MF: 2\" overall",
-      "List 304MF: 4\" overall",
-      "List 306MF: 6\" overall"
+      "List 302MF - 2\" overall",
+      "List 304MF - 4\" overall",
+      "List 306MF - 6\" overall"
     ],
     "columns": [
       {
@@ -23201,7 +23201,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "2521-annular-cutter-cobalt",
     "category": "Annular Cutters",
-    "name": "Annular Cutters: Cobalt",
+    "name": "Annular Cutters - Cobalt",
     "listNumbers": [
       "2521",
       "2522"
@@ -23210,8 +23210,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/annular-cutters-cobalt.jpg",
     "description": "M42 cobalt annular cutters for use in magnetic drills (or machines with the proper adapter). Kromhard's cobalt cutters are rated to last 30% longer than competitors' M2 HSS cutters.",
     "bullets": [
-      "List 2521: 1\" depth of cut",
-      "List 2522: 2\" depth of cut",
+      "List 2521 - 1\" depth of cut",
+      "List 2522 - 2\" depth of cut",
       "All cobalt cutters include a pilot pin and have a 3/4\" weldon 2-flat shank"
     ],
     "note": "For sizes not listed, call to check lead time.",
@@ -23862,8 +23862,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/hole-saw-arbors-pilot-drills.jpg",
     "description": "Durable carbon steel arbors with included pilot drill, used to mount a hole saw in a standard drill chuck.",
     "bullets": [
-      "List 15AR: Arbors: MA24 (1/4\" hex), MA34 (3/8\" hex), MA35 / MA35PSN (3/8\" hex, 5/8\"-18), MA45PSN (7/16\" hex, 5/8\"-18)",
-      "List 15PD: 1/4\" diameter pilot drills, single flat on shank; HSS split point unless noted carbide tipped"
+      "List 15AR - Arbors: MA24 (1/4\" hex), MA34 (3/8\" hex), MA35 / MA35PSN (3/8\" hex, 5/8\"-18), MA45PSN (7/16\" hex, 5/8\"-18)",
+      "List 15PD - 1/4\" diameter pilot drills, single flat on shank; HSS split point unless noted carbide tipped"
     ],
     "columns": [
       {
@@ -24567,7 +24567,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "15hd-hd-carbide-hole-saw",
     "category": "Hole Saws",
-    "name": "HD Carbide Tipped Hole Saws: HS Series",
+    "name": "HD Carbide Tipped Hole Saws - HS Series",
     "listNumbers": [
       "15HD",
       "15HAR",
@@ -24727,7 +24727,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "15ic-hd-carbide-hole-saw-interrupted",
     "category": "Hole Saws",
-    "name": "HD Carbide Tipped Hole Saws: STHS Series (Interrupted Cut)",
+    "name": "HD Carbide Tipped Hole Saws - STHS Series (Interrupted Cut)",
     "listNumbers": [
       "15IC"
     ],
@@ -24860,7 +24860,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "15tts-hd-carbide-hole-saw-ttsub",
     "category": "Hole Saws",
-    "name": "HD Carbide Tipped Hole Saws: HST Series (Tub, Tile & Spa)",
+    "name": "HD Carbide Tipped Hole Saws - HST Series (Tub, Tile & Spa)",
     "listNumbers": [
       "15TTS"
     ],
@@ -24992,7 +24992,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "160md-masonry-round-shank",
     "category": "Masonry Drills",
-    "name": "Masonry Drills: Carbide Tipped, Round Shank",
+    "name": "Masonry Drills - Carbide Tipped, Round Shank",
     "listNumbers": [
       "160MD"
     ],
@@ -25253,7 +25253,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "160tc-masonry-screw-bit",
     "category": "Masonry Drills",
-    "name": "Masonry Screw Bit: Straight Shank",
+    "name": "Masonry Screw Bit - Straight Shank",
     "listNumbers": [
       "160TC"
     ],
@@ -25291,7 +25291,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "160hd-masonry-hammer-drill",
     "category": "Masonry Drills",
-    "name": "Masonry Hammer Drills: Hex Shank",
+    "name": "Masonry Hammer Drills - Hex Shank",
     "listNumbers": [
       "160HD"
     ],
@@ -25653,7 +25653,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "160sds-masonry",
     "category": "Masonry Drills",
-    "name": "SDS+ Masonry Drills: ThunderTwist",
+    "name": "SDS+ Masonry Drills - ThunderTwist",
     "listNumbers": [
       "160SDS"
     ],
@@ -25975,7 +25975,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "145ch-step-drill-82",
     "category": "Step Drills",
-    "name": "Step Drills: 82° Clearance Hole, Drill & Countersink",
+    "name": "Step Drills - 82° Clearance Hole, Drill & Countersink",
     "listNumbers": [
       "145CH",
       "14582"
@@ -25984,8 +25984,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/step-drills-82-clearance-hole-drill-countersink.jpg",
     "description": "Drills and countersinks an 82° machine screw clearance hole in one operation. Intended for high production work in wood, metal or plastic.",
     "bullets": [
-      "List 145CH: Stub length, HSS, black oxide",
-      "List 14582: Jobber length, bright finish, HSS",
+      "List 145CH - Stub length, HSS, black oxide",
+      "List 14582 - Jobber length, bright finish, HSS",
       "Sizes marked * are shorter than jobber length"
     ],
     "columns": [
@@ -26249,7 +26249,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "14590-step-drill-capscrew",
     "category": "Step Drills",
-    "name": "Step Drills: Capscrew Clearance & Holes to be Tapped",
+    "name": "Step Drills - Capscrew Clearance & Holes to be Tapped",
     "listNumbers": [
       "14590",
       "145TD"
@@ -26258,8 +26258,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/step-drills-capscrew-clearance-holes-to-be-tapped.jpg",
     "description": "Drills and counterbores a capscrew clearance hole, or drills and 45° chamfers a hole that will be tapped, in one operation.",
     "bullets": [
-      "List 14590: Bright, jobber length HSS, 90° capscrew clearance",
-      "List 145TD: Bright, jobber length HSS, for holes to be tapped (45° chamfer)",
+      "List 14590 - Bright, jobber length HSS, 90° capscrew clearance",
+      "List 145TD - Bright, jobber length HSS, for holes to be tapped (45° chamfer)",
       "Sizes marked * are shorter than jobber length"
     ],
     "columns": [
@@ -26554,9 +26554,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/step-drills-for-thinner-materials-unibor.jpg",
     "description": "Multi-diameter \"unibor\" style step drills that step through a range of hole sizes in thin sheet material with one tool.",
     "bullets": [
-      "List 155HS/155CO: Straight flute, HSS or cobalt",
-      "List 156HS/156CO: Straight (HSS) or spiral flute (cobalt), 1/4\" quick-change impact hex shank",
-      "List 157ST/157SP: Titanium nitride (TiN) coated, HSS, straight or spiral fluted"
+      "List 155HS/155CO - Straight flute, HSS or cobalt",
+      "List 156HS/156CO - Straight (HSS) or spiral flute (cobalt), 1/4\" quick-change impact hex shank",
+      "List 157ST/157SP - Titanium nitride (TiN) coated, HSS, straight or spiral fluted"
     ],
     "note": "Order # columns pair the two related list numbers for each step-drill family (e.g. 155HS / 155CO) side by side.",
     "columns": [
@@ -26722,7 +26722,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "12hs-hex-shank-drills",
     "category": "Specialty Drills",
-    "name": "Hex Shank Drills: Quick Change",
+    "name": "Hex Shank Drills - Quick Change",
     "listNumbers": [
       "12HS"
     ],
@@ -26919,7 +26919,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "10ex-extensions",
     "category": "Specialty Drills",
-    "name": "Extensions: Round, Hex & Quick Change",
+    "name": "Extensions - Round, Hex & Quick Change",
     "listNumbers": [
       "10EX",
       "10HX",
@@ -26929,9 +26929,9 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/extensions-round-hex-quick-change.jpg",
     "description": "Extend the reach of drills, hole saws and augers. Round-shank extensions use set screws to secure the tool; hex-shank extensions use a slotted screw; the quick-change version holds any 1/4\" hex quick-change bit.",
     "bullets": [
-      "List 10EX: For 3/8\" or 1/2\" round/flatted shank drills; 3 sets of set screws 120° apart",
-      "List 10HX: For hole saws, augers or any hex-shank cutting tool; slotted screw holds the tool",
-      "List 10QC: 1/4\" hex quick change, holds any tool with a quick-change groove, 5/8\" body diameter"
+      "List 10EX - For 3/8\" or 1/2\" round/flatted shank drills; 3 sets of set screws 120° apart",
+      "List 10HX - For hole saws, augers or any hex-shank cutting tool; slotted screw holds the tool",
+      "List 10QC - 1/4\" hex quick change, holds any tool with a quick-change groove, 5/8\" body diameter"
     ],
     "columns": [
       {
@@ -27026,8 +27026,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/flat-spade-bit-for-wood.jpg",
     "description": "Patented-point spade bits for fast chip removal and drilling speed in wood. Double cutting spurs reduce breakout for cleaner holes. 1/4\" quick change hex shank, impact rated.",
     "bullets": [
-      "List 10FS6: 6\" overall",
-      "List 10FS4: 4\" overall",
+      "List 10FS6 - 6\" overall",
+      "List 10FS4 - 4\" overall",
       "Double cutting spurs for cleaner breakout"
     ],
     "columns": [
@@ -27453,7 +27453,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "10pa-pole-auger-23-24",
     "category": "Woodworking Bits",
-    "name": "Pole Augers: 23\" & 24\"",
+    "name": "Pole Augers - 23\" & 24\"",
     "listNumbers": [
       "10PA"
     ],
@@ -27492,7 +27492,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "1029-pole-auger-29",
     "category": "Woodworking Bits",
-    "name": "Pole Augers: 29\"",
+    "name": "Pole Augers - 29\"",
     "listNumbers": [
       "1029"
     ],
@@ -27572,7 +27572,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "10bp-brad-point-jobber",
     "category": "Woodworking Bits",
-    "name": "Brad Point Drills: Jobber Length",
+    "name": "Brad Point Drills - Jobber Length",
     "listNumbers": [
       "10BP"
     ],
@@ -27743,7 +27743,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "10bptl-brad-point-taper-length",
     "category": "Woodworking Bits",
-    "name": "Brad Point Drills: Taper Length",
+    "name": "Brad Point Drills - Taper Length",
     "listNumbers": [
       "10BPTL"
     ],
@@ -27887,7 +27887,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "sets-fractional-metric",
     "category": "Drill Sets",
-    "name": "Fractional & Metric Drill Sets: Jobber & Screw Machine",
+    "name": "Fractional & Metric Drill Sets - Jobber & Screw Machine",
     "listNumbers": [
       "VIK",
       "HUO"
@@ -31194,8 +31194,8 @@ const KROMHARD_CATALOG = [
     "image": "/kromhard/assets/images/allied-carbide-t-a-drill-inserts.jpg",
     "description": "Solid carbide T-A style inserts with a standard 132° point and TiAlN coating for wear and oxidation resistance; max working temperature 800°.",
     "bullets": [
-      "List 30C5: C5 carbide for low-to-high strength steels, high-temp alloys",
-      "List 30C2: C2 carbide for cast iron, non-ferrous metals, titanium alloys and some stainless steels"
+      "List 30C5 - C5 carbide for low-to-high strength steels, high-temp alloys",
+      "List 30C2 - C2 carbide for cast iron, non-ferrous metals, titanium alloys and some stainless steels"
     ],
     "columns": [
       {
@@ -31342,7 +31342,7 @@ const KROMHARD_CATALOG = [
   {
     "id": "allied-accessories",
     "category": "Spade Drill Inserts & Holders",
-    "name": "Allied Accessories: Torx Plus Screws & Rotary Coolant Adapters",
+    "name": "Allied Accessories - Torx Plus Screws & Rotary Coolant Adapters",
     "listNumbers": [
       "30TS",
       "30RCA"
