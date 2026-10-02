@@ -60,6 +60,8 @@ button, input, textarea, select { font-family: inherit; }
 .admin-topbar .brand { font-family: "Newsreader", Georgia, serif; font-size: 19px; font-weight: 700; }
 .admin-topbar .brand span { color: #c7d2d8; font-size: 13px; font-weight: 500; margin-left: 10px; }
 .admin-topbar .who { display: flex; align-items: center; gap: 14px; font-size: 13.5px; color: #c7d2d8; }
+.admin-topbar .who #whoEmail { margin-left: 4px; }
+.admin-topbar .who button.mode-active { background: var(--rust); border-color: var(--rust); color: #fff; }
 
 .admin-body { display: flex; flex: 1; min-height: 0; }
 .admin-sidebar { width: 340px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; overflow: hidden; }
@@ -157,6 +159,14 @@ table.edit-table input:focus { outline: none; border-color: var(--steel); backgr
 .photo-preview { width: 100%; max-width: 220px; background: var(--surface-2); border: 1px dashed var(--line-strong); border-radius: 8px; display: flex; align-items: center; justify-content: center; height: 90px; margin-bottom: 12px; overflow: hidden; }
 .photo-preview img { max-width: 92%; max-height: 92%; object-fit: contain; }
 .photo-preview.empty { color: var(--ink-soft); font-size: 12.5px; }
+
+/* Compiled Catalogs picker */
+.compile-pick-row { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+.compile-pick-head { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.compile-size-grid { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.compile-size-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px 10px; max-height: 220px; overflow-y: auto; padding-right: 4px; }
+.compile-size-checks label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.compile-size-checks input { cursor: pointer; }
 
 @media (max-width: 860px) {
     .admin-body { flex-direction: column; }

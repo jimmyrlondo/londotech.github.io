@@ -49,5 +49,16 @@ service cloud.firestore {
         && (!('company' in request.resource.data) || (request.resource.data.company is string && request.resource.data.company.size() < 200))
         && (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() < 50));
     }
+
+    // Custom/compiled catalogs (Jimmy's "pick specific products and sizes,
+    // then print it" feature). Internal tool, not customer-facing, so
+    // admin-only all the way through, but still readable by anyone WITH the
+    // link's id via the print view -- that view reads individual /products
+    // docs directly (already public) plus this doc for which ones to
+    // include, so the print page itself doesn't need to be an admin.
+    match /compilations/{compilationId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Print Catalog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+    <style>
+        :root {
+            --ink: #1d1e1c;
+            --ink-soft: #5a5c57;
+            --line: #d9d6cd;
+            --steel: #2c3b47;
+            --rust: #b5551f;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Hanken Grotesk", system-ui, sans-serif;
+            color: var(--ink);
+            background: #ebe9e4;
+        }
+        h1, h2, h3 { font-family: "Newsreader", Georgia, serif; font-weight: 600; margin: 0; }
+
+        .toolbar {
+            position: sticky; top: 0; z-index: 10;
+            background: var(--steel); color: #fff;
+            padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;
+        }
+        .toolbar .msg { font-size: 13.5px; color: #c7d2d8; }
+        .toolbar button {
+            background: var(--rust); color: #fff; border: none; border-radius: 7px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 14px;
+        }
+        .toolbar button:hover { opacity: 0.92; }
+        .toolbar a { color: #c7d2d8; font-size: 13.5px; }
+
+        .page {
+            background: #fff;
+            max-width: 816px;
+            margin: 24px auto;
+            padding: 56px 60px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+        }
+        .cover { text-align: center; padding-top: 140px; padding-bottom: 140px; }
+        .cover .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rust); }
+        .cover h1 { font-size: 40px; margin: 16px 0 10px; }
+        .cover .sub { color: var(--ink-soft); font-size: 15px; }
+        .cover .meta { margin-top: 60px; font-size: 13px; color: var(--ink-soft); }
+
+        .product-block { page-break-inside: avoid; break-inside: avoid; padding-bottom: 34px; margin-bottom: 34px; border-bottom: 1px solid var(--line); }
+        .product-block:last-child { border-bottom: none; }
+        .product-cat { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rust); }
+        .product-block h2 { font-size: 21px; margin: 6px 0 8px; }
+        .product-list-nums { font-family: "SFMono-Regular", Consolas, monospace; font-size: 11.5px; color: var(--steel); margin-bottom: 10px; }
+        .product-grid { display: grid; grid-template-columns: 110px 1fr; gap: 20px; align-items: start; margin-bottom: 14px; }
+        .product-grid img { width: 100%; }
+        .product-desc { font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+        .product-bullets { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--ink-soft); }
+        .product-bullets li { margin-bottom: 2px; }
+
+        table.size-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        table.size-table th, table.size-table td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--line); }
+        table.size-table thead th { background: #f2f1ee; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-soft); }
+
+        .empty-msg { text-align: center; padding: 80px 20px; color: var(--ink-soft); }
+
+        @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .page { box-shadow: none; margin: 0; max-width: none; padding: 0.5in; }
+            .cover { padding-top: 2in; padding-bottom: 2in; page-break-after: always; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <span class="msg" id="toolbarMsg">Loading&hellip;</span>
+        <div style="display:flex;gap:16px;align-items:center;">
+            <a href="index.html">&larr; Back to Admin</a>
+            <button id="printBtn" type="button">Print / Save as PDF</button>
+        </div>
+    </div>
+
+    <div class="page" id="pageRoot"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { firebaseConfig } from "../assets/firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const pageRoot = document.getElementById("pageRoot");
+        const toolbarMsg = document.getElementById("toolbarMsg");
+
+        function escapeHtml(s) {
+            return String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+        }
+
+        function unwrapRows(rows) {
+            return (rows || []).map(r => (r && r.values) || r);
+        }
+
+        async function run() {
+            const id = new URLSearchParams(location.search).get("id");
+            if (!id) {
+                pageRoot.innerHTML = `<div class="empty-msg">No catalog ID given. Generate this page from a Compiled Catalog in the admin app.</div>`;
+                toolbarMsg.textContent = "No catalog specified.";
+                return;
+            }
+
+            let compilation;
+            try {
+                const snap = await getDoc(doc(db, "compilations", id));
+                if (!snap.exists()) throw new Error("not found");
+                compilation = snap.data();
+            } catch (err) {
+                pageRoot.innerHTML = `<div class="empty-msg">Couldn't load that compiled catalog. It may have been deleted.</div>`;
+                toolbarMsg.textContent = "Couldn't load.";
+                return;
+            }
+
+            const items = compilation.items || [];
+            toolbarMsg.textContent = `${compilation.name} — ${items.length} product line${items.length === 1 ? "" : "s"}`;
+
+            const products = [];
+            for (const item of items) {
+                try {
+                    const snap = await getDoc(doc(db, "products", item.productId));
+                    if (!snap.exists()) continue;
+                    const data = snap.data();
+                    const allRows = unwrapRows(data.rows);
+                    const rows = item.sizeMode === "all"
+                        ? allRows
+                        : allRows.filter(r => (item.sizeValues || []).includes(r[0]));
+                    products.push({ ...data, rows });
+                } catch (err) { /* skip a product that failed to load */ }
+            }
+
+            const today = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+
+            const coverHtml = `
+                <div class="cover">
+                    <span class="eyebrow">Kromhard Twist Drill</span>
+                    <h1>${escapeHtml(compilation.name || "Catalog")}</h1>
+                    <p class="sub">${products.length} product line${products.length === 1 ? "" : "s"}</p>
+                    <p class="meta">Generated ${escapeHtml(today)} &middot; 1097 Sweitzer Ave, Akron, OH 44301 &middot; 330-535-7129</p>
+                </div>
+            `;
+
+            const productsHtml = products.map(p => `
+                <div class="product-block">
+                    <span class="product-cat">${escapeHtml(p.category || "")}</span>
+                    <h2>${escapeHtml(p.name || "")}</h2>
+                    ${(p.listNumbers || []).length ? `<div class="product-list-nums">LIST ${escapeHtml(p.listNumbers.join(", "))}</div>` : ""}
+                    <div class="product-grid">
+                        ${p.image ? `<img src="${escapeHtml(p.image)}" alt="">` : "<div></div>"}
+                        <div>
+                            <p class="product-desc">${escapeHtml(p.description || "")}</p>
+                            ${(p.bullets || []).length ? `<ul class="product-bullets">${p.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join("")}</ul>` : ""}
+                        </div>
+                    </div>
+                    ${p.rows.length ? `
+                        <table class="size-table">
+                            <thead><tr>${(p.columns || []).map(c => `<th>${escapeHtml(c.label)}</th>`).join("")}</tr></thead>
+                            <tbody>${p.rows.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody>
+                        </table>
+                    ` : `<p class="product-desc" style="font-style:italic;">No sizes selected for this product.</p>`}
+                </div>
+            `).join("");
+
+            pageRoot.innerHTML = coverHtml + (products.length ? productsHtml : `<div class="empty-msg">This compiled catalog doesn't have any products in it yet.</div>`);
+        }
+
+        document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+        run();
+    </script>
+
+</body>
+</html>

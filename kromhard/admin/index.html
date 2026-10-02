@@ -36,11 +36,13 @@
         <header class="admin-topbar">
             <div class="brand">KROMHARD ADMIN <span>Catalog Management</span></div>
             <div class="who">
+                <button class="btn btn-ghost btn-sm mode-active" id="browseModeBtn" style="color:#fff;border-color:rgba(255,255,255,0.4);">Browse &amp; Edit</button>
+                <button class="btn btn-ghost btn-sm" id="compileModeBtn" style="color:#fff;border-color:rgba(255,255,255,0.4);">Compiled Catalogs</button>
                 <span id="whoEmail"></span>
                 <button class="btn btn-ghost btn-sm" id="signOutBtn" style="color:#fff;border-color:rgba(255,255,255,0.4);">Sign Out</button>
             </div>
         </header>
-        <div class="admin-body">
+        <div class="admin-body" id="browseView">
             <aside class="admin-sidebar">
                 <div class="sidebar-section">
                     <h4>Catalog</h4>
@@ -71,6 +73,24 @@
                     <p>Or click "+ New Product Line" to create one from scratch. An empty catalog can also be bulk-loaded with "Import / Seed (JSON)" if you have an export file ready.</p>
                 </div>
                 <div id="editorRoot" style="display:none;"></div>
+            </main>
+        </div>
+
+        <div class="admin-body" id="compileView" style="display:none;">
+            <aside class="admin-sidebar">
+                <div class="sidebar-section">
+                    <h4>Compiled Catalogs</h4>
+                    <p class="field-hint" style="margin-bottom:10px;">A custom or print-ready selection of products and sizes, pulled from any catalog, for printing and binding as its own booklet.</p>
+                    <button class="btn btn-rust btn-sm" id="newCompilationBtn" style="width:100%;">+ New Compiled Catalog</button>
+                </div>
+                <div class="product-list" id="compilationList"></div>
+            </aside>
+            <main class="admin-main">
+                <div class="empty-state" id="compileEmptyState">
+                    <h3>Pick a compiled catalog from the list</h3>
+                    <p>Or click "+ New Compiled Catalog" to start one. Give it a name like "Acme Corp Catalog" or "Threading Tools Booklet", then add whichever products and sizes belong in it, from any category or catalog.</p>
+                </div>
+                <div id="compileEditorRoot" style="display:none;"></div>
             </main>
         </div>
     </div>

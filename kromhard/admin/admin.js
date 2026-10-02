@@ -823,3 +823,295 @@ document.getElementById("resyncBtn").addEventListener("click", async () => {
         showToast("Re-sync failed: " + err.message, true);
     }
 });
+
+// ==================== Compiled Catalogs ====================
+// Jimmy's "pick specific products and sizes from anywhere, then print it"
+// feature. Separate Firestore collection, separate mini-state, completely
+// decoupled from the main browse/edit view's state above.
+
+const browseView = document.getElementById("browseView");
+const compileView = document.getElementById("compileView");
+const browseModeBtn = document.getElementById("browseModeBtn");
+const compileModeBtn = document.getElementById("compileModeBtn");
+
+function setMode(mode) {
+    const isCompile = mode === "compile";
+    browseView.style.display = isCompile ? "none" : "flex";
+    compileView.style.display = isCompile ? "flex" : "none";
+    browseModeBtn.classList.toggle("mode-active", !isCompile);
+    compileModeBtn.classList.toggle("mode-active", isCompile);
+    if (isCompile && !allCompilations.length) loadCompilations();
+}
+browseModeBtn.addEventListener("click", () => setMode("browse"));
+compileModeBtn.addEventListener("click", () => setMode("compile"));
+
+let allCompilations = [];
+let activeCompilationId = null;
+let editingCompilation = null;
+
+let compileCatalogId = "cutting-drilling-milling";
+let compileCategory = "All";
+let compileProducts = []; // products loaded for the picker, independent of the main browse view
+
+const compilationList = document.getElementById("compilationList");
+const compileEmptyState = document.getElementById("compileEmptyState");
+const compileEditorRoot = document.getElementById("compileEditorRoot");
+
+async function loadCompilations() {
+    allCompilations = [];
+    try {
+        const snap = await getDocs(collection(db, "compilations"));
+        snap.forEach(d => allCompilations.push({ id: d.id, ...d.data() }));
+    } catch (err) {
+        showToast("Couldn’t load compiled catalogs: " + err.message, true);
+    }
+    allCompilations.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    renderCompilationList();
+}
+
+function renderCompilationList() {
+    compilationList.innerHTML = allCompilations.map(c => `
+        <div class="product-list-item${c.id === activeCompilationId ? " active" : ""}" data-id="${escapeHtml(c.id)}">
+            <span class="pname">${escapeHtml(c.name || "(untitled)")}</span>
+            <span class="pmeta">${(c.items || []).length} product line${(c.items || []).length === 1 ? "" : "s"}</span>
+        </div>
+    `).join("") || `<div style="padding:18px;color:var(--ink-soft);font-size:13.5px;">No compiled catalogs yet.</div>`;
+    compilationList.querySelectorAll(".product-list-item").forEach(el => {
+        el.addEventListener("click", () => selectCompilation(el.dataset.id));
+    });
+}
+
+document.getElementById("newCompilationBtn").addEventListener("click", async () => {
+    const name = (prompt("Name for this compiled catalog (e.g. \"Acme Corp Catalog\" or \"Threading Tools Booklet\"):") || "").trim();
+    if (!name) return;
+    try {
+        const ref_ = doc(collection(db, "compilations"));
+        await setDoc(ref_, { name, items: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+        await loadCompilations();
+        selectCompilation(ref_.id);
+        showToast(`Created "${name}". Now add products and sizes to it below.`);
+    } catch (err) {
+        showToast("Couldn’t create it: " + (err.code || err.message), true);
+    }
+});
+
+function selectCompilation(id) {
+    const c = allCompilations.find(x => x.id === id);
+    if (!c) return;
+    activeCompilationId = id;
+    editingCompilation = JSON.parse(JSON.stringify(c));
+    if (!Array.isArray(editingCompilation.items)) editingCompilation.items = [];
+    renderCompilationList();
+    renderCompileEditor();
+    loadCompileProducts();
+}
+
+function renderCompileEditor() {
+    if (!editingCompilation) {
+        compileEmptyState.style.display = "block";
+        compileEditorRoot.style.display = "none";
+        return;
+    }
+    compileEmptyState.style.display = "none";
+    compileEditorRoot.style.display = "block";
+
+    const totalSizes = editingCompilation.items.reduce((sum, it) => sum + (it.sizeMode === "all" ? (it.allCount || it.sizeValues?.length || 0) : (it.sizeValues || []).length), 0);
+
+    compileEditorRoot.innerHTML = `
+        <div class="editor-head">
+            <h2>${escapeHtml(editingCompilation.name || "(untitled)")}</h2>
+            <div class="editor-actions">
+                <button class="btn btn-ghost btn-sm" id="renameCompilationBtn">Rename</button>
+                <button class="btn btn-danger btn-sm" id="deleteCompilationBtn">Delete</button>
+                <button class="btn btn-primary" id="generatePrintBtn">Generate Print View</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Add products</h3>
+            <p class="panel-intro">Pick a catalog and category below, then add whole products or specific sizes to this compiled catalog. You can mix in products from any catalog or category.</p>
+            <div class="grid-2">
+                <div class="field">
+                    <label>Catalog</label>
+                    <select id="compileCatalogSelect"></select>
+                </div>
+                <div class="field">
+                    <label>Category</label>
+                    <select id="compileCategorySelect"></select>
+                </div>
+            </div>
+            <div id="compileProductPicker"></div>
+        </div>
+
+        <div class="panel">
+            <h3>Included in this catalog (${editingCompilation.items.length} product line${editingCompilation.items.length === 1 ? "" : "s"}, ${totalSizes} size${totalSizes === 1 ? "" : "s"})</h3>
+            <div id="compileIncludedList"></div>
+        </div>
+    `;
+
+    compileEditorRoot.querySelector("#renameCompilationBtn").addEventListener("click", renameCompilation);
+    compileEditorRoot.querySelector("#deleteCompilationBtn").addEventListener("click", deleteCompilation);
+    compileEditorRoot.querySelector("#generatePrintBtn").addEventListener("click", () => {
+        window.open(`print-catalog.html?id=${encodeURIComponent(activeCompilationId)}`, "_blank");
+    });
+
+    const catSel = compileEditorRoot.querySelector("#compileCatalogSelect");
+    catSel.innerHTML = allCatalogs.map(c => `<option value="${escapeHtml(c.id)}"${c.id === compileCatalogId ? " selected" : ""}>${escapeHtml(c.name || c.id)}</option>`).join("");
+    catSel.addEventListener("change", () => {
+        compileCatalogId = catSel.value;
+        compileCategory = "All";
+        loadCompileProducts();
+    });
+
+    renderCompileIncludedList();
+}
+
+async function loadCompileProducts() {
+    compileProducts = [];
+    try {
+        const q = query(collection(db, "products"), where("catalogId", "==", compileCatalogId));
+        const snap = await getDocs(q);
+        snap.forEach(d => {
+            const data = d.data();
+            compileProducts.push({ id: d.id, ...data, rows: unwrapRowsFromFirestore(data.rows) });
+        });
+    } catch (err) {
+        showToast("Couldn’t load products for that catalog: " + err.message, true);
+    }
+    compileProducts.sort((a, b) => (a.category || "").localeCompare(b.category || "") || (a.name || "").localeCompare(b.name || ""));
+    renderCompileCategorySelect();
+    renderCompileProductPicker();
+}
+
+function renderCompileCategorySelect() {
+    const sel = document.getElementById("compileCategorySelect");
+    if (!sel) return;
+    const cats = ["All", ...new Set(compileProducts.map(p => p.category).filter(Boolean))].sort((a, b) => a === "All" ? -1 : b === "All" ? 1 : a.localeCompare(b));
+    sel.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}"${c === compileCategory ? " selected" : ""}>${escapeHtml(c)}</option>`).join("");
+    sel.onchange = () => { compileCategory = sel.value; renderCompileProductPicker(); };
+}
+
+function renderCompileProductPicker() {
+    const wrap = document.getElementById("compileProductPicker");
+    if (!wrap) return;
+    const filtered = compileProducts.filter(p => compileCategory === "All" || p.category === compileCategory);
+
+    wrap.innerHTML = filtered.map(p => {
+        const existing = editingCompilation.items.find(it => it.productId === p.id);
+        return `
+        <div class="compile-pick-row" data-id="${escapeHtml(p.id)}">
+            <div class="compile-pick-head">
+                <div>
+                    <strong>${escapeHtml(p.name)}</strong>
+                    <span class="field-hint" style="margin:0;">${escapeHtml((p.listNumbers || []).join(", "))} &middot; ${p.rows.length} sizes${existing ? (existing.sizeMode === "all" ? " &middot; all sizes already added" : ` &middot; ${existing.sizeValues.length} sizes already added`) : ""}</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="btn btn-ghost btn-sm" data-action="toggle-sizes">Choose sizes&hellip;</button>
+                    <button type="button" class="btn btn-rust btn-sm" data-action="add-all">${existing ? "Update: add all sizes" : "Add all sizes"}</button>
+                </div>
+            </div>
+            <div class="compile-size-grid" style="display:none;"></div>
+        </div>`;
+    }).join("") || `<p class="field-hint">No products in this category.</p>`;
+
+    wrap.querySelectorAll(".compile-pick-row").forEach(row => {
+        const productId = row.dataset.id;
+        const product = filtered.find(p => p.id === productId);
+        row.querySelector('[data-action="add-all"]').addEventListener("click", () => {
+            addToCompilation(product, "all", product.rows.map(r => r[0]));
+        });
+        row.querySelector('[data-action="toggle-sizes"]').addEventListener("click", () => {
+            const grid = row.querySelector(".compile-size-grid");
+            const open = grid.style.display !== "none";
+            if (open) { grid.style.display = "none"; return; }
+            const existing = editingCompilation.items.find(it => it.productId === productId);
+            const selected = new Set(existing ? (existing.sizeMode === "all" ? product.rows.map(r => r[0]) : existing.sizeValues) : []);
+            grid.innerHTML = `
+                <div class="compile-size-checks">
+                    ${product.rows.map((r, i) => `
+                        <label><input type="checkbox" value="${escapeHtml(r[0])}" ${selected.has(r[0]) ? "checked" : ""}> ${escapeHtml(r[0])}</label>
+                    `).join("")}
+                </div>
+                <button type="button" class="btn btn-rust btn-sm" data-action="add-selected" style="margin-top:10px;">Add Selected Sizes</button>
+            `;
+            grid.style.display = "block";
+            grid.querySelector('[data-action="add-selected"]').addEventListener("click", () => {
+                const values = [...grid.querySelectorAll('input[type="checkbox"]:checked')].map(i => i.value);
+                if (!values.length) { showToast("Check at least one size first.", true); return; }
+                addToCompilation(product, "selected", values);
+                grid.style.display = "none";
+            });
+        });
+    });
+}
+
+function addToCompilation(product, sizeMode, sizeValues) {
+    editingCompilation.items = editingCompilation.items.filter(it => it.productId !== product.id);
+    editingCompilation.items.push({
+        productId: product.id,
+        productName: product.name,
+        category: product.category,
+        sizeMode,
+        sizeValues,
+        allCount: product.rows.length,
+    });
+    saveCompilation(`Added "${product.name}" (${sizeMode === "all" ? "all sizes" : sizeValues.length + " size" + (sizeValues.length === 1 ? "" : "s")}).`);
+}
+
+function renderCompileIncludedList() {
+    const wrap = document.getElementById("compileIncludedList");
+    if (!wrap) return;
+    wrap.innerHTML = editingCompilation.items.map(it => `
+        <div class="cart-line">
+            <div class="cart-line-info">
+                <div class="pname">${escapeHtml(it.productName)}</div>
+                <div class="pmeta">${escapeHtml(it.category || "")} &middot; ${it.sizeMode === "all" ? "all sizes" : it.sizeValues.length + " size" + (it.sizeValues.length === 1 ? "" : "s")}</div>
+            </div>
+            <button type="button" class="cart-line-remove" data-id="${escapeHtml(it.productId)}">Remove</button>
+        </div>
+    `).join("") || `<div class="cart-empty">Nothing added yet. Use "Add products" above.</div>`;
+    wrap.querySelectorAll(".cart-line-remove").forEach(btn => {
+        btn.addEventListener("click", () => {
+            editingCompilation.items = editingCompilation.items.filter(it => it.productId !== btn.dataset.id);
+            saveCompilation("Removed.");
+        });
+    });
+}
+
+async function saveCompilation(toastMsg) {
+    try {
+        await setDoc(doc(db, "compilations", activeCompilationId), {
+            name: editingCompilation.name,
+            items: editingCompilation.items,
+            updatedAt: serverTimestamp(),
+        }, { merge: true });
+        const c = allCompilations.find(x => x.id === activeCompilationId);
+        if (c) { c.items = editingCompilation.items; c.name = editingCompilation.name; }
+        renderCompilationList();
+        renderCompileEditor();
+        if (toastMsg) showToast(toastMsg);
+    } catch (err) {
+        showToast("Couldn’t save: " + (err.code || err.message), true);
+    }
+}
+
+function renameCompilation() {
+    const name = (prompt("New name:", editingCompilation.name) || "").trim();
+    if (!name) return;
+    editingCompilation.name = name;
+    saveCompilation("Renamed.");
+}
+
+async function deleteCompilation() {
+    if (!confirm(`Delete "${editingCompilation.name}"? This can't be undone.`)) return;
+    try {
+        await deleteDoc(doc(db, "compilations", activeCompilationId));
+        activeCompilationId = null;
+        editingCompilation = null;
+        await loadCompilations();
+        renderCompileEditor();
+        showToast("Deleted.");
+    } catch (err) {
+        showToast("Couldn’t delete: " + (err.code || err.message), true);
+    }
+}
