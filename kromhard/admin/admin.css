@@ -94,12 +94,16 @@ button, input, textarea, select { font-family: inherit; }
 .active-toggle input { width: 16px; height: 16px; cursor: pointer; }
 
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
-.panel h3 { font-size: 15px; margin-bottom: 16px; }
+.panel h3 { font-size: 15px; margin-bottom: 8px; }
+.panel-intro { font-size: 13px; color: var(--ink-soft); margin-bottom: 18px; max-width: 70ch; }
+.field-hint { font-size: 12.5px; color: var(--ink-soft); margin: 0; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
 
 .bullet-row, .column-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
 .bullet-row input, .column-row input { flex: 1; }
+.column-index { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-soft); white-space: nowrap; width: 90px; flex-shrink: 0; }
 .remove-btn { background: none; border: none; color: var(--err); font-size: 18px; cursor: pointer; line-height: 1; padding: 4px 8px; }
+.remove-btn:disabled { color: var(--line-strong); cursor: not-allowed; }
 
 .sizes-table-wrap { overflow-x: auto; }
 table.edit-table { width: 100%; border-collapse: collapse; }
@@ -111,7 +115,6 @@ table.edit-table input:focus { outline: none; border-color: var(--steel); backgr
 .pricing-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--ink-soft); font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
 .pricing-body { display: none; margin-top: 14px; }
 .pricing-body.open { display: block; }
-.pricing-note { font-size: 12.5px; color: var(--ink-soft); font-style: italic; margin-top: 6px; }
 
 .toast { position: fixed; bottom: 24px; right: 24px; max-width: min(420px, calc(100vw - 48px)); background: var(--ink); color: #fff; padding: 13px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; line-height: 1.4; opacity: 0; visibility: hidden; transform: translateY(8px); transition: all 0.2s ease; z-index: 100; }
 .toast.show { opacity: 1; visibility: visible; transform: translateY(0); }

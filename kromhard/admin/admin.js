@@ -309,47 +309,56 @@ function renderEditor() {
 
         <div class="panel">
             <h3>Basics</h3>
+            <p class="panel-intro">The main info customers see when they open this product on the catalog page.</p>
             <div class="grid-2">
                 <div class="field">
                     <label>Category</label>
+                    <p class="field-hint">Which group this shows under on the catalog page (e.g. "Jobber Drills"). Pick an existing one from the list when you can, so it groups with similar products.</p>
                     <input type="text" id="f_category" value="${escapeHtml(d.category)}" list="categoryList">
                     <datalist id="categoryList">${[...new Set(allProducts.map(p => p.category).filter(Boolean))].map(c => `<option value="${escapeHtml(c)}">`).join("")}</datalist>
                 </div>
                 <div class="field">
                     <label>Brand</label>
+                    <p class="field-hint">Usually "Kromhard". Change it only if this is a resold line with its own brand name (e.g. "Allied", "ThunderTwist").</p>
                     <input type="text" id="f_brand" value="${escapeHtml(d.brand)}">
                 </div>
             </div>
             <div class="field">
                 <label>Product Name</label>
+                <p class="field-hint">The title customers see, in large text at the top of this product's card.</p>
                 <input type="text" id="f_name" value="${escapeHtml(d.name)}" placeholder="e.g. Left Hand Jobber Drills">
             </div>
             <div class="field">
-                <label>LIST Number(s) &mdash; comma separated</label>
+                <label>LIST Number(s)</label>
+                <p class="field-hint">Kromhard's own catalog number(s) for this product, e.g. 100LH. If there's more than one (different finishes of the same item, say), separate them with commas.</p>
                 <input type="text" id="f_listNumbers" value="${escapeHtml((d.listNumbers || []).join(", "))}" placeholder="e.g. 100LH">
             </div>
             <div class="field">
                 <label>Description</label>
+                <p class="field-hint">A sentence or two explaining what it is and what it's good for. Shows as a paragraph right under the product name.</p>
                 <textarea id="f_description" rows="3">${escapeHtml(d.description)}</textarea>
             </div>
             <div class="field">
                 <label>Bullets</label>
+                <p class="field-hint">Short feature highlights, shown as a bulleted list under the description &mdash; one fact per line, kept short. Example: "Bright finish, 118&deg; point" or "Can double as an extractor for broken bolt removal."</p>
                 <div id="bulletsWrap"></div>
                 <button type="button" class="btn btn-ghost btn-sm" id="addBulletBtn" style="align-self:flex-start;">+ Add bullet</button>
             </div>
             <div class="field">
-                <label>Note (optional &mdash; packaging/availability caveats)</label>
+                <label>Note (optional)</label>
+                <p class="field-hint">Small-print packaging or availability detail, shown below the sizing table. Example: "TiN sizes A&ndash;L pack 6, sizes M&ndash;Z pack 3." Leave blank if there's nothing special to call out.</p>
                 <input type="text" id="f_note" value="${escapeHtml(d.note || "")}">
             </div>
         </div>
 
         <div class="panel">
             <h3>Photo</h3>
+            <p class="panel-intro">One representative photo of this product, shown at the top of its card.</p>
             <div class="photo-preview ${d.image ? "" : "empty"}" id="photoPreview">
                 ${d.image ? `<img src="${escapeHtml(d.image)}" alt="">` : "No photo yet"}
             </div>
             <input type="file" id="photoInput" accept="image/*">
-            <p class="pricing-note">Uploads to Firebase Storage and saves the resulting URL. Requires Storage to be enabled on the project.</p>
+            <p class="field-hint">Choose a file to upload a new photo &mdash; it replaces the one above as soon as the upload finishes. Nothing is saved until you also click Save below.</p>
         </div>
 
         <div class="panel">
@@ -359,18 +368,20 @@ function renderEditor() {
                     <label>Internal price (optional)</label>
                     <input type="text" id="f_price" value="${escapeHtml(d.price || "")}" placeholder="Not shown publicly">
                 </div>
-                <p class="pricing-note">This field exists in the data model for later, but the public catalog page never reads or displays it.</p>
+                <p class="field-hint">This is stored for later but never shown to customers or printed anywhere on the public site. Safe to fill in whenever you're ready, even if Kromhard hasn't decided on public pricing yet.</p>
             </div>
         </div>
 
         <div class="panel">
             <h3>Columns</h3>
+            <p class="panel-intro">These become the column headings on the sizing table below (e.g. "Flute Length", "Pack Qty"). Most products won't need any changes here &mdash; only touch this if a size needs to track something the current columns don't cover.</p>
             <div id="columnsWrap"></div>
             <button type="button" class="btn btn-ghost btn-sm" id="addColumnBtn" style="margin-top:4px;">+ Add column</button>
         </div>
 
         <div class="panel">
             <h3>Sizes (${d.rows.length})</h3>
+            <p class="panel-intro">One row per size Kromhard stocks for this product. The first box in each row is the size itself &mdash; start typing and matching sizes already used elsewhere in the catalog will show up to pick from, or just type a new one.</p>
             <div class="sizes-table-wrap">
                 <table class="edit-table" id="rowsTable"></table>
             </div>
@@ -453,25 +464,39 @@ function renderBullets() {
     });
 }
 
+function uniqueColumnKey(label, i) {
+    const base = slugify(label) || "col" + (i + 1);
+    let key = base, n = 2;
+    while (editingDraft.columns.some((c, ci) => ci !== i && c.key === key)) key = base + "-" + (n++);
+    return key;
+}
+
 function renderColumns() {
     const wrap = editorRoot.querySelector("#columnsWrap");
+    // Admins only ever see/edit the label (e.g. "Flute Length") -- the
+    // "key" field used to be a second, nearly-identical-looking box here
+    // ("size" / "Size") with no real purpose: nothing in this app actually
+    // matches rows to columns by key, only by position. It's now just
+    // auto-derived from the label and kept out of sight.
     wrap.innerHTML = editingDraft.columns.map((c, i) => `
         <div class="column-row">
-            <input type="text" data-field="key" data-i="${i}" value="${escapeHtml(c.key)}" placeholder="key" style="max-width:140px;">
-            <input type="text" data-field="label" data-i="${i}" value="${escapeHtml(c.label)}" placeholder="Column label shown to customers">
-            <button type="button" class="remove-btn" data-i="${i}" ${editingDraft.columns.length <= 1 ? "disabled" : ""}>&times;</button>
+            <span class="column-index">${i === 0 ? "Size column" : "Column " + (i + 1)}</span>
+            <input type="text" data-i="${i}" value="${escapeHtml(c.label)}" placeholder="Column heading shown to customers">
+            <button type="button" class="remove-btn" data-i="${i}" ${(editingDraft.columns.length <= 1 || i === 0) ? "disabled" : ""} title="${i === 0 ? "The first column can't be removed -- it's always treated as this product's size." : "Remove this column"}">&times;</button>
         </div>
     `).join("");
     wrap.querySelectorAll("input").forEach(inp => {
         inp.addEventListener("input", e => {
-            editingDraft.columns[+e.target.dataset.i][e.target.dataset.field] = e.target.value;
-            if (e.target.dataset.field === "label") renderRowsTable();
+            const i = +e.target.dataset.i;
+            editingDraft.columns[i].label = e.target.value;
+            editingDraft.columns[i].key = uniqueColumnKey(e.target.value, i);
+            renderRowsTable();
         });
     });
     wrap.querySelectorAll(".remove-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-            if (editingDraft.columns.length <= 1) return;
             const i = +btn.dataset.i;
+            if (editingDraft.columns.length <= 1 || i === 0) return;
             editingDraft.columns.splice(i, 1);
             editingDraft.rows.forEach(r => r.splice(i, 1));
             renderColumns();

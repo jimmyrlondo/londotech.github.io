@@ -59,7 +59,7 @@
             <main class="admin-main">
                 <div class="empty-state" id="emptyState">
                     <h3>Pick a product from the list</h3>
-                    <p>Or create a new product line to get started. If this catalog is empty, use "Import / Seed (JSON)" to load the existing 93-line Hole Making catalog from the live site.</p>
+                    <p>Or click "+ New Product Line" to create one from scratch. An empty catalog can also be bulk-loaded with "Import / Seed (JSON)" if you have an export file ready.</p>
                 </div>
                 <div id="editorRoot" style="display:none;"></div>
             </main>
@@ -99,7 +99,7 @@
     <div class="modal-overlay" id="csvImportModal">
         <div class="modal-box">
             <h3>Import Rows (CSV)</h3>
-            <p class="muted">First row must be headers matching this product's column keys. Rows are matched by their first column (size) &mdash; matches update in place, new sizes are appended.</p>
+            <p class="muted">Your spreadsheet's columns must be in the <strong>same left-to-right order</strong> as the Columns section above (the first row of your CSV is treated as a header and isn't checked, it's just for your own reference). The first column must be the size. A size that already exists gets updated with your new values; a size that doesn't exist yet gets added as a new row. Nothing is saved to the live catalog until you also click Save.</p>
             <div class="field">
                 <input type="file" id="csvFileInput" accept=".csv,text/csv">
             </div>
