@@ -743,11 +743,26 @@ document.getElementById("csvImportConfirmBtn").addEventListener("click", async (
     showToast(`Imported: ${added} new, ${updated} updated. Click Save to keep these changes.`);
 });
 
+// ---------- Catalog Tools dropdown ----------
+const toolsMenuBtn = document.getElementById("toolsMenuBtn");
+const toolsMenu = document.getElementById("toolsMenu");
+toolsMenuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toolsMenu.classList.toggle("open");
+});
+document.addEventListener("click", (e) => {
+    if (!toolsMenu.contains(e.target) && e.target !== toolsMenuBtn) toolsMenu.classList.remove("open");
+});
+
 // ---------- JSON import/seed (whole catalog) ----------
 document.getElementById("exportJsonBtn").addEventListener("click", () => {
+    toolsMenu.classList.remove("open");
     downloadFile(currentCatalogId + "-catalog.json", JSON.stringify(allProducts, null, 2), "application/json");
 });
-document.getElementById("importJsonBtn").addEventListener("click", () => document.getElementById("jsonImportModal").classList.add("open"));
+document.getElementById("importJsonBtn").addEventListener("click", () => {
+    toolsMenu.classList.remove("open");
+    document.getElementById("jsonImportModal").classList.add("open");
+});
 document.getElementById("jsonImportCancelBtn").addEventListener("click", () => document.getElementById("jsonImportModal").classList.remove("open"));
 document.getElementById("jsonImportConfirmBtn").addEventListener("click", async () => {
     const fileInput = document.getElementById("jsonFileInput");

@@ -52,8 +52,15 @@
                 <div class="product-list" id="productList"></div>
                 <div class="sidebar-footer">
                     <button class="btn btn-rust" id="newProductBtn">+ New Product Line</button>
-                    <button class="btn btn-ghost btn-sm" id="exportJsonBtn">Export Catalog (JSON)</button>
-                    <button class="btn btn-ghost btn-sm" id="importJsonBtn">Import / Seed (JSON)</button>
+                    <div class="tools-menu-wrap">
+                        <button class="btn btn-ghost btn-sm" id="toolsMenuBtn" style="width:100%;justify-content:space-between;">
+                            Catalog Tools <span aria-hidden="true">&#9662;</span>
+                        </button>
+                        <div class="tools-menu" id="toolsMenu">
+                            <button type="button" id="exportJsonBtn">Export Catalog (JSON)</button>
+                            <button type="button" id="importJsonBtn">Import / Seed (JSON)</button>
+                        </div>
+                    </div>
                 </div>
             </aside>
             <main class="admin-main">
