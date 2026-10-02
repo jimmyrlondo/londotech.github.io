@@ -50,7 +50,7 @@ const appShell = document.getElementById("appShell");
 const loginError = document.getElementById("loginError");
 const whoEmail = document.getElementById("whoEmail");
 const catalogSelect = document.getElementById("catalogSelect");
-const categoryChips = document.getElementById("categoryChips");
+const categorySelect = document.getElementById("categorySelect");
 const productList = document.getElementById("productList");
 const emptyState = document.getElementById("emptyState");
 const editorRoot = document.getElementById("editorRoot");
@@ -236,26 +236,29 @@ function allKnownCategories() {
     return [...new Set([...currentCatalogCategories, ...allProducts.map(p => p.category).filter(Boolean)])];
 }
 
+const NEW_CATEGORY_OPTION = "__new_category__";
+
 function renderCategoryChips() {
-    const cats = ["All", ...allKnownCategories()];
-    categoryChips.innerHTML = cats.map(c =>
-        `<button type="button" class="chip${c === activeCategory ? " active" : ""}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`
-    ).join("") + `<button type="button" class="chip chip-add" id="newCategoryBtn" title="Create a new category">+ New Category</button>`;
-    categoryChips.querySelectorAll(".chip:not(.chip-add)").forEach(btn => {
-        btn.addEventListener("click", () => {
-            activeCategory = btn.dataset.cat;
-            renderCategoryChips();
-            renderProductList();
-        });
-    });
-    categoryChips.querySelector("#newCategoryBtn").addEventListener("click", createNewCategory);
+    const cats = ["All", ...allKnownCategories().sort((a, b) => a.localeCompare(b))];
+    categorySelect.innerHTML = cats.map(c =>
+        `<option value="${escapeHtml(c)}"${c === activeCategory ? " selected" : ""}>${escapeHtml(c)}</option>`
+    ).join("") + `<option value="${NEW_CATEGORY_OPTION}">+ New Category&hellip;</option>`;
 }
+
+categorySelect.addEventListener("change", async () => {
+    if (categorySelect.value === NEW_CATEGORY_OPTION) {
+        await createNewCategory();
+        return;
+    }
+    activeCategory = categorySelect.value;
+    renderProductList();
+});
 
 async function createNewCategory() {
     const name = (prompt("Name for the new category (e.g. \"Thread Repair Kits\"):") || "").trim();
-    if (!name) return;
-    if (allKnownCategories().some(c => c.toLowerCase() === name.toLowerCase())) {
-        showToast("That category already exists.", true);
+    if (!name || allKnownCategories().some(c => c.toLowerCase() === name.toLowerCase())) {
+        if (name) showToast("That category already exists.", true);
+        renderCategoryChips(); // reset the dropdown back off "+ New Category..."
         return;
     }
     await addCategoryToCatalog(currentCatalogId, name);
