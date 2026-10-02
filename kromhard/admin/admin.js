@@ -906,6 +906,17 @@ function selectCompilation(id) {
     loadCompileProducts();
 }
 
+function includedHeadingText() {
+    const items = editingCompilation.items;
+    const totalSizes = items.reduce((sum, it) => sum + (it.sizeMode === "all" ? (it.allCount || it.sizeValues?.length || 0) : (it.sizeValues || []).length), 0);
+    return `Included in this catalog (${items.length} product line${items.length === 1 ? "" : "s"}, ${totalSizes} size${totalSizes === 1 ? "" : "s"})`;
+}
+
+// Full rebuild of the editor shell: dropdowns, picker container, everything.
+// Only call this when switching to a different compilation (selectCompilation)
+// -- NOT after every add/remove, since that was destroying the Category
+// dropdown and collapsing everything on every click. Routine updates after
+// an add/remove go through the lighter refreshCompileView() below instead.
 function renderCompileEditor() {
     if (!editingCompilation) {
         compileEmptyState.style.display = "block";
@@ -914,8 +925,6 @@ function renderCompileEditor() {
     }
     compileEmptyState.style.display = "none";
     compileEditorRoot.style.display = "block";
-
-    const totalSizes = editingCompilation.items.reduce((sum, it) => sum + (it.sizeMode === "all" ? (it.allCount || it.sizeValues?.length || 0) : (it.sizeValues || []).length), 0);
 
     compileEditorRoot.innerHTML = `
         <div class="editor-head">
@@ -944,7 +953,7 @@ function renderCompileEditor() {
         </div>
 
         <div class="panel">
-            <h3>Included in this catalog (${editingCompilation.items.length} product line${editingCompilation.items.length === 1 ? "" : "s"}, ${totalSizes} size${totalSizes === 1 ? "" : "s"})</h3>
+            <h3 id="includedHeading">${includedHeadingText()}</h3>
             <div id="compileIncludedList"></div>
         </div>
     `;
@@ -964,6 +973,21 @@ function renderCompileEditor() {
     });
 
     renderCompileIncludedList();
+}
+
+// Lightweight update after an add/remove/rename: refreshes the title, the
+// "included" list and heading count, and the picker's "already added"
+// labels, all without touching the Catalog/Category dropdowns or rebuilding
+// the shell (so an open "Choose sizes..." accordion and the current
+// dropdown selections survive a save).
+function refreshCompileView() {
+    if (!editingCompilation) return;
+    const h2 = compileEditorRoot.querySelector(".editor-head h2");
+    if (h2) h2.textContent = editingCompilation.name || "(untitled)";
+    const heading = document.getElementById("includedHeading");
+    if (heading) heading.textContent = includedHeadingText();
+    renderCompileIncludedList();
+    renderCompileProductPicker();
 }
 
 async function loadCompileProducts() {
@@ -1088,7 +1112,7 @@ async function saveCompilation(toastMsg) {
         const c = allCompilations.find(x => x.id === activeCompilationId);
         if (c) { c.items = editingCompilation.items; c.name = editingCompilation.name; }
         renderCompilationList();
-        renderCompileEditor();
+        refreshCompileView();
         if (toastMsg) showToast(toastMsg);
     } catch (err) {
         showToast("Couldn’t save: " + (err.code || err.message), true);
