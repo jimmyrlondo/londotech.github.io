@@ -767,19 +767,8 @@ document.getElementById("importJsonBtn").addEventListener("click", () => {
     document.getElementById("jsonImportModal").classList.add("open");
 });
 document.getElementById("jsonImportCancelBtn").addEventListener("click", () => document.getElementById("jsonImportModal").classList.remove("open"));
-document.getElementById("jsonImportConfirmBtn").addEventListener("click", async () => {
-    const fileInput = document.getElementById("jsonFileInput");
-    const file = fileInput.files[0];
-    if (!file) { showToast("Choose a JSON file first.", true); return; }
-    let items;
-    try {
-        items = JSON.parse(await file.text());
-        if (!Array.isArray(items)) throw new Error("Expected a JSON array");
-    } catch (err) {
-        showToast("Couldn't parse that JSON: " + err.message, true);
-        return;
-    }
 
+async function importItems(items) {
     showToast(`Importing ${items.length} product lines…`);
     let ok = 0, fail = 0, firstError = null;
     for (const item of items) {
@@ -796,9 +785,41 @@ document.getElementById("jsonImportConfirmBtn").addEventListener("click", async 
         }
     }
     await upsertCatalogMeta(currentCatalogId);
-    document.getElementById("jsonImportModal").classList.remove("open");
-    fileInput.value = "";
     const summary = `Import complete: ${ok} saved${fail ? `, ${fail} failed` : ""}.`;
     showToast(fail && firstError ? `${summary} First error: ${firstError.code || firstError.message}` : summary, fail > 0);
     await loadProducts();
+}
+
+document.getElementById("jsonImportConfirmBtn").addEventListener("click", async () => {
+    const fileInput = document.getElementById("jsonFileInput");
+    const file = fileInput.files[0];
+    if (!file) { showToast("Choose a JSON file first.", true); return; }
+    let items;
+    try {
+        items = JSON.parse(await file.text());
+        if (!Array.isArray(items)) throw new Error("Expected a JSON array");
+    } catch (err) {
+        showToast("Couldn't parse that JSON: " + err.message, true);
+        return;
+    }
+    document.getElementById("jsonImportModal").classList.remove("open");
+    fileInput.value = "";
+    await importItems(items);
+});
+
+// Fetches the site's own bundled seed file directly (no download/upload
+// round trip, and no risk of re-importing a stale saved copy like the one
+// that caused this to exist: a manually re-uploaded file that still had
+// the pre-fix text). Cache-busted so it's never a stale cached response.
+document.getElementById("resyncBtn").addEventListener("click", async () => {
+    toolsMenu.classList.remove("open");
+    try {
+        const res = await fetch(`/kromhard/admin/seed-cutting-drilling-milling.json?t=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const items = await res.json();
+        if (!Array.isArray(items)) throw new Error("Expected a JSON array");
+        await importItems(items);
+    } catch (err) {
+        showToast("Re-sync failed: " + err.message, true);
+    }
 });

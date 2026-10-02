@@ -58,8 +58,9 @@
                             Catalog Tools <span aria-hidden="true">&#9662;</span>
                         </button>
                         <div class="tools-menu" id="toolsMenu">
+                            <button type="button" id="resyncBtn">Re-sync from Site Data</button>
                             <button type="button" id="exportJsonBtn">Export Catalog (JSON)</button>
-                            <button type="button" id="importJsonBtn">Import / Seed (JSON)</button>
+                            <button type="button" id="importJsonBtn">Import a JSON File&hellip;</button>
                         </div>
                     </div>
                 </div>
@@ -91,8 +92,8 @@
     <!-- JSON import/seed modal -->
     <div class="modal-overlay" id="jsonImportModal">
         <div class="modal-box">
-            <h3>Import / Seed Catalog (JSON)</h3>
-            <p class="muted">Upload a JSON file (an array of product-line objects matching the catalog schema). Matching IDs are updated in place; new IDs are created. Nothing is deleted.</p>
+            <h3>Import a JSON File</h3>
+            <p class="muted">Use this for a file from somewhere else (a spreadsheet export, a file someone emailed you, etc). To update from this site's own data, use "Re-sync from Site Data" instead, no file needed. Upload a JSON file here (an array of product-line objects matching the catalog schema). Matching IDs are updated in place; new IDs are created. Nothing is deleted.</p>
             <div class="field">
                 <input type="file" id="jsonFileInput" accept="application/json">
             </div>
