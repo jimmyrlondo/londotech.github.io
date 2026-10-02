@@ -3,7 +3,7 @@ import {
     getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import {
-    getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where, serverTimestamp
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import {
     getStorage, ref, uploadBytes, getDownloadURL
@@ -17,6 +17,7 @@ const storage = getStorage(app);
 
 // ---------- State ----------
 let currentCatalogId = "cutting-drilling-milling";
+let currentCatalogCategories = []; // explicit category list for the selected catalog (lets an empty category show up before any product uses it)
 let allProducts = [];
 let activeCategory = "All";
 let activeProductId = null; // null = nothing selected; "__new__" = unsaved new product
@@ -29,12 +30,18 @@ let knownSizes = null;
 // the full planned structure, and so new catalogs don't need code changes
 // to appear, just products tagged with their catalogId.
 const DEFAULT_CATALOGS = [
-    { id: "cutting-drilling-milling", name: "Cutting, Drilling and Milling" },
-    { id: "threading-thread-repair", name: "Threading & Thread Repair Tools" },
-    { id: "hand-power-tools", name: "Hand Tools and Power Tools" },
-    { id: "precision-measuring", name: "Precision Measuring Tools" },
-    { id: "industrial-chemicals", name: "Industrial Chemicals & Fluids" },
-    { id: "workholding-material-handling", name: "Workholding & Material Handling" },
+    {
+        id: "cutting-drilling-milling", name: "Cutting, Drilling and Milling",
+        categories: ["Drill Blanks", "Jobber Drills", "Screw Machine / Stub Drills", "Silver & Deming Drills",
+            "Taper Shank Drills", "Spotting & Centering Drills", "Step Drills", "Straight Flute (Die) Drills",
+            "Extended Length Drills", "Drill Sets", "Center / Combined Drills", "Masonry Drills",
+            "Specialty Drills", "Woodworking Bits", "Annular Cutters", "Spade Drill Inserts & Holders", "Hole Saws"],
+    },
+    { id: "threading-thread-repair", name: "Threading & Thread Repair Tools", categories: [] },
+    { id: "hand-power-tools", name: "Hand Tools and Power Tools", categories: [] },
+    { id: "precision-measuring", name: "Precision Measuring Tools", categories: [] },
+    { id: "industrial-chemicals", name: "Industrial Chemicals & Fluids", categories: [] },
+    { id: "workholding-material-handling", name: "Workholding & Material Handling", categories: [] },
 ];
 
 // ---------- DOM refs ----------
@@ -162,6 +169,13 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ---------- Catalogs ----------
+let allCatalogs = [];
+
+function syncCurrentCatalogCategories() {
+    const c = allCatalogs.find(x => x.id === currentCatalogId);
+    currentCatalogCategories = (c && c.categories) || [];
+}
+
 async function loadCatalogs() {
     let existing = new Map();
     try {
@@ -177,19 +191,21 @@ async function loadCatalogs() {
     const missing = DEFAULT_CATALOGS.filter(c => !existing.has(c.id));
     for (const c of missing) {
         try {
-            await setDoc(doc(db, "catalogs", c.id), { name: c.name });
+            await setDoc(doc(db, "catalogs", c.id), { name: c.name, categories: c.categories || [] });
             existing.set(c.id, c);
         } catch (err) { /* non-fatal -- will just show via DEFAULT_CATALOGS below */ }
     }
 
-    const catalogs = DEFAULT_CATALOGS.map(c => existing.get(c.id) || c);
-    catalogSelect.innerHTML = catalogs.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name || c.id)}</option>`).join("");
-    if (!catalogs.some(c => c.id === currentCatalogId)) currentCatalogId = catalogs[0].id;
+    allCatalogs = DEFAULT_CATALOGS.map(c => existing.get(c.id) || c);
+    catalogSelect.innerHTML = allCatalogs.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name || c.id)}</option>`).join("");
+    if (!allCatalogs.some(c => c.id === currentCatalogId)) currentCatalogId = allCatalogs[0].id;
     catalogSelect.value = currentCatalogId;
+    syncCurrentCatalogCategories();
 }
 
 catalogSelect.addEventListener("change", async () => {
     currentCatalogId = catalogSelect.value;
+    syncCurrentCatalogCategories();
     activeCategory = "All";
     activeProductId = null;
     await loadProducts();
@@ -213,18 +229,53 @@ async function loadProducts() {
     renderProductList();
 }
 
+function allKnownCategories() {
+    // Union of this catalog's explicit category list (so a brand-new, still-
+    // empty category shows up right away) and whatever categories existing
+    // products actually use (in case one was added some other way).
+    return [...new Set([...currentCatalogCategories, ...allProducts.map(p => p.category).filter(Boolean)])];
+}
+
 function renderCategoryChips() {
-    const cats = ["All", ...new Set(allProducts.map(p => p.category).filter(Boolean))];
+    const cats = ["All", ...allKnownCategories()];
     categoryChips.innerHTML = cats.map(c =>
         `<button type="button" class="chip${c === activeCategory ? " active" : ""}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`
-    ).join("");
-    categoryChips.querySelectorAll(".chip").forEach(btn => {
+    ).join("") + `<button type="button" class="chip chip-add" id="newCategoryBtn" title="Create a new category">+ New Category</button>`;
+    categoryChips.querySelectorAll(".chip:not(.chip-add)").forEach(btn => {
         btn.addEventListener("click", () => {
             activeCategory = btn.dataset.cat;
             renderCategoryChips();
             renderProductList();
         });
     });
+    categoryChips.querySelector("#newCategoryBtn").addEventListener("click", createNewCategory);
+}
+
+async function createNewCategory() {
+    const name = (prompt("Name for the new category (e.g. \"Thread Repair Kits\"):") || "").trim();
+    if (!name) return;
+    if (allKnownCategories().some(c => c.toLowerCase() === name.toLowerCase())) {
+        showToast("That category already exists.", true);
+        return;
+    }
+    await addCategoryToCatalog(currentCatalogId, name);
+    activeCategory = name;
+    renderCategoryChips();
+    renderProductList();
+    showToast(`Added "${name}". It'll show up empty until a product is saved under it.`);
+}
+
+async function addCategoryToCatalog(catalogId, name) {
+    const trimmed = (name || "").trim();
+    if (!trimmed) return;
+    try {
+        await updateDoc(doc(db, "catalogs", catalogId), { categories: arrayUnion(trimmed) });
+    } catch (err) {
+        try { await setDoc(doc(db, "catalogs", catalogId), { categories: [trimmed] }, { merge: true }); } catch (e2) { /* non-fatal */ }
+    }
+    const c = allCatalogs.find(x => x.id === catalogId);
+    if (c) c.categories = [...new Set([...(c.categories || []), trimmed])];
+    if (catalogId === currentCatalogId) syncCurrentCatalogCategories();
 }
 
 function renderProductList() {
@@ -313,9 +364,9 @@ function renderEditor() {
             <div class="grid-2">
                 <div class="field">
                     <label>Category</label>
-                    <p class="field-hint">Which group this shows under on the catalog page (e.g. "Jobber Drills"). Pick an existing one from the list when you can, so it groups with similar products.</p>
+                    <p class="field-hint">Which group this shows under on the catalog page (e.g. "Jobber Drills"). Pick an existing one from the list when you can. Typing a brand-new name here creates it too, but the "+ New Category" button in the left sidebar is the clearer way if you just want to set one up first.</p>
                     <input type="text" id="f_category" value="${escapeHtml(d.category)}" list="categoryList">
-                    <datalist id="categoryList">${[...new Set(allProducts.map(p => p.category).filter(Boolean))].map(c => `<option value="${escapeHtml(c)}">`).join("")}</datalist>
+                    <datalist id="categoryList">${allKnownCategories().map(c => `<option value="${escapeHtml(c)}">`).join("")}</datalist>
                 </div>
                 <div class="field">
                     <label>Brand</label>
@@ -579,6 +630,7 @@ async function saveProduct() {
     try {
         await setDoc(doc(db, "products", id), data);
         await upsertCatalogMeta(d.catalogId);
+        if (d.category && d.category.trim()) await addCategoryToCatalog(d.catalogId, d.category.trim());
         showToast("Saved.");
         activeProductId = id;
         await loadProducts();
