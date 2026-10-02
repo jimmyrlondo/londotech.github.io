@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Kromhard Twist Drill — Site Concept Preview</title>
+    <title>Kromhard Twist Drill (Site Concept Preview)</title>
     <meta name="description" content="Concept preview: a consolidated, modern Kromhard Twist Drill website with a searchable digital catalog built in, prepared by Londo Technologies.">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,41 +15,44 @@
 <body>
 
     <div class="preview-banner">
-        This is a concept preview of a redesigned, consolidated Kromhard site, prepared by <a href="https://londo.tech" target="_blank" rel="noopener">Londo Technologies</a> &mdash; not Kromhard's live website.
+        This is a concept preview of a redesigned, consolidated Kromhard site, prepared by <a href="https://londo.tech" target="_blank" rel="noopener">Londo Technologies</a>. Not Kromhard's live website.
     </div>
 
-    <header class="app-header">
-        <div class="wrap">
-            <div class="app-brand">
-                <span class="name">KROMHARD</span>
-                <span class="tag">Twist Drill &middot; Est. 1958</span>
+    <div class="sticky-top">
+        <header class="app-header">
+            <div class="wrap">
+                <div class="app-brand">
+                    <span class="name">KROMHARD</span>
+                    <span class="tag">Twist Drill &middot; Est. 1958</span>
+                </div>
+                <nav class="app-nav" aria-label="Primary">
+                    <a href="./" class="current">Home</a>
+                    <a href="catalog/">Catalog</a>
+                    <a href="#categories">Categories</a>
+                    <a href="#about">About</a>
+                    <a href="#contact">Contact</a>
+                </nav>
+                <div class="app-header-actions">
+                    <span class="app-phone"><strong>330-535-7129</strong></span>
+                    <a class="btn btn-outline" href="admin/" style="padding:10px 16px;font-size:14px;">Admin Login</a>
+                    <a class="btn btn-rust" href="catalog/" style="padding:10px 16px;font-size:14px;">Browse Catalog</a>
+                </div>
             </div>
-            <nav class="app-nav" aria-label="Primary">
-                <a href="./" class="current">Home</a>
-                <a href="catalog/">Catalog</a>
-                <a href="#categories">Categories</a>
-                <a href="#about">About</a>
-                <a href="#contact">Contact</a>
-            </nav>
-            <div class="app-header-actions">
-                <span class="app-phone"><strong>330-535-7129</strong></span>
-                <a class="btn btn-rust" href="catalog/" style="padding:10px 16px;font-size:14px;">Browse Catalog</a>
-            </div>
-        </div>
-    </header>
+        </header>
+    </div>
 
     <section class="hero">
         <div class="wrap hero-grid">
             <div>
-                <span class="eyebrow">Serving the tool-using trades for 67 years</span>
+                <span class="eyebrow">Serving the tool-using trades since 1958</span>
                 <h1>In-stock, quality industrial tools and supplies</h1>
-                <p class="lead">Kromhard has been one of the nation's largest suppliers of in-stock industrial tools since 1958. This concept brings that same catalog online: one site, one search bar, every size indexed &mdash; instead of a dozen thin pages and a 71MB PDF.</p>
+                <p class="lead">Kromhard keeps machine shops, fabricators, maintenance departments, and contractors stocked with the drills, cutters, and tooling they need, in stock and ready to ship. Search the full catalog by size, LIST number, or name, and find exactly what you're looking for without digging through a PDF or waiting on hold.</p>
                 <div class="hero-actions">
                     <a class="btn btn-rust" href="catalog/">Search the Catalog</a>
                     <a class="btn btn-outline" href="#about">Our Story</a>
                 </div>
                 <div class="hero-stats">
-                    <div class="stat"><b>67</b><span>Years in business</span></div>
+                    <div class="stat"><b id="yearsInBusiness">67</b><span>Years in business</span></div>
                     <div class="stat"><b>1958</b><span>Founded by Jim Griffin</span></div>
                     <div class="stat"><b>Akron, OH</b><span>Headquarters</span></div>
                     <div class="stat"><b>6</b><span>Core product categories</span></div>
@@ -67,23 +70,9 @@
             <div class="section-head">
                 <span class="eyebrow-dark">What we supply</span>
                 <h2>Six categories, one place to search</h2>
-                <p>Today, each of these lives on its own thin page with no search and no ordering. Here they're all searchable from the same catalog &mdash; starting with Cutting, Drilling &amp; Milling, which is already indexed below.</p>
+                <p>From drills, end mills, and carbide inserts to taps, hand tools, precision measuring equipment, cutting fluids, and the workholding gear that keeps them all running, Kromhard carries it. Cutting, Drilling and Milling is fully searchable below now. The other five catalogs are coming soon as they get digitized.</p>
             </div>
             <div class="cat-grid" id="catGrid"></div>
-        </div>
-    </section>
-
-    <section class="section section-alt">
-        <div class="wrap">
-            <div class="section-head">
-                <span class="eyebrow-dark">Live preview</span>
-                <h2>From Hole Making catalog to searchable listings</h2>
-                <p>These product lines are pulled directly from Kromhard's own Hole Making PDF &mdash; real sizes, real specs, real part numbers. Search by size, LIST number, or name.</p>
-            </div>
-            <div class="preview-grid" id="previewGrid"></div>
-            <div style="text-align:center;margin-top:26px;">
-                <a class="btn btn-rust" href="catalog/">Open the full catalog &rarr;</a>
-            </div>
         </div>
     </section>
 
@@ -93,25 +82,72 @@
                 <div>
                     <span class="eyebrow-dark">About Kromhard</span>
                     <h2 style="margin:8px 0 18px;">Built on relationships, since 1958</h2>
-                    <p>Kromhard Twist Drill Co. was founded in 1958 by James H. Griffin. Jim earned a bachelor's degree in industrial engineering and a master's degree in business administration to prepare for a career in tool sales &mdash; then carried an attaché case of drills business to business across Akron to build the company's first customers.</p>
+                    <p>Kromhard Twist Drill Co. was founded in 1958 by James H. Griffin. Jim earned a bachelor's degree in industrial engineering and a master's degree in business administration to prepare for a career in tool sales, then carried an attaché case of drills business to business across Akron to build the company's first customers.</p>
                     <p>Nearly seven decades later, Kromhard is one of the nation's largest suppliers of in-stock, quality industrial tools and supplies, still serving the same tool-using trades Jim set out to win over: machine shops, fabricators, maintenance departments, and contractors who need the right part in stock, today.</p>
-                    <p>This concept keeps that same in-stock, relationship-driven model &mdash; it just gives customers a real search bar and a cart instead of a phone call being the only way in.</p>
+                    <p>This concept keeps that same in-stock, relationship-driven model. It just gives customers a real search bar and a cart instead of a phone call being the only way in.</p>
                 </div>
                 <div class="stat-panel">
                     <div class="row"><span>Founded</span><b>1958</b></div>
                     <div class="row"><span>Founder</span><b>James H. Griffin</b></div>
                     <div class="row"><span>Headquarters</span><b>Akron, OH</b></div>
-                    <div class="row"><span>Years in business</span><b>67</b></div>
+                    <div class="row"><span>Years in business</span><b id="yearsInBusiness2">67</b></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="cta-band">
+    <section class="section section-alt" id="get-started">
         <div class="wrap">
-            <h2>Like the direction?</h2>
-            <p>The Hole Making catalog is now fully indexed &mdash; 93 product lines, 4,800+ sizes. The full build does the same for every other category, adds a backend for Kromhard's team to manage products, and turns the catalog into real quote &amp; invoice workflows.</p>
-            <a class="btn btn-rust" href="catalog/">Try the Catalog Demo</a>
+            <div class="section-head">
+                <span class="eyebrow-dark">New here, or have a question?</span>
+                <h2>Tell us what you need</h2>
+                <p>Setting up a new account, tracking down a part, or just want a catalog mailed out? Send a few details and Kromhard's team will follow up directly.</p>
+            </div>
+            <div class="panel" style="max-width:640px;margin:0 auto;">
+                <div id="inquiryFormView">
+                    <div class="field-row-2">
+                        <div class="field">
+                            <label for="inqName">Full name</label>
+                            <input type="text" id="inqName" autocomplete="name" placeholder="Jane Smith">
+                        </div>
+                        <div class="field">
+                            <label for="inqCompany">Company name</label>
+                            <input type="text" id="inqCompany" autocomplete="organization" placeholder="Acme Manufacturing">
+                        </div>
+                    </div>
+                    <div class="field-row-2">
+                        <div class="field">
+                            <label for="inqPhone">Phone number</label>
+                            <input type="tel" id="inqPhone" autocomplete="tel" placeholder="(330) 555-1234">
+                        </div>
+                        <div class="field">
+                            <label for="inqEmail">Email</label>
+                            <input type="email" id="inqEmail" autocomplete="email" placeholder="jane@acme.com">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="inqReason">What can we help with?</label>
+                        <select id="inqReason">
+                            <option>New account setup</option>
+                            <option>Product question</option>
+                            <option>Request a quote</option>
+                            <option>Request a printed catalog</option>
+                            <option>Something else</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="inqMessage">Message</label>
+                        <textarea id="inqMessage" rows="4" placeholder="Let us know what you're looking for"></textarea>
+                    </div>
+                    <div class="login-error" id="inqError" style="display:none;color:var(--rust);font-size:13.5px;margin-bottom:14px;"></div>
+                    <button class="btn btn-rust" id="inquirySubmitBtn" style="width:100%;justify-content:center;">Send to Kromhard</button>
+                    <p class="muted" style="font-size:13px;margin-top:14px;text-align:center;">Prefer to just call? <a href="tel:13305357129">330-535-7129</a></p>
+                </div>
+                <div id="inquirySuccessView" style="display:none;text-align:center;padding:16px 0;">
+                    <h3>Thanks, that's on its way</h3>
+                    <p class="muted" style="margin-top:8px;">Kromhard's team will follow up at the email or phone number you gave us.</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -152,8 +188,11 @@
         </div>
     </footer>
 
-    <script src="catalog/catalog-data.js"></script>
     <script>
+        const yearsInBusiness = new Date().getFullYear() - 1958;
+        document.getElementById('yearsInBusiness').textContent = yearsInBusiness;
+        document.getElementById('yearsInBusiness2').textContent = yearsInBusiness;
+
         const CATEGORY_INFO = [
             {
                 name: "Cutting, Drilling and Milling",
@@ -198,18 +237,49 @@
             </div>
         `).join('');
 
-        const previewIds = ["100-jobber-hss", "15hs-bimetal-hole-saw", "2521-annular-cutter-cobalt"];
-        const previewItems = KROMHARD_CATALOG.filter(p => previewIds.includes(p.id));
-        document.getElementById('previewGrid').innerHTML = previewItems.map(p => `
-            <a class="mini-card" href="catalog/?q=${encodeURIComponent(p.listNumbers[0])}" style="text-decoration:none;color:inherit;">
-                <div class="mini-photo"><img src="${p.image}" alt="${p.name}"></div>
-                <div class="mini-body">
-                    <span class="mini-cat">${p.category}</span>
-                    <h4>${p.name}</h4>
-                    <p>${p.rows.length} sizes indexed &middot; LIST ${p.listNumbers.join(', ')}</p>
-                </div>
-            </a>
-        `).join('');
+        // ---- Intake form: writes a real inquiry to Firestore ----
+        const inquirySubmitBtn = document.getElementById('inquirySubmitBtn');
+        const inqError = document.getElementById('inqError');
+
+        inquirySubmitBtn.addEventListener('click', async () => {
+            const name = document.getElementById('inqName').value.trim();
+            const company = document.getElementById('inqCompany').value.trim();
+            const phone = document.getElementById('inqPhone').value.trim();
+            const email = document.getElementById('inqEmail').value.trim();
+            const reason = document.getElementById('inqReason').value;
+            const message = document.getElementById('inqMessage').value.trim();
+
+            inqError.style.display = 'none';
+            if (!name || !email) {
+                inqError.textContent = 'Name and email are required.';
+                inqError.style.display = 'block';
+                return;
+            }
+
+            inquirySubmitBtn.disabled = true;
+            inquirySubmitBtn.textContent = 'Sending…';
+            try {
+                const [{ initializeApp }, { getFirestore, collection, addDoc, serverTimestamp }, { firebaseConfig }] = await Promise.all([
+                    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js'),
+                    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js'),
+                    import('assets/firebase-config.js'),
+                ]);
+                const db = getFirestore(initializeApp(firebaseConfig));
+                const inquiryData = { name, email, reason, message, createdAt: serverTimestamp() };
+                if (company) inquiryData.company = company;
+                if (phone) inquiryData.phone = phone;
+                await addDoc(collection(db, 'inquiries'), inquiryData);
+
+                document.getElementById('inquiryFormView').style.display = 'none';
+                document.getElementById('inquirySuccessView').style.display = 'block';
+            } catch (err) {
+                console.error('Inquiry submit failed:', err);
+                inqError.textContent = "Something went wrong sending that. Please call 330-535-7129 instead.";
+                inqError.style.display = 'block';
+                inquirySubmitBtn.disabled = false;
+                inquirySubmitBtn.textContent = 'Send to Kromhard';
+            }
+        });
     </script>
 
 </body>

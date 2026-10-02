@@ -350,7 +350,7 @@ function renderEditor() {
                 <h2>${isNew ? "New Product Line" : escapeHtml(d.name || "(untitled)")}</h2>
                 <label class="active-toggle">
                     <input type="checkbox" id="f_active" ${d.active !== false ? "checked" : ""}>
-                    <span id="activeLabel">${d.active !== false ? "Active — visible on the public catalog" : "Inactive — hidden from the public catalog"}</span>
+                    <span id="activeLabel">${d.active !== false ? "Active, visible on the public catalog" : "Inactive, hidden from the public catalog"}</span>
                 </label>
             </div>
             <div class="editor-actions">
@@ -394,7 +394,7 @@ function renderEditor() {
             </div>
             <div class="field">
                 <label>Bullets</label>
-                <p class="field-hint">Short feature highlights, shown as a bulleted list under the description &mdash; one fact per line, kept short. Example: "Bright finish, 118&deg; point" or "Can double as an extractor for broken bolt removal."</p>
+                <p class="field-hint">Short feature highlights, shown as a bulleted list under the description. One fact per line, kept short. Example: "Bright finish, 118&deg; point" or "Can double as an extractor for broken bolt removal."</p>
                 <div id="bulletsWrap"></div>
                 <button type="button" class="btn btn-ghost btn-sm" id="addBulletBtn" style="align-self:flex-start;">+ Add bullet</button>
             </div>
@@ -412,11 +412,11 @@ function renderEditor() {
                 ${d.image ? `<img src="${escapeHtml(d.image)}" alt="">` : "No photo yet"}
             </div>
             <input type="file" id="photoInput" accept="image/*">
-            <p class="field-hint">Choose a file to upload a new photo &mdash; it replaces the one above as soon as the upload finishes. Nothing is saved until you also click Save below.</p>
+            <p class="field-hint">Choose a file to upload a new photo. It replaces the one above as soon as the upload finishes. Nothing is saved until you also click Save below.</p>
         </div>
 
         <div class="panel">
-            <span class="pricing-toggle" id="pricingToggle">&#9656; Pricing (internal only &mdash; never shown on the public catalog)</span>
+            <span class="pricing-toggle" id="pricingToggle">&#9656; Pricing (internal only, never shown on the public catalog)</span>
             <div class="pricing-body" id="pricingBody">
                 <div class="field">
                     <label>Internal price (optional)</label>
@@ -428,14 +428,14 @@ function renderEditor() {
 
         <div class="panel">
             <h3>Columns</h3>
-            <p class="panel-intro">These become the column headings on the sizing table below (e.g. "Flute Length", "Pack Qty"). Most products won't need any changes here &mdash; only touch this if a size needs to track something the current columns don't cover.</p>
+            <p class="panel-intro">These become the column headings on the sizing table below (e.g. "Flute Length", "Pack Qty"). Most products won't need any changes here. Only touch this if a size needs to track something the current columns don't cover.</p>
             <div id="columnsWrap"></div>
             <button type="button" class="btn btn-ghost btn-sm" id="addColumnBtn" style="margin-top:4px;">+ Add column</button>
         </div>
 
         <div class="panel">
             <h3>Sizes (${d.rows.length})</h3>
-            <p class="panel-intro">One row per size Kromhard stocks for this product. The first box in each row is the size itself &mdash; start typing and matching sizes already used elsewhere in the catalog will show up to pick from, or just type a new one.</p>
+            <p class="panel-intro">One row per size Kromhard stocks for this product. The first box in each row is the size itself. Start typing and matching sizes already used elsewhere in the catalog will show up to pick from, or just type a new one.</p>
             <div class="sizes-table-wrap">
                 <table class="edit-table" id="rowsTable"></table>
             </div>
@@ -465,8 +465,8 @@ function renderEditor() {
     editorRoot.querySelector("#f_active").addEventListener("change", e => {
         d.active = e.target.checked;
         editorRoot.querySelector("#activeLabel").textContent = d.active
-            ? "Active — visible on the public catalog"
-            : "Inactive — hidden from the public catalog";
+            ? "Active, visible on the public catalog"
+            : "Inactive, hidden from the public catalog";
     });
 
     editorRoot.querySelector("#addBulletBtn").addEventListener("click", () => { d.bullets.push(""); renderBullets(); });
@@ -475,7 +475,7 @@ function renderEditor() {
         const body = editorRoot.querySelector("#pricingBody");
         const open = body.classList.toggle("open");
         editorRoot.querySelector("#pricingToggle").innerHTML =
-            (open ? "&#9662; " : "&#9656; ") + "Pricing (internal only &mdash; never shown on the public catalog)";
+            (open ? "&#9662; " : "&#9656; ") + "Pricing (internal only, never shown on the public catalog)";
     });
 
     editorRoot.querySelector("#photoInput").addEventListener("change", handlePhotoUpload);

@@ -33,5 +33,21 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;
     }
+
+    // Public "contact us" intake form on the homepage. Anyone (no account
+    // needed) can create an inquiry, with sane shape/length limits as the
+    // only real spam guard available without a backend. Once created, an
+    // inquiry is immutable and readable only by admins (via the Firestore
+    // console for now; a future admin UI could list these).
+    match /inquiries/{inquiryId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'reason', 'message', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() < 200
+        && request.resource.data.email is string && request.resource.data.email.size() > 0 && request.resource.data.email.size() < 200
+        && request.resource.data.reason is string && request.resource.data.reason.size() < 100
+        && request.resource.data.message is string && request.resource.data.message.size() < 5000
+        && (!('company' in request.resource.data) || (request.resource.data.company is string && request.resource.data.company.size() < 200))
+        && (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() < 50));
+    }
   }
 }

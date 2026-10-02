@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Kromhard Digital Catalog — Concept Preview</title>
+    <title>Kromhard Digital Catalog (Concept Preview)</title>
     <meta name="description" content="Concept preview: a searchable, indexed online catalog for Kromhard Twist Drill, built from their own Hole Making catalog data.">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 <body class="catalog-page">
 
     <div class="preview-banner">
-        Concept preview built by <a href="https://londo.tech" target="_blank" rel="noopener">Londo Technologies</a> from Kromhard's own catalog data &mdash; not a live store yet. <a href="../">See the full site concept</a>
+        Concept preview built by <a href="https://londo.tech" target="_blank" rel="noopener">Londo Technologies</a> from Kromhard's own catalog data. Not a live store yet. <a href="../">See the full site concept</a>
     </div>
 
     <div class="sticky-top">
@@ -68,7 +68,7 @@
 
     <footer class="app-footer">
         <div class="wrap">
-            This is the full Hole Making catalog &mdash; 93 product lines, 4,800+ sizes &mdash; fully searchable. The full product would do the same for every Kromhard catalog, not just this one. &middot;
+            This is the full Cutting, Drilling and Milling catalog: 93 product lines, 4,800+ sizes, fully searchable. The full product does the same for every Kromhard catalog, not just this one. &middot;
             <a href="../">Back to home</a>
         </div>
     </footer>
@@ -86,7 +86,7 @@
         </div>
         <div class="cart-items" id="cartItems"></div>
         <div class="cart-foot">
-            <p>No prices are shown because Kromhard prices by account. Submitting sends this list as a quote request &mdash; in the full build it lands directly in Kromhard's admin backend. Prefer to call it in? <a href="tel:13305357129">330-535-7129</a>.</p>
+            <p>No prices are shown because Kromhard prices by account. Submitting sends this list as a quote request. In the full build it lands directly in Kromhard's admin backend. Prefer to call it in? <a href="tel:13305357129">330-535-7129</a>.</p>
             <button class="btn-quote" id="requestQuoteBtn" disabled>Request a Quote</button>
         </div>
     </aside>
@@ -135,7 +135,7 @@
                 <div class="success-box">
                     <div class="check">&#10003;</div>
                     <h3>Quote request captured</h3>
-                    <p class="muted" style="margin-top:8px;">In the live version, this creates a quote in Kromhard's admin panel and notifies their sales team &mdash; same flow, real backend.</p>
+                    <p class="muted" style="margin-top:8px;">In the live version, this creates a quote in Kromhard's admin panel and notifies their sales team: same flow, real backend.</p>
                     <button class="btn-ghost-sm" id="modalCloseSuccessBtn" type="button" style="margin-top:16px;">Close</button>
                 </div>
             </div>
@@ -263,7 +263,7 @@
                     <ul class="product-bullets">
                         ${p.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
                     </ul>
-                    ${q && matchingSizeRows.length ? `<p style="font-size:12.5px;color:var(--rust);font-weight:700;">${matchingSizeRows.length} matching size${matchingSizeRows.length === 1 ? '' : 's'} &mdash; view sizes to see them</p>` : ''}
+                    ${q && matchingSizeRows.length ? `<p style="font-size:12.5px;color:var(--rust);font-weight:700;">${matchingSizeRows.length} matching size${matchingSizeRows.length === 1 ? '' : 's'} below. View sizes to see them.</p>` : ''}
                     <div class="product-meta">
                         <span>${p.rows.length} sizes indexed</span>
                         <span>${escapeHtml(p.brand)}</span>
