@@ -1467,6 +1467,17 @@ function clearAllFeatures() {
             const showTotals = document.getElementById('showTermTotals').checked;
             const terms = selectedComparisonTerms();
 
+            // New vs. Certified Pre-Owned takes priority over the FMV/$1-buyout
+            // side-by-side table if both happen to be on for this item -- showing
+            // both splits at once (condition x program x term) would be a mess,
+            // and the condition comparison is the more specific, per-item choice.
+            const cpoPriceNum = parseFloat(item.cpoPrice) || 0;
+            if (item.compareConditions && cpoPriceNum && quoteType !== 'rental') {
+                const tradeAmt = item.tradeInChecked ? (parseFloat(item.tradeInAmount) || 0) : 0;
+                const cpoAmountToFinance = Math.max(0, cpoPriceNum - tradeAmt);
+                return generateConditionComparisonTable(quoteType, amountToFinance, cpoAmountToFinance, terms, showTotals);
+            }
+
             if (document.getElementById('compareSideBySide').checked) {
                 return generateSideBySideComparisonTable(amountToFinance, terms, showTotals);
             }
@@ -1522,6 +1533,44 @@ function clearAllFeatures() {
                 : `<tr><th>Term</th><th>FMV Lease</th><th class="pcmp-divider">$1 Buyout</th></tr>`;
 
             const note = 'FMV total of payments shown with a fair-market-value purchase option at the end of the term; $1 Buyout total includes the final $1 to own.';
+            return `<table class="pcmp pcmp-split"><thead>${head}</thead><tbody>${rows}</tbody></table>${showTotals ? `<p class="pcmp-note">${note}</p>` : ''}`;
+        }
+
+        // New Equipment vs. Certified Pre-Owned, side by side, same program/term --
+        // the term-by-term counterpart to the New/CPO box in the main pricing summary.
+        function generateConditionComparisonTable(quoteType, newAmount, cpoAmount, terms, showTotals) {
+            const totalLabel = quoteType === 'buyout' ? 'Total to Own' : 'Total of Payments';
+            let rows = '';
+            terms.forEach(term => {
+                const fNew = rateFactorValue(quoteType, newAmount, term);
+                const fCpo = rateFactorValue(quoteType, cpoAmount, term);
+                if (!fNew && !fCpo) return;
+                const newMonthly = fNew ? newAmount * fNew : null;
+                const cpoMonthly = fCpo ? cpoAmount * fCpo : null;
+                let newTotal = newMonthly != null ? newMonthly * term : null;
+                let cpoTotal = cpoMonthly != null ? cpoMonthly * term : null;
+                if (quoteType === 'buyout') {
+                    if (newTotal != null) newTotal += 1;
+                    if (cpoTotal != null) cpoTotal += 1;
+                }
+                rows += `<tr>
+                    <td class="pcmp-term">${term} mo</td>
+                    <td class="pcmp-num">${newMonthly != null ? formatCurrency(newMonthly) : '&mdash;'}</td>
+                    ${showTotals ? `<td class="pcmp-num">${newTotal != null ? formatCurrency(newTotal) : '&mdash;'}</td>` : ''}
+                    <td class="pcmp-num pcmp-divider">${cpoMonthly != null ? formatCurrency(cpoMonthly) : '&mdash;'}</td>
+                    ${showTotals ? `<td class="pcmp-num">${cpoTotal != null ? formatCurrency(cpoTotal) : '&mdash;'}</td>` : ''}
+                </tr>`;
+            });
+            if (!rows) return '';
+
+            const head = showTotals
+                ? `<tr><th rowspan="2">Term</th><th colspan="2">New Equipment</th><th colspan="2" class="pcmp-divider">Certified Pre-Owned</th></tr>
+                   <tr><th>Monthly</th><th>Total</th><th class="pcmp-divider">Monthly</th><th>Total</th></tr>`
+                : `<tr><th>Term</th><th>New Equipment</th><th class="pcmp-divider">Certified Pre-Owned</th></tr>`;
+
+            const note = quoteType === 'buyout'
+                ? 'Ownership transfers for $1.00 at the end of the term (included in the total), for each condition.'
+                : 'Total of payments shown for each condition. A fair-market-value purchase option applies at the end of the term.';
             return `<table class="pcmp pcmp-split"><thead>${head}</thead><tbody>${rows}</tbody></table>${showTotals ? `<p class="pcmp-note">${note}</p>` : ''}`;
         }
 
