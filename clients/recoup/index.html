@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO and Growth Plan | Recoup + Relief Counseling</title>
+    <meta name="description" content="A high-level SEO and growth plan for Recoup + Relief Counseling, prepared by Londo Technologies.">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#1b467f">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/assets/site.css">
+
+    <style>
+        .plan-hero { padding: 64px 0 40px; }
+        .plan-hero .lead { font-size: 20px; max-width: 46ch; margin-top: 16px; }
+        .prepared { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 22px; font-size: 14px; color: var(--ink-soft); }
+        .prepared strong { color: var(--ink); font-weight: 600; }
+
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+        .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px 20px 18px; }
+        .stat .label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+        .stat .value { font-family: "Newsreader", Georgia, serif; font-size: 40px; font-weight: 500; line-height: 1.1; margin-top: 6px; }
+        .stat .note { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; }
+        .stat.warn .value { color: var(--rust); }
+
+        .section-head { max-width: 60ch; margin-bottom: 28px; }
+        .section-head h2 { margin-top: 8px; }
+        .section-head p { margin-top: 12px; font-size: 17.5px; }
+
+        /* Monthly traffic bars */
+        .bars { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 10px; align-items: end; height: 220px; padding-top: 22px; border-bottom: 1px solid var(--line-strong); }
+        .bar { position: relative; background: var(--blue); opacity: 0.82; border-radius: 4px 4px 0 0; }
+        .bar.peak { background: var(--rust); opacity: 1; }
+        .bar span { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+        .bar-labels { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 10px; margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); text-align: center; }
+        .chart-note { font-size: 13px; color: var(--ink-soft); margin-top: 14px; }
+
+        /* Leaky funnel */
+        .funnel { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: stretch; }
+        .funnel .step { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px; text-align: center; }
+        .funnel .step .n { font-family: "Newsreader", Georgia, serif; font-size: 34px; font-weight: 500; line-height: 1.1; }
+        .funnel .step .n.unknown { color: var(--rust); }
+        .funnel .step .t { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
+        .funnel .arrow { display: flex; align-items: center; color: var(--line-strong); }
+
+        /* Findings */
+        .finding { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--line); }
+        .finding:last-child { border-bottom: 1px solid var(--line); }
+        .finding > div { padding: 18px 20px 18px 0; }
+        .finding h3 { font-family: "Hanken Grotesk", system-ui, sans-serif; font-size: 16.5px; font-weight: 600; line-height: 1.45; }
+        .finding p { color: var(--ink-soft); font-size: 15.5px; }
+        .finding-head { display: grid; grid-template-columns: 1fr 1fr; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); padding-bottom: 10px; }
+        .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rust); background: rgba(156, 74, 44, 0.09); border-radius: 999px; padding: 3px 9px; margin-bottom: 8px; }
+
+        /* Phases */
+        .phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+        .phase { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 24px; border-top: 4px solid var(--blue); }
+        .phase.first { border-top-color: var(--rust); }
+        .phase .when { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+        .phase h3 { margin: 6px 0 14px; font-size: 22px; }
+        .phase ul { margin: 0; padding-left: 18px; }
+        .phase li { margin-bottom: 9px; font-size: 15px; }
+        .phase li:last-child { margin-bottom: 0; }
+
+        table.metrics { width: 100%; border-collapse: collapse; font-size: 15px; }
+        table.metrics th, table.metrics td { padding: 13px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+        table.metrics thead th { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); background: var(--paper-2); }
+        table.metrics tr.goal td { background: rgba(27, 70, 127, 0.06); font-weight: 600; }
+        table.metrics td:first-child { font-weight: 600; }
+        .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+
+        .questions { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .questions li { display: flex; gap: 12px; align-items: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; font-size: 15.5px; }
+        .questions .box { width: 18px; height: 18px; border: 1.5px solid var(--line-strong); border-radius: 4px; flex-shrink: 0; margin-top: 3px; }
+
+        .print-btn { margin-left: auto; }
+
+        @media (max-width: 860px) {
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .phases, .questions { grid-template-columns: 1fr; }
+            .funnel { grid-template-columns: 1fr; }
+            .funnel .arrow { justify-content: center; transform: rotate(90deg); }
+            .finding, .finding-head { grid-template-columns: 1fr; }
+            .finding-head span:last-child { display: none; }
+            .finding > div:first-child { padding-bottom: 4px; }
+            .finding > div:last-child { padding-top: 0; }
+            .bars, .bar-labels { gap: 4px; }
+            .bar span { display: none; }
+            .bar-labels { font-size: 10.5px; }
+        }
+        @media (max-width: 480px) {
+            .stats { grid-template-columns: 1fr; }
+        }
+        @media print {
+            .site-header, .jumpnav, .print-btn { display: none !important; }
+            body { background: #fff; font-size: 13px; }
+            .section { padding: 22px 0; }
+            .stat, .phase, .questions li, .funnel .step, .table-wrap { break-inside: avoid; }
+            .bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="/">LONDO <span>TECHNOLOGIES</span></a>
+            <button type="button" class="btn btn-ghost print-btn" style="padding:10px 18px;" onclick="window.print()">Print or save as PDF</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="plan-hero">
+            <div class="wrap">
+                <span class="eyebrow">SEO and Growth Plan</span>
+                <h1 style="margin-top:12px;max-width:20ch;">Lots of visitors. Not enough new clients.</h1>
+                <p class="lead muted">The site is not short on traffic. It is short on the right visitors taking a next step. The first job is fixing the path from visitor to client, then bringing in more of the right local traffic.</p>
+                <div class="prepared">
+                    <span>Prepared for <strong>Recoup + Relief Counseling</strong></span>
+                    <span>Prepared by <strong>Londo Technologies</strong></span>
+                    <span>October 2026</span>
+                </div>
+            </div>
+        </section>
+
+        <nav class="jumpnav" aria-label="On this page">
+            <div class="wrap">
+                <a href="#numbers">The numbers</a>
+                <a href="#findings">What we found</a>
+                <a href="#plan">The plan</a>
+                <a href="#measure">Measuring success</a>
+                <a href="#questions">Questions for you</a>
+            </div>
+        </nav>
+
+        <!-- The numbers -->
+        <section id="numbers" class="section">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">The headline</span>
+                    <h2>What the website dashboard shows today</h2>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="label">Site visitors, last 12 months</div>
+                        <div class="value">21,937</div>
+                        <div class="note">About 1,450 a month lately</div>
+                    </div>
+                    <div class="stat warn">
+                        <div class="label">Traffic vs. February peak</div>
+                        <div class="value">&minus;40%</div>
+                        <div class="note">Down from about 2,500 a month</div>
+                    </div>
+                    <div class="stat warn">
+                        <div class="label">Avg. Google position</div>
+                        <div class="value">9 &rarr; 15</div>
+                        <div class="note">12-month average vs. last 30 days. 15 is page two.</div>
+                    </div>
+                    <div class="stat warn">
+                        <div class="label">Tracked conversations</div>
+                        <div class="value">None</div>
+                        <div class="note">We cannot see where new clients come from</div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top:22px;">
+                    <h3>Monthly site visitors, November 2025 to September 2026</h3>
+                    <div class="bars" role="img" aria-label="Monthly visitors peaked near 2,500 in February and have held near 1,450 since May">
+                        <div class="bar" style="height:76%"><span>1,880</span></div>
+                        <div class="bar" style="height:81%"><span>2,000</span></div>
+                        <div class="bar" style="height:91%"><span>2,250</span></div>
+                        <div class="bar peak" style="height:100%"><span>2,480</span></div>
+                        <div class="bar" style="height:90%"><span>2,220</span></div>
+                        <div class="bar" style="height:73%"><span>1,820</span></div>
+                        <div class="bar" style="height:59%"><span>1,460</span></div>
+                        <div class="bar" style="height:56%"><span>1,400</span></div>
+                        <div class="bar" style="height:64%"><span>1,590</span></div>
+                        <div class="bar" style="height:58%"><span>1,430</span></div>
+                        <div class="bar" style="height:61%"><span>1,510</span></div>
+                    </div>
+                    <div class="bar-labels">
+                        <span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span>
+                    </div>
+                    <p class="chart-note">Monthly values are approximate, read from the GoDaddy dashboard chart. GoDaddy counts bots and out-of-area visitors too, so the number of real local people looking for counseling is likely lower.</p>
+                </div>
+
+                <div style="margin-top:36px;">
+                    <h3 style="margin-bottom:14px;">Where the trail goes cold</h3>
+                    <div class="funnel">
+                        <div class="step">
+                            <div class="n">~1,450</div>
+                            <div class="t">Visitors a month</div>
+                        </div>
+                        <div class="arrow" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+                        <div class="step">
+                            <div class="n unknown">?</div>
+                            <div class="t">Appointment requests. Booking runs through email, so nothing is counted.</div>
+                        </div>
+                        <div class="arrow" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+                        <div class="step">
+                            <div class="n unknown">?</div>
+                            <div class="t">New clients started. Needs a baseline from intake records.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Findings -->
+        <section id="findings" class="section" style="background:var(--paper-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">Site review</span>
+                    <h2>What we found on the site</h2>
+                    <p class="muted">The practice has real strengths: 18 clinicians, most accepting new clients, a wide range of specialties, and solid location pages for Medina and Dublin. The gaps are almost all in the last step, where an interested visitor tries to become a client.</p>
+                </div>
+
+                <div class="finding-head"><span>Finding</span><span>Why it costs clients</span></div>
+                <div class="finding">
+                    <div><span class="tag">Biggest issue</span><h3>Every &ldquo;Schedule&rdquo; button opens an email draft, not a form or booking calendar.</h3></div>
+                    <div><p>On phones and work computers this often opens nothing or the wrong app. People give up silently, and there is no way to count how many tried.</p></div>
+                </div>
+                <div class="finding">
+                    <div><span class="tag">Privacy</span><h3>The email template asks for name, date of birth, phone and insurance.</h3></div>
+                    <div><p>That is health-adjacent personal data going through regular email. It is also a lot to type before anyone has answered a single question.</p></div>
+                </div>
+                <div class="finding">
+                    <div><h3>No insurance list on the site.</h3></div>
+                    <div><p>&ldquo;Do you take my insurance?&rdquo; is the first question most people have. With no answer, they move on to a practice that shows one.</p></div>
+                </div>
+                <div class="finding">
+                    <div><h3>No reviews or trust signals on the homepage.</h3></div>
+                    <div><p>Visitors have nothing to reassure them before reaching out. Counselors cannot ask current clients for testimonials, so Google reviews and credentials do this job.</p></div>
+                </div>
+                <div class="finding">
+                    <div><h3>One phone number (330, Medina area code) for both offices.</h3></div>
+                    <div><p>A Dublin searcher sees a Northeast Ohio number. A local Columbus number would build trust and help local search.</p></div>
+                </div>
+                <div class="finding">
+                    <div><h3>Willoughby and telehealth-only clinicians are listed, but there is no Willoughby page.</h3></div>
+                    <div><p>Searches near Willoughby, and statewide telehealth searches, have nowhere to land.</p></div>
+                </div>
+                <div class="finding">
+                    <div><h3>&ldquo;Join the Team&rdquo; and &ldquo;Therapist Safety Group&rdquo; sit in the main menu.</h3></div>
+                    <div><p>Some of the traffic may be job seekers and clinicians, not prospective clients, which would inflate the visitor count.</p></div>
+                </div>
+                <div class="finding">
+                    <div><h3>Waitlisted clinicians, including the clinical director, use the same booking buttons.</h3></div>
+                    <div><p>A client who picks a waitlisted therapist may not hear back quickly and assume the practice is full.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Plan -->
+        <section id="plan" class="section">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">The plan</span>
+                    <h2>Fix the front door, then win local search, then build authority</h2>
+                    <p class="muted">More traffic is wasted until phase one is done. Each phase builds on the one before it.</p>
+                </div>
+
+                <div class="phases">
+                    <div class="phase first">
+                        <div class="when">Phase 1 &middot; First 30 days</div>
+                        <h3>Fix the front door and start measuring</h3>
+                        <ul>
+                            <li>Connect Google Analytics and Google Search Console to see real visitors, what they searched, and where they drop off.</li>
+                            <li>Replace the email &ldquo;Schedule&rdquo; buttons with one secure request form, ideally the practice&rsquo;s own scheduling system&rsquo;s booking widget.</li>
+                            <li>Add an insurance and fees page, and answer it in one line on the homepage.</li>
+                            <li>Make &ldquo;accepting new clients&rdquo; obvious, and route waitlisted clinicians to a &ldquo;match me with someone available&rdquo; option.</li>
+                            <li>Agree on a response-time promise (for example, one business day) and who owns the inbox.</li>
+                        </ul>
+                    </div>
+                    <div class="phase">
+                        <div class="when">Phase 2 &middot; Months 1 to 3</div>
+                        <h3>Win local search</h3>
+                        <ul>
+                            <li>Claim, verify and fully fill out a Google Business Profile for each office: categories, services, hours, photos.</li>
+                            <li>Start a simple, ethical review routine (former clients and referral partners, never current clients asked directly).</li>
+                            <li>Make name, address and phone match everywhere: the site, Google, Psychology Today and other directories.</li>
+                            <li>Add pages for Willoughby and Ohio-wide telehealth, plus service pages that pair a specialty with a city, like &ldquo;child therapy in Medina.&rdquo;</li>
+                        </ul>
+                    </div>
+                    <div class="phase">
+                        <div class="when">Phase 3 &middot; Months 3 to 6+</div>
+                        <h3>Build authority</h3>
+                        <ul>
+                            <li>Turn the blog toward the questions local people actually search, each post linking to the matching service page.</li>
+                            <li>Strengthen therapist bios as search pages: specialties, insurance, location, and a clear &ldquo;request this therapist&rdquo; button.</li>
+                            <li>Earn local links from referral partners: schools, pediatricians, OB/GYN offices, foster and adoption agencies.</li>
+                            <li>Reconnect Facebook (currently disconnected) and post steadily, pointing back to the site.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Measure -->
+        <section id="measure" class="section" style="padding-top:0;">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">Measuring success</span>
+                    <h2>The number that matters is new clients, not visitors</h2>
+                    <p class="muted">Everything else explains why that number moves.</p>
+                </div>
+                <div class="table-wrap">
+                    <table class="metrics">
+                        <thead>
+                            <tr><th>Metric</th><th>Where it comes from</th><th>Why it matters</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="goal"><td>New clients started per month</td><td>The practice&rsquo;s intake records</td><td>The real goal</td></tr>
+                            <tr><td>Appointment requests per month</td><td>The new request form</td><td>Shows whether the front door works</td></tr>
+                            <tr><td>Request-to-first-session rate</td><td>Intake records vs. form requests</td><td>Shows whether follow-up is the bottleneck</td></tr>
+                            <tr><td>Calls from Google</td><td>Google Business Profile insights</td><td>Many people call straight from the map listing</td></tr>
+                            <tr><td>Local search position for key terms</td><td>Google Search Console</td><td>Today&rsquo;s average is 15 (page two); the target is page one</td></tr>
+                            <tr><td>Google reviews per office</td><td>Google Business Profile</td><td>A trust signal and a local ranking factor</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted" style="margin-top:14px;font-size:15px;">We need a baseline first: the current number of new clients per month, and roughly how many came from the website.</p>
+            </div>
+        </section>
+
+        <!-- Questions -->
+        <section id="questions" class="section" style="background:var(--paper-2);border-top:1px solid var(--line);">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">Before we start</span>
+                    <h2>Questions for the practice</h2>
+                    <p class="muted">These answers decide where phase one starts. Most take a few minutes.</p>
+                </div>
+                <ul class="questions">
+                    <li><span class="box"></span>Roughly how many new clients do you start per month today, and how do most of them say they found you?</li>
+                    <li><span class="box"></span>How many emailed appointment requests arrive in a typical week, who answers them, and how fast?</li>
+                    <li><span class="box"></span>Which scheduling or records system do you use (SimplePractice, TherapyNotes, other)? Does it offer a booking form we can put on the site?</li>
+                    <li><span class="box"></span>Which insurance plans do you accept, and what are your self-pay rates?</li>
+                    <li><span class="box"></span>Which clients do you most want more of (children and teens, couples, trauma, perinatal, foster and adoptive families)?</li>
+                    <li><span class="box"></span>Which office has the most open capacity right now: Medina, Dublin, Willoughby, or telehealth?</li>
+                    <li><span class="box"></span>Is Willoughby a permanent location we should promote?</li>
+                    <li><span class="box"></span>Do you have Google Business Profiles for each office, and who has the login?</li>
+                    <li><span class="box"></span>Who has access to the GoDaddy, Google, Facebook and Psychology Today accounts?</li>
+                    <li><span class="box"></span>Is hiring part of the goal? If so, &ldquo;Join the Team&rdquo; can stay prominent. If not, it moves to the footer.</li>
+                    <li><span class="box"></span>Is there a monthly budget for ads or tools, or is this effort only?</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="stack" style="gap:10px;max-width:420px;">
+                <span class="brand">LONDO <span>TECHNOLOGIES</span></span>
+                <p class="muted" style="font-size:14px;">Prepared for Recoup + Relief Counseling, October 2026.</p>
+            </div>
+            <div class="stack" style="gap:6px;font-size:14.5px;">
+                <a href="tel:12162935678" style="font-weight:600;">216-293-5678</a>
+                <span class="muted" style="font-size:13px;">&copy; 2026 Londo Technologies LTD &middot; North Bloomfield, Ohio</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

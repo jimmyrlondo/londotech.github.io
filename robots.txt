@@ -4,5 +4,6 @@ Disallow: /invoice-app/
 Disallow: /ozone/
 Disallow: /Quote/
 Disallow: /watson/
+Disallow: /clients/
 
 Sitemap: https://www.londo.tech/sitemap.xml
