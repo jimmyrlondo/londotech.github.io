@@ -118,6 +118,22 @@
         @media (max-width: 480px) {
             .stats { grid-template-columns: 1fr; }
         }
+        /* Listings checklist */
+        .ck-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+        .ck-table th, .ck-table td { padding: 13px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+        .ck-table thead th { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); background: var(--paper-2); }
+        .ck-table td.c, .ck-table th.c { text-align: center; width: 96px; }
+        .ck-table td:first-child { font-weight: 600; }
+        .ck-table .sub { display: block; font-weight: 400; font-size: 13.5px; color: var(--ink-soft); margin-top: 2px; }
+        .ck { width: 20px; height: 20px; accent-color: var(--blue); cursor: pointer; vertical-align: middle; }
+        .ck-list { list-style: none; margin: 0; padding: 0; }
+        .ck-list li { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; }
+        .ck-list li:last-child { border-bottom: none; }
+        .ck-list .ck { margin-top: 2px; flex-shrink: 0; }
+        .ck-list label { cursor: pointer; }
+        .ck-progress { font-size: 14px; font-weight: 600; color: var(--blue); }
+        .ck-reset { background: none; border: none; color: var(--ink-soft); font: inherit; font-size: 13.5px; text-decoration: underline; cursor: pointer; padding: 0; }
+
         @media print {
             .site-header, .jumpnav, .print-btn { display: none !important; }
             body { background: #fff; font-size: 13px; }
@@ -156,6 +172,7 @@
                 <a href="#roadmap">The roadmap</a>
                 <a href="#today">Where you are today</a>
                 <a href="#fixes">What we will fix</a>
+                <a href="#listings">Listings checklist</a>
                 <a href="#reporting">How we report progress</a>
                 <a href="#start">To get started</a>
             </div>
@@ -200,6 +217,7 @@
                                         <li>Label who is accepting new clients, and give waitlisted clinicians a &ldquo;match me with someone available&rdquo; option.</li>
                                         <li>Fix GoDaddy&rsquo;s SEO settings: real business locations, plus Dublin and telehealth keywords.</li>
                                         <li>Review GoDaddy&rsquo;s pending SEO suggestions page by page, instead of approving all.</li>
+                                        <li>Settle on one exact business name to use on every listing.</li>
                                     </ul>
                                 </div>
                                 <div class="col you">
@@ -232,6 +250,7 @@
                                         <li>Make your name, address and phone match everywhere: the site, Google, Psychology Today and other directories.</li>
                                         <li>Build an Ohio-wide telehealth page.</li>
                                         <li>Build service pages that pair a specialty with a city, like &ldquo;child therapy in Medina&rdquo; or &ldquo;EMDR therapy in Dublin.&rdquo;</li>
+                                        <li>Claim and complete Bing, Apple Maps, Yelp, Nextdoor and BBB listings for each office <em>(see the <a href="#listings">listings checklist</a>)</em>.</li>
                                         <li>Set up a simple review link and an ethical process for asking for reviews.</li>
                                     </ul>
                                 </div>
@@ -436,6 +455,59 @@
             </div>
         </section>
 
+        <!-- Listings -->
+        <section id="listings" class="section" style="padding-top:0;">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="eyebrow">Listings checklist</span>
+                    <h2>Every listing, for every office</h2>
+                    <p class="muted">Medina and Dublin each get their own listing on every platform below. Telehealth never gets its own listing. Checkmarks save in this browser only.</p>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;margin-bottom:14px;">
+                    <span class="ck-progress" id="ck-progress"></span>
+                    <button type="button" class="ck-reset" id="ck-reset">Clear all checkmarks</button>
+                </div>
+                <div class="table-wrap">
+                    <table class="ck-table">
+                        <thead><tr><th>Per office</th><th class="c">Medina</th><th class="c">Dublin</th></tr></thead>
+                        <tbody>
+                            <tr><td>Google Business Profile<span class="sub">One per office. The most important listing.</span></td><td class="c"><input type="checkbox" class="ck" data-k="gbp-medina" aria-label="Google Business Profile, Medina"></td><td class="c"><input type="checkbox" class="ck" data-k="gbp-dublin" aria-label="Google Business Profile, Dublin"></td></tr>
+                            <tr><td>Bing Places<span class="sub">Import from Google once both profiles are verified.</span></td><td class="c"><input type="checkbox" class="ck" data-k="bing-medina" aria-label="Bing Places, Medina"></td><td class="c"><input type="checkbox" class="ck" data-k="bing-dublin" aria-label="Bing Places, Dublin"></td></tr>
+                            <tr><td>Apple Business Connect<span class="sub">Apple Maps and Siri on iPhones.</span></td><td class="c"><input type="checkbox" class="ck" data-k="apple-medina" aria-label="Apple Business Connect, Medina"></td><td class="c"><input type="checkbox" class="ck" data-k="apple-dublin" aria-label="Apple Business Connect, Dublin"></td></tr>
+                            <tr><td>Yelp<span class="sub">Claim the free page. Ignore ad sales calls.</span></td><td class="c"><input type="checkbox" class="ck" data-k="yelp-medina" aria-label="Yelp, Medina"></td><td class="c"><input type="checkbox" class="ck" data-k="yelp-dublin" aria-label="Yelp, Dublin"></td></tr>
+                            <tr><td>Nextdoor<span class="sub">Shown to neighbors near each address.</span></td><td class="c"><input type="checkbox" class="ck" data-k="nextdoor-medina" aria-label="Nextdoor, Medina"></td><td class="c"><input type="checkbox" class="ck" data-k="nextdoor-dublin" aria-label="Nextdoor, Dublin"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="split-2">
+                    <div class="panel">
+                        <h3>Once for the whole practice</h3>
+                        <ul class="ck-list" style="margin-top:10px;">
+                            <li><input type="checkbox" class="ck" id="ck-name" data-k="name"><label for="ck-name">Decide the exact business name (&ldquo;Recoup + Relief Counseling&rdquo; or the longer &ldquo;&hellip; &amp; Therapeutic Services&rdquo;) and use it everywhere.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-bbb" data-k="bbb"><label for="ck-bbb">BBB: one profile for the business, with Dublin added as a second location.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-facebook" data-k="facebook"><label for="ck-facebook">Facebook: one page, name matches, both offices listed.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-pt" data-k="pt"><label for="ck-pt">Psychology Today: every current therapist&rsquo;s profile is up to date, and old profiles for people who have left are removed.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-logins" data-k="logins"><label for="ck-logins">All listing logins saved in one shared, secure place the practice controls.</label></li>
+                        </ul>
+                    </div>
+                    <div class="panel">
+                        <h3>Every listing has</h3>
+                        <ul class="ck-list" style="margin-top:10px;">
+                            <li><input type="checkbox" class="ck" id="ck-e-name" data-k="e-name"><label for="ck-e-name">Business name exactly matches the chosen name.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-addr" data-k="e-addr"><label for="ck-e-addr">Correct address and suite number for that office.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-phone" data-k="e-phone"><label for="ck-e-phone">Phone number matches the website.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-hours" data-k="e-hours"><label for="ck-e-hours">Hours are correct, including holidays.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-link" data-k="e-link"><label for="ck-e-link">Website link goes to that office&rsquo;s location page, not the homepage.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-cat" data-k="e-cat"><label for="ck-e-cat">Category set to counseling or mental health services.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-tele" data-k="e-tele"><label for="ck-e-tele">Telehealth listed as a service or &ldquo;online appointments,&rdquo; never as its own location.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-photos" data-k="e-photos"><label for="ck-e-photos">Photos of the office: outside, entrance, waiting room.</label></li>
+                            <li><input type="checkbox" class="ck" id="ck-e-verify" data-k="e-verify"><label for="ck-e-verify">Listing is claimed and verified, not just created.</label></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Reporting -->
         <section id="reporting" class="section" style="padding-top:0;">
             <div class="wrap">
@@ -507,5 +579,34 @@
         </div>
     </footer>
 
+    <script>
+    (function () {
+        var KEY = 'recoup-listings-checklist';
+        var boxes = Array.prototype.slice.call(document.querySelectorAll('#listings .ck'));
+        var state = {};
+        try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { state = {}; }
+        var progress = document.getElementById('ck-progress');
+        function update() {
+            var done = boxes.filter(function (b) { return b.checked; }).length;
+            progress.textContent = done + ' of ' + boxes.length + ' done';
+        }
+        boxes.forEach(function (b) {
+            b.checked = !!state[b.getAttribute('data-k')];
+            b.addEventListener('change', function () {
+                state[b.getAttribute('data-k')] = b.checked;
+                try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+                update();
+            });
+        });
+        document.getElementById('ck-reset').addEventListener('click', function () {
+            if (!confirm('Clear all checkmarks?')) return;
+            state = {};
+            boxes.forEach(function (b) { b.checked = false; });
+            try { localStorage.removeItem(KEY); } catch (e) {}
+            update();
+        });
+        update();
+    })();
+    </script>
 </body>
 </html>
