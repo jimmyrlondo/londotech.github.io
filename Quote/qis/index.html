@@ -773,6 +773,30 @@
                     </div>
                 </div>
 
+                <div class="mt-10 no-print">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900">Email Template</h2>
+                        <p class="text-gray-600 text-sm mt-1">Copy this into your email along with the quote PDF and brochure. Updates automatically when you refresh the preview above.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6 space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-sm font-semibold text-gray-700">Subject</label>
+                                <button type="button" id="copyEmailSubjectBtn" class="text-xs px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded font-semibold hover:bg-indigo-200 transition">Copy</button>
+                            </div>
+                            <input type="text" id="emailSubject" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2 text-sm">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-sm font-semibold text-gray-700">Body</label>
+                                <button type="button" id="copyEmailBodyBtn" class="text-xs px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded font-semibold hover:bg-indigo-200 transition">Copy</button>
+                            </div>
+                            <textarea id="emailBody" rows="14" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-3 text-sm"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Edit freely before copying, your changes won't be overwritten unless you click Refresh Preview again.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-between mt-8">
                     <button type="button" class="prev-tab-btn px-8 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition" data-prev="terms">← Back</button>
                 </div>
@@ -1910,9 +1934,14 @@ function clearAllFeatures() {
 
         function saveQuote() {
             const quoteData = getQuoteData();
-            
-            if (!quoteData.customerCompanyName || !quoteData.modelName) {
-                showMessage('Missing Information', 'Please fill in at least Customer Company Name and Model Name before saving.');
+
+            // Equipment can live in the live draft's Model Name field (single-
+            // machine quote) or in STATE.equipmentList (once machines have been
+            // added, which clears the draft) -- same check generateQuotePreview
+            // uses, so a quote that's fine to preview isn't blocked from saving.
+            const hasEquipment = STATE.equipmentList.length > 0 || !!quoteData.modelName;
+            if (!quoteData.customerCompanyName || !hasEquipment) {
+                showMessage('Missing Information', 'Please fill in at least Customer Company Name and add equipment (or fill in Model Name) before saving.');
                 return;
             }
 
@@ -2366,6 +2395,74 @@ table.pcmp-split .pcmp-term{text-align:left}
             </div>`;
 
             document.getElementById('quote-document').innerHTML = quoteHtml;
+            generateEmailTemplate(items, formData);
+        }
+
+        // ====================================
+        // EMAIL TEMPLATE
+        // Builds a copy-paste-ready email from the same `items`/`formData` the
+        // PDF preview uses, so it covers the same range of configurations:
+        // one machine or several, New-only or New-vs-CPO, any financing type.
+        // ====================================
+
+        function emailProgramLabel(quoteType) {
+            return quoteType === 'rental' ? 'Rental Program'
+                : quoteType === 'buyout' ? '$1 Buyout Lease'
+                : 'FMV Lease';
+        }
+
+        function emailLineForItem(item) {
+            let line = item.modelName || 'Equipment';
+            if (item.term) line += ` — ${item.term}-month ${emailProgramLabel(item.quoteType)}`;
+            if (item.compareConditions && (parseFloat(item.cpoPrice) || 0) > 0) {
+                line += ' (New & Certified Pre-Owned pricing included)';
+            }
+            return line;
+        }
+
+        function buildEmailEquipmentSummary(items) {
+            if (items.length === 1) return emailLineForItem(items[0]);
+            return items.map((it, i) => `• ${it.label || 'Option ' + (i + 1)}: ${emailLineForItem(it)}`).join('\n');
+        }
+
+        function generateEmailTemplate(items, formData) {
+            const rep = REP_INFO[formData.salesRep] || { name: formData.salesRep || '', title: '', phone: '', email: '' };
+            const firstName = (formData.customerContactName || '').trim().split(/\s+/)[0] || '';
+            const greeting = firstName ? `Hi ${firstName},` : 'Hi there,';
+            const equipmentSummary = buildEmailEquipmentSummary(items);
+
+            const subject = `Your Quote from Quality Imaging Solutions${formData.customerCompanyName ? ' – ' + formData.customerCompanyName : ''}`;
+
+            const body = `${greeting}
+
+Thank you for the opportunity to quote your printing and copying needs. Since 2004, Quality Imaging Solutions has served local communities, businesses, and non-profits across Ohio, and our goal has never changed: we do whatever it takes to deliver the best service and support in the industry. Attached you'll find a detailed quote along with the equipment brochure.
+
+${equipmentSummary}
+
+Please let me know if you need any additional considerations, we will go the distance to earn your trust and your business!
+
+${rep.name}
+${rep.title}
+Quality Imaging Solutions
+${rep.phone}
+${rep.email}`;
+
+            document.getElementById('emailSubject').value = subject;
+            document.getElementById('emailBody').value = body;
+        }
+
+        function copyFieldToClipboard(fieldId, label) {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                showMessage('Nothing to Copy', 'Generate the preview first, then copy the email ' + label + '.');
+                return;
+            }
+            navigator.clipboard.writeText(field.value).then(() => {
+                showAutoSave('✓ ' + label + ' copied');
+            }).catch(() => {
+                field.select();
+                showMessage('Copy Failed', 'Your browser blocked the copy. The text is selected, press Ctrl+C (or Cmd+C) to copy it manually.');
+            });
         }
 
         // ====================================
@@ -2625,6 +2722,8 @@ document.getElementById('setStandardFeaturesBtn').addEventListener('click', setS
             // Preview and export buttons
             document.getElementById('refreshPreviewBtn').addEventListener('click', generateQuotePreview);
             document.getElementById('exportBtn').addEventListener('click', exportToPDF);
+            document.getElementById('copyEmailSubjectBtn').addEventListener('click', () => copyFieldToClipboard('emailSubject', 'subject'));
+            document.getElementById('copyEmailBodyBtn').addEventListener('click', () => copyFieldToClipboard('emailBody', 'body'));
 
             // Add/update equipment on this quote
             document.getElementById('addEquipmentBtn').addEventListener('click', addOrUpdateEquipmentItem);
