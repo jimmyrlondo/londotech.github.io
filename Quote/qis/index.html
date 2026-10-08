@@ -168,8 +168,8 @@
                     <div>
                         <label for="salesRep" class="block text-sm font-semibold text-gray-800 mb-2">Prepared By</label>
                         <select id="salesRep" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
-                            <option value="Jimmy Londo">Jimmy Londo — Sales Manager</option>
-                            <option value="Mike Keenan">Mike Keenan — President</option>
+                            <option value="Jimmy Londo">Jimmy Londo (Sales Manager)</option>
+                            <option value="Mike Keenan">Mike Keenan (President)</option>
                         </select>
                         <p class="text-xs text-gray-500 mt-1">Autofills the name, title, phone, and email on the quote.</p>
                     </div>
@@ -294,7 +294,7 @@
                                     <input type="checkbox" id="compareConditions" class="h-5 w-5 text-blue-600 rounded">
                                     <span class="ml-3 text-sm font-medium text-gray-700">Compare New vs. Certified Pre-Owned pricing side-by-side</span>
                                 </label>
-                                <p id="compareConditionsRentalNote" class="hidden text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">Not available for rentals &mdash; the rental program covers Certified Pre-Owned equipment only, so there's no "new" price to compare.</p>
+                                <p id="compareConditionsRentalNote" class="hidden text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">Not available for rentals. The rental program covers Certified Pre-Owned equipment only, so there's no "new" price to compare.</p>
                                 <div id="cpoPriceFields" class="hidden mt-3">
                                     <label for="cpoPrice" class="block text-sm font-semibold text-gray-800 mb-2">Certified Pre-Owned Price ($)</label>
                                     <input type="number" id="cpoPrice" placeholder="e.g., 6500.00" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
@@ -405,12 +405,12 @@
                             <div class="p-4 bg-white rounded-lg border border-gray-200" id="quoteSummaryPanel">
                                 <div class="text-sm font-bold text-gray-800 mb-2">Live Quote Summary</div>
                                 <dl class="text-sm space-y-1">
-                                    <div class="summary-row"><dt>Program</dt><dd id="sumProgram">—</dd></div>
-                                    <div class="summary-row"><dt>Amount financed</dt><dd id="sumFinanced">—</dd></div>
-                                    <div class="summary-row"><dt>Cost band</dt><dd id="sumBand">—</dd></div>
-                                    <div class="summary-row"><dt>Term</dt><dd id="sumTerm">—</dd></div>
-                                    <div class="summary-row"><dt>Rate factor</dt><dd id="sumFactor" class="text-indigo-600">—</dd></div>
-                                    <div class="summary-row border-t border-gray-200 pt-1 mt-1"><dt class="text-gray-800">Monthly payment</dt><dd id="sumMonthly" class="text-indigo-700 text-base">—</dd></div>
+                                    <div class="summary-row"><dt>Program</dt><dd id="sumProgram">-</dd></div>
+                                    <div class="summary-row"><dt>Amount financed</dt><dd id="sumFinanced">-</dd></div>
+                                    <div class="summary-row"><dt>Cost band</dt><dd id="sumBand">-</dd></div>
+                                    <div class="summary-row"><dt>Term</dt><dd id="sumTerm">-</dd></div>
+                                    <div class="summary-row"><dt>Rate factor</dt><dd id="sumFactor" class="text-indigo-600">-</dd></div>
+                                    <div class="summary-row border-t border-gray-200 pt-1 mt-1"><dt class="text-gray-800">Monthly payment</dt><dd id="sumMonthly" class="text-indigo-700 text-base">-</dd></div>
                                     <div class="summary-row"><dt>Solving from</dt><dd id="sumDirection" class="text-xs">Equipment price ▸ monthly</dd></div>
                                 </dl>
                                 <div id="sumWarning" class="hidden mt-2 text-xs font-semibold text-red-700 bg-red-50 rounded p-2"></div>
@@ -495,7 +495,7 @@
                 <button type="button" id="clearAllFeaturesBtn" class="text-sm px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">Clear All</button>
             </div>
         </div>
-        <p class="text-xs text-gray-500 mb-4">Every new machine on a quote starts with your standard feature set. Edit the checkboxes for an individual machine as needed &mdash; that won't change the standard. Click "Save as Standard Set" to update what future machines start with.</p>
+        <p class="text-xs text-gray-500 mb-4">Every new machine on a quote starts with your standard feature set. Edit the checkboxes for an individual machine as needed; that won't change the standard. Click "Save as Standard Set" to update what future machines start with.</p>
 
         <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
             
@@ -765,7 +765,7 @@
                     <button type="button" id="refreshPreviewBtn" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition">🔄 Refresh Preview</button>
                     <button type="button" id="exportBtn" class="px-6 py-3 btn-success text-white rounded-lg font-semibold">🖨️ Print / Save as PDF</button>
                 </div>
-                <p class="text-center text-xs text-gray-500 mb-6 no-print">Opens your print dialog — choose <strong>Save as PDF</strong> as the destination. Prints as two clean pages.</p>
+                <p class="text-center text-xs text-gray-500 mb-6 no-print">Opens your print dialog. Choose <strong>Save as PDF</strong> as the destination. Prints as two clean pages.</p>
 
                 <div id="quote-preview-container" class="bg-white rounded-xl shadow-2xl overflow-hidden">
                     <div id="quote-document">
@@ -838,7 +838,7 @@
             lease: {
                 label: 'Fair Market Value (FMV) Lease',
                 shortLabel: 'FMV Lease',
-                source: 'PEAC Solutions — rates effective 10/1/24',
+                source: 'PEAC Solutions (rates effective 10/1/24)',
                 terms: [12, 24, 36, 39, 48, 60, 63],
                 bands: [
                     { min: 1000, max: 3000,   name: '$1,000 – $3,000',
@@ -850,7 +850,7 @@
             buyout: {
                 label: '$1.00 Buyout Lease',
                 shortLabel: '$1 Buyout',
-                source: 'PEAC Solutions — rates effective 10/1/24',
+                source: 'PEAC Solutions (rates effective 10/1/24)',
                 terms: [12, 24, 36, 39, 48, 60, 63],
                 bands: [
                     { min: 1000, max: 3000,   name: '$1,000 – $3,000',
@@ -876,7 +876,7 @@
         const FINANCE_FLOOR = 1000;
         const DEFAULT_SECURITY_DEPOSIT = 500;
 
-        // Prepared-by directory — selecting a rep autofills the quote letterhead.
+        // Prepared-by directory: selecting a rep autofills the quote letterhead.
         const REP_INFO = {
             'Jimmy Londo': { name: 'Jimmy Londo', title: 'Sales Manager', phone: '440-320-1989', email: 'jimmy@quality-imaging.com' },
             'Mike Keenan': { name: 'Mike Keenan', title: 'President',     phone: '440-466-2679', email: 'mike@quality-imaging.com' }
@@ -1279,7 +1279,7 @@ function clearAllFeatures() {
             return { ok: true, factor, band, program, term: t };
         }
 
-        // Numeric factor only (or null) — for the comparison table.
+        // Numeric factor only (or null), for the comparison table.
         function rateFactorValue(quoteType, amountFinanced, term) {
             const rf = getRateFactor(quoteType, amountFinanced, term);
             return rf.ok ? rf.factor : null;
@@ -1344,8 +1344,8 @@ function clearAllFeatures() {
 
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
             set('sumProgram', program.shortLabel);
-            set('sumFinanced', netCost ? formatCurrency(amountFinanced) : '—');
-            set('sumTerm', term ? term + ' months' : '—');
+            set('sumFinanced', netCost ? formatCurrency(amountFinanced) : '-');
+            set('sumTerm', term ? term + ' months' : '-');
             set('sumDirection', STATE.lastEditedPriceType === 'monthly' ? 'Target monthly ▸ price' : 'Equipment price ▸ monthly');
             set('sumSource', program.source);
 
@@ -1356,13 +1356,13 @@ function clearAllFeatures() {
             if (rf.ok) {
                 set('sumBand', rf.band.name);
                 set('sumFactor', rf.factor.toFixed(5));
-                set('sumMonthly', monthly ? formatCurrency(monthly) : '—');
+                set('sumMonthly', monthly ? formatCurrency(monthly) : '-');
             } else {
-                set('sumBand', '—');
-                set('sumFactor', '—');
-                set('sumMonthly', '—');
+                set('sumBand', '-');
+                set('sumFactor', '-');
+                set('sumMonthly', '-');
                 if (rf.reason === 'below_floor' && netCost > 0) {
-                    warn = `Amount financed is under the ${formatCurrency(FINANCE_FLOOR)} minimum for ${program.shortLabel}. This is a cash purchase — no monthly option.`;
+                    warn = `Amount financed is under the ${formatCurrency(FINANCE_FLOOR)} minimum for ${program.shortLabel}. This is a cash purchase, no monthly option.`;
                 } else if (rf.reason === 'above_ceiling') {
                     warn = `Amount financed exceeds the ${formatCurrency(rf.ceiling)} ceiling for ${program.shortLabel}.`;
                 } else if (rf.reason === 'no_term') {
@@ -1479,7 +1479,7 @@ function clearAllFeatures() {
             return checked.length ? all.filter(t => checked.includes(t)) : all;
         }
 
-        // `item` is the equipment-item data shape (see captureDraftAsEquipmentItem) —
+        // `item` is the equipment-item data shape (see captureDraftAsEquipmentItem),
         // either a snapshot from STATE.equipmentList or the live draft captured fresh.
         function generatePaymentComparisonTable(item) {
             const netCost = parseFloat(item.outrightPrice) || 0;
@@ -1521,10 +1521,10 @@ function clearAllFeatures() {
             if (!rows) return '';
 
             const note = quoteType === 'lease'
-                ? 'FMV lease — total of payments shown. A fair-market-value purchase option applies at the end of the term.'
+                ? 'FMV lease: total of payments shown. A fair-market-value purchase option applies at the end of the term.'
                 : quoteType === 'buyout'
                 ? 'Ownership transfers for $1.00 at the end of the term (included in the total).'
-                : `Rental — total of payments shown; a ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is additional. Upgradable anytime with remaining payments applied as buyout.`;
+                : `Rental: total of payments shown; a ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is additional. Upgradable anytime with remaining payments applied as buyout.`;
 
             const head = `<tr><th>Term</th><th>Monthly</th>${showTotals ? `<th>${totalLabel}</th>` : ''}</tr>`;
             return `<table class="pcmp"><thead>${head}</thead><tbody>${rows}</tbody></table>${showTotals ? `<p class="pcmp-note">${note}</p>` : ''}`;
@@ -1543,10 +1543,10 @@ function clearAllFeatures() {
                 const buyoutTotal = buyoutMonthly != null ? buyoutMonthly * term + 1 : null;
                 rows += `<tr>
                     <td class="pcmp-term">${term} mo</td>
-                    <td class="pcmp-num">${leaseMonthly != null ? formatCurrency(leaseMonthly) : '&mdash;'}</td>
-                    ${showTotals ? `<td class="pcmp-num">${leaseTotal != null ? formatCurrency(leaseTotal) : '&mdash;'}</td>` : ''}
-                    <td class="pcmp-num pcmp-divider">${buyoutMonthly != null ? formatCurrency(buyoutMonthly) : '&mdash;'}</td>
-                    ${showTotals ? `<td class="pcmp-num">${buyoutTotal != null ? formatCurrency(buyoutTotal) : '&mdash;'}</td>` : ''}
+                    <td class="pcmp-num">${leaseMonthly != null ? formatCurrency(leaseMonthly) : '-'}</td>
+                    ${showTotals ? `<td class="pcmp-num">${leaseTotal != null ? formatCurrency(leaseTotal) : '-'}</td>` : ''}
+                    <td class="pcmp-num pcmp-divider">${buyoutMonthly != null ? formatCurrency(buyoutMonthly) : '-'}</td>
+                    ${showTotals ? `<td class="pcmp-num">${buyoutTotal != null ? formatCurrency(buyoutTotal) : '-'}</td>` : ''}
                 </tr>`;
             });
             if (!rows) return '';
@@ -1579,10 +1579,10 @@ function clearAllFeatures() {
                 }
                 rows += `<tr>
                     <td class="pcmp-term">${term} mo</td>
-                    <td class="pcmp-num">${newMonthly != null ? formatCurrency(newMonthly) : '&mdash;'}</td>
-                    ${showTotals ? `<td class="pcmp-num">${newTotal != null ? formatCurrency(newTotal) : '&mdash;'}</td>` : ''}
-                    <td class="pcmp-num pcmp-divider">${cpoMonthly != null ? formatCurrency(cpoMonthly) : '&mdash;'}</td>
-                    ${showTotals ? `<td class="pcmp-num">${cpoTotal != null ? formatCurrency(cpoTotal) : '&mdash;'}</td>` : ''}
+                    <td class="pcmp-num">${newMonthly != null ? formatCurrency(newMonthly) : '-'}</td>
+                    ${showTotals ? `<td class="pcmp-num">${newTotal != null ? formatCurrency(newTotal) : '-'}</td>` : ''}
+                    <td class="pcmp-num pcmp-divider">${cpoMonthly != null ? formatCurrency(cpoMonthly) : '-'}</td>
+                    ${showTotals ? `<td class="pcmp-num">${cpoTotal != null ? formatCurrency(cpoTotal) : '-'}</td>` : ''}
                 </tr>`;
             });
             if (!rows) return '';
@@ -1699,7 +1699,7 @@ function clearAllFeatures() {
             calculatePrices();
         }
 
-        // Resets just the equipment/financing/features draft — not customer
+        // Resets just the equipment/financing/features draft, not customer
         // info, sales rep, service contract, or notes.
         function clearEquipmentDraft() {
             document.getElementById('equipmentLabel').value = '';
@@ -1745,7 +1745,7 @@ function clearAllFeatures() {
                 const editing = STATE.editingEquipmentIndex === i;
                 return `<div class="flex items-center justify-between p-3 ${editing ? 'bg-indigo-50 ring-2 ring-indigo-400' : 'bg-gray-50'} rounded-lg border border-gray-200">
                     <div>
-                        <div class="font-semibold text-gray-800 text-sm">${esc(item.label || ('Option ' + (i + 1)))} &mdash; ${esc(item.modelName || 'Unnamed model')}</div>
+                        <div class="font-semibold text-gray-800 text-sm">${esc(item.label || ('Option ' + (i + 1)))}: ${esc(item.modelName || 'Unnamed model')}</div>
                         <div class="text-xs text-gray-500">${programLabel}${item.term ? ', ' + esc(item.term) + ' mo' : ''} &middot; ${monthly}</div>
                     </div>
                     <div class="flex gap-2 flex-shrink-0">
@@ -2095,7 +2095,7 @@ function clearAllFeatures() {
         }
 
         // Rental-only requirements block for the printed quote (lease/buyout no
-        // longer print a boilerplate terms paragraph — just the numbers).
+        // longer print a boilerplate terms paragraph, just the numbers).
         function rentalRequirements() {
             return `Rental payments shown are subject to credit approval. A ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is required unless otherwise approved. A copy of the signer's driver's license and a voided check are required. Only Certified Pre-Owned equipment is eligible for the rental program. You may upgrade at any time, with the remaining payments applied as a buyout.`;
         }
@@ -2106,7 +2106,7 @@ function clearAllFeatures() {
         // When an item has "compare New vs CPO" on and a CPO price set, builds
         // a side-by-side pricing block for both conditions, using the same
         // trade-in, term, and financing program (not available for rentals,
-        // which are Certified Pre-Owned only — gated in the UI already).
+        // which are Certified Pre-Owned only, gated in the UI already).
         function buildConditionComparisonHtml(item) {
             const cpoPriceNum = parseFloat(item.cpoPrice) || 0;
             if (!item.compareConditions || !cpoPriceNum) return '';
@@ -2198,7 +2198,7 @@ function clearAllFeatures() {
             }
             const alwaysIncluded = `<p style="font-size:11px;margin-top:8px"><strong>Always included:</strong> free delivery, professional installation, and on-site training.</p>`;
 
-            const heading = item.label ? `Equipment &amp; Pricing &mdash; ${esc(item.label)}` : 'Equipment &amp; Pricing';
+            const heading = item.label ? `Equipment &amp; Pricing: ${esc(item.label)}` : 'Equipment &amp; Pricing';
 
             return `<div class="qd-section">
                 <h3>${heading}</h3>
@@ -2217,7 +2217,7 @@ function clearAllFeatures() {
             if (!document.getElementById('showAllTerms').checked) return '';
             const t = generatePaymentComparisonTable(item);
             if (!t) return '';
-            const heading = item.label ? `Payment Options by Term &mdash; ${esc(item.label)}` : 'Payment Options by Term';
+            const heading = item.label ? `Payment Options by Term: ${esc(item.label)}` : 'Payment Options by Term';
             return `<div class="qd-section"><h3>${heading}</h3>${t}</div>`;
         }
 
@@ -2229,7 +2229,7 @@ function clearAllFeatures() {
             }
 
             // Equipment to render: whatever's been added to the quote, or (if
-            // nothing has) the current draft as an implicit single item — so a
+            // nothing has) the current draft as an implicit single item, so a
             // one-machine quote needs no extra "Add" click.
             let items = STATE.equipmentList.slice();
             if (!items.length) {
@@ -2413,7 +2413,7 @@ table.pcmp-split .pcmp-term{text-align:left}
 
         function emailLineForItem(item) {
             let line = item.modelName || 'Equipment';
-            if (item.term) line += ` — ${item.term}-month ${emailProgramLabel(item.quoteType)}`;
+            if (item.term) line += ` (${item.term}-month ${emailProgramLabel(item.quoteType)})`;
             if (item.compareConditions && (parseFloat(item.cpoPrice) || 0) > 0) {
                 line += ' (New & Certified Pre-Owned pricing included)';
             }
@@ -2431,7 +2431,7 @@ table.pcmp-split .pcmp-term{text-align:left}
             const greeting = firstName ? `Hi ${firstName},` : 'Hi there,';
             const equipmentSummary = buildEmailEquipmentSummary(items);
 
-            const subject = `Your Quote from Quality Imaging Solutions${formData.customerCompanyName ? ' – ' + formData.customerCompanyName : ''}`;
+            const subject = `Your Quote from Quality Imaging Solutions${formData.customerCompanyName ? ' for ' + formData.customerCompanyName : ''}`;
 
             const body = `${greeting}
 
@@ -2466,7 +2466,7 @@ ${rep.email}`;
         }
 
         // ====================================
-        // EXPORT — native print. The quote document is temporarily hoisted to
+        // EXPORT: native print. The quote document is temporarily hoisted to
         // <body> and everything else hidden (print CSS), so the browser
         // paginates it directly: two clean pages, selectable text, small file.
         // The user picks "Save as PDF" (or a real printer) in the dialog.
