@@ -23,6 +23,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -455,3 +456,38 @@ p { margin: 0 0 1em; }
 .review-card h2, .review-privacy h2 { font-size: 1.35rem; }
 .review-privacy { margin-top: 24px; }
 .review-privacy .tick-list { columns: 1; }
+
+/* --- appointment request form --- */
+.request-section { padding-bottom: 80px; }
+.crisis-note { background: var(--clay-tint); border-left: 3px solid var(--clay); border-radius: 10px; padding: 14px 18px; font-size: 0.95rem; margin-bottom: 24px; }
+.demo-note { background: var(--sage-tint); border-radius: 10px; padding: 12px 18px; font-size: 0.92rem; }
+.request-form { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 32px; display: grid; gap: 22px; }
+.request-form .field { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+.request-form legend, .request-form label:not(.choice) { font-weight: 500; font-size: 0.95rem; padding: 0; margin-bottom: 8px; }
+.request-form .field > label:not(.choice) { margin-bottom: 0; }
+.optional { color: var(--ink-soft); font-weight: 400; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.request-form input:not([type="radio"]):not([type="checkbox"]), .request-form select {
+  width: 100%; font: inherit; font-size: 1rem; padding: 11px 14px; border: 1.5px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink);
+}
+.request-form input:focus, .request-form select:focus { outline: none; border-color: var(--sage); box-shadow: 0 0 0 3px var(--sage-tint); }
+.choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border: 1.5px solid var(--line); border-radius: 999px; cursor: pointer; font-size: 0.95rem; background: #fff; }
+.choice:has(input:checked) { border-color: var(--ink); background: var(--paper-2); }
+.choice input { accent-color: var(--ink); margin: 0; }
+.choice-inline { border: 0; padding: 0; background: none; border-radius: 0; align-items: flex-start; }
+.choice-inline:has(input:checked) { background: none; }
+.choice-inline input { margin-top: 5px; }
+.hint { font-size: 0.88rem; color: var(--ink-soft); margin: -12px 0 0; }
+.field .hint { margin: 0; }
+.waitlist-note { background: var(--clay-tint); border-radius: 10px; padding: 12px 16px; font-size: 0.93rem; }
+.waitlist-note p { margin: 0 0 6px; }
+.privacy-note { background: var(--paper-2); border-radius: 10px; padding: 12px 16px; font-size: 0.92rem; color: var(--ink-soft); }
+.privacy-note p { margin: 0; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-error { color: #9b2c1f; background: #fbeae6; border-radius: 10px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.btn-submit { justify-self: start; padding: 14px 30px; font-size: 1rem; }
+.btn-submit:disabled { opacity: 0.6; cursor: wait; }
+.request-done { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 36px; }
+.request-done:focus { outline: none; }
+@media (max-width: 640px) { .field-row { grid-template-columns: 1fr; } .request-form { padding: 22px 18px; } }
