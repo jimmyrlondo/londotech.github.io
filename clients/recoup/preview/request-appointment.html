@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Poppins:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="/clients/recoup/preview/assets/css/site.css">
+  <link rel="stylesheet" href="/clients/recoup/preview/assets/css/site.css?v=mv5v4fu1">
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -113,183 +113,261 @@
 </header>
 
   <main id="main">
-    <section class="page-hero request-hero">
-  <div class="wrap-narrow">
+    <section class="request-hero">
+  <div class="wrap">
     <p class="eyebrow">New clients</p>
     <h1>Request an appointment</h1>
-    <p class="lead">Tell us how to reach you and what you're looking for. Our team will get back to you to find a time that works.</p>
+    <p class="lead">Share a few details and our team will reach out to find a time that works. It takes about two minutes.</p>
+    <ul class="request-points">
+      <li>Medina, Dublin, or telehealth</li>
+      <li>17 insurance plans accepted</li>
+      <li>No health details needed</li>
+    </ul>
   </div>
 </section>
 
-<section class="wrap-narrow request-section">
-  <div class="crisis-note" role="note">
-    <strong>In crisis or need help right now?</strong> Call or text <a href="tel:988">988</a> (Suicide and Crisis Lifeline) or call 911. This form isn't monitored around the clock.
+<section class="wrap request-layout">
+  <div class="request-main">
+    <div class="crisis-note" role="note">
+      <span class="crisis-icon" aria-hidden="true">!</span>
+      <p><strong>In crisis or need help right now?</strong> Call or text <a href="tel:988">988</a> (Suicide and Crisis Lifeline) or call 911. This form isn't monitored around the clock.</p>
+    </div>
+    <p class="demo-note"><strong>Preview:</strong> this form is in demo mode. Submitting shows the confirmation but sends nothing.</p>
+
+    <form class="request-card" data-request-form="" data-endpoint="" data-demo="true" data-phone="330-636-5000" novalidate="">
+
+      <div class="form-step">
+        <div class="step-head">
+          <span class="step-badge" aria-hidden="true">1</span>
+          <div>
+            <h2>About you</h2>
+            <p>So we can match you with the right therapist.</p>
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend>Who is therapy for?</legend>
+          <div class="tile-grid tile-grid-4">
+            <label class="tile"><input type="radio" name="forWhom" value="self" required=""><span class="tile-title">Myself</span></label>
+            <label class="tile"><input type="radio" name="forWhom" value="child"><span class="tile-title">My child or teen</span></label>
+            <label class="tile"><input type="radio" name="forWhom" value="couple"><span class="tile-title">Me and my partner</span></label>
+            <label class="tile"><input type="radio" name="forWhom" value="family"><span class="tile-title">My family</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Age of the person who will attend</legend>
+          <div class="tile-grid tile-grid-3">
+            <label class="tile tile-sm"><input type="radio" name="ageGroup" value="under-13"><span class="tile-title">Under 13</span></label>
+            <label class="tile tile-sm"><input type="radio" name="ageGroup" value="13-17"><span class="tile-title">13 to 17</span></label>
+            <label class="tile tile-sm"><input type="radio" name="ageGroup" value="18-plus"><span class="tile-title">18 or older</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="form-step">
+        <div class="step-head">
+          <span class="step-badge" aria-hidden="true">2</span>
+          <div>
+            <h2>How to reach you</h2>
+            <p>We'll only use this to schedule your first session.</p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="rq-first">First name</label>
+            <input id="rq-first" name="firstName" autocomplete="given-name" required="" maxlength="60">
+          </div>
+          <div class="field">
+            <label for="rq-last">Last name</label>
+            <input id="rq-last" name="lastName" autocomplete="family-name" required="" maxlength="60">
+          </div>
+        </div>
+        <p class="inline-note hint-child" hidden="">For a child or teen, please enter the parent or guardian's name and contact details.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="rq-phone">Phone</label>
+            <input id="rq-phone" name="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="(330) 555-0123">
+          </div>
+          <div class="field">
+            <label for="rq-email">Email</label>
+            <input id="rq-email" name="email" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com">
+          </div>
+        </div>
+        <p class="hint">At least one is needed.</p>
+
+        <div class="field-row">
+          <fieldset class="field">
+            <legend>Best way to reach you</legend>
+            <div class="seg">
+              <label><input type="radio" name="contactMethod" value="call" required=""><span>Call</span></label>
+              <label><input type="radio" name="contactMethod" value="text"><span>Text</span></label>
+              <label><input type="radio" name="contactMethod" value="email"><span>Email</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="field">
+            <legend>OK to leave a message?</legend>
+            <div class="seg">
+              <label><input type="radio" name="okToLeaveMessage" value="yes" required=""><span>Yes</span></label>
+              <label><input type="radio" name="okToLeaveMessage" value="no"><span>No, please don't</span></label>
+            </div>
+          </fieldset>
+        </div>
+
+        <fieldset class="field">
+          <legend>Best times to reach you <span class="optional">optional</span></legend>
+          <div class="seg seg-multi">
+            <label><input type="checkbox" name="bestTimes" value="morning"><span>Mornings</span></label>
+            <label><input type="checkbox" name="bestTimes" value="afternoon"><span>Afternoons</span></label>
+            <label><input type="checkbox" name="bestTimes" value="evening"><span>Evenings</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="form-step">
+        <div class="step-head">
+          <span class="step-badge" aria-hidden="true">3</span>
+          <div>
+            <h2>Your preferences</h2>
+            <p>Not sure? "No preference" is a great answer.</p>
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend>Where would you like to meet?</legend>
+          <div class="tile-grid tile-grid-4">
+            <label class="tile"><input type="radio" name="location" value="medina" required=""><span class="tile-title">Medina office</span><span class="tile-sub">E Washington St</span></label>
+            <label class="tile"><input type="radio" name="location" value="dublin"><span class="tile-title">Dublin office</span><span class="tile-sub">Riverside Dr</span></label>
+            <label class="tile"><input type="radio" name="location" value="telehealth"><span class="tile-title">Telehealth</span><span class="tile-sub">Video, anywhere in Ohio</span></label>
+            <label class="tile"><input type="radio" name="location" value="any"><span class="tile-title">No preference</span><span class="tile-sub">Whatever fits soonest</span></label>
+          </div>
+        </fieldset>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="rq-therapist">Therapist</label>
+            <div class="select-wrap">
+              <select id="rq-therapist" name="therapist">
+                <option value="match">No preference, match me</option>
+                <option value="gabrielle" data-status="accepting" data-locations="dublin">Gabrielle, MSW, BFA, LSW</option>
+                <option value="stephanie" data-status="accepting" data-locations="medina telehealth">Stephanie, LPCC-S</option>
+                <option value="suzanne" data-status="accepting" data-locations="dublin telehealth">Suzanne, LSW</option>
+                <option value="jacquelyn" data-status="accepting" data-locations="medina telehealth">Jacquelyn, LPC</option>
+                <option value="cathy" data-status="accepting" data-locations="medina telehealth">Cathy, MSSA, LSW</option>
+                <option value="crystal" data-status="accepting" data-locations="telehealth">Crystal, MSW, LSW</option>
+                <option value="jessica" data-status="accepting" data-locations="dublin telehealth">Jessica, LPCC</option>
+                <option value="micah" data-status="accepting" data-locations="dublin telehealth">Micah, MA, LPC</option>
+                <option value="liana" data-status="accepting" data-locations="telehealth">Liana, MSW, LSW</option>
+                <option value="matt" data-status="accepting" data-locations="medina telehealth">Matt, PhD, LPCC-S</option>
+                <option value="ariana" data-status="accepting" data-locations="telehealth">Ariana, LPC</option>
+                <option value="shaquoi" data-status="accepting" data-locations="medina dublin telehealth">Shaquoi, M.Ed, CMCH, LPC</option>
+                <option value="victoria" data-status="waitlist" data-locations="medina telehealth">Victoria, MA, AT, ATR-P, LPC (waitlist)</option>
+                <option value="erika" data-status="waitlist" data-locations="medina telehealth">Erika, LPCC (waitlist)</option>
+                <option value="rebekkah" data-status="accepting" data-locations="dublin telehealth">Rebekkah, BSW, LSW</option>
+                <option value="meghan" data-status="waitlist" data-locations="medina dublin telehealth">Meghan, MSW, LISW (waitlist)</option>
+                <option value="alex" data-status="accepting" data-locations="telehealth">Alex, MSSA, LISW</option>
+                <option value="dereka" data-status="waitlist" data-locations="medina telehealth">Dereka, MSSA, LISW-S (waitlist)</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="rq-insurance">Insurance</label>
+            <div class="select-wrap">
+              <select id="rq-insurance" name="insurance" required="">
+                <option value="">Choose one</option>
+                <option>Medicare</option>
+                <option>Medicaid</option>
+                <option>Anthem Blue Cross Blue Shield</option>
+                <option>United Health Care/Optum</option>
+                <option>Amerihealth Caritas</option>
+                <option>Medical Mutual</option>
+                <option>Curative</option>
+                <option>Oscar</option>
+                <option>Buckeye</option>
+                <option>Molina</option>
+                <option>Humana</option>
+                <option>Aetna</option>
+                <option>Cigna</option>
+                <option>Ambetter</option>
+                <option>Anthem Medicaid</option>
+                <option>University Hospitals insurance</option>
+                <option>Cleveland Clinic insurance (Aetna plans)</option>
+                <option>Other insurance</option>
+                <option>Private pay (no insurance)</option>
+                <option>Not sure</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="waitlist-note" hidden="">
+          <p><strong><span data-waitlist-name=""></span> has a waitlist right now.</strong> We'll add you to it.</p>
+          <label class="check"><input type="checkbox" name="alsoMatch" value="yes" checked=""> Also match me with someone who can see me sooner</label>
+        </div>
+        <p class="inline-note location-mismatch" hidden=""></p>
+      </div>
+
+      <div class="form-finish">
+        <div class="privacy-note">
+          <span class="privacy-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+          </span>
+          <p>Please don't include health details. We'll talk through what's going on when we connect. Your request goes only to our intake team.</p>
+        </div>
+
+        <label class="check ack">
+          <input type="checkbox" name="ackNotEmergency" value="yes" required="">
+          I understand this form is not for emergencies.
+        </label><div class="hp" aria-hidden="true">
+          <label for="rq-company">Company</label>
+          <input id="rq-company" name="company" tabindex="-1" autocomplete="off">
+        </div>
+
+        <p class="form-error" role="alert" hidden=""></p>
+        <div class="submit-row">
+          <button class="btn btn-primary btn-submit" type="submit">Send request</button>
+          <p>Prefer to call? <a href="tel:+13306365000">330-636-5000</a></p>
+        </div>
+      </div>
+    </form>
+
+    <div class="request-card request-done" tabindex="-1" hidden="">
+      <span class="done-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+      </span>
+      <h2>Thank you, <span data-done-name=""></span>.</h2>
+      <p>We received your request and will reach out using the contact method you chose.</p>
+      <p>If anything changes, or you'd rather talk now, call us at <a href="tel:+13306365000">330-636-5000</a>.</p>
+      <div class="btn-row">
+        <a class="btn btn-outline" href="/clients/recoup/preview/meet-the-therapists">Meet our therapists</a>
+        <a class="btn btn-outline" href="/clients/recoup/preview/blogs">Read the blog</a>
+      </div>
+    </div>
   </div>
-  <p class="demo-note"><strong>Preview:</strong> this form is in demo mode. Submitting shows the confirmation but sends nothing.</p>
 
-  <form class="request-form" data-request-form="" data-endpoint="" data-demo="true" data-phone="330-636-5000" novalidate="">
-    <fieldset class="field">
-      <legend>Who is therapy for?</legend>
-      <div class="choice-row">
-        <label class="choice"><input type="radio" name="forWhom" value="self" required=""> Myself</label>
-        <label class="choice"><input type="radio" name="forWhom" value="child"> My child or teen</label>
-        <label class="choice"><input type="radio" name="forWhom" value="couple"> Me and my partner</label>
-        <label class="choice"><input type="radio" name="forWhom" value="family"> My family</label>
-      </div>
-    </fieldset>
-
-    <fieldset class="field">
-      <legend>Age of the person who will attend</legend>
-      <div class="choice-row">
-        <label class="choice"><input type="radio" name="ageGroup" value="under-13"> Under 13</label>
-        <label class="choice"><input type="radio" name="ageGroup" value="13-17"> 13 to 17</label>
-        <label class="choice"><input type="radio" name="ageGroup" value="18-plus"> 18 or older</label>
-      </div>
-    </fieldset>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="rq-first">First name</label>
-        <input id="rq-first" name="firstName" autocomplete="given-name" required="" maxlength="60">
-      </div>
-      <div class="field">
-        <label for="rq-last">Last name</label>
-        <input id="rq-last" name="lastName" autocomplete="family-name" required="" maxlength="60">
-      </div>
+  <aside class="request-side">
+    <div class="side-card">
+      <h2>What happens next</h2>
+      <ol class="next-steps">
+        <li><strong>We review your request</strong><span>Our intake team reads every request and looks at who has openings.</span></li>
+        <li><strong>We reach out</strong><span>By call, text, or email, whichever you chose, to answer questions and confirm the details.</span></li>
+        <li><strong>Your first session</strong><span>In Medina, in Dublin, or by secure video, whichever works best for you.</span></li>
+      </ol>
     </div>
-    <p class="hint hint-child" hidden="">For a child or teen, please enter the parent or guardian's name and contact details.</p>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="rq-phone">Phone</label>
-        <input id="rq-phone" name="phone" type="tel" autocomplete="tel" maxlength="30">
-      </div>
-      <div class="field">
-        <label for="rq-email">Email</label>
-        <input id="rq-email" name="email" type="email" autocomplete="email" maxlength="120">
-      </div>
+    <div class="side-card side-card-tint">
+      <h2>Rather talk to someone?</h2>
+      <p>Call the office and we'll help you get started.</p>
+      <a class="btn btn-outline btn-block" href="tel:+13306365000">Call 330-636-5000</a>
     </div>
-    <p class="hint">Please give us at least one way to reach you.</p>
-
-    <fieldset class="field">
-      <legend>Best way to reach you</legend>
-      <div class="choice-row">
-        <label class="choice"><input type="radio" name="contactMethod" value="call" required=""> Call</label>
-        <label class="choice"><input type="radio" name="contactMethod" value="text"> Text</label>
-        <label class="choice"><input type="radio" name="contactMethod" value="email"> Email</label>
-      </div>
-    </fieldset>
-
-    <fieldset class="field">
-      <legend>Is it OK to leave a message?</legend>
-      <div class="choice-row">
-        <label class="choice"><input type="radio" name="okToLeaveMessage" value="yes" required=""> Yes</label>
-        <label class="choice"><input type="radio" name="okToLeaveMessage" value="no"> No, please don't</label>
-      </div>
-    </fieldset>
-
-    <fieldset class="field">
-      <legend>Best times to reach you <span class="optional">(optional)</span></legend>
-      <div class="choice-row">
-        <label class="choice"><input type="checkbox" name="bestTimes" value="morning"> Mornings</label>
-        <label class="choice"><input type="checkbox" name="bestTimes" value="afternoon"> Afternoons</label>
-        <label class="choice"><input type="checkbox" name="bestTimes" value="evening"> Evenings</label>
-      </div>
-    </fieldset>
-
-    <fieldset class="field">
-      <legend>Where would you like to meet?</legend>
-      <div class="choice-row">
-        <label class="choice"><input type="radio" name="location" value="medina" required=""> Medina office</label>
-        <label class="choice"><input type="radio" name="location" value="dublin"> Dublin office</label>
-        <label class="choice"><input type="radio" name="location" value="telehealth"> Telehealth</label>
-        <label class="choice"><input type="radio" name="location" value="any"> No preference</label>
-      </div>
-    </fieldset>
-
-    <div class="field">
-      <label for="rq-therapist">Therapist</label>
-      <select id="rq-therapist" name="therapist">
-        <option value="match">No preference, match me with someone available</option>
-        <option value="gabrielle" data-status="accepting" data-locations="dublin">Gabrielle, MSW, BFA, LSW</option>
-        <option value="stephanie" data-status="accepting" data-locations="medina telehealth">Stephanie, LPCC-S</option>
-        <option value="suzanne" data-status="accepting" data-locations="dublin telehealth">Suzanne, LSW</option>
-        <option value="jacquelyn" data-status="accepting" data-locations="medina telehealth">Jacquelyn, LPC</option>
-        <option value="cathy" data-status="accepting" data-locations="medina telehealth">Cathy, MSSA, LSW</option>
-        <option value="crystal" data-status="accepting" data-locations="telehealth">Crystal, MSW, LSW</option>
-        <option value="jessica" data-status="accepting" data-locations="dublin telehealth">Jessica, LPCC</option>
-        <option value="micah" data-status="accepting" data-locations="dublin telehealth">Micah, MA, LPC</option>
-        <option value="liana" data-status="accepting" data-locations="telehealth">Liana, MSW, LSW</option>
-        <option value="matt" data-status="accepting" data-locations="medina telehealth">Matt, PhD, LPCC-S</option>
-        <option value="ariana" data-status="accepting" data-locations="telehealth">Ariana, LPC</option>
-        <option value="shaquoi" data-status="accepting" data-locations="medina dublin telehealth">Shaquoi, M.Ed, CMCH, LPC</option>
-        <option value="victoria" data-status="waitlist" data-locations="medina telehealth">Victoria, MA, AT, ATR-P, LPC (waitlist)</option>
-        <option value="erika" data-status="waitlist" data-locations="medina telehealth">Erika, LPCC (waitlist)</option>
-        <option value="rebekkah" data-status="accepting" data-locations="dublin telehealth">Rebekkah, BSW, LSW</option>
-        <option value="meghan" data-status="waitlist" data-locations="medina dublin telehealth">Meghan, MSW, LISW (waitlist)</option>
-        <option value="alex" data-status="accepting" data-locations="telehealth">Alex, MSSA, LISW</option>
-        <option value="dereka" data-status="waitlist" data-locations="medina telehealth">Dereka, MSSA, LISW-S (waitlist)</option>
-      </select>
-      <div class="waitlist-note" hidden="">
-        <p><span data-waitlist-name=""></span> has a waitlist right now. We'll add you to it.</p>
-        <label class="choice choice-inline"><input type="checkbox" name="alsoMatch" value="yes" checked=""> Also match me with someone who can see me sooner</label>
-      </div>
-      <p class="hint location-mismatch" hidden=""></p>
+    <div class="side-card">
+      <h2>Insurance</h2>
+      <p>We accept 17 plans, including Medicare, Medicaid, Anthem, Aetna, and Cigna. Private pay is available too.</p>
+      <a class="link-arrow" href="/clients/recoup/preview/insurance-and-fees">See plans and rates &rarr;</a>
     </div>
-
-    <div class="field">
-      <label for="rq-insurance">Insurance</label>
-      <select id="rq-insurance" name="insurance" required="">
-        <option value="">Choose one</option>
-        <option>Medicare</option>
-        <option>Medicaid</option>
-        <option>Anthem Blue Cross Blue Shield</option>
-        <option>United Health Care/Optum</option>
-        <option>Amerihealth Caritas</option>
-        <option>Medical Mutual</option>
-        <option>Curative</option>
-        <option>Oscar</option>
-        <option>Buckeye</option>
-        <option>Molina</option>
-        <option>Humana</option>
-        <option>Aetna</option>
-        <option>Cigna</option>
-        <option>Ambetter</option>
-        <option>Anthem Medicaid</option>
-        <option>University Hospitals insurance</option>
-        <option>Cleveland Clinic insurance (Aetna plans)</option>
-        <option>Other insurance</option>
-        <option>Private pay (no insurance)</option>
-        <option>Not sure</option>
-      </select>
-      <p class="hint"><a href="/clients/recoup/preview/insurance-and-fees">See accepted plans and self-pay rates</a></p>
-    </div>
-
-    <div class="privacy-note">
-      <p>Please don't include health details here. We'll talk through what's going on when we connect. Your request goes only to our intake team.</p>
-    </div>
-
-    <label class="choice choice-inline ack">
-      <input type="checkbox" name="ackNotEmergency" value="yes" required="">
-      I understand this form is not for emergencies.
-    </label><div class="hp" aria-hidden="true">
-      <label for="rq-company">Company</label>
-      <input id="rq-company" name="company" tabindex="-1" autocomplete="off">
-    </div>
-
-    <p class="form-error" role="alert" hidden=""></p>
-    <button class="btn btn-primary btn-submit" type="submit">Send request</button>
-    <p class="hint">Prefer to call? <a href="tel:+13306365000">330-636-5000</a></p>
-  </form>
-
-  <div class="request-done" tabindex="-1" hidden="">
-    <h2>Thank you, <span data-done-name=""></span>.</h2>
-    <p>We received your request and will reach out using the contact method you chose.</p>
-    <p>If anything changes, or you'd rather talk now, call us at <a href="tel:+13306365000">330-636-5000</a>.</p>
-    <p><a class="btn btn-outline" href="/clients/recoup/preview/meet-the-therapists">Meet our therapists</a> <a class="btn btn-outline" href="/clients/recoup/preview/blogs">Read the blog</a></p>
-  </div>
+  </aside>
 </section>
-<script src="/clients/recoup/preview/assets/js/request.js" defer=""></script>
+<script src="/clients/recoup/preview/assets/js/request.js?v=mv5v4fu1" defer=""></script>
 
   </main>
   
@@ -344,6 +422,6 @@
   </div>
 </footer>
 
-  <script src="/clients/recoup/preview/assets/js/site.js" defer=""></script>
+  <script src="/clients/recoup/preview/assets/js/site.js?v=mv5v4fu1" defer=""></script>
 </body>
 </html>

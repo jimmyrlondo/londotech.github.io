@@ -42,6 +42,7 @@
     childHint.hidden = value("forWhom") !== "child";
   }
   form.addEventListener("change", refresh);
+  form.addEventListener("input", function () { errorBox.hidden = true; });
   refresh();
 
   function fail(msg, field) {
