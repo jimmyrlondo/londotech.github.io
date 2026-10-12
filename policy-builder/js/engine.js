@@ -9,7 +9,7 @@
 //   {{#unless expr}} ... {{/unless}}
 //   {{#each locations}} {{this.name}} {{/each}}
 // Expressions: path, !path, path == "x" (or == other.path), path != "x", path contains "x",
-// joined with " and " / " or " (and binds tighter than or).
+// joined with " and " / " or " (and binds tighter than or), grouped with ( ).
 // Block markdown: #, ##, ### headings, "- " bullets, "1. " numbered items,
 // blank-line separated paragraphs, **bold** inline.
 
@@ -61,11 +61,27 @@ function evalTerm(term, ctx) {
   return isTruthy(getPath(ctx, term));
 }
 
+function evalFlat(expr, ctx) {
+  return expr
+    .split(/\s+or\s+/)
+    .some(group => group.split(/\s+and\s+/).every(t => {
+      const term = t.trim();
+      if (term === '@true' || term === '!@false') return true;
+      if (term === '@false' || term === '!@true') return false;
+      return evalTerm(term, ctx);
+    }));
+}
+
 export function evalExpr(expr, ctx) {
   if (expr == null || String(expr).trim() === '') return true;
-  return String(expr)
-    .split(/\s+or\s+/)
-    .some(group => group.split(/\s+and\s+/).every(t => evalTerm(t, ctx)));
+  let s = String(expr);
+  // Resolve innermost parentheses first: "a and (b or c)".
+  const inner = /\(([^()]*)\)/;
+  let m;
+  while ((m = s.match(inner))) {
+    s = s.slice(0, m.index) + (evalFlat(m[1], ctx) ? '@true' : '@false') + s.slice(m.index + m[0].length);
+  }
+  return evalFlat(s, ctx);
 }
 
 export function oxfordJoin(items, conj = 'and') {

@@ -30,6 +30,11 @@ export const fullProfile = {
     populations: ['adults', 'idd', 'smi', 'sud', 'youth'],
     settings: ['residential', 'outpatient', 'community', 'telehealth'],
     serviceList: ['Outpatient counseling', 'Supported living', 'Community employment'],
+    bhPrograms: ['outpatient', 'caseManagement', 'crisis'],
+    ecsPrograms: ['communityEmployment', 'supportedLiving', 'communityIntegration'],
+    hcbs: true,
+    payers: ['Ohio Medicaid', 'Cuyahoga County Board of Developmental Disabilities', 'private insurance', 'private pay'],
+    hours: 'Monday through Friday, 8:00 a.m. to 6:00 p.m., with 24-hour on-call crisis coverage',
   },
   ops: {
     medication: 'administer',
@@ -43,6 +48,9 @@ export const fullProfile = {
     fundraising: true,
     remoteWork: true,
     ehrSystem: 'ReadyCare',
+    vehicles: 'both',
+    evv: true,
+    evvSystem: 'Sandata',
     telehealthPlatform: 'Doxy.me',
   },
   compliance: {
@@ -52,6 +60,11 @@ export const fullProfile = {
     abuseReportingAgency: 'Ohio Department of Developmental Disabilities Abuse/Neglect Hotline',
     abuseHotline: '1-866-313-6733',
     retentionYears: 7,
+    incidentReportHours: 24,
+    cpsAgency: 'Cuyahoga County Division of Children and Family Services',
+    cpsHotline: '(216) 696-5437',
+    protectionAdvocacy: 'Disability Rights Ohio',
+    vrAgency: 'Opportunities for Ohioans with Disabilities',
   },
   admin: { effectiveDate: '2026-11-01', reviewFrequency: 'annually', version: '1.0' },
 };
@@ -69,8 +82,34 @@ export const minimalProfile = {
   },
   locations: [{ name: 'Office', address: '10 Main St, Akron, OH', services: 'All services' }],
   roles: {},
-  program: { manuals: ['ECS'], populations: ['adults'], settings: ['employment'], serviceList: ['Job development'] },
+  program: { manuals: ['ECS'], populations: ['adults'], settings: ['employment'], serviceList: ['Job development'], ecsPrograms: ['communityEmployment'] },
   ops: { medication: 'none', restraint: 'never' },
   compliance: { hipaa: false, part2: false, licensingAgency: 'Opportunities for Ohioans with Disabilities', abuseReportingAgency: 'Adult Protective Services', abuseHotline: '1-855-644-6277' },
   admin: { effectiveDate: '2026-11-01' },
+};
+
+// Every manual and every program type switched on, so validation renders
+// each Section 3 policy and the conditional text for all manuals.
+import { PROGRAM_TYPES } from './schema.js';
+
+export const everythingProfile = {
+  ...fullProfile,
+  program: {
+    ...fullProfile.program,
+    manuals: ['BH', 'ECS', 'AS', 'CYS', 'OTP'],
+    populations: ['adults', 'older', 'youth', 'idd', 'smi', 'sud', 'brain', 'physical', 'veterans', 'justice'],
+    settings: ['residential', 'outpatient', 'community', 'inhome', 'day', 'employment', 'telehealth', 'crisis'],
+    bhPrograms: PROGRAM_TYPES.BH.map(t => t[0]),
+    ecsPrograms: PROGRAM_TYPES.ECS.map(t => t[0]),
+    asPrograms: PROGRAM_TYPES.AS.map(t => t[0]),
+    cysPrograms: PROGRAM_TYPES.CYS.map(t => t[0]),
+    otpPrograms: PROGRAM_TYPES.OTP.map(t => t[0]),
+  },
+  ops: { ...fullProfile.ops, medication: 'prescribe', subminimumWage: true },
+  compliance: {
+    ...fullProfile.compliance,
+    sota: 'Ohio Department of Mental Health and Addiction Services',
+    partCLeadAgency: 'Help Me Grow Early Intervention',
+  },
+  roles: { ...fullProfile.roles, medical: { title: 'Medical Director', name: '' } },
 };

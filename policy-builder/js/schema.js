@@ -35,6 +35,40 @@ export const SETTINGS = [
   { code: 'crisis', label: 'crisis' },
 ];
 
+// Program types under each manual's program-specific sections. Codes are
+// scoped per manual field (program.bhPrograms, program.ecsPrograms, ...).
+export const PROGRAM_TYPES = {
+  BH: [
+    ['outpatient', 'Outpatient Treatment'], ['iop', 'Intensive Outpatient Treatment'],
+    ['partial', 'Partial Hospitalization'], ['dayTreatment', 'Day Treatment'],
+    ['caseManagement', 'Case Management / Services Coordination'], ['act', 'Assertive Community Treatment'],
+    ['communityIntegration', 'Community Integration'], ['crisis', 'Crisis Intervention'],
+    ['crisisStabilization', 'Crisis Stabilization'], ['residential', 'Residential Treatment'],
+    ['withdrawal', 'Withdrawal Management (Detoxification)'], ['supportedLiving', 'Supported Living'],
+    ['communityHousing', 'Community Housing'], ['prevention', 'Prevention'],
+  ],
+  ECS: [
+    ['communityEmployment', 'Community Employment Services'], ['employeeDevelopment', 'Employee Development Services'],
+    ['vocEval', 'Comprehensive Vocational Evaluation'], ['communityIntegration', 'Community Integration (Day Services)'],
+    ['supportedLiving', 'Supported Living'], ['communityHousing', 'Community Housing'],
+    ['hostFamily', 'Host Family / Shared Living'], ['personalSupports', 'Personal Supports'],
+    ['respite', 'Respite Services'], ['caseManagement', 'Case Management / Services Coordination'],
+  ],
+  AS: [
+    ['adultDay', 'Adult Day Services'], ['homeCommunity', 'Home and Community Services'],
+    ['longTermCare', 'Person-Centered Long-Term Care Community'], ['caseManagement', 'Case Management'],
+  ],
+  CYS: [
+    ['outpatient', 'Outpatient Treatment'], ['intensiveFamily', 'Intensive Family-Based Services'],
+    ['residential', 'Residential Treatment'], ['fosterCare', 'Foster Care / Therapeutic Foster Care'],
+    ['earlyChildhood', 'Early Childhood Development'], ['crisis', 'Crisis Intervention'],
+    ['caseManagement', 'Case Management / Services Coordination'],
+  ],
+  OTP: [
+    ['otp', 'Opioid Treatment Program (medication for opioid use disorder)'],
+  ],
+};
+
 const STATE_NAMES = {
   AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut',
   DE: 'Delaware', DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois',
@@ -57,6 +91,7 @@ const ROLE_DEFAULTS = {
   quality: 'Quality Improvement Coordinator',
   it: 'Information Technology Manager',
   rights: 'Client Rights Officer',
+  medical: 'Medical Director',
 };
 
 const role = (key, label) => ({
@@ -99,6 +134,7 @@ export const STEPS = [
       { path: 'agency.values', label: 'Core values', type: 'list', help: 'One per line.' },
       { path: 'agency.hasBoard', label: 'The organization has a governing board', type: 'checkbox' },
       { path: 'agency.governingBody', label: 'Name of governing body', type: 'text', placeholder: 'Board of Directors', showIf: 'agency.hasBoard' },
+      { path: 'agency.owner', label: 'Owner or principal (title)', type: 'text', placeholder: 'Owner', showIf: '!agency.hasBoard', help: 'Who holds final authority when there is no board, e.g. Owner, Managing Member, County Commissioners.' },
       { path: 'agency.boardMeetingFrequency', label: 'Board meets', type: 'select', showIf: 'agency.hasBoard', options: [
         ['monthly', 'monthly'], ['every other month', 'every other month'], ['quarterly', 'quarterly'] ] },
     ],
@@ -130,6 +166,7 @@ export const STEPS = [
       role('quality', 'Performance improvement'),
       role('it', 'Technology'),
       role('rights', 'Rights and grievances'),
+      role('medical', 'Medical / physician leadership'),
     ],
   },
   {
@@ -141,6 +178,16 @@ export const STEPS = [
       { path: 'program.populations', label: 'Persons served', type: 'multi', options: POPULATIONS.map(p => [p.code, p.label]) },
       { path: 'program.settings', label: 'Service settings', type: 'multi', options: SETTINGS.map(s => [s.code, s.label]) },
       { path: 'program.serviceList', label: 'Programs and services offered', type: 'list', help: 'One per line, as you would name them to a surveyor.' },
+      ...MANUALS.filter(m => PROGRAM_TYPES[m.code]).map(m => ({
+        path: `program.${m.code.toLowerCase()}Programs`,
+        label: `${m.name} program types seeking accreditation`,
+        type: 'multi',
+        options: PROGRAM_TYPES[m.code],
+        showIf: `program.${m.code}`,
+      })),
+      { path: 'program.payers', label: 'Payer sources', type: 'list', help: 'One per line, e.g. Ohio Medicaid, county board, private insurance, private pay.' },
+      { path: 'program.hcbs', label: 'Some services are funded through Medicaid home and community-based services (HCBS) waivers', type: 'checkbox' },
+      { path: 'program.hours', label: 'Regular hours of service', type: 'text', placeholder: 'Monday through Friday, 8:00 a.m. to 5:00 p.m.' },
     ],
   },
   {
@@ -157,6 +204,8 @@ export const STEPS = [
         ['never', 'Never used'],
         ['emergency', 'Physical restraint only as an emergency safety intervention'] ] },
       { path: 'ops.transportation', label: 'Agency transports persons served', type: 'checkbox' },
+      { path: 'ops.vehicles', label: 'Vehicles used for transport', type: 'select', showIf: 'ops.transportation', options: [
+        ['agency', 'Agency-owned or leased vehicles'], ['personal', "Personnel's personal vehicles"], ['both', 'Both'] ] },
       { path: 'ops.clientFunds', label: 'Agency manages funds on behalf of persons served', type: 'checkbox' },
       { path: 'ops.volunteers', label: 'Uses volunteers', type: 'checkbox' },
       { path: 'ops.students', label: 'Hosts students or interns', type: 'checkbox' },
@@ -164,6 +213,9 @@ export const STEPS = [
       { path: 'ops.research', label: 'Participates in research involving persons served', type: 'checkbox' },
       { path: 'ops.fundraising', label: 'Conducts fundraising', type: 'checkbox' },
       { path: 'ops.remoteWork', label: 'Some personnel work remotely', type: 'checkbox' },
+      { path: 'ops.evv', label: 'Uses electronic visit verification (EVV) for home and community services', type: 'checkbox' },
+      { path: 'ops.evvSystem', label: 'EVV system', type: 'text', placeholder: 'e.g. Sandata', showIf: 'ops.evv' },
+      { path: 'ops.subminimumWage', label: 'Holds a federal 14(c) certificate to pay a special minimum wage', type: 'checkbox', showIf: 'program.ecsPrograms contains "employeeDevelopment"' },
       { path: 'ops.ehrSystem', label: 'Electronic health record system', type: 'text', placeholder: 'e.g. ReadyCare' },
       { path: 'ops.telehealthPlatform', label: 'Telehealth platform', type: 'text', showIf: 'program.settings contains "telehealth"' },
     ],
@@ -178,6 +230,13 @@ export const STEPS = [
       { path: 'compliance.licensingAgency', label: 'State licensing / certifying agency', type: 'text', placeholder: 'e.g. Ohio Department of Developmental Disabilities' },
       { path: 'compliance.abuseReportingAgency', label: 'Agency that receives abuse and neglect reports', type: 'text' },
       { path: 'compliance.abuseHotline', label: 'Abuse reporting phone number', type: 'text', half: true },
+      { path: 'compliance.incidentReportHours', label: 'Hours to report a major incident to the state', type: 'number', half: true, placeholder: '24' },
+      { path: 'compliance.cpsAgency', label: 'Child protective services agency', type: 'text', showIf: 'program.servesMinors', placeholder: 'e.g. Cuyahoga County Division of Children and Family Services' },
+      { path: 'compliance.cpsHotline', label: 'Child abuse reporting phone number', type: 'text', half: true, showIf: 'program.servesMinors' },
+      { path: 'compliance.vrAgency', label: 'State vocational rehabilitation agency', type: 'text', placeholder: 'e.g. Opportunities for Ohioans with Disabilities', showIf: 'program.ECS' },
+      { path: 'compliance.sota', label: 'State Opioid Treatment Authority', type: 'text', placeholder: 'e.g. Ohio Department of Mental Health and Addiction Services', showIf: 'program.OTP' },
+      { path: 'compliance.partCLeadAgency', label: 'Early intervention (Part C) lead agency or program', type: 'text', placeholder: 'e.g. Help Me Grow Early Intervention', showIf: 'program.cysPrograms contains "earlyChildhood"' },
+      { path: 'compliance.protectionAdvocacy', label: 'State protection and advocacy organization', type: 'text', placeholder: 'e.g. Disability Rights Ohio' },
       { path: 'compliance.retentionYears', label: 'Record retention period (years)', type: 'number', half: true, placeholder: '7' },
     ],
   },
@@ -232,6 +291,9 @@ export function buildContext(profile) {
   p.agency.name = p.agency.dba || p.agency.legalName || '';
   p.agency.governingBody = p.agency.hasBoard ? (p.agency.governingBody || 'Board of Directors') : '';
   p.agency.isNonprofit = p.agency.orgType === 'nonprofit';
+  // Final authority: the governing body, or the owner/principal when there is no board.
+  p.agency.owner = p.agency.hasBoard ? '' : (p.agency.owner || 'Owner');
+  p.agency.authority = p.agency.governingBody || p.agency.owner;
   const st = String(p.agency.state || '').trim();
   p.agency.stateName = STATE_NAMES[st.toUpperCase()] || st;
   p.agency.cityState = [p.agency.city, p.agency.state].filter(Boolean).join(', ');
@@ -253,7 +315,15 @@ export function buildContext(profile) {
   pr.residential = pr.settings.includes('residential');
   pr.telehealth = pr.settings.includes('telehealth');
   pr.sud = pr.populations.includes('sud') || pr.manuals.includes('OTP');
-  for (const m of MANUALS) pr[m.code] = pr.manuals.includes(m.code);
+  for (const m of MANUALS) {
+    pr[m.code] = pr.manuals.includes(m.code);
+    const key = `${m.code.toLowerCase()}Programs`;
+    // program types only count when their manual is selected
+    pr[key] = pr[m.code] ? (pr[key] || []) : [];
+    pr[`${key}Labels`] = pr[key].map(c => ((PROGRAM_TYPES[m.code] || []).find(t => t[0] === c) || [])[1]).filter(Boolean);
+  }
+  pr.payers = pr.payers || [];
+  pr.hcbs = Boolean(pr.hcbs);
 
   const med = p.ops.medication || 'none';
   p.ops.medsAny = med !== 'none';
@@ -262,6 +332,11 @@ export function buildContext(profile) {
   p.ops.usesRestraint = p.ops.restraint === 'emergency';
 
   p.compliance.retentionYears = p.compliance.retentionYears || 7;
+  p.compliance.incidentReportHours = p.compliance.incidentReportHours || 24;
+  p.ops.vehicles = p.ops.transportation ? (p.ops.vehicles || 'agency') : '';
+  p.ops.evv = Boolean(p.ops.evv);
+  p.ops.evvSystem = p.ops.evv ? (p.ops.evvSystem || '') : '';
+  p.ops.subminimumWage = Boolean(p.ops.subminimumWage) && pr.ecsPrograms.includes('employeeDevelopment');
   p.compliance.part2 = Boolean(p.compliance.part2);
 
   p.admin.effectiveDateText = formatDate(p.admin.effectiveDate);

@@ -208,9 +208,9 @@ function onFormInput(e) {
   else value = el.value;
   setPath(p, path, value);
   changed();
-  // Re-render when a field controls the visibility of others.
-  const controls = STEPS.some(s => allFields(s).some(f => f.showIf && f.showIf.includes(path)));
-  if (controls && (type === 'checkbox' || type === 'multi' || type === 'select')) {
+  // Choice fields can change which questions show (show conditions often use
+  // derived flags, e.g. program.ECS from program.manuals), so re-render the step.
+  if (type === 'checkbox' || type === 'multi' || type === 'select') {
     const focusId = el.id;
     renderStep(route().arg);
     const again = document.getElementById(focusId) || document.querySelector(`[data-path="${CSS.escape(path)}"][value="${CSS.escape(el.value)}"]`);
@@ -239,10 +239,11 @@ function renderReview(selectedId) {
   }
   const manual = buildManual(POLICIES, ctx);
   const sel = manual.included.find(r => r.policy.id === selectedId) || manual.included[0];
-  const sections = [['ASPIRE', 'Section 1: ASPIRE to Excellence'], ['PROGRAM', 'Section 2: Program Standards']];
+  const sections = [['ASPIRE', 'Section 1: ASPIRE to Excellence'], ['PROGRAM', 'Section 2: General Program Standards'], ['SPECIFIC', 'Section 3: Program-Specific Policies']];
   const listHtml = sections.map(([code, label]) => {
     const inc = manual.included.filter(r => r.policy.section === code);
-    const exc = manual.excluded.filter(p => p.section === code);
+    // Program types the agency doesn't run are left out rather than struck through.
+    const exc = code === 'SPECIFIC' ? [] : manual.excluded.filter(p => p.section === code);
     if (!inc.length && !exc.length) return '';
     return `<h4>${esc(label)}</h4>
       ${inc.map(r => `<button type="button" class="pl-item" data-go="#/review/${r.policy.id}" ${sel && r.policy.id === sel.policy.id ? 'aria-current="true"' : ''}>
