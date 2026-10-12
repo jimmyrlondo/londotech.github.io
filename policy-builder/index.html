@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Policy Builder</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Build an accreditation-ready policies and procedures manual from an agency intake.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f5f8b'/%3E%3Cpath d='M10 8h9l4 4v12H10z' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M13 16h7M13 20h7' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">PB</span>
+      <span class="brand-name" data-brand>Policy Builder</span>
+    </div>
+    <div class="agency-switch">
+      <label for="agencySelect" class="sr-only">Agency</label>
+      <select id="agencySelect"></select>
+      <button class="btn ghost" id="newAgencyBtn" type="button">New agency</button>
+      <details class="menu">
+        <summary class="btn ghost" aria-label="More actions">More</summary>
+        <div class="menu-pop">
+          <button type="button" id="exportJsonBtn">Export agency file (.json)</button>
+          <button type="button" id="importJsonBtn">Import agency file</button>
+          <button type="button" id="sampleBtn">Load sample agency</button>
+          <hr>
+          <button type="button" id="deleteAgencyBtn" class="danger">Delete this agency</button>
+        </div>
+      </details>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="steps" id="stepNav" aria-label="Steps"></nav>
+    <main id="main" class="main" tabindex="-1"></main>
+  </div>
+
+  <footer class="foot">
+    Policy templates are original works written to address accreditation standards. This tool is not affiliated with or endorsed by CARF International. Verify every policy against the current standards manual before submission.
+  </footer>
+
+  <div id="printRoot" class="print-root" aria-hidden="true"></div>
+  <script src="vendor/docx.iife.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
