@@ -643,7 +643,7 @@ function showInvoicePreview(index) {
     'Account Holder Name: Londo Technologies LTD';
 
   const paymentOptionsBody =
-    'PayPal: send to jimmyrlondo@gmail.com\n' +
+    'PayPal: send to jimmy@londo.tech\n' +
     'Zelle: send to 440-320-1989\n' +
     'Checks: payable to "' + businessName + '" and mailed to:\n' +
     businessAddress + '\n\n' +
