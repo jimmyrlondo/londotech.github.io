@@ -392,7 +392,6 @@
                                 <div>
                                     <label for="securityDeposit" class="block text-sm font-semibold text-gray-800 mb-2">Security Deposit ($)</label>
                                     <input type="number" id="securityDeposit" value="500" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm input-focus p-2">
-                                    <p class="text-xs text-gray-500 mt-1">$500 standard, refundable. Shown on the quote; not applied to payments.</p>
                                 </div>
                             </div>
 
@@ -1520,11 +1519,15 @@ function clearAllFeatures() {
             });
             if (!rows) return '';
 
+            const noteDeposit = parseFloat(item.securityDeposit);
+            const noteDepositAmt = isNaN(noteDeposit) ? DEFAULT_SECURITY_DEPOSIT : noteDeposit;
             const note = quoteType === 'lease'
                 ? 'FMV lease: total of payments shown. A fair-market-value purchase option applies at the end of the term.'
                 : quoteType === 'buyout'
                 ? 'Ownership transfers for $1.00 at the end of the term (included in the total).'
-                : `Rental: total of payments shown; a ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is additional. Upgradable anytime with remaining payments applied as buyout.`;
+                : noteDepositAmt > 0
+                ? `Rental: total of payments shown; a ${formatCurrency(noteDepositAmt)} security deposit is additional. Upgradable anytime with remaining payments applied as buyout.`
+                : 'Rental: total of payments shown. Upgradable anytime with remaining payments applied as buyout.';
 
             const head = `<tr><th>Term</th><th>Monthly</th>${showTotals ? `<th>${totalLabel}</th>` : ''}</tr>`;
             return `<table class="pcmp"><thead>${head}</thead><tbody>${rows}</tbody></table>${showTotals ? `<p class="pcmp-note">${note}</p>` : ''}`;
@@ -2097,7 +2100,7 @@ function clearAllFeatures() {
         // Rental-only requirements block for the printed quote (lease/buyout no
         // longer print a boilerplate terms paragraph, just the numbers).
         function rentalRequirements() {
-            return `Rental payments shown are subject to credit approval. A ${formatCurrency(DEFAULT_SECURITY_DEPOSIT)} security deposit is required unless otherwise approved. A copy of the signer's driver's license and a voided check are required. Only Certified Pre-Owned equipment is eligible for the rental program. You may upgrade at any time, with the remaining payments applied as a buyout.`;
+            return `Rental payments shown are subject to credit approval. A refundable security deposit (shown with each machine's pricing above) is required unless otherwise approved. A copy of the signer's driver's license and a voided check are required. Only Certified Pre-Owned equipment is eligible for the rental program. You may upgrade at any time, with the remaining payments applied as a buyout.`;
         }
 
         // One equipment item's "Equipment & Pricing" + "Features" sections
@@ -2167,7 +2170,8 @@ function clearAllFeatures() {
 
             const netCost = parseFloat(item.outrightPrice) || 0;
             const downAmt = (quoteType === 'rental') ? (parseFloat(item.downPaymentAmount) || 0) : 0;
-            const depositAmt = (quoteType === 'rental') ? (parseFloat(item.securityDeposit) || DEFAULT_SECURITY_DEPOSIT) : 0;
+            const parsedDeposit = parseFloat(item.securityDeposit);
+            const depositAmt = (quoteType === 'rental') ? (isNaN(parsedDeposit) ? DEFAULT_SECURITY_DEPOSIT : parsedDeposit) : 0;
             const showOutright = document.getElementById('showOutright').checked;
             const showMonthly = document.getElementById('showMonthly').checked;
             let priceRows = '';
@@ -2177,7 +2181,7 @@ function clearAllFeatures() {
             if (downAmt > 0) {
                 priceRows += `<div class="sub">Down payment (applied to reduce monthly): ${formatCurrency(downAmt)}</div>`;
             }
-            if (quoteType === 'rental') {
+            if (quoteType === 'rental' && depositAmt > 0) {
                 priceRows += `<div class="sub">Security deposit (refundable, not applied to payments): ${formatCurrency(depositAmt)}</div>`;
             }
             if (showMonthly && item.monthlyPrice && item.term) {
