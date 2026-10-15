@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Fax Service Admin | Londo Technologies</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div id="loginScreen" class="login-screen">
+  <form id="loginForm" class="login-card">
+    <h1>Fax Service</h1>
+    <p class="muted">Sign in to manage incoming fax requests.</p>
+    <label>Email<input type="email" id="loginEmail" autocomplete="username" required></label>
+    <label>Password<input type="password" id="loginPassword" autocomplete="current-password" required></label>
+    <p id="loginError" class="error"></p>
+    <button type="submit" class="btn btn-primary">Sign in</button>
+  </form>
+</div>
+
+<div id="appShell" class="app-shell">
+  <header class="topbar">
+    <div class="brand">Fax Service Admin</div>
+    <div class="who">
+      <span id="whoEmail"></span>
+      <button type="button" id="signOutBtn" class="btn btn-ghost btn-sm">Sign out</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="filter-tabs">
+      <button type="button" class="filter-tab active" data-filter="paid">Paid, needs sending</button>
+      <button type="button" class="filter-tab" data-filter="sent">Sent</button>
+      <button type="button" class="filter-tab" data-filter="awaiting_payment">Awaiting payment</button>
+      <button type="button" class="filter-tab" data-filter="all">All</button>
+    </div>
+
+    <div id="requestList" class="request-list"></div>
+    <div id="emptyState" class="empty-state" hidden><p>Nothing here.</p></div>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>

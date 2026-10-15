@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send a Fax | Londo Technologies LTD</title>
+    <meta name="description" content="Don't have a fax machine? Upload your document, pay a small flat fee, and Londo Technologies will send your fax for you.">
+    <link rel="canonical" href="https://www.londo.tech/fax/">
+    <meta name="theme-color" content="#1b467f">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body id="top">
+
+    <div class="topbar">
+        <div class="wrap">
+            <span style="display:inline-flex;align-items:center;gap:8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5 3.5-2 1.5a11 11 0 0 0 5 5l1.5-2 3.5 1.5V19a2 2 0 0 1-2 2A16 16 0 0 1 4 8z"/></svg>
+                <strong>Call or text 216-293-5678</strong>
+            </span>
+            <span class="sub">Family-owned IT, connectivity &amp; media, North Bloomfield, Ohio</span>
+        </div>
+    </div>
+
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="/">LONDO <span>TECHNOLOGIES</span></a>
+            <nav class="site-nav" aria-label="Primary">
+                <a href="tel:12162935678" class="btn btn-primary" style="padding:10px 18px;">Call 216-293-5678</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="wrap-narrow">
+                <span class="eyebrow">Fax service</span>
+                <h1>Don't have a fax machine? We'll send it for you.</h1>
+                <p class="muted" style="margin-top:12px;max-width:50ch;">Upload your document, fill in a few details, and pay a flat fee of <strong id="feeDisplay">$5.00</strong>. We'll send your fax and you don't need to own a fax machine or know how one works.</p>
+            </div>
+        </section>
+
+        <section class="section" style="padding-top:0;">
+            <div class="wrap-narrow">
+                <div id="canceledNotice" class="panel" style="background:#fdf3ea;border-color:#e8c9a0;margin-bottom:24px;display:none;">
+                    <p>Checkout was canceled, nothing was charged. You can try again below whenever you're ready.</p>
+                </div>
+
+                <form id="faxForm" class="card" style="display:flex;flex-direction:column;gap:16px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <label class="lbl" style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft);">Your name
+                            <input class="field" type="text" id="senderName" required style="font-family:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:6px;padding:11px 12px;width:100%;">
+                        </label>
+                        <label class="lbl" style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft);">Your phone
+                            <input class="field" type="tel" id="senderPhone" required style="font-family:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:6px;padding:11px 12px;width:100%;">
+                        </label>
+                    </div>
+                    <label class="lbl" style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft);">Your email <span class="muted" style="font-weight:400;text-transform:none;">(we'll send a receipt and confirmation here)</span>
+                        <input class="field" type="email" id="senderEmail" required style="font-family:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:6px;padding:11px 12px;width:100%;">
+                    </label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <label class="lbl" style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft);">Fax number to send to
+                            <input class="field" type="tel" id="recipientFax" placeholder="e.g. (330) 555-0100" required style="font-family:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:6px;padding:11px 12px;width:100%;">
+                        </label>
+                        <label class="lbl" style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft);">Recipient name <span class="muted" style="font-weight:400;text-transform:none;">(optional)</span>
+                            <input class="field" type="text" id="recipientName" style="font-family:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:6px;padding:11px 12px;width:100%;">
+                        </label>
+                    </div>
+                    <label class="lbl" style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft);">Cover note <span class="muted" style="font-weight:400;text-transform:none;">(optional, appears on your cover sheet)</span>
+                        <textarea class="field" id="note" rows="3" style="font-family:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:6px;padding:11px 12px;width:100%;resize:vertical;"></textarea>
+                    </label>
+                    <label class="lbl" style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft);">Document to fax <span class="muted" style="font-weight:400;text-transform:none;">(PDF or image, up to 15MB)</span>
+                        <input class="field" type="file" id="fileInput" accept="application/pdf,image/*" required style="font-family:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:6px;padding:9px 10px;width:100%;">
+                    </label>
+
+                    <p id="formError" class="muted" style="color:#b3261e;display:none;"></p>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary" style="justify-content:center;padding-top:14px;padding-bottom:14px;">
+                        Continue to payment (<span id="feeDisplay2">$5.00</span>)
+                    </button>
+                    <p class="muted" style="font-size:13px;text-align:center;">You'll be taken to a secure Stripe checkout page to pay. Your fax is sent after payment clears, usually within a few hours during business days.</p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="stack" style="gap:10px;max-width:420px;">
+                <span class="brand">LONDO <span>TECHNOLOGIES</span></span>
+                <p class="muted" style="font-size:14px;">Family-owned technology and media support for North Bloomfield, Trumbull County, and surrounding Ohio areas.</p>
+            </div>
+            <div class="stack" style="gap:6px;font-size:14.5px;">
+                <a href="tel:12162935678" style="font-weight:600;">216-293-5678</a>
+                <a href="mailto:jimmy@londo.tech" style="font-weight:600;">jimmy@londo.tech</a>
+                <span class="muted" style="font-size:13px;">&copy; 2026 Londo Technologies LTD</span>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+        import { firebaseConfig } from "./assets/firebase-config.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const functions = getFunctions(app);
+
+        if (new URLSearchParams(location.search).get("canceled")) {
+            document.getElementById("canceledNotice").style.display = "block";
+        }
+
+        const form = document.getElementById("faxForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const formError = document.getElementById("formError");
+
+        function showError(msg) {
+            formError.textContent = msg;
+            formError.style.display = "block";
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            formError.style.display = "none";
+
+            const file = document.getElementById("fileInput").files[0];
+            if (!file) { showError("Choose a file to fax."); return; }
+            if (file.size > 15 * 1024 * 1024) { showError("That file is larger than 15MB. Try a smaller file."); return; }
+            if (!/^application\/pdf$|^image\//.test(file.type)) { showError("Please upload a PDF or an image file."); return; }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Uploading...";
+
+            try {
+                const requestRef = doc(collection(db, "faxRequests"));
+                const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+                const storagePath = `fax-uploads/${requestRef.id}-${safeName}`;
+
+                await uploadBytes(ref(storage, storagePath), file, { contentType: file.type });
+
+                await setDoc(requestRef, {
+                    senderName: document.getElementById("senderName").value.trim(),
+                    senderPhone: document.getElementById("senderPhone").value.trim(),
+                    senderEmail: document.getElementById("senderEmail").value.trim(),
+                    recipientFax: document.getElementById("recipientFax").value.trim(),
+                    recipientName: document.getElementById("recipientName").value.trim(),
+                    note: document.getElementById("note").value.trim(),
+                    fileName: file.name,
+                    storagePath,
+                    status: "awaiting_payment",
+                    createdAt: serverTimestamp(),
+                });
+
+                submitBtn.textContent = "Redirecting to payment...";
+                const createCheckoutSession = httpsCallable(functions, "createCheckoutSession");
+                const result = await createCheckoutSession({ requestId: requestRef.id });
+                window.location.href = result.data.url;
+            } catch (err) {
+                console.error(err);
+                showError("Something went wrong submitting your fax: " + (err.message || "unknown error") + ". Nothing was charged, please try again or call 216-293-5678.");
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Continue to payment";
+            }
+        });
+    </script>
+
+</body>
+</html>

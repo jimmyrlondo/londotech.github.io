@@ -1,0 +1,13 @@
+{
+  "name": "londo-fax-service-functions",
+  "description": "Stripe checkout + webhook for the Londo Technologies self-service fax portal",
+  "engines": { "node": "20" },
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.0.1",
+    "stripe": "^17.3.0"
+  },
+  "private": true
+}

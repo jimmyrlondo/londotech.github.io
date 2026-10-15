@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Customer-uploaded documents waiting to be faxed. Anyone can upload
+    // (it's a walk-up public service, no login), capped at 15MB and PDF/
+    // image only. Nobody can read them back except an admin -- these are
+    // other people's documents sitting in a bucket, not public assets.
+    match /fax-uploads/{fileName} {
+      allow write: if request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType.matches('application/pdf|image/.*');
+      allow read: if request.auth != null &&
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
+    }
+  }
+}

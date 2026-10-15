@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Anyone can submit a fax request (no login, it's a walk-up public
+    // service), with sane shape/length limits as the only spam guard
+    // available without a backend check. Once created it's locked down:
+    // only an admin can read it (it may contain a customer's document and
+    // contact info) or update it. The actual status transitions
+    // (awaiting_payment -> paid -> sent) happen server-side from the Stripe
+    // webhook Cloud Function, which uses the Admin SDK and bypasses these
+    // rules entirely, so "admin-only update" here is really "nobody can
+    // fake a paid status from the client."
+    match /faxRequests/{requestId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasAll(['senderName', 'senderPhone', 'senderEmail', 'recipientFax', 'fileName', 'storagePath', 'status', 'createdAt'])
+        && request.resource.data.status == 'awaiting_payment'
+        && request.resource.data.senderName is string && request.resource.data.senderName.size() > 0 && request.resource.data.senderName.size() < 200
+        && request.resource.data.senderPhone is string && request.resource.data.senderPhone.size() > 0 && request.resource.data.senderPhone.size() < 50
+        && request.resource.data.senderEmail is string && request.resource.data.senderEmail.size() > 0 && request.resource.data.senderEmail.size() < 200
+        && request.resource.data.recipientFax is string && request.resource.data.recipientFax.size() > 0 && request.resource.data.recipientFax.size() < 50
+        && request.resource.data.fileName is string && request.resource.data.fileName.size() < 300
+        && request.resource.data.storagePath is string && request.resource.data.storagePath.size() < 500
+        && (!('recipientName' in request.resource.data) || (request.resource.data.recipientName is string && request.resource.data.recipientName.size() < 200))
+        && (!('note' in request.resource.data) || (request.resource.data.note is string && request.resource.data.note.size() < 1000));
+    }
+
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}
