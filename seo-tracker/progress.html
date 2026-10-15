@@ -127,7 +127,12 @@
             if (!snap.exists()) { loadingState.style.display = "none"; notFound.style.display = "block"; return; }
 
             const c = snap.data();
-            const phases = phasesForTrack(c.trackType);
+            // Steps marked "n/a" (doesn't apply to this client) are dropped
+            // entirely from the public view and from the count, not shown
+            // as an unchecked item the client would wonder about.
+            const phases = phasesForTrack(c.trackType)
+                .map((phase) => ({ ...phase, steps: phase.steps.filter((s) => c.stepStatus?.[s.id]?.status !== "na") }))
+                .filter((phase) => phase.steps.length > 0);
             const allSteps = phases.flatMap((p) => p.steps);
             const total = allSteps.length;
             const done = allSteps.filter((s) => c.stepStatus?.[s.id]?.status === "done").length;

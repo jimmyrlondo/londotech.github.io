@@ -19,6 +19,14 @@ service cloud.firestore {
     match /clients/{clientId} {
       allow read: if true;
       allow write: if isAdmin();
+
+      // Login/password reference per client. Deliberately NOT public: the
+      // parent client doc is readable by anyone with the share link, so
+      // credentials live in their own subcollection, admin-only in both
+      // directions, never touched by progress.html.
+      match /credentials/{credId} {
+        allow read, write: if isAdmin();
+      }
     }
 
     // The admin allow-list itself. A user may read their own membership doc

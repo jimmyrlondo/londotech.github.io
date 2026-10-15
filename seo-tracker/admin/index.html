@@ -49,6 +49,7 @@
           </div>
           <div class="detail-actions">
             <button type="button" id="copyLinkBtn" class="btn btn-ghost btn-sm">Copy share link</button>
+            <button type="button" id="printCredsBtn" class="btn btn-ghost btn-sm">Print credentials sheet</button>
             <button type="button" id="deleteClientBtn" class="btn btn-danger btn-sm">Delete client</button>
           </div>
         </div>
@@ -59,9 +60,27 @@
         </div>
 
         <div id="phasesRoot" class="phases-root"></div>
+
+        <div class="creds-section">
+          <div class="creds-header">
+            <h3>Login &amp; Password Reference</h3>
+            <button type="button" id="addCredBtn" class="btn btn-ghost btn-sm">+ Add credential</button>
+          </div>
+          <p class="muted" style="font-size:12.5px;margin-bottom:14px;">Admin-only; never visible on the shared progress link. For anything financial or truly sensitive, a real password manager is still the safer call than storing it here.</p>
+          <div id="credsList" class="creds-list"></div>
+        </div>
       </div>
     </main>
   </div>
+</div>
+
+<div id="printSheet" class="print-sheet">
+  <h1 id="printClientName"></h1>
+  <p id="printDate" class="print-date"></p>
+  <table class="print-table">
+    <thead><tr><th>Platform</th><th>Username / Login</th><th>Password</th><th>Notes</th></tr></thead>
+    <tbody id="printTableBody"></tbody>
+  </table>
 </div>
 
 <div id="newClientModal" class="modal" hidden>
@@ -80,6 +99,23 @@
       <div class="modal-actions">
         <button type="button" id="cancelNewClientBtn" class="btn btn-ghost">Cancel</button>
         <button type="submit" class="btn btn-primary">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="credModal" class="modal" hidden>
+  <div class="modal-card">
+    <h3 id="credModalTitle">Add credential</h3>
+    <form id="credForm">
+      <input type="hidden" id="credId">
+      <label>Platform / what it's for<input type="text" id="credPlatform" placeholder="e.g. Google Business Profile" required></label>
+      <label>Username / login<input type="text" id="credUsername"></label>
+      <label>Password<input type="text" id="credPassword"></label>
+      <label>Notes<input type="text" id="credNotes" placeholder="e.g. password saved in 1Password instead"></label>
+      <div class="modal-actions">
+        <button type="button" id="cancelCredBtn" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
       </div>
     </form>
   </div>

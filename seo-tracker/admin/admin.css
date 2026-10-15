@@ -80,7 +80,39 @@ label input, label select { font-family: inherit; font-size: 15px; color: var(--
 .step-title { font-weight: 600; font-size: 14.5px; cursor: pointer; }
 .step.done .step-title { color: var(--ink-soft); text-decoration: line-through; }
 .step-howto { font-size: 13.5px; color: var(--ink-soft); margin-top: 5px; max-width: 70ch; }
-.step-howto-toggle { font-size: 12.5px; font-weight: 600; color: var(--blue); cursor: pointer; margin-top: 4px; display: inline-block; }
+.step-howto-toggle { font-size: 12.5px; font-weight: 600; color: var(--blue); cursor: pointer; margin-top: 4px; display: inline-block; margin-right: 14px; }
+.step-na-toggle { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; margin-top: 4px; display: inline-block; }
+.step-na-toggle:hover { color: var(--rust); }
+.step.na { opacity: .55; }
+.step.na input[type="checkbox"] { cursor: not-allowed; }
+.na-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--rust); border: 1px solid var(--rust); border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+
+/* Credentials */
+.creds-section { margin-top: 36px; border-top: 2px solid var(--line); padding-top: 20px; }
+.creds-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.creds-header h3 { font-size: 16px; }
+.creds-list { display: flex; flex-direction: column; gap: 6px; }
+.cred-row { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.cred-row:last-child { border-bottom: none; }
+.cred-platform { font-weight: 600; width: 190px; flex-shrink: 0; }
+.cred-field { color: var(--ink-soft); width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cred-field.empty { font-style: italic; opacity: .6; }
+.cred-notes { color: var(--ink-soft); flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cred-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.cred-actions button { background: none; border: none; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--blue); padding: 2px 4px; }
+.cred-actions button.del { color: var(--red); }
+.show-pw-toggle { cursor: pointer; font-size: 11px; color: var(--blue); margin-left: 6px; }
+
+/* Print sheet: invisible on screen, only rendered when printing (admin.js
+   toggles body.printing-creds and calls window.print). */
+.print-sheet { display: none; }
+body.printing-creds > *:not(#printSheet) { display: none !important; }
+body.printing-creds #printSheet { display: block !important; padding: 30px; }
+.print-sheet h1 { font-size: 22px; margin-bottom: 4px; }
+.print-date { color: var(--ink-soft); font-size: 13px; margin-bottom: 20px; }
+.print-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.print-table th, .print-table td { border: 1px solid #999; padding: 8px 10px; text-align: left; }
+.print-table th { background: #eee; }
 
 /* Modal */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
