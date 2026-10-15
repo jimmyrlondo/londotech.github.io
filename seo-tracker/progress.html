@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Project Progress | Londo Technologies LTD</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/assets/site.css">
+    <style>
+        .progress-bar-wrap { background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; height: 14px; overflow: hidden; margin: 18px 0 8px; }
+        .progress-bar-fill { height: 100%; background: var(--blue); border-radius: 999px; transition: width .3s ease; }
+        .progress-stat { font-size: 14.5px; color: var(--ink-soft); font-weight: 600; }
+        .phase-block { margin-top: 30px; }
+        .phase-block h3 { font-size: 17px; margin-bottom: 10px; }
+        .step-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+        .step-row:last-child { border-bottom: none; }
+        .step-icon { flex-shrink: 0; margin-top: 2px; }
+        .step-row.done { color: var(--ink-soft); }
+        .step-row.done .step-icon { color: var(--blue); }
+        .step-row:not(.done) .step-icon { color: var(--line-strong); }
+        #notFound { display: none; }
+    </style>
+</head>
+<body id="top">
+
+    <div class="topbar">
+        <div class="wrap">
+            <span style="display:inline-flex;align-items:center;gap:8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5 3.5-2 1.5a11 11 0 0 0 5 5l1.5-2 3.5 1.5V19a2 2 0 0 1-2 2A16 16 0 0 1 4 8z"/></svg>
+                <strong>Call or text 216-293-5678</strong>
+            </span>
+            <span class="sub">Family-owned IT, connectivity &amp; media, North Bloomfield, Ohio</span>
+        </div>
+    </div>
+
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="/">LONDO <span>TECHNOLOGIES</span></a>
+            <nav class="site-nav" aria-label="Primary">
+                <a href="tel:12162935678" class="btn btn-primary" style="padding:10px 18px;">Call 216-293-5678</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="section" style="padding-top:40px;">
+            <div class="wrap-narrow">
+                <div id="loadingState">
+                    <p class="muted">Loading project progress&hellip;</p>
+                </div>
+
+                <div id="notFound">
+                    <span class="eyebrow">Project progress</span>
+                    <h1 style="margin-top:8px;">We couldn't find that project.</h1>
+                    <p class="muted" style="margin-top:12px;">Double check the link, or reach out and we'll get you the right one.</p>
+                </div>
+
+                <div id="content" style="display:none;">
+                    <span class="eyebrow">Project progress</span>
+                    <h1 id="clientName" style="margin-top:8px;"></h1>
+                    <p class="muted" id="clientTrackLabel" style="margin-top:6px;"></p>
+
+                    <div class="progress-bar-wrap"><div id="progressFill" class="progress-bar-fill" style="width:0%;"></div></div>
+                    <div class="progress-stat"><span id="progressStat"></span></div>
+
+                    <div id="phasesRoot"></div>
+
+                    <div class="panel" style="margin-top:40px;text-align:center;">
+                        <p class="muted" style="margin-bottom:10px;">Questions about where things stand?</p>
+                        <a href="tel:12162935678" class="btn btn-primary" style="margin-right:10px;">Call 216-293-5678</a>
+                        <a href="mailto:jimmy@londo.tech" class="btn btn-ghost">jimmy@londo.tech</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="stack" style="gap:10px;max-width:420px;">
+                <span class="brand">LONDO <span>TECHNOLOGIES</span></span>
+                <p class="muted" style="font-size:14px;">Family-owned technology and media support for North Bloomfield, Trumbull County, and surrounding Ohio areas.</p>
+            </div>
+            <div class="stack" style="gap:6px;font-size:14.5px;">
+                <a href="tel:12162935678" style="font-weight:600;">216-293-5678</a>
+                <a href="mailto:jimmy@londo.tech" style="font-weight:600;">jimmy@londo.tech</a>
+                <span class="muted" style="font-size:13px;">&copy; 2026 Londo Technologies LTD</span>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { firebaseConfig } from "./assets/firebase-config.js";
+        import { phasesForTrack, TRACK_LABELS } from "./assets/checklist-templates.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function escapeHtml(s) {
+            return String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+        }
+
+        const checkIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+        const dotIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>';
+
+        async function render() {
+            const params = new URLSearchParams(location.search);
+            const clientId = params.get("c");
+            const loadingState = document.getElementById("loadingState");
+            const notFound = document.getElementById("notFound");
+            const content = document.getElementById("content");
+
+            if (!clientId) { loadingState.style.display = "none"; notFound.style.display = "block"; return; }
+
+            let snap;
+            try {
+                snap = await getDoc(doc(db, "clients", clientId));
+            } catch (e) {
+                loadingState.style.display = "none"; notFound.style.display = "block"; return;
+            }
+            if (!snap.exists()) { loadingState.style.display = "none"; notFound.style.display = "block"; return; }
+
+            const c = snap.data();
+            const phases = phasesForTrack(c.trackType);
+            const allSteps = phases.flatMap((p) => p.steps);
+            const total = allSteps.length;
+            const done = allSteps.filter((s) => c.stepStatus?.[s.id]?.status === "done").length;
+            const pct = total ? Math.round((done / total) * 100) : 0;
+
+            document.getElementById("clientName").textContent = c.name;
+            document.getElementById("clientTrackLabel").textContent = (TRACK_LABELS[c.trackType] || c.trackType) + " SEO plan";
+            document.getElementById("progressFill").style.width = pct + "%";
+            document.getElementById("progressStat").textContent = `${done} of ${total} steps complete (${pct}%)`;
+
+            document.getElementById("phasesRoot").innerHTML = phases.map((phase) => `
+                <div class="phase-block">
+                    <h3>${escapeHtml(phase.title)}</h3>
+                    ${phase.steps.map((s) => {
+                        const isDone = c.stepStatus?.[s.id]?.status === "done";
+                        return `<div class="step-row ${isDone ? "done" : ""}">
+                            <span class="step-icon">${isDone ? checkIcon : dotIcon}</span>
+                            <span>${escapeHtml(s.title)}</span>
+                        </div>`;
+                    }).join("")}
+                </div>
+            `).join("");
+
+            loadingState.style.display = "none";
+            content.style.display = "block";
+        }
+
+        render();
+    </script>
+
+</body>
+</html>

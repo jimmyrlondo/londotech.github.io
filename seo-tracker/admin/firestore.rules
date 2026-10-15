@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Authorization: an admin is any signed-in user whose UID has a doc in
+    // /admins. No public sign-up flow, accounts are created manually
+    // (Firebase console or CLI), so this is a deliberate allow-list.
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Each client's checklist progress. Public read so the shareable link
+    // works with no login (security is "unlisted by URL," same pattern as
+    // the Recoup/Clear and Direct Care previews); only an admin can create,
+    // check off steps, or edit. The checklist step titles and structure
+    // live in code (assets/checklist-templates.js), not in this document,
+    // so there's nothing sensitive in a client doc beyond name/track/status.
+    match /clients/{clientId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // The admin allow-list itself. A user may read their own membership doc
+    // (so the admin UI can check "am I actually allowed in here"), but
+    // nobody can write it from the client, only managed directly via the
+    // Firebase console or CLI.
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}

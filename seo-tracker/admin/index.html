@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>SEO Tracker Admin | Londo Technologies</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div id="loginScreen" class="login-screen">
+  <form id="loginForm" class="login-card">
+    <h1>SEO Tracker</h1>
+    <p class="muted">Sign in to manage client checklists.</p>
+    <label>Email<input type="email" id="loginEmail" autocomplete="username" required></label>
+    <label>Password<input type="password" id="loginPassword" autocomplete="current-password" required></label>
+    <p id="loginError" class="error"></p>
+    <button type="submit" class="btn btn-primary">Sign in</button>
+  </form>
+</div>
+
+<div id="appShell" class="app-shell">
+  <header class="topbar">
+    <div class="brand">SEO Tracker</div>
+    <div class="who">
+      <span id="whoEmail"></span>
+      <button type="button" id="signOutBtn" class="btn btn-ghost btn-sm">Sign out</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <button type="button" id="newClientBtn" class="btn btn-primary" style="width:100%;margin-bottom:14px;">+ New Client</button>
+      <div id="clientList" class="client-list"></div>
+    </aside>
+
+    <main class="main">
+      <div id="emptyState" class="empty-state">
+        <p>Select a client, or create a new one, to see their checklist.</p>
+      </div>
+
+      <div id="clientDetail" class="client-detail" hidden>
+        <div class="detail-header">
+          <div>
+            <h2 id="detailName"></h2>
+            <span id="detailTrack" class="badge"></span>
+          </div>
+          <div class="detail-actions">
+            <button type="button" id="copyLinkBtn" class="btn btn-ghost btn-sm">Copy share link</button>
+            <button type="button" id="deleteClientBtn" class="btn btn-danger btn-sm">Delete client</button>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          <span id="progressLabel" class="progress-label"></span>
+        </div>
+
+        <div id="phasesRoot" class="phases-root"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="newClientModal" class="modal" hidden>
+  <div class="modal-card">
+    <h3>New client</h3>
+    <form id="newClientForm">
+      <label>Client / business name<input type="text" id="newClientName" required></label>
+      <label>Contact name (optional)<input type="text" id="newClientContact"></label>
+      <label>Track
+        <select id="newClientTrack">
+          <option value="local">Local traffic</option>
+          <option value="digital">Digital only</option>
+          <option value="hybrid">Local + digital</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button type="button" id="cancelNewClientBtn" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
