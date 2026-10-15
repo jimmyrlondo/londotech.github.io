@@ -58,6 +58,11 @@ export const CHECKLIST_PHASES = [
         howTo: "Verify domain ownership, submit the sitemap, and review the Coverage report for indexing errors. Fix or explain every error before moving on; a page that isn't indexed can't rank no matter what else gets fixed.",
       },
       {
+        id: "bing-webmaster",
+        title: "Set up Bing Webmaster Tools",
+        howTo: "Verify the site in Bing Webmaster Tools and submit the sitemap there too. Bing (and Yahoo, which runs on Bing's index) still drives real traffic, especially from Windows/Edge default-search users, and it's a separate submission that's easy to forget.",
+      },
+      {
         id: "call-tracking",
         title: "Set up call tracking if applicable",
         howTo: "If phone calls are a meaningful conversion path, install a call-tracking number (e.g. CallRail, or Google's own call reporting in Business Profile) so calls show up in analytics instead of disappearing into a black box.",
@@ -90,14 +95,39 @@ export const CHECKLIST_PHASES = [
         howTo: "Add real exterior, interior, team, and work-sample photos, at least 10 to start. Stock photos hurt more than they help; Google and customers can both tell.",
       },
       {
-        id: "nap-audit",
-        title: "Audit NAP consistency across directories",
-        howTo: "Check name, address, and phone number on the top directories for the industry (Yelp, Bing Places, Apple Maps, Facebook, and any industry-specific ones). Flag every mismatch; inconsistent NAP data actively hurts local rankings.",
+        id: "gbp-posts",
+        title: "Start posting to Google Business Profile",
+        howTo: "Use GBP's built-in posts (offers, updates, events) at least every couple of weeks. Active profiles with recent posts carry a visible engagement signal and give a searcher a reason to click through instead of a competitor.",
       },
       {
-        id: "citations-fix",
-        title: "Fix or create missing local citations",
-        howTo: "Correct the mismatches found in the NAP audit, and create listings on any major directory where the business is missing entirely.",
+        id: "directory-yelp",
+        title: "Claim and complete the Yelp listing",
+        howTo: "Claim the business on Yelp, fill out every field (hours, categories, services, photos), and make sure NAP matches the site exactly. Yelp carries real weight for restaurants, home services, and local retail specifically.",
+      },
+      {
+        id: "directory-bing-places",
+        title: "Claim Bing Places for Business",
+        howTo: "Separate from Bing Webmaster Tools, this is Bing's version of Google Business Profile. Claim it, complete it, and sync hours and photos; it feeds Bing Maps and Microsoft's AI search surfaces.",
+      },
+      {
+        id: "directory-nextdoor",
+        title: "Claim the Nextdoor Business Page",
+        howTo: "Verify the business on Nextdoor and complete the profile. Nextdoor carries unusually high trust with its audience, neighbors recommending businesses to neighbors, so it's worth the setup even though it won't move traditional search rankings.",
+      },
+      {
+        id: "directory-apple-maps",
+        title: "Claim Apple Business Connect",
+        howTo: "Claim the listing in Apple Business Connect so the business shows up correctly in Apple Maps and Siri results, not just Google's ecosystem.",
+      },
+      {
+        id: "directory-core-list",
+        title: "Audit NAP across the rest of the core directory list",
+        howTo: "Check and fix name/address/phone consistency on the remaining high-value directories for the industry: Facebook, BBB, Yellow Pages (YP.com), Angi or an industry-specific directory, Chamber of Commerce, Foursquare, and MapQuest/Waze. Fix every mismatch found.",
+      },
+      {
+        id: "site-nap-map",
+        title: "Add NAP and an embedded map to the website itself",
+        howTo: "Make sure the exact NAP appears in the site footer or a dedicated contact page, matching every directory exactly, with an embedded Google Map and a tap-for-directions link. Consistency starts at home.",
       },
       {
         id: "local-schema",
@@ -118,6 +148,43 @@ export const CHECKLIST_PHASES = [
         id: "review-response",
         title: "Respond to existing reviews",
         howTo: "Reply to every review, good and bad, going back as far as reasonable. A thoughtful response to a bad review often matters more to prospective customers than the review itself.",
+      },
+    ],
+  },
+  {
+    id: "social",
+    title: "Social Media Optimization",
+    track: "shared",
+    steps: [
+      {
+        id: "social-platform-inventory",
+        title: "Identify every platform that matters for this business",
+        howTo: "Decide which platforms are actually worth maintaining (commonly Facebook, Instagram, and LinkedIn, sometimes TikTok, YouTube, Pinterest, or X) based on where the business's actual customers spend time, not every platform that exists.",
+      },
+      {
+        id: "social-claim-complete",
+        title: "Claim and fully complete each profile",
+        howTo: "For every platform from the inventory: claim the handle, add a complete bio, real contact info, hours if applicable, and a profile/cover photo that matches the brand. Half-filled profiles read as abandoned.",
+      },
+      {
+        id: "social-nap-consistency",
+        title: "Match NAP and links across every social profile",
+        howTo: "Make sure name, address, phone, and website link are identical across every platform, and identical to the website's own footer and every directory listing. Mismatches confuse both customers and search engines.",
+      },
+      {
+        id: "social-website-crosslink",
+        title: "Cross-link the website and every social profile",
+        howTo: "Add visible social icons/links in the website header or footer pointing to each active profile, and make sure each profile's bio link points back to the site (or a relevant landing page, not just the homepage by default).",
+      },
+      {
+        id: "social-content-cadence",
+        title: "Set a realistic posting cadence",
+        howTo: "Agree on a posting frequency the business can actually sustain, better to post consistently once a week than daily for a month and go silent. Build it into the reporting cycle so it doesn't quietly stop.",
+      },
+      {
+        id: "social-discoverability",
+        title: "Use location tags, categories, and keywords in profiles",
+        howTo: "Tag the correct location on every post where relevant, fill out platform-specific category fields (e.g. Facebook's business category, Instagram's business category), and write bios with the actual words customers search for, not just a tagline.",
       },
     ],
   },
@@ -159,6 +226,43 @@ export const CHECKLIST_PHASES = [
     ],
   },
   {
+    id: "technical",
+    title: "Technical & On-Page Fixes",
+    track: "shared",
+    steps: [
+      {
+        id: "core-web-vitals",
+        title: "Fix Core Web Vitals issues",
+        howTo: "Use PageSpeed Insights/Search Console's Core Web Vitals report to find and fix the specific issues flagged, usually image size, unused JavaScript, or slow server response. Google uses these as a direct ranking signal, not just a nice-to-have.",
+      },
+      {
+        id: "image-alt-text",
+        title: "Add proper alt text and compress images",
+        howTo: "Every meaningful image gets descriptive alt text (helps accessibility and image search), and oversized images get compressed. This is usually the single biggest speed win on a content-heavy site.",
+      },
+      {
+        id: "internal-linking",
+        title: "Clean up internal linking",
+        howTo: "Make sure important pages are linked to from other relevant pages on the site, not orphaned, and use descriptive link text instead of \"click here.\"",
+      },
+      {
+        id: "og-tags",
+        title: "Add Open Graph & Twitter Card tags",
+        howTo: "Add proper og:title, og:description, og:image, and Twitter Card meta tags to key pages so links shared on social media show a real preview instead of a blank or broken one.",
+      },
+      {
+        id: "structured-data-validate",
+        title: "Validate structured data",
+        howTo: "Run every page with schema markup through Google's Rich Results Test and fix any errors or warnings. Broken schema is worse than no schema; it can cause Google to ignore it entirely.",
+      },
+      {
+        id: "redirects-cleanup",
+        title: "Audit and clean up redirects",
+        howTo: "Find any broken links or old URLs still being linked to internally or from other sites, and make sure they 301 redirect to the correct current page instead of 404ing.",
+      },
+    ],
+  },
+  {
     id: "conversion",
     title: "Conversion Optimization",
     track: "shared",
@@ -179,11 +283,6 @@ export const CHECKLIST_PHASES = [
         howTo: "Make sure phone numbers are tap-to-call links on mobile, and add click-to-text where the business can realistically respond to texts.",
       },
       {
-        id: "social-cta-alignment",
-        title: "Align social bio/pinned post CTAs with the site",
-        howTo: "Make sure every platform's bio link and pinned content point to the same converting page the rest of this plan is built around, not just the homepage by default.",
-      },
-      {
         id: "mobile-conversion-check",
         title: "Test the mobile conversion path",
         howTo: "On an actual phone, time how many taps it takes to go from landing on the site to completing the main conversion action. If it's more than 3-4 taps, something needs to be cut.",
@@ -195,6 +294,11 @@ export const CHECKLIST_PHASES = [
     title: "Reporting & Handoff",
     track: "shared",
     steps: [
+      {
+        id: "rank-tracking-setup",
+        title: "Set up keyword rank tracking",
+        howTo: "Use a rank tracker (Search Console's own Performance report at minimum, or a dedicated tool) to monitor position for the priority keywords over time, so improvement is measurable, not just assumed.",
+      },
       {
         id: "dashboard-build",
         title: "Build the client's reporting dashboard",
