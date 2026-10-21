@@ -22,7 +22,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,500&amp;family=Public+Sans:wght@400;600&amp;display=optional">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,500&amp;family=Public+Sans:wght@400;600&amp;display=optional" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,500&amp;family=Public+Sans:wght@400;600&amp;display=optional"></noscript>
-  <link rel="stylesheet" href="/clients/clearanddirectcare/preview/assets/css/site.css?v=mvhifeqe">
+  <link rel="stylesheet" href="/clients/clearanddirectcare/preview/assets/css/site.css?v=mviaa0w4">
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -40,6 +40,7 @@
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
+  <div class="preview-bar" role="note">Proof of concept: a preview of a redesigned Clear and Direct Care website, not the live site. Sign-up and forms are for demonstration only.</div>
   <header class="site-header">
   <div class="wrap">
     <a class="brand" href="/clients/clearanddirectcare/preview/" aria-label="Clear and Direct Care, home">
@@ -52,7 +53,7 @@
       <a href="/clients/clearanddirectcare/preview/about">About</a>
       <a href="/clients/clearanddirectcare/preview/blog">Blog</a>
       <a href="/clients/clearanddirectcare/preview/contact">Contact &amp; FAQ</a>
-      <a class="btn" href="https://www.clearanddirectcare.com/pricing-plans/plans-pricing" data-track="join" data-plan="header">Join <span class="arrow" aria-hidden="true">&rarr;</span></a>
+      <a class="btn" href="/clients/clearanddirectcare/preview/join" data-track="join" data-plan="header">Join <span class="arrow" aria-hidden="true">&rarr;</span></a>
     </nav>
   </div>
 </header>
@@ -149,7 +150,7 @@
     <ol class="steps">
       <li>
         <h3>Choose your membership</h3>
-        <p>Pick the plan that fits your life, your goals and how much support you want. Every plan includes concierge scheduling, and select plans can be shared with people you aren't related to.</p>
+        <p>Pick the plan that fits your life, your goals and how much support you want. Every plan includes concierge scheduling.</p>
       </li>
       <li>
         <h3>Start where you need to</h3>
@@ -173,7 +174,7 @@
       <p>Traditional insurance can cost hundreds a month before you've used it. A membership is built around the care you'll actually use, priced up front.</p>
     </div>
     <div class="figures">
-      <div><div class="big">10%</div><h3>Off with annual billing</h3><p>Pay once a year instead of monthly and save on any plan.</p></div>
+      <div><div class="big">10%</div><h3>Up to 10% off with annual billing</h3><p>Pay once a year instead of monthly and save on any plan.</p></div>
       <div><div class="big">20%</div><h3>Off additional lab tests</h3><p>Members save on any extra test, for anyone who needs it. The choice is yours.</p></div>
       <div><div class="big">$0</div><h3>Hidden fees</h3><p>You see exactly what a service costs before you book it. No surprises afterward.</p></div>
     </div>
@@ -192,7 +193,7 @@
     <div class="plans-block" data-billing="annual">
   <div class="billing-toggle" role="group" aria-label="Billing">
     <button type="button" data-set-billing="monthly" aria-pressed="false">Monthly</button>
-    <button type="button" data-set-billing="annual" aria-pressed="true">Annual <span class="save">save 10%</span></button>
+    <button type="button" data-set-billing="annual" aria-pressed="true">Annual <span class="save">save up to 10%</span></button>
   </div>
   <div class="plans">
     <article class="plan" id="plan-essentialist">
@@ -200,8 +201,8 @@
       <p class="pitch">For individuals who want predictable, preventative healthcare without traditional insurance complexity.</p>
       <div class="price is-monthly"><span class="amount">$110</span><span class="per">/ month</span></div>
       <div class="price is-annual"><span class="amount">$99</span><span class="per">/ month</span></div>
-      <p class="price-note is-monthly">Billed monthly. One-time setup fee $44.</p>
-      <p class="price-note is-annual">$1,188 billed once a year. One-time setup fee $36.</p>
+      <p class="price-note is-monthly">12-month membership, billed monthly. One-time setup fee $44.</p>
+      <p class="price-note is-annual">12-month membership, $1,188 billed once. One-time setup fee $36.</p>
       <ul>
         <li><b>1</b><span>Urgent care visit</span></li>
         <li><b>3</b><span>Mental health sessions</span></li>
@@ -209,15 +210,15 @@
         <li class="extra">Lab insights review</li>
         <li class="extra">A la carte upgrades available</li>
       </ul>
-      <a class="btn btn--ghost" href="https://www.clearanddirectcare.com/pricing-plans/plans-pricing" data-track="join" data-plan="essentialist">Choose<span class="visually-hidden"> Essentialist</span> this plan</a>
+      <a class="btn btn--ghost" href="/clients/clearanddirectcare/preview/join?plan=essentialist" data-track="join" data-plan="essentialist">Choose<span class="visually-hidden"> Essentialist</span> this plan</a>
     </article>
     <article class="plan" id="plan-strategist">
       <h3>Strategist</h3>
       <p class="pitch">For the person who wants flexibility and a more intentional approach to healthcare.</p>
       <div class="price is-monthly"><span class="amount">$199</span><span class="per">/ month</span></div>
       <div class="price is-annual"><span class="amount">$179</span><span class="per">/ month</span></div>
-      <p class="price-note is-monthly">Billed monthly. One-time setup fee $76.</p>
-      <p class="price-note is-annual">$2,150 billed once a year. One-time setup fee $65.</p>
+      <p class="price-note is-monthly">12-month membership, billed monthly. One-time setup fee $76.</p>
+      <p class="price-note is-annual">12-month membership, $2,150 billed once. One-time setup fee $65.</p>
       <ul>
         <li><b>1</b><span>Urgent care visit</span></li>
         <li><b>3</b><span>Mental health sessions</span></li>
@@ -226,32 +227,31 @@
         <li class="extra">Build-your-own care approach</li>
         <li class="extra">Extra lab panels at 20% off</li>
       </ul>
-      <a class="btn btn--ghost" href="https://www.clearanddirectcare.com/pricing-plans/plans-pricing" data-track="join" data-plan="strategist">Choose<span class="visually-hidden"> Strategist</span> this plan</a>
+      <a class="btn btn--ghost" href="/clients/clearanddirectcare/preview/join?plan=strategist" data-track="join" data-plan="strategist">Choose<span class="visually-hidden"> Strategist</span> this plan</a>
     </article>
-    <article class="plan plan--featured" id="plan-problem-solver"><span class="flag">Family friendly</span>
+    <article class="plan" id="plan-problem-solver">
       <h3>Problem Solver</h3>
       <p class="pitch">For families and individuals looking for answers, clarity, and more connected care.</p>
       <div class="price is-monthly"><span class="amount">$252</span><span class="per">/ month</span></div>
       <div class="price is-annual"><span class="amount">$229</span><span class="per">/ month</span></div>
-      <p class="price-note is-monthly">Billed monthly. One-time setup fee $95.</p>
-      <p class="price-note is-annual">$2,750 billed once a year. One-time setup fee $83.</p>
+      <p class="price-note is-monthly">12-month membership, billed monthly. One-time setup fee $95.</p>
+      <p class="price-note is-annual">12-month membership, $2,750 billed once. One-time setup fee $83.</p>
       <ul>
         <li><b>3</b><span>Urgent care visits</span></li>
         <li><b>5</b><span>Mental health sessions</span></li>
         <li><b>&bull;</b><span>2 comprehensive wellness panels</span></li>
         <li><b>2</b><span>Nutrition sessions</span></li>
-        <li class="extra">Family-share flexibility</li>
         <li class="extra">At-home physical therapy add-ons</li>
       </ul>
-      <a class="btn" href="https://www.clearanddirectcare.com/pricing-plans/plans-pricing" data-track="join" data-plan="problem-solver">Choose<span class="visually-hidden"> Problem Solver</span> this plan</a>
+      <a class="btn btn--ghost" href="/clients/clearanddirectcare/preview/join?plan=problem-solver" data-track="join" data-plan="problem-solver">Choose<span class="visually-hidden"> Problem Solver</span> this plan</a>
     </article>
     <article class="plan" id="plan-optimizer">
       <h3>Optimizer</h3>
       <p class="pitch">For high performers focused on longevity, proactive wellness, and optimizing health.</p>
       <div class="price is-monthly"><span class="amount">$391</span><span class="per">/ month</span></div>
       <div class="price is-annual"><span class="amount">$355</span><span class="per">/ month</span></div>
-      <p class="price-note is-monthly">Billed monthly. One-time setup fee $144.</p>
-      <p class="price-note is-annual">$4,260 billed once a year. One-time setup fee $128.</p>
+      <p class="price-note is-monthly">12-month membership, billed monthly. One-time setup fee $144.</p>
+      <p class="price-note is-annual">12-month membership, $4,260 billed once. One-time setup fee $128.</p>
       <ul>
         <li><b>2</b><span>Urgent care visits</span></li>
         <li><b>8</b><span>Mental health sessions</span></li>
@@ -261,10 +261,10 @@
         <li class="extra">Advanced preventative care</li>
         <li class="extra">Hormone and weight management panels available</li>
       </ul>
-      <a class="btn btn--ghost" href="https://www.clearanddirectcare.com/pricing-plans/plans-pricing" data-track="join" data-plan="optimizer">Choose<span class="visually-hidden"> Optimizer</span> this plan</a>
+      <a class="btn btn--ghost" href="/clients/clearanddirectcare/preview/join?plan=optimizer" data-track="join" data-plan="optimizer">Choose<span class="visually-hidden"> Optimizer</span> this plan</a>
     </article>
   </div>
-  <p class="fine">Sessions are 45 minutes. Visit and session counts are per membership year. Prices are per membership; ask us about sharing with family.</p>
+  <p class="fine">Sessions are 45 minutes. Visit and session counts are per membership year. Prices are per membership.</p>
 </div>
 
     <p class="mt-l"><a class="text-link" href="/clients/clearanddirectcare/preview/memberships#compare">Compare plans side by side</a></p>
@@ -361,6 +361,7 @@
       <span>&copy; 2026 Clear and Direct Care</span>
       <ul>
         <li><a href="/clients/clearanddirectcare/preview/privacy-policy">Privacy</a></li>
+        <li><a href="/clients/clearanddirectcare/preview/membership-agreement">Membership Agreement</a></li>
         <li><a href="/clients/clearanddirectcare/preview/terms">Terms</a></li>
         <li><a href="/clients/clearanddirectcare/preview/refund-policy">Refunds</a></li>
         <li><a href="/clients/clearanddirectcare/preview/accessibility">Accessibility</a></li>
@@ -369,6 +370,6 @@
   </div>
 </footer>
 
-  <script src="/clients/clearanddirectcare/preview/assets/js/site.js?v=mvhifeqe" defer=""></script>
+  <script src="/clients/clearanddirectcare/preview/assets/js/site.js?v=mviaa0w4" defer=""></script>
 </body>
 </html>

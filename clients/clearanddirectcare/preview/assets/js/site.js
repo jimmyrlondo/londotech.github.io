@@ -73,6 +73,11 @@
       }
       var data = new FormData(form);
       if (data.get("_gotcha")) return;
+      if (form.getAttribute("data-demo")) {
+        form.reset();
+        show("Thanks! This is a preview of the new site, so messages aren't sent. On the live site, this goes straight to the concierge team.");
+        return;
+      }
       var endpoint = form.getAttribute("data-endpoint");
       var topic = data.get("topic");
       if (!endpoint) {
@@ -99,3 +104,78 @@
     });
   }
 })();
+
+// Join page demo: live order summary from the chosen plan and billing. Never charges anything.
+(function () {
+  var form = document.getElementById("join-form");
+  if (!form || !window.CDC_PLANS) return;
+  var plans = window.CDC_PLANS, services = window.CDC_SERVICES || [];
+  var money = function (n) { return "$" + Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 }); };
+  var setAll = function (sel, text) { document.querySelectorAll(sel).forEach(function (el) { el.textContent = text; }); };
+
+  // Preselect from the button that brought them here (/join?plan=strategist&billing=monthly).
+  var q = new URLSearchParams(location.search);
+  var pre = form.querySelector('input[name=plan][value="' + (q.get("plan") || "") + '"]');
+  if (pre) pre.checked = true;
+  var bil = form.querySelector('input[name=billing][value="' + (q.get("billing") || "") + '"]');
+  if (bil) bil.checked = true;
+
+  function render() {
+    var id = form.querySelector("input[name=plan]:checked").value;
+    var billing = form.querySelector("input[name=billing]:checked").value;
+    var t = plans.filter(function (p) { return p.id === id; })[0];
+    var monthly = billing === "monthly";
+    var setup = monthly ? t.monthlySetup : t.annualSetup;
+    var price = monthly ? t.monthly : t.annual;
+    setAll("[data-plan-name]", t.name);
+    setAll("[data-billing-name]", monthly ? "Monthly" : "Annual");
+    setAll("[data-price-label]", monthly ? "First month" : "12 months, paid once");
+    setAll("[data-price]", money(price));
+    setAll("[data-setup]", money(setup));
+    setAll("[data-today]", money(price + setup));
+    setAll("[data-year]", money((monthly ? price * 12 : price) + setup));
+    setAll("[data-schedule]", monthly
+      ? "Then " + money(price) + " a month for the next 11 months."
+      : "Nothing more to pay for the 12 months.");
+    setAll("[data-terms-billing]", monthly
+      ? "You pay " + money(price) + " a month for 12 months (" + money(price * 12) + " in total)."
+      : "You pay " + money(price) + " once for the full 12 months.");
+    var ul = document.querySelector("[data-includes]");
+    ul.innerHTML = "";
+    services.forEach(function (s) {
+      var v = t.includes[s.id];
+      if (!v) return;
+      var li = document.createElement("li");
+      var unit = s.id === "urgent-care" || s.id === "physical-therapy" ? " visit" : " session";
+      li.textContent = typeof v === "number" ? v + " " + s.short.toLowerCase() + unit + (v > 1 ? "s" : "") : v;
+      ul.appendChild(li);
+    });
+  }
+  form.addEventListener("change", render);
+  render();
+
+  var status = form.querySelector(".form-status");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      status.className = "form-status is-shown is-error";
+      status.textContent = "Please fill in your details and agree to the terms to continue.";
+      var bad = form.querySelector(":invalid");
+      if (bad) bad.focus();
+      return;
+    }
+    status.className = "form-status is-shown";
+    status.textContent = "This is where payment would open. In this demo, nothing is charged and no account is created.";
+  });
+})();
+
+// Carry the monthly/annual choice from the plan cards into the Join page link.
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest('a[data-track="join"][data-plan]');
+  if (!a || a.getAttribute("data-plan") === "header") return;
+  var block = a.closest(".plans-block");
+  if (!block) return;
+  var u = new URL(a.href, location.href);
+  u.searchParams.set("billing", block.getAttribute("data-billing"));
+  a.href = u.pathname + u.search;
+});
