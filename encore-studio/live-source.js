@@ -35,15 +35,40 @@ export async function parseWavHeader(file) {
   return { ...fmt, dataOff, dataLen, frames: Math.floor(dataLen / (fmt.channels * fmt.bits / 8)) };
 }
 
-// routing (multi-input recordings): { main: [chL, chR], room: [chL, chR] | null,
-//   roomDb, mainDelay (frames; delays the board so it lines up with room mics) }
-export const DEFAULT_ROUTING = { main: [0, 1], room: null, roomDb: -6, mainDelay: 0 };
+// routing: which recorded inputs become the left/right we hear.
+//   main: [chL, chR]  (the same channel twice = one input in both ears)
+//   mono: true        blend main's two inputs to the center (two separate
+//                     mics/instruments, not a stereo pair)
+//   room: [chL, chR] | null, roomDb: blend level for room/crowd mics
+//   mainDelay: frames the main feed is delayed to line up with the room
+export const DEFAULT_ROUTING = { main: [0, 1], mono: false, room: null, roomDb: -6, mainDelay: 0 };
 
-class WavSource {
+class Routed {
+  initRouting() { this.routing = { ...DEFAULT_ROUTING, main: [0, Math.min(1, this.channels - 1)] }; }
+
+  async read(start, count) {
+    start = Math.max(0, Math.floor(start)); count = Math.max(0, Math.min(count, this.frames - start));
+    const rt = this.routing, d = Math.max(0, rt.mainDelay | 0);
+    const raw = await this.readRaw(start - d, count + d);
+    const pick = (c) => raw[Math.max(0, Math.min(raw.length - 1, c))];
+    const l = new Float32Array(count), r = new Float32Array(count);
+    const mL = pick(rt.main[0]), mR = pick(rt.main[1] ?? rt.main[0]);
+    if (rt.mono && mL !== mR) for (let i = 0; i < count; i++) { const m = 0.5 * (mL[i] + mR[i]); l[i] = m; r[i] = m; }
+    else for (let i = 0; i < count; i++) { l[i] = mL[i]; r[i] = mR[i]; } // main, delayed by d (raw starts d frames early)
+    if (rt.room && this.channels > 2) {
+      const g = Math.pow(10, rt.roomDb / 20), rL = pick(rt.room[0]), rR = pick(rt.room[1] ?? rt.room[0]);
+      for (let i = 0; i < count; i++) { l[i] += g * rL[i + d]; r[i] += g * rR[i + d]; }
+    }
+    applyGainTrack(this.gainTrack, this.fs, start, l, r);
+    return { l, r };
+  }
+}
+
+class WavSource extends Routed {
   constructor(file, h) {
+    super();
     this.file = file; this.h = h; this.fs = h.fs; this.frames = h.frames; this.duration = h.frames / h.fs;
-    this.channels = h.channels; this.gainTrack = null;
-    this.routing = { ...DEFAULT_ROUTING, main: [0, Math.min(1, h.channels - 1)] };
+    this.channels = h.channels; this.gainTrack = null; this.initRouting();
   }
 
   // every channel, raw, for frames [start, start+count) (zeros outside the file)
@@ -61,35 +86,22 @@ class WavSource {
     for (let i = 0; i < b - a; i++) for (let c = 0; c < h.channels; c++) chans[c][skip + i] = rd(i * frameBytes + c * bps);
     return chans;
   }
-
-  async read(start, count) {
-    start = Math.max(0, Math.floor(start)); count = Math.max(0, Math.min(count, this.frames - start));
-    const rt = this.routing, d = Math.max(0, rt.mainDelay | 0);
-    const raw = await this.readRaw(start - d, count + d);
-    const pick = (c) => raw[Math.min(raw.length - 1, c)];
-    const l = new Float32Array(count), r = new Float32Array(count);
-    const mL = pick(rt.main[0]), mR = pick(rt.main[1] ?? rt.main[0]);
-    for (let i = 0; i < count; i++) { l[i] = mL[i]; r[i] = mR[i]; } // board, delayed by d (raw starts d frames early)
-    if (rt.room && this.channels > 2) {
-      const g = Math.pow(10, rt.roomDb / 20), rL = pick(rt.room[0]), rR = pick(rt.room[1] ?? rt.room[0]);
-      for (let i = 0; i < count; i++) { l[i] += g * rL[i + d]; r[i] += g * rR[i + d]; }
-    }
-    applyGainTrack(this.gainTrack, this.fs, start, l, r);
-    return { l, r };
-  }
 }
 
-class BufferSource {
-  constructor(buffer) {
-    this.buffer = buffer; this.fs = buffer.sampleRate; this.frames = buffer.length; this.duration = buffer.duration;
-    this.channels = buffer.numberOfChannels; this.gainTrack = null;
+// a decoded file (MP3, M4A, FLAC...): chans = one Float32Array per channel
+class BufferSource extends Routed {
+  constructor(chans, fs) {
+    super();
+    this.chans = chans; this.fs = fs; this.frames = chans[0].length; this.duration = this.frames / fs;
+    this.channels = chans.length; this.gainTrack = null; this.buffer = true; this.initRouting();
   }
-  async read(start, count) {
-    start = Math.max(0, Math.floor(start)); count = Math.max(0, Math.min(count, this.frames - start));
-    const l = this.buffer.getChannelData(0).slice(start, start + count);
-    const r = (this.channels > 1 ? this.buffer.getChannelData(1) : this.buffer.getChannelData(0)).slice(start, start + count);
-    applyGainTrack(this.gainTrack, this.fs, start, l, r);
-    return { l, r };
+  async readRaw(start, count) {
+    const a = Math.max(0, Math.floor(start)), skip = a - Math.floor(start);
+    return this.chans.map((ch) => {
+      const out = new Float32Array(count), end = Math.min(ch.length, a + count - skip);
+      if (end > a) out.set(ch.subarray(a, end), skip);
+      return out;
+    });
   }
 }
 
@@ -109,17 +121,76 @@ export async function openSource(file, ctx) {
   if (h) return new WavSource(file, h);
   // compressed formats: the browser decodes the whole thing (fine for typical sets)
   const buffer = await ctx.decodeAudioData(await file.arrayBuffer());
-  return new BufferSource(buffer);
+  return new BufferSource(Array.from({ length: buffer.numberOfChannels }, (_, c) => buffer.getChannelData(c)), buffer.sampleRate);
 }
 
 // For workers: everything needed to rebuild the source on the other side
 export function describeSource(src) {
   return src instanceof WavSource
     ? { kind: "wav", file: src.file, header: src.h, gainTrack: src.gainTrack, routing: src.routing }
-    : { kind: "buffer", fs: src.fs, l: src.buffer.getChannelData(0), r: src.channels > 1 ? src.buffer.getChannelData(1) : src.buffer.getChannelData(0), gainTrack: src.gainTrack };
+    : { kind: "buffer", fs: src.fs, chans: src.chans, gainTrack: src.gainTrack, routing: src.routing };
 }
 export function sourceFromDescription(d) {
-  if (d.kind === "wav") { const s = new WavSource(d.file, d.header); s.gainTrack = d.gainTrack; if (d.routing) s.routing = d.routing; return s; }
-  const fake = { sampleRate: d.fs, length: d.l.length, duration: d.l.length / d.fs, numberOfChannels: 2, getChannelData: (c) => (c ? d.r : d.l) };
-  const s = new BufferSource(fake); s.gainTrack = d.gainTrack; return s;
+  const s = d.kind === "wav" ? new WavSource(d.file, d.header) : new BufferSource(d.chans, d.fs);
+  s.gainTrack = d.gainTrack; if (d.routing) s.routing = d.routing;
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// What's on each input, and a sensible way to listen to it.
+// Samples a dozen 2 s windows across the recording (fast even for long
+// shows), measures each channel's level and how alike neighbouring channels are.
+export async function inspectChannels(src) {
+  const ch = src.channels, fs = src.fs, win = Math.min(Math.round(fs * 2), src.frames), spots = 12;
+  const pow = new Float64Array(ch), xy = new Float64Array(ch);
+  let n = 0;
+  for (let k = 0; k < spots; k++) {
+    const at = Math.max(0, Math.round(((k + 0.5) / spots) * src.frames) - Math.round(win / 2));
+    const raw = await src.readRaw(at, win);
+    for (let i = 0; i < raw[0].length; i += 2) {
+      for (let c = 0; c < ch; c++) { const v = raw[c][i]; pow[c] += v * v; if (c + 1 < ch) xy[c] += v * raw[c + 1][i]; }
+      n++;
+    }
+  }
+  const levels = Array.from(pow, (p) => 10 * Math.log10(p / Math.max(1, n) + 1e-12));
+  const loudest = Math.max(...levels);
+  const active = levels.map((l) => l > -70 && l > loudest - 30); // more than just hiss
+  const corr = Array.from(xy, (v, c) => (c + 1 < ch ? v / Math.sqrt(pow[c] * pow[c + 1] + 1e-20) : 0));
+  return { levels, active, corr };
+}
+
+// Turn what was heard into routing plus a plain-English explanation.
+// names: what to call each channel (defaults to Input 1, 2, ...).
+export function suggestRouting(info, names = []) {
+  const on = info.active.map((a, c) => (a ? c : -1)).filter((c) => c >= 0);
+  const name = (c) => names[c] ?? `Input ${c + 1}`;
+  const both = (a, b) => `${name(a)} and ${name(b).replace(/^Input /, "")}`.replace(/^Input (\S+) and/, "Inputs $1 and");
+  const base = { ...DEFAULT_ROUTING };
+  if (on.length <= 1) {
+    const c = on[0] ?? 0;
+    return { setup: "single", routing: { ...base, main: [c, c] },
+      text: on.length ? `Sound on ${name(c)} only, so it plays in both ears.` : `Hardly any sound on any input. Playing ${name(0)} in both ears; check the cable and gain next time.` };
+  }
+  // neighbouring live inputs (1+2, 3+4...) that move together = a stereo pair
+  const pairs = [];
+  for (const c of on) if (c % 2 === 0 && info.active[c + 1]) pairs.push({ a: c, b: c + 1, stereo: info.corr[c] > 0.35 });
+  const rest = (used) => on.filter((c) => !used.includes(c));
+  const main = pairs.find((p) => p.stereo);
+  if (main && rest([main.a, main.b]).length) {
+    // a stereo feed plus more: the pair is the board, the rest gets blended on top
+    const others = rest([main.a, main.b]), r = pairs.find((p) => p !== main && others.includes(p.a));
+    const room = r ? [r.a, r.b] : [others[0], others[0]];
+    const roomText = r ? both(r.a, r.b).replace(/^Inputs /, "inputs ") : name(others[0]);
+    return { setup: "boardRoom", routing: { ...base, main: [main.a, main.b], room },
+      text: `${both(main.a, main.b)} sound like a stereo board feed, so they stay left and right with ${roomText} blended in on top.` };
+  }
+  if (pairs.length && pairs[0].stereo && !rest([pairs[0].a, pairs[0].b]).length) {
+    const p = pairs[0];
+    return { setup: "stereo", routing: { ...base, main: [p.a, p.b] },
+      text: `${both(p.a, p.b)} move together like a stereo pair (a board's L/R out, or a stereo mic), so they stay left and right.` };
+  }
+  // separate sources (vocal mic + guitar, two mics...): blend them to the center
+  const [a, b] = on;
+  return { setup: "blend", routing: { ...base, main: [a, b], mono: true },
+    text: `${name(a)} and ${name(b)} sound like separate mics or instruments, so they're blended into the middle and both ears hear both.` };
 }

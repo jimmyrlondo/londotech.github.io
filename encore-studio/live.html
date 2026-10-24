@@ -86,8 +86,16 @@
   .recBtns { display: flex; gap: 8px; }
   #recStop { padding: 12px 22px; font-size: 16px; }
   #recMark { padding: 12px 18px; }
+  .recGo { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; font-size: 17px; padding: 12px 26px; }
+  .recGo:hover:not(:disabled) { background: #f05252 !important; }
+  .recGo .recDot { background: #fff; }
+  .scBanner { margin-top: 14px; font-size: 14px; color: var(--text); background: rgb(34 211 238 / 0.08); border: 1px solid rgb(34 211 238 / 0.3); border-radius: 10px; padding: 8px 12px; }
+  .scBanner.rec { background: rgb(239 68 68 / 0.1); border-color: rgb(239 68 68 / 0.4); }
+  .chMeter .zone { position: absolute; inset: 0 10% 0 70%; background: rgb(123 211 164 / 0.16); border-left: 1px solid rgb(123 211 164 / 0.5); border-right: 1px solid rgb(123 211 164 / 0.5); }
+  .chMeter .verdict { font-size: 12px; }
+  #recTime:not(.live) { color: var(--dim); }
   .meters { display: grid; gap: 8px; margin-top: 18px; }
-  .chMeter { display: grid; grid-template-columns: 70px 1fr 64px; gap: 10px; align-items: center; font-size: 12px; color: var(--soft); }
+  .chMeter { display: grid; grid-template-columns: 62px 1fr 48px minmax(120px, 190px); gap: 10px; align-items: center; font-size: 12px; color: var(--soft); }
   .chMeter .track { height: 12px; border-radius: 9999px; background: var(--track); overflow: hidden; position: relative; }
   .chMeter .fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 9999px; background: linear-gradient(90deg, var(--green) 0 70%, var(--warn) 70% 88%, var(--red) 88%); background-size: var(--w, 100%) 100%; }
   .chMeter .val { font-family: var(--family-mono); text-align: right; }
@@ -142,6 +150,17 @@
   .seg { display: inline-flex; gap: 4px; flex-wrap: wrap; }
   .seg button { padding: 4px 10px; font-size: 12.5px; }
 
+  .chanBars { display: grid; gap: 6px; }
+  .chanBar { display: grid; grid-template-columns: 62px 1fr 52px; gap: 8px; align-items: center; font-size: 12px; color: var(--soft); }
+  .chanBar .track { height: 8px; border-radius: 9999px; background: var(--track); overflow: hidden; }
+  .chanBar .fill { height: 100%; border-radius: 9999px; background: var(--green); }
+  .chanBar.off { color: var(--dim); } .chanBar.off .fill { background: var(--dim); opacity: .5; }
+  .chanBar .st { font-size: 11px; text-align: right; }
+  .routeText { margin: 10px 0 0; font-size: 13.5px; color: var(--text); background: rgb(123 211 164 / 0.08); border: 1px solid rgb(123 211 164 / 0.25); border-radius: 10px; padding: 8px 10px; }
+  .setups { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .setups button { border-radius: 12px; text-align: left; padding: 8px 10px; display: flex; flex-direction: column; gap: 1px; }
+  .setups button small { font-size: 11.5px; opacity: .75; font-weight: 400; line-height: 1.3; }
+  .setups button.on small { opacity: .85; }
   .styles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .styles button { padding: 10px 8px; font-weight: 600; }
   .targets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -200,12 +219,8 @@
       <div class="panel">
         <h2><span class="recDot"></span>Record</h2>
         <p class="hint">Phone, laptop mic, USB mic, or a feed from the board through your interface. Any input your device can see.</p>
-        <label class="field">Input
-          <select id="inputSel"><option value="">Default input</option></select>
-        </label>
-        <div class="hint" id="inputInfo" style="margin-top:6px"></div>
-        <label class="check"><input type="checkbox" id="safeMode"> Phone safe mode <small>(lets the phone tame its own mic if it distorts on loud bands)</small></label>
-        <button id="recStart" class="primary">Start recording</button>
+        <button id="recStart" class="primary">Let's go</button>
+        <p class="hint" style="margin-top:8px;text-align:center">Next: pick your input and soundcheck. Recording only starts when you press Record.</p>
         <p class="hint" id="recSupport" style="margin-top:10px"></p>
       </div>
       <div class="panel" id="drop" role="button" tabindex="0" aria-label="Choose a live recording">
@@ -222,29 +237,56 @@
 
   <!-- ======== recording ======== -->
   <section id="recView" class="hidden">
+    <button id="scBack" class="linkish" style="margin-bottom:10px">Back</button>
     <div class="panel">
       <div class="recTop">
-        <div id="recTime" class="live">0:00:00</div>
+        <div id="recTime">0:00:00</div>
         <div class="recInfo" id="recInfo"></div>
         <div class="recBtns">
-          <button id="recMark" title="Drop a marker between songs (M)">Mark song <span id="markCount" class="mono"></span></button>
-          <button id="recStop" class="primary">Stop</button>
+          <button id="recMark" class="hidden" title="Drop a marker between songs (M)">Mark song <span id="markCount" class="mono"></span></button>
+          <button id="recGo" class="recGo"><span class="recDot"></span>Record</button>
+          <button id="recStop" class="primary hidden">Stop</button>
         </div>
       </div>
+      <div id="scBanner" class="scBanner">Soundcheck. Nothing is being recorded yet: set your levels, fill in the show, then hit Record.</div>
+      <div class="grid2" style="margin-top:12px">
+        <label class="field">Input
+          <select id="inputSel"><option value="">Default input</option></select>
+        </label>
+        <label class="field">Also record <small>(a second device, recorded alongside)</small>
+          <select id="inputSel2"><option value="">Nothing else</option></select>
+        </label>
+      </div>
+      <button id="sibling" class="small hidden" style="margin-top:8px"></button>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="safeMode"> Phone safe mode <small>(if a phone mic distorts on loud bands)</small></label>
+      <div class="hint" id="inputInfo" style="margin-top:6px"></div>
+      <div class="label" style="margin-top:14px">Levels <span>play the loudest part of a song; keep each input in the green zone, never red</span></div>
       <div class="meters" id="meters"></div>
+      <p id="recHint" class="hint" style="margin:10px 0 0"></p>
       <div id="recWarn"></div>
       <div class="recControls">
         <div>
           <div class="label">Input volume <span class="val" id="inVolVal">0.0 dB</span></div>
           <input id="inVol" type="range" min="-24" max="12" step="0.5" value="0" aria-label="Input volume">
           <div class="scale"><span>-24</span><span>0</span><span>+12</span></div>
-          <p class="hint" style="margin-top:6px">Turns the recording down or up afterwards, without changing what's saved. If a meter hits red, turn the gain down on the interface or mic itself.</p>
+          <p class="hint" style="margin-top:6px">Turns the recording down or up afterwards without changing what's saved. Set the real level with the gain knobs on your interface or mic; the meters above show that.</p>
         </div>
         <div>
           <div class="label">Smart leveler <span id="levNow"></span></div>
           <label class="check"><input type="checkbox" id="leveler" checked> Keep the level steady through the night</label>
           <p class="hint" style="margin-top:6px">Rides the volume slowly toward a healthy level, like an engineer on a fader, and holds still between songs. Saved separately, so you can switch it off later.</p>
         </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div class="label">The show <span>optional now, you can fill it in afterwards too</span></div>
+      <div class="grid2">
+        <label class="field">Artist<input data-mirror="mArtist" autocomplete="off"></label>
+        <label class="field">Release title<input data-mirror="mTitle" autocomplete="off" placeholder="Live at ..."></label>
+        <label class="field">Venue<input data-mirror="mVenue" autocomplete="off"></label>
+        <label class="field">City<input data-mirror="mCity" autocomplete="off"></label>
+        <label class="field">Date<input data-mirror="mDate" type="date"></label>
+        <label class="field wide">Setlist <small>(one song per line; the songs get named automatically after the show)</small><textarea data-mirror="mSetlist" placeholder="Opener&#10;Second song&#10;..."></textarea></label>
       </div>
     </div>
   </section>
@@ -274,6 +316,35 @@
       <div id="songs"></div>
 
       <div class="side">
+        <div class="panel hidden" id="routingPanel">
+          <div class="label">Inputs <span id="routingInfo"></span></div>
+          <div id="chanBars" class="chanBars"></div>
+          <p id="routeText" class="routeText"></p>
+          <div class="label" style="margin-top:12px">How was it set up?</div>
+          <div class="setups" id="setups">
+            <button data-setup="single"><b>One input</b><small>a mic or one cable, heard in both ears</small></button>
+            <button data-setup="stereo"><b>Stereo pair</b><small>board L/R out, or a stereo mic</small></button>
+            <button data-setup="blend"><b>Blend to the middle</b><small>separate mics or instruments</small></button>
+            <button data-setup="boardRoom"><b>Board + more</b><small>board feed with room mics or other inputs blended in</small></button>
+          </div>
+          <div id="setupPick" class="grid2" style="margin-top:10px">
+            <label class="field" id="pickOneWrap">Input<select id="pickOne"></select></label>
+            <label class="field" id="pickAWrap">Input<select id="pickA"></select></label>
+            <label class="field" id="pickBWrap">and<select id="pickB"></select></label>
+            <label class="field" id="pickPairWrap">Inputs<select id="pickPair"></select></label>
+            <label class="field" id="pickRoomWrap">Room or crowd mics<select id="pickRoom"></select></label>
+          </div>
+          <div id="roomControls" class="hidden" style="margin-top:10px">
+            <div class="label">Room mic level <span class="val" id="rRoomVal">-6.0 dB</span></div>
+            <input id="rRoomDb" type="range" min="-24" max="6" step="0.5" value="-6" aria-label="Room mic level">
+            <div class="label" style="margin-top:10px">Line up board and room <span class="val" id="rDelayVal">0.0 ms</span></div>
+            <input id="rDelay" type="range" min="0" max="150" step="0.1" value="0" aria-label="Board delay">
+            <button id="rAuto" class="small" style="margin-top:6px">Line up automatically</button>
+            <p class="hint" style="margin-top:6px">Sound reaches the room mics a little after the board. Delaying the board to match keeps the blend from sounding hollow.</p>
+          </div>
+          <button id="redetect" class="small hidden" style="margin-top:10px">Find the songs again with these inputs</button>
+        </div>
+
         <div class="panel">
           <div class="label">The show</div>
           <div class="grid2">
@@ -287,23 +358,6 @@
             <label class="field wide">Setlist <small>(paste one song per line to fill in the titles)</small><textarea id="mSetlist" placeholder="Opener&#10;Second song&#10;..."></textarea></label>
           </div>
           <button id="applySetlist" class="small" style="margin-top:8px">Fill in titles</button>
-        </div>
-
-        <div class="panel hidden" id="routingPanel">
-          <div class="label">Inputs <span id="routingInfo"></span></div>
-          <div class="grid2">
-            <label class="field">Board / main feed<select id="rMain"></select></label>
-            <label class="field">Room or crowd mics<select id="rRoom"></select></label>
-          </div>
-          <div id="roomControls" class="hidden" style="margin-top:10px">
-            <div class="label">Room mic level <span class="val" id="rRoomVal">-6.0 dB</span></div>
-            <input id="rRoomDb" type="range" min="-24" max="6" step="0.5" value="-6" aria-label="Room mic level">
-            <div class="label" style="margin-top:10px">Line up board and room <span class="val" id="rDelayVal">0.0 ms</span></div>
-            <input id="rDelay" type="range" min="0" max="150" step="0.1" value="0" aria-label="Board delay">
-            <button id="rAuto" class="small" style="margin-top:6px">Line up automatically</button>
-            <p class="hint" style="margin-top:6px">Sound reaches the room mics a little after the board. Delaying the board to match keeps the blend from sounding hollow.</p>
-          </div>
-          <button id="redetect" class="small" style="margin-top:10px">Find the songs again with these inputs</button>
         </div>
 
         <div class="panel hidden" id="gainPanel">

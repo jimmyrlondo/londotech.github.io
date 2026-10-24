@@ -1,8 +1,8 @@
 // Encore Live: record (or drop) a whole set, find the songs, trim the talking,
 // master every track with shared settings, tag it, and hand it to Encore.
 import { STYLES, TARGETS } from "./master-core.js";
-import { openSource, describeSource as describeAny, DEFAULT_ROUTING } from "./live-source.js";
-import { LiveRecorder, listInputs, probeInput, buildGainTrack, savedRecordings, openSaved, updateSaved, deleteRecording } from "./live-recorder.js";
+import { openSource, describeSource as describeAny, inspectChannels, suggestRouting } from "./live-source.js";
+import { LiveRecorder, listInputs, buildGainTrack, savedRecordings, openSaved, updateSaved, deleteRecording } from "./live-recorder.js";
 import { fillGenreSelect } from "./genres.js";
 import { wavFile, id3 } from "./tags.js";
 import { zip } from "./zip.js";
@@ -27,6 +27,7 @@ const fmt = (s, tenths = false) => {
   const ss = tenths ? sec.toFixed(1).padStart(4, "0") : String(Math.floor(sec)).padStart(2, "0");
   return h ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 };
+const chName = (c) => state.chNames?.[c] ?? `Input ${c + 1}`;
 const pad2 = (n) => String(n).padStart(2, "0");
 const clean = (s) => String(s ?? "").replace(/[\\/:*?"<>|]+/g, "").replace(/\s+/g, " ").trim();
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -54,7 +55,7 @@ worker.addEventListener("message", (e) => { if (e.data.type === "ready") { pendi
 // the worker once; after that it's referred to, not copied again.
 let bufferSentFor = null;
 function describeSource(src) {
-  if (src.buffer && bufferSentFor === src) return { kind: "bufferRef", gainTrack: src.gainTrack };
+  if (src.buffer && bufferSentFor === src) return { kind: "bufferRef", gainTrack: src.gainTrack, routing: src.routing };
   if (src.buffer) bufferSentFor = src;
   return describeAny(src);
 }
@@ -66,30 +67,17 @@ const audio = () => (ctx ??= new AudioContext());
 // Start screen
 // =====================================================================
 async function refreshInputs(askPermission) {
-  if (!navigator.mediaDevices?.enumerateDevices) { $("recSupport").textContent = "This browser can't record. Try Chrome, Edge, Firefox or Safari."; $("recStart").disabled = true; return; }
+  if (!navigator.mediaDevices?.enumerateDevices) return;
   const list = await listInputs({ askPermission });
   const sel = $("inputSel"), keep = sel.value || store.get("input") || "";
   sel.innerHTML = "";
   const named = list.some((d) => !/^Input \d+$/.test(d.label));
-  if (!named) sel.append(new Option("Default input (allow the mic to see the rest)", ""));
+  if (!named) sel.append(new Option("Default input", ""));
   for (const d of list) if (named) sel.append(new Option(d.label + (d.bluetooth ? " (Bluetooth: phone-call quality)" : ""), d.id));
   if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
   state.inputsNamed = named;
-  describeInput();
 }
-async function describeInput() {
-  const id = $("inputSel").value;
-  store.set("input", id);
-  if (!state.inputsNamed) { $("inputInfo").textContent = ""; return; }
-  try {
-    const p = await probeInput(id || undefined);
-    const ch = p.channels === 1 ? "1 channel (mono)" : `${p.channels} channels`;
-    $("inputInfo").textContent = `${ch}${p.sampleRate ? ` at ${(p.sampleRate / 1000).toFixed(1)} kHz` : ""}. Every channel gets recorded; pick board and room mics afterwards.`;
-  } catch { $("inputInfo").textContent = ""; }
-}
-$("inputSel").addEventListener("pointerdown", () => { if (!state.inputsNamed) refreshInputs(true); }, { once: true });
-$("inputSel").addEventListener("change", describeInput);
-navigator.mediaDevices?.addEventListener?.("devicechange", () => refreshInputs(false));
+navigator.mediaDevices?.addEventListener?.("devicechange", () => { if (recorder.state !== "recording") refreshInputs(false); });
 
 async function refreshSaved() {
   const list = await savedRecordings();
@@ -118,49 +106,121 @@ drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove
 $("file").addEventListener("change", () => { const f = $("file").files[0]; if (f) loadSet(f); $("file").value = ""; });
 
 // =====================================================================
-// Recording
+// Soundcheck, then recording
+// "Let's go" opens the input and shows levels; nothing is saved until Record.
 // =====================================================================
 const recorder = new LiveRecorder();
-let clipHold = [];
-$("recStart").addEventListener("click", async () => {
-  $("recStart").disabled = true;
+let clipHold = [], heard = [], openedAt = 0;
+const warn = (m) => { $("recWarn").innerHTML = `<span class="warn">${esc(m)}</span>`; };
+
+async function openInput() {
+  $("recGo").disabled = true; $("recWarn").textContent = "";
   try {
-    state.inputDb = 0; $("inVol").value = 0; $("inVolVal").textContent = "0.0 dB";
-    const info = await recorder.start({ deviceId: $("inputSel").value || undefined, safeMode: $("safeMode").checked,
-      onLevels: showLevels, onWarn: (m) => { $("recWarn").innerHTML = `<span class="warn">${esc(m)}</span>`; }, onLost: (rec) => rec && loadRecorded(rec) });
-    refreshInputs(false);
-    show("rec");
-    buildMeters(info.channels);
+    const ids = [$("inputSel").value || undefined, ...($("inputSel2").value ? [$("inputSel2").value] : [])];
+    const info = await recorder.open({ deviceIds: ids, safeMode: $("safeMode").checked,
+      onLevels: showLevels, onWarn: warn, onLost: (rec) => (rec ? loadRecorded(rec) : resetRecUi()) });
+    if (!state.inputsNamed) { await refreshInputs(false); fillSecond(); } // names show up once the mic is allowed
+    store.set("input", $("inputSel").value);
+    buildMeters(info.channels, info.channelNames); openedAt = performance.now();
     const est = await navigator.storage?.estimate?.().catch(() => null);
     const perHour = info.fs * info.channels * 4 * 3600;
-    const room = est ? ` · room for about ${Math.max(0, (est.quota - est.usage) / perHour).toFixed(1)} hours` : "";
-    $("recInfo").innerHTML = `${esc(info.device || "Input")}<br>${info.channels} ch · ${(info.fs / 1000).toFixed(1)} kHz · 32-bit float · saving to ${info.storage === "disk" ? "this device as it records" : "memory (keep this tab open)"}${room}`;
-    $("recWarn").textContent = "";
-    $("markCount").textContent = "";
-    $("levNow").textContent = "";
+    state.roomText = est ? `Room on this device for about ${Math.max(0, (est.quota - est.usage) / perHour).toFixed(1)} hours.` : "";
+    const chText = info.channels === 1 ? "1 input" : `${info.channels} inputs`;
+    $("inputInfo").textContent = `${chText} at ${(info.fs / 1000).toFixed(1)} kHz. Every input gets recorded; you choose how they combine afterwards (Encore suggests a setup). ${state.roomText}`;
+    $("recInfo").innerHTML = `${esc(info.device || "Input")}<br>Soundcheck, not recording`;
+    $("recGo").disabled = false;
+    return true;
   } catch (err) {
-    $("recSupport").innerHTML = `<span class="bad">Couldn't start recording: ${esc(err.message || err.name)}.</span> ${err.name === "NotAllowedError" ? "Allow the microphone for this page and try again." : ""}`;
-  } finally { $("recStart").disabled = false; }
+    warn(`Couldn't open that input: ${err.message || err.name}. ${err.name === "NotAllowedError" ? "Allow the microphone for this page (the icon in the address bar) and try again." : "Try another input."}`);
+    return false;
+  }
+}
+function resetRecUi() {
+  $("recTime").textContent = "0:00:00"; $("recTime").classList.remove("live");
+  $("recGo").classList.remove("hidden"); $("recStop").classList.add("hidden"); $("recMark").classList.add("hidden");
+  $("scBanner").classList.remove("rec");
+  $("scBanner").textContent = "Soundcheck. Nothing is being recorded yet: set your levels, fill in the show, then hit Record.";
+  $("inputSel").disabled = false; $("inputSel2").disabled = false; $("safeMode").disabled = false; $("scBack").classList.remove("hidden");
+  $("markCount").textContent = ""; $("levNow").textContent = "";
+}
+$("recStart").addEventListener("click", async () => {
+  state.inputDb = 0; $("inVol").value = 0; $("inVolVal").textContent = "0.0 dB";
+  for (const el of document.querySelectorAll("[data-mirror]")) el.value = $(el.dataset.mirror).value; // carry over anything already typed
+  resetRecUi(); show("rec"); fillSecond();
+  await openInput();
 });
-function buildMeters(n) {
-  const box = $("meters"); box.innerHTML = ""; clipHold = new Array(n).fill(0);
+$("inputSel").addEventListener("change", () => { fillSecond(); openInput(); });
+$("inputSel2").addEventListener("change", openInput);
+// "Also record": a second device recorded alongside (interfaces Windows splits
+// in two, like a Volt 476's INPUT 1/2 + LINE IN 3/4, or a mic plus a board feed)
+function fillSecond() {
+  const sel = $("inputSel2"), keep = sel.value, main = $("inputSel").value;
+  sel.innerHTML = ""; sel.append(new Option("Nothing else", ""));
+  for (const o of $("inputSel").options) if (o.value && o.value !== main) sel.append(new Option(o.text, o.value));
+  sel.value = [...sel.options].some((o) => o.value === keep) ? keep : "";
+  // same interface listed twice? offer its other half
+  const mainText = $("inputSel").selectedOptions[0]?.text ?? "", fam = mainText.match(/\(([^)]+)\)\s*$/)?.[1];
+  const sib = fam && [...sel.options].find((o) => o.value && o.text.endsWith(`(${fam})`));
+  $("sibling").classList.toggle("hidden", !sib || sel.value === sib.value);
+  if (sib) { $("sibling").textContent = `Also record ${sib.text}`; $("sibling").onclick = () => { sel.value = sib.value; $("sibling").classList.add("hidden"); openInput(); }; }
+}
+$("safeMode").addEventListener("change", openInput);
+$("scBack").addEventListener("click", async () => { await recorder.close(); show("start"); refreshSaved(); });
+// show details typed during soundcheck land in the editor's fields
+for (const el of document.querySelectorAll("[data-mirror]")) el.addEventListener("input", () => { $(el.dataset.mirror).value = el.value; $(el.dataset.mirror).dispatchEvent(new Event("input")); });
+
+$("recGo").addEventListener("click", async () => {
+  $("recGo").disabled = true;
+  try {
+    const info = await recorder.record();
+    $("recTime").classList.add("live");
+    $("recGo").classList.add("hidden"); $("recStop").classList.remove("hidden"); $("recMark").classList.remove("hidden");
+    $("scBanner").classList.add("rec");
+    $("scBanner").textContent = `Recording. Saving to ${info.storage === "disk" ? "this device as it goes, so a closed tab or dead battery won't lose it" : "memory: keep this tab open"}. Press M or Mark song between songs if you like.`;
+    $("inputSel").disabled = true; $("inputSel2").disabled = true; $("sibling").classList.add("hidden"); $("safeMode").disabled = true; $("scBack").classList.add("hidden");
+    $("recInfo").innerHTML = `${esc(recorder.deviceLabel || "Input")}<br>${recorder.channels} ch · ${(recorder.fs / 1000).toFixed(1)} kHz · 32-bit float`;
+  } catch (err) { warn(`Couldn't start recording: ${err.message}`); }
+  finally { $("recGo").disabled = false; }
+});
+
+function buildMeters(n, names) {
+  const box = $("meters"); box.innerHTML = ""; clipHold = new Array(n).fill(0); heard = new Array(n).fill(-120); $("recHint").textContent = "";
   for (let c = 0; c < n; c++) {
     const row = document.createElement("div"); row.className = "chMeter";
-    row.innerHTML = `<span>${n === 1 ? "Mono" : n === 2 ? (c ? "Right" : "Left") : `Input ${c + 1}`}</span><div class="track"><div class="fill"></div></div><span class="val">-inf</span>`;
+    row.innerHTML = `<span>${names?.[c] ?? `Input ${c + 1}`}</span><div class="track"><div class="zone" title="Good zone for loud parts"></div><div class="fill"></div></div><span class="val">-inf</span><span class="verdict"></span>`;
     box.append(row);
   }
 }
-function showLevels({ peaks, pinned, leveledDb, seconds }) {
-  $("recTime").textContent = fmt(seconds).padStart(7, "0:");
+// What to do with each input's gain knob, from its recent loudest peaks
+function verdict(db, clipping) {
+  if (clipping) return ["Clipping: turn the gain down", "bad"];
+  if (db > -4) return ["Hot: turn it down a little", "warn"];
+  if (db > -20) return ["Good", "good"];
+  if (db > -40) return ["Low: turn the gain up", "warn"];
+  return ["No sound", ""];
+}
+function showLevels({ peaks, pinned, leveledDb, seconds, recording }) {
+  if (recording) $("recTime").textContent = fmt(seconds).padStart(7, "0:");
   const rows = $("meters").children, now = performance.now();
   peaks.forEach((p, c) => {
-    const db = 20 * Math.log10(p + 1e-9) + state.inputDb, row = rows[c]; if (!row) return;
+    const db = 20 * Math.log10(p + 1e-9), row = rows[c]; if (!row) return; // raw input: what the gain knob controls
     const w = Math.max(0, Math.min(100, ((db + 60) / 60) * 100));
     const fill = row.querySelector(".fill"); fill.style.width = w + "%"; fill.style.setProperty("--w", (100 / Math.max(w, 1)) * 100 + "%");
     if (pinned[c] > 0) clipHold[c] = now + 2500;
     row.classList.toggle("clip", now < clipHold[c]);
     row.querySelector(".val").textContent = now < clipHold[c] ? "CLIP" : db < -90 ? "-inf" : db.toFixed(1);
+    heard[c] = Math.max(heard[c] - 0.25, db); // recent loudest, slow fall (about 1 dB a second)
+    const [text, cls] = verdict(heard[c], now < clipHold[c]), v = row.querySelector(".verdict");
+    v.textContent = text; v.className = "verdict " + cls;
   });
+  // which inputs have sound, so nobody has to wonder about one-ear audio
+  if (now - openedAt > 3000 && peaks.length > 1) {
+    const live = heard.map((db, c) => (db > -50 ? (recorder.channelNames?.[c] ?? `Input ${c + 1}`).replace(/^Input /, "") : "")).filter(Boolean);
+    $("recHint").textContent = !live.length ? "No sound on any input yet. Check the cable, the input's gain knob, and phantom power (48V) for condenser mics."
+      : live.length === 1 ? `Sound on Input ${live[0]} only. That's fine: it'll play in both ears afterwards.`
+      : `Sound on inputs ${live.join(", ")}. After the show Encore suggests how to combine them (stereo, blended, or board + room), and you can change it.`;
+  } else if (now - openedAt > 3000 && heard[0] < -50) $("recHint").textContent = "No sound yet. Check the cable and the gain knob.";
+  else if (peaks.length === 1) $("recHint").textContent = "";
   if ($("leveler").checked) $("levNow").textContent = `leveled ${(leveledDb + state.inputDb).toFixed(0)} dB`;
 }
 $("inVol").addEventListener("input", () => { state.inputDb = +$("inVol").value; $("inVolVal").textContent = `${state.inputDb.toFixed(1)} dB`; });
@@ -204,6 +264,7 @@ async function loadSet(file, { recording } = {}) {
   show("edit");
   state.fileName = file.name; state.recordingName = recording?.name ?? null;
   state.markers = recording?.markers ?? [];
+  state.chNames = recording?.channelNames ?? null;
   state.songs = []; state.preview.clear(); state.prepared = null; state.keepGap.clear(); state.open.clear(); clearOutputs();
   $("setName").textContent = recording ? `Recording from ${recording.name.replace(/^live-/, "").replace(/T(\d\d)-(\d\d)-\d\d$/, " $1:$2")}` : file.name;
   $("analyseText").textContent = "Opening the recording...";
@@ -215,7 +276,8 @@ async function loadSet(file, { recording } = {}) {
   state.leveler = recording ? recording.leveler !== false : false;
   $("gVol").value = state.inputDb; $("gVolVal").textContent = `${state.inputDb.toFixed(1)} dB`; $("gLeveler").checked = state.leveler;
   $("gainPanel").classList.remove("hidden");
-  setupRouting();
+  $("analyseText").textContent = "Listening to each input...";
+  await setupRouting();
   $("markLegend").classList.toggle("hidden", !state.markers.length);
   if (!$("mDate").value) $("mDate").value = recording ? new Date().toISOString().slice(0, 10) : "";
   resizeTimeline();
@@ -239,6 +301,7 @@ async function detect() {
     : "No songs found. Use + Song here to mark them by hand.";
   if (n) state.open.add(state.songs[0].id);
   changed();
+  if (n && $("mSetlist").value.trim()) applySetlist(); // a setlist typed during soundcheck names the songs
 }
 const setBar = (pct) => { $("analyseBar").firstElementChild.style.width = pct + "%"; };
 
@@ -246,33 +309,94 @@ function newSong(start, end, extra = {}) {
   return { id: nextSongId++, start, end, title: "", explicit: false, isrc: "", applause: "short", fadeIn: 0.1, fadeOut: null, conf: 1, level: null, ...extra };
 }
 
-// ---------- routing (multi-input recordings) ----------
-function setupRouting() {
-  const src = state.src, ch = src.channels ?? 2;
-  $("routingPanel").classList.toggle("hidden", !(ch > 2 && src.routing));
-  if (!(ch > 2 && src.routing)) return;
-  $("routingInfo").textContent = `${ch} inputs recorded`;
-  const pairs = [];
-  for (let c = 0; c + 1 < ch; c += 2) pairs.push([`${c},${c + 1}`, `Inputs ${c + 1} + ${c + 2}`]);
-  for (let c = 0; c < ch; c++) pairs.push([`${c},${c}`, `Input ${c + 1} (mono)`]);
-  const fill = (sel, withNone) => { sel.innerHTML = ""; if (withNone) sel.append(new Option("None", "")); for (const [v, t] of pairs) sel.append(new Option(t, v)); };
-  fill($("rMain"), false); fill($("rRoom"), true);
-  src.routing = { ...DEFAULT_ROUTING, main: [0, 1] };
-  $("rMain").value = "0,1"; $("rRoom").value = "";
-  $("roomControls").classList.add("hidden");
+// ---------- inputs: what was heard on each, and how to listen to it ----------
+// Interfaces put each input on its own channel (a mic on Input 1 is only on
+// the left), so nobody should have to guess: listen to every input, pick a
+// setup, say what was picked in plain words, and let one click change it.
+const SETUP_TEXT = {
+  single: (r) => `${chName(r.main[0])} plays in both ears.`,
+  stereo: (r) => `${chName(r.main[0])} and ${chName(r.main[1])} play left and right.`,
+  blend: (r) => `${chName(r.main[0])} and ${chName(r.main[1])} are blended into the middle, so both ears hear both.`,
+  boardRoom: (r) => `Board on ${r.main.map(chName).join(" + ")}, room mics on ${[...new Set(r.room ?? [])].map(chName).join(" + ")} blended in.`,
+};
+async function setupRouting() {
+  const src = state.src, ch = src.channels ?? 1;
+  $("routingPanel").classList.toggle("hidden", ch < 2);
+  if (ch < 2) return;
+  $("routingInfo").textContent = `${ch} recorded`;
+  const info = await inspectChannels(src), sug = suggestRouting(info, state.chNames ?? []);
+  state.chanInfo = info; state.setup = sug.setup; src.routing = sug.routing;
+  const bars = $("chanBars"); bars.innerHTML = "";
+  info.levels.forEach((db, c) => {
+    const row = document.createElement("div"); row.className = "chanBar" + (info.active[c] ? "" : " off");
+    row.innerHTML = `<span>${chName(c)}</span><div class="track"><div class="fill" style="width:${Math.max(2, Math.min(100, ((db + 70) / 60) * 100))}%"></div></div><span class="st">${info.active[c] ? "sound" : "silent"}</span>`;
+    bars.append(row);
+  });
+  const opt = (sel, items) => { sel.innerHTML = ""; for (const [v, t] of items) sel.append(new Option(t, v)); };
+  const singles = Array.from({ length: ch }, (_, c) => [`${c}`, `${chName(c)}${info.active[c] ? "" : " (silent)"}`]);
+  const pairs = []; for (let c = 0; c + 1 < ch; c += 2) pairs.push([`${c},${c + 1}`, `${chName(c)} + ${chName(c + 1).replace(/^Input /, "")}`]);
+  opt($("pickOne"), singles); opt($("pickA"), singles); opt($("pickB"), singles); opt($("pickPair"), pairs);
+  opt($("pickRoom"), [...pairs, ...singles.map(([v, t]) => [`${v},${v}`, t])]);
+  [...$("setups").children].forEach((b) => { b.disabled = b.dataset.setup === "boardRoom" ? ch < 3 : false; });
+  syncPickers();
+  $("routeText").textContent = sug.text;
+  $("redetect").classList.add("hidden");
+  paintSetup();
 }
-const pairOf = (v) => (v ? v.split(",").map(Number) : null);
-function routingChanged() {
+// show the routing in the pickers
+function syncPickers() {
   const r = state.src.routing;
-  r.main = pairOf($("rMain").value); r.room = pairOf($("rRoom").value);
+  $("pickOne").value = `${r.main[0]}`; $("pickA").value = `${r.main[0]}`; $("pickB").value = `${r.main[1] ?? r.main[0]}`;
+  const pair = `${r.main[0] - (r.main[0] % 2)},${r.main[0] - (r.main[0] % 2) + 1}`;
+  if ([...$("pickPair").options].some((o) => o.value === pair)) $("pickPair").value = pair;
+  if (r.room) $("pickRoom").value = r.room.join(",");
+  $("rRoomDb").value = r.roomDb;
+}
+function paintSetup() {
+  const s = state.setup;
+  [...$("setups").children].forEach((b) => b.classList.toggle("on", b.dataset.setup === s));
+  const show = { pickOneWrap: s === "single", pickAWrap: s === "blend", pickBWrap: s === "blend", pickPairWrap: s === "stereo" || s === "boardRoom", pickRoomWrap: s === "boardRoom" };
+  for (const [id, on] of Object.entries(show)) $(id).classList.toggle("hidden", !on);
+  $("pickPairWrap").firstChild.textContent = s === "boardRoom" ? "Board feed" : "Inputs";
+  $("roomControls").classList.toggle("hidden", s !== "boardRoom");
+}
+// a setup button or picker changed: rebuild the routing from the pickers
+function routingFromPickers() {
+  const r = state.src.routing, s = state.setup, info = state.chanInfo, pair = $("pickPair").value.split(",").map(Number);
+  r.mono = false; r.room = null;
+  if (s === "single") r.main = [+$("pickOne").value, +$("pickOne").value];
+  if (s === "stereo") r.main = pair;
+  if (s === "blend") { r.main = [+$("pickA").value, +$("pickB").value]; r.mono = true; }
+  if (s === "boardRoom") {
+    r.main = pair;
+    if ($("pickRoom").value.split(",").some((c) => pair.includes(+c))) { // room can't be the board: take the next live inputs
+      const free = info.active.map((a, c) => (a && !pair.includes(c) ? c : -1)).filter((c) => c >= 0);
+      $("pickRoom").value = free.length >= 2 && free[1] === free[0] + 1 && free[0] % 2 === 0 ? `${free[0]},${free[1]}` : `${free[0] ?? Math.min(info.levels.length - 1, pair[1] + 1)},${free[0] ?? Math.min(info.levels.length - 1, pair[1] + 1)}`;
+    }
+    r.room = $("pickRoom").value.split(",").map(Number);
+  }
   r.roomDb = +$("rRoomDb").value; r.mainDelay = Math.round((+$("rDelay").value / 1000) * state.src.fs);
   $("rRoomVal").textContent = `${r.roomDb.toFixed(1)} dB`; $("rDelayVal").textContent = `${(+$("rDelay").value).toFixed(1)} ms`;
-  $("roomControls").classList.toggle("hidden", !r.room);
+  $("routeText").textContent = SETUP_TEXT[s](r);
+  $("redetect").classList.remove("hidden");
+  paintSetup();
+  if (player.playing) player.play(player.time()); // hear the change right away
   soundChanged();
 }
-for (const id of ["rMain", "rRoom"]) $(id).addEventListener("change", routingChanged);
+$("setups").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-setup]"); if (!b || b.disabled) return;
+  state.setup = b.dataset.setup;
+  const info = state.chanInfo, live = info.active.map((a, c) => (a ? c : -1)).filter((c) => c >= 0);
+  // sensible starting picks for the chosen setup
+  if (state.setup === "single") $("pickOne").value = `${live[0] ?? 0}`;
+  if (state.setup === "blend") { $("pickA").value = `${live[0] ?? 0}`; $("pickB").value = `${live[1] ?? Math.min(1, info.levels.length - 1)}`; }
+  if (state.setup === "stereo" || state.setup === "boardRoom") { const c = (live[0] ?? 0) - ((live[0] ?? 0) % 2); $("pickPair").value = `${c},${Math.min(c + 1, info.levels.length - 1)}`; }
+  routingFromPickers();
+});
+for (const id of ["pickOne", "pickA", "pickB", "pickPair", "pickRoom"]) $(id).addEventListener("change", routingFromPickers);
+const routingChanged = routingFromPickers;
 for (const id of ["rRoomDb", "rDelay"]) $(id).addEventListener("input", routingChanged);
-$("redetect").addEventListener("click", () => detect());
+$("redetect").addEventListener("click", () => { $("redetect").classList.add("hidden"); detect(); });
 // Find how much later the room mics hear things than the board: cross-correlate
 // a loud stretch at 8 kHz, then refine at full rate.
 $("rAuto").addEventListener("click", async () => {
@@ -499,12 +623,13 @@ $("addSong").addEventListener("click", () => {
   if (s.end - s.start < 5) { $("abNote").textContent = "Not enough room for a song here."; return; }
   state.songs.push(s); state.open.add(s.id); changed();
 });
-$("applySetlist").addEventListener("click", () => {
+$("applySetlist").addEventListener("click", () => applySetlist());
+function applySetlist() {
   const lines = $("mSetlist").value.split(/\r?\n/).map((x) => x.replace(/^\s*\d+\s*[.)\-:]?\s+/, "").trim()).filter(Boolean);
   lines.forEach((t, i) => { if (state.songs[i]) state.songs[i].title = t; });
   if (lines.length !== state.songs.length) $("abNote").textContent = `The setlist has ${lines.length} songs and ${state.songs.length} were found. Titles were filled in order; check the ones at the end.`;
   changed();
-});
+}
 
 // =====================================================================
 // Timeline: the whole set, songs in colour, cuts in grey

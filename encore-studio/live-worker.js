@@ -79,7 +79,7 @@ self.onmessage = async (e) => {
     if (d.type === "init") { M = await loadMaster(d.wasm); self.postMessage({ type: "ready" }); return; }
     // decoded (compressed) sets are sent once, then referred to
     if (d.source?.kind === "buffer") bufferCache = d.source;
-    const desc = d.source?.kind === "bufferRef" ? { ...bufferCache, gainTrack: d.source.gainTrack } : d.source;
+    const desc = d.source?.kind === "bufferRef" ? { ...bufferCache, gainTrack: d.source.gainTrack, routing: d.source.routing } : d.source;
     const src = desc ? sourceFromDescription(desc) : null;
 
     if (d.type === "analyse") {
