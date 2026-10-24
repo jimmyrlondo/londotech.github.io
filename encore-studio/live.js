@@ -121,7 +121,7 @@ async function openInput() {
       onLevels: showLevels, onWarn: warn, onLost: (rec) => (rec ? loadRecorded(rec) : resetRecUi()) });
     if (!state.inputsNamed) { await refreshInputs(false); fillMore(); } // names show up once the mic is allowed
     store.set("input", $("inputSel").value);
-    buildMeters(info.channels, info.channelNames); buildMeterLabels(); openedAt = performance.now();
+    buildMeters(info.channels, info.channelNames); buildMeterLabels(); openedAt = performance.now(); buildMonitor();
     const est = await navigator.storage?.estimate?.().catch(() => null);
     const perHour = info.fs * info.channels * 4 * 3600;
     state.roomText = est ? `Room on this device for about ${Math.max(0, (est.quota - est.usage) / perHour).toFixed(1)} hours.` : "";
@@ -178,7 +178,7 @@ function paintScSetup() {
 }
 $("scSetup").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-setup]"); if (!b || recorder.state === "recording") return;
-  state.recSetup = b.dataset.setup; store.set("setup", state.recSetup); paintScSetup();
+  state.recSetup = b.dataset.setup; store.set("setup", state.recSetup); paintScSetup(); updateMonitor(true);
 });
 // stereo / board setups: show which inputs are left and right
 function buildMeterLabels() {
@@ -250,8 +250,59 @@ function showLevels({ peaks, pinned, leveledDb, seconds, recording }) {
       : `Sound on inputs ${live.join(", ")}. After the show Encore suggests how to combine them (stereo, blended, or board + room), and you can change it.`;
   } else if (now - openedAt > 3000 && heard[0] < -50) $("recHint").textContent = "No sound yet. Check the cable and the gain knob.";
   else if (peaks.length === 1) $("recHint").textContent = "";
+  updateMonitor();
   if ($("leveler").checked) $("levNow").textContent = `leveled ${(leveledDb + state.inputDb).toFixed(0)} dB`;
 }
+// ---------- Listen: hear the inputs during soundcheck/recording ----------
+// Mixed the way the recording will be (a mono mic plays in both ears, a
+// stereo pair stays left/right), so what you hear is what you'll get.
+// Headphones only: a mic plus speakers feeds back. Browsers add a little
+// delay, so it's for checking sound, not for playing along to.
+let mon = null, monAt = 0;
+function buildMonitor() {
+  mon = null;
+  if (!recorder.ctx || !recorder.input) return;
+  const ctx = recorder.ctx, n = recorder.channels;
+  const split = ctx.createChannelSplitter(n), merge = ctx.createChannelMerger(2), out = ctx.createGain();
+  recorder.input.connect(split);
+  const gains = [];
+  for (let c = 0; c < n; c++) {
+    const gl = ctx.createGain(), gr = ctx.createGain(); gl.gain.value = 0; gr.gain.value = 0;
+    split.connect(gl, c); split.connect(gr, c); gl.connect(merge, 0, 0); gr.connect(merge, 0, 1);
+    gains.push([gl, gr]);
+  }
+  out.gain.value = $("monitor").checked ? 1 : 0;
+  merge.connect(out).connect(ctx.destination);
+  mon = { out, gains, key: "" };
+  updateMonitor(true);
+}
+// left/right gain for each input, from the setup choice and which inputs have sound
+function monitorMix() {
+  const n = mon.gains.length, s = state.recSetup, mix = Array.from({ length: n }, () => [0, 0]);
+  const live = heard.map((db, c) => (db > -50 ? c : -1)).filter((c) => c >= 0);
+  const loudest = heard.indexOf(Math.max(...heard));
+  const center = (cs, g = 1) => cs.forEach((c) => { mix[c][0] += g / Math.max(1, cs.length) ** 0.5; mix[c][1] += g / Math.max(1, cs.length) ** 0.5; });
+  const pair = () => { const c = Math.max(0, (live[0] ?? loudest) - ((live[0] ?? loudest) % 2)); return [c, Math.min(c + 1, n - 1)]; };
+  if (n === 1) center([0]);
+  else if (s === "single") center([loudest]);
+  else if (s === "stereo") { const [a, b] = pair(); mix[a][0] = 1; mix[b][1] = 1; }
+  else if (s === "boardRoom") { const [a, b] = pair(); mix[a][0] = 1; mix[b][1] = 1; center(live.filter((c) => c !== a && c !== b), 0.5); }
+  else center(live.length ? live : [loudest]); // auto + blend: everything with sound, in the middle
+  return mix;
+}
+function updateMonitor(force) {
+  if (!mon || (!force && performance.now() - monAt < 1000)) return;
+  monAt = performance.now();
+  const mix = monitorMix(), key = JSON.stringify(mix);
+  if (key === mon.key) return;
+  mon.key = key;
+  const t = recorder.ctx.currentTime;
+  mix.forEach(([l, r], c) => { mon.gains[c][0].gain.setTargetAtTime(l, t, 0.05); mon.gains[c][1].gain.setTargetAtTime(r, t, 0.05); });
+}
+$("monitor").addEventListener("change", () => {
+  if (mon) mon.out.gain.setTargetAtTime($("monitor").checked ? 1 : 0, recorder.ctx.currentTime, 0.03);
+  $("monitorNote").classList.toggle("hidden", !$("monitor").checked);
+});
 $("inVol").addEventListener("input", () => { state.inputDb = +$("inVol").value; $("inVolVal").textContent = `${state.inputDb.toFixed(1)} dB`; });
 $("leveler").addEventListener("change", () => { if (!$("leveler").checked) $("levNow").textContent = "off"; });
 $("recMark").addEventListener("click", () => { $("markCount").textContent = `(${recorder.mark()})`; });

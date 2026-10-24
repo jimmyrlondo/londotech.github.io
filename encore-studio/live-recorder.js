@@ -160,7 +160,7 @@ export class LiveRecorder {
       numberOfInputs: 1, numberOfOutputs: 1, channelCount: this.channels, channelCountMode: "explicit",
       channelInterpretation: "discrete", processorOptions: { channels: this.channels },
     });
-    if (this.streams.length === 1) this.ctx.createMediaStreamSource(this.streams[0]).connect(this.node);
+    if (this.streams.length === 1) { this.input = this.ctx.createMediaStreamSource(this.streams[0]); this.input.connect(this.node); }
     else { // lay every device's channels side by side
       const merge = this.ctx.createChannelMerger(this.channels);
       let at = 0;
@@ -170,7 +170,7 @@ export class LiveRecorder {
         for (let c = 0; c < counts[k]; c++) split.connect(merge, c, at + c);
         at += counts[k];
       });
-      merge.connect(this.node);
+      this.input = merge; merge.connect(this.node);
     }
     const mute = this.ctx.createGain(); mute.gain.value = 0;
     this.node.connect(mute).connect(this.ctx.destination); // keeps the graph running, silently
