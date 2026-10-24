@@ -111,7 +111,8 @@ async function openInput(deviceId, safeMode) {
   return stream;
 }
 
-// Names that match the hardware: "LINE IN 3/4 (Volt 476)" -> Input 3, Input 4
+// Names that match the hardware: "Analogue 3+4 (Focusrite USB)" or
+// "LINE IN 3/4 (Volt 476)" -> Input 3, Input 4; otherwise numbered in order
 export function channelNames(labels, counts) {
   const names = []; let next = 1;
   labels.forEach((label, k) => {
@@ -127,7 +128,7 @@ export class LiveRecorder {
 
   // Soundcheck: open the input(s) and report levels, nothing is saved yet.
   // deviceIds can name several devices: some interfaces show up as more than
-  // one (Windows lists a Volt 476 as "INPUT 1/2" and "LINE IN 3/4"). Their
+  // one (Windows often lists each pair of inputs separately). Their
   // channels are recorded side by side as Input 1, 2, 3...
   async open({ deviceId, deviceIds, safeMode = false, onLevels, onWarn, onLost } = {}) {
     if (this.state !== "idle") await this.close();
@@ -331,7 +332,7 @@ export async function openSaved(info) {
   if (info.state === "recording") return recoverRecording(info);
   const dir = await opfsDir(), fh = await dir.getFileHandle(info.name + ".wav");
   return { file: await fh.getFile(), name: info.name, fs: info.fs, channels: info.channels, markers: info.markers ?? [],
-    levelerDb: info.levelerDb ? Float32Array.from(info.levelerDb) : null, leveler: info.leveler, inputDb: info.inputDb, channelNames: info.channelNames };
+    levelerDb: info.levelerDb ? Float32Array.from(info.levelerDb) : null, leveler: info.leveler, inputDb: info.inputDb, channelNames: info.channelNames, setup: info.setup };
 }
 
 // Remember choices made while recording (input volume, leveler on/off) with the file

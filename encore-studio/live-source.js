@@ -194,3 +194,33 @@ export function suggestRouting(info, names = []) {
   return { setup: "blend", routing: { ...base, main: [a, b], mono: true },
     text: `${name(a)} and ${name(b)} sound like separate mics or instruments, so they're blended into the middle and both ears hear both.` };
 }
+
+// The setup was chosen (at the soundcheck or in the editor): pick the inputs
+// that fit it best from what was heard, plus a plain-English line.
+export function routingForSetup(info, setup, names = []) {
+  if (setup === "auto" || !setup) return suggestRouting(info, names);
+  const ch = info.levels.length, name = (c) => names[c] ?? `Input ${c + 1}`;
+  const byLevel = info.levels.map((l, c) => c).sort((a, b) => info.levels[b] - info.levels[a]);
+  const live = byLevel.filter((c) => info.active[c]);
+  const base = { ...DEFAULT_ROUTING };
+  const pairs = []; for (let c = 0; c + 1 < ch; c += 2) pairs.push({ a: c, b: c + 1, e: Math.pow(10, info.levels[c] / 10) + Math.pow(10, info.levels[c + 1] / 10), corr: info.corr[c] });
+  const loudestPair = pairs.slice().sort((x, y) => y.e - x.e)[0] ?? { a: 0, b: Math.min(1, ch - 1) };
+  if (setup === "single") { const c = live[0] ?? 0; return { setup, routing: { ...base, main: [c, c] }, text: `${name(c)} plays in both ears.` }; }
+  if (setup === "stereo") {
+    const p = loudestPair, one = info.active[p.a] !== info.active[p.b];
+    return { setup, routing: { ...base, main: [p.a, p.b] },
+      text: one ? `${name(p.a)} (left) and ${name(p.b)} (right), but only ${name(info.active[p.a] ? p.a : p.b)} has sound. If that's not a stereo source, pick One input.`
+        : `${name(p.a)} plays left and ${name(p.b)} plays right.` };
+  }
+  if (setup === "blend") {
+    const [a, b] = live.length >= 2 ? live.slice(0, 2).sort((x, y) => x - y) : [live[0] ?? 0, live[0] ?? 0];
+    return { setup, routing: { ...base, main: [a, b], mono: true }, text: `${name(a)} and ${name(b)} are blended into the middle, so both ears hear both.` };
+  }
+  // boardRoom: the most stereo-looking loud pair is the board, the rest blends on top
+  const board = pairs.filter((p) => info.active[p.a] && info.active[p.b]).sort((x, y) => y.corr - x.corr)[0] ?? loudestPair;
+  const others = live.filter((c) => c !== board.a && c !== board.b).sort((x, y) => x - y);
+  const op = pairs.find((p) => p !== board && others.includes(p.a) && others.includes(p.b));
+  const room = op ? [op.a, op.b] : others.length ? [others[0], others[0]] : null;
+  return { setup, routing: { ...base, main: [board.a, board.b], room },
+    text: room ? `Board on ${name(board.a)} and ${name(board.b)}, with ${op ? `${name(op.a)} and ${name(op.b)}` : name(others[0])} blended in.` : `Board on ${name(board.a)} and ${name(board.b)}; nothing else has sound to blend in.` };
+}

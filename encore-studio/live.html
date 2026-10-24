@@ -89,6 +89,11 @@
   .recGo { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; font-size: 17px; padding: 12px 26px; }
   .recGo:hover:not(:disabled) { background: #f05252 !important; }
   .recGo .recDot { background: #fff; }
+  .scSetup { display: flex; flex-wrap: wrap; gap: 4px; }
+  .scSetup button { padding: 6px 11px; font-size: 13px; }
+  .moreInputs { display: flex; flex-direction: column; gap: 4px; }
+  .moreInputs label { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+  .moreInputs small { color: var(--green); font-size: 11.5px; }
   .scBanner { margin-top: 14px; font-size: 14px; color: var(--text); background: rgb(34 211 238 / 0.08); border: 1px solid rgb(34 211 238 / 0.3); border-radius: 10px; padding: 8px 12px; }
   .scBanner.rec { background: rgb(239 68 68 / 0.1); border-color: rgb(239 68 68 / 0.4); }
   .chMeter .zone { position: absolute; inset: 0 10% 0 70%; background: rgb(123 211 164 / 0.16); border-left: 1px solid rgb(123 211 164 / 0.5); border-right: 1px solid rgb(123 211 164 / 0.5); }
@@ -253,11 +258,20 @@
         <label class="field">Input
           <select id="inputSel"><option value="">Default input</option></select>
         </label>
-        <label class="field">Also record <small>(a second device, recorded alongside)</small>
-          <select id="inputSel2"><option value="">Nothing else</option></select>
-        </label>
+        <div class="field">How is it set up?
+          <div class="seg scSetup" id="scSetup">
+            <button data-setup="auto" title="Encore listens and decides after the show">Auto</button>
+            <button data-setup="single" title="One mic or one cable, heard in both ears">One input</button>
+            <button data-setup="stereo" title="A stereo source: board L/R out, stereo mic, phone">Stereo</button>
+            <button data-setup="blend" title="Separate mics or instruments, blended into the middle">Blend</button>
+            <button data-setup="boardRoom" title="A stereo board feed with room mics or other inputs blended in">Board + more</button>
+          </div>
+        </div>
       </div>
-      <button id="sibling" class="small hidden" style="margin-top:8px"></button>
+      <div id="moreWrap" class="hidden" style="margin-top:10px">
+        <div class="label">Also record <span>more devices, recorded side by side (interfaces sometimes show up as several)</span></div>
+        <div id="moreInputs" class="moreInputs"></div>
+      </div>
       <label class="check" style="margin-top:8px"><input type="checkbox" id="safeMode"> Phone safe mode <small>(if a phone mic distorts on loud bands)</small></label>
       <div class="hint" id="inputInfo" style="margin-top:6px"></div>
       <div class="label" style="margin-top:14px">Levels <span>play the loudest part of a song; keep each input in the green zone, never red</span></div>
