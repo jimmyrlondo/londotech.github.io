@@ -1,0 +1,49 @@
+/* Shared by every Encore Music Studio page (Master, Live).
+   Encore design tokens: names and values copied from encoremusic.studio
+   (:root custom properties, 2026-10-24). When these pages move into the
+   Next.js site, DELETE the first :root block and the site's own tokens take
+   over; keep the second (the app's own names mapped onto them). */
+:root {
+  --bg-base-default: #0c0a09;
+  --bg-subtle-default: #110e0d;
+  --bg-surface-default: #171412;
+  --bg-surface-hover: #221e1b;
+  --bg-surface-strong: #2c2723;
+  --brand-paper: #f2efe8;
+  --brand-primary: #ff3b00;
+  --brand-primary-hover: #ff6c40;
+  --brand-ember: #ff6e28;
+  --brand-accent: #22d3ee;
+  --brand-secondary: #91887d;
+  --text-primary: var(--brand-paper);
+  --text-secondary: #bdb4a9;
+  --text-muted: #91887d;
+  --text-success-default: #7bd3a4;
+  --system-error: #ef4444;
+  --system-warning: #e8b04b;
+  --system-success: #059669;
+  --ink-dark: #0c0a09;
+  --family-primary: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --family-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --divider: rgb(242 239 232 / 0.10);         /* site: border-divider        */
+  --divider-strong: rgb(242 239 232 / 0.18);  /* site: border-divider-strong */
+  --radius-panel: 14px;                       /* site: rounded-panel         */
+  --radius-band: 20px;                        /* site: rounded-band          */
+}
+
+/* The app's own names, mapped onto Encore tokens (the canvases read these) */
+:root {
+  --bg: var(--bg-base-default);
+  --panel: var(--bg-surface-default);
+  --edge: var(--divider);
+  --text: var(--text-primary);
+  --dim: var(--text-muted);
+  --soft: var(--text-secondary);
+  --accent: var(--brand-primary);   /* brand: buttons, lows in the waveform */
+  --blue: var(--brand-accent);      /* highs in the waveform, info          */
+  --track: var(--bg-surface-hover);
+  --green: var(--text-success-default);
+  --red: var(--system-error);
+  --warn: var(--system-warning);
+  color-scheme: dark;
+}

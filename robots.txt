@@ -6,5 +6,6 @@ Disallow: /Quote/
 Disallow: /watson/
 Disallow: /clients/
 Disallow: /policy-builder/
+Disallow: /encore-studio/
 
 Sitemap: https://www.londo.tech/sitemap.xml

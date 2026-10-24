@@ -1,0 +1,909 @@
+// Encore Live: record (or drop) a whole set, find the songs, trim the talking,
+// master every track with shared settings, tag it, and hand it to Encore.
+import { STYLES, TARGETS } from "./master-core.js";
+import { openSource, describeSource as describeAny, DEFAULT_ROUTING } from "./live-source.js";
+import { LiveRecorder, listInputs, probeInput, buildGainTrack, savedRecordings, openSaved, updateSaved, deleteRecording } from "./live-recorder.js";
+import { fillGenreSelect } from "./genres.js";
+import { wavFile, id3 } from "./tags.js";
+import { zip } from "./zip.js";
+
+const $ = (id) => document.getElementById(id);
+const COLORS = ["#ff3b00", "#22d3ee", "#e8b04b", "#7bd3a4", "#c084fc", "#f472b6", "#60a5fa", "#a3e635", "#fb923c", "#2dd4bf"];
+const GAP_NAMES = { talk: "talking", applause: "applause", quiet: "quiet", noodling: "tuning / noodling", music: "music" };
+const store = { get: (k) => { try { return localStorage.getItem("encore-live-" + k); } catch { return null; } },
+                set: (k, v) => { try { localStorage.setItem("encore-live-" + k, v); } catch { /* private mode */ } } };
+
+const state = {
+  src: null, fileName: "", recordingName: null, analysis: null, overview: null, markers: [],
+  songs: [], keepGap: new Set(), open: new Set(), levelerDb: null, leveler: false, inputDb: 0,
+  style: 0, intensity: 0.5, target: 1, eq: { low: 0, mid: 0, high: 0 }, rumble: true, harsh: false,
+  even: 0.5, mastered: false, art: null, prepared: null, preview: new Map(), outputs: null,
+};
+let nextSongId = 1;
+
+// ---------- formatting ----------
+const fmt = (s, tenths = false) => {
+  s = Math.max(0, s); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const ss = tenths ? sec.toFixed(1).padStart(4, "0") : String(Math.floor(sec)).padStart(2, "0");
+  return h ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+};
+const pad2 = (n) => String(n).padStart(2, "0");
+const clean = (s) => String(s ?? "").replace(/[\\/:*?"<>|]+/g, "").replace(/\s+/g, " ").trim();
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// ---------- background worker (analysis + mastering) ----------
+const worker = new Worker("live-worker.js", { type: "module" });
+const pending = new Map();
+let rid = 0;
+worker.onmessage = (e) => {
+  const d = e.data, p = pending.get(d.id);
+  if (!p) return;
+  if (d.type === "progress") { p.onProgress?.(d); return; }
+  pending.delete(d.id);
+  if (d.type === "error") p.reject(new Error(d.message)); else p.resolve(d);
+};
+const rpc = (msg, onProgress) => new Promise((resolve, reject) => { const id = ++rid; pending.set(id, { resolve, reject, onProgress }); worker.postMessage({ ...msg, id }); });
+const ready = (async () => {
+  const wasm = await (await fetch("master.wasm")).arrayBuffer();
+  await new Promise((res) => { pending.set(0, { resolve: res }); worker.postMessage({ type: "init", wasm, id: 0 }, [wasm]); });
+})();
+// the worker answers init with { type: "ready" } and no id; route it
+worker.addEventListener("message", (e) => { if (e.data.type === "ready") { pending.get(0)?.resolve(); pending.delete(0); } });
+
+// What the worker needs to read the set. A decoded MP3/M4A set is copied to
+// the worker once; after that it's referred to, not copied again.
+let bufferSentFor = null;
+function describeSource(src) {
+  if (src.buffer && bufferSentFor === src) return { kind: "bufferRef", gainTrack: src.gainTrack };
+  if (src.buffer) bufferSentFor = src;
+  return describeAny(src);
+}
+
+let ctx = null;
+const audio = () => (ctx ??= new AudioContext());
+
+// =====================================================================
+// Start screen
+// =====================================================================
+async function refreshInputs(askPermission) {
+  if (!navigator.mediaDevices?.enumerateDevices) { $("recSupport").textContent = "This browser can't record. Try Chrome, Edge, Firefox or Safari."; $("recStart").disabled = true; return; }
+  const list = await listInputs({ askPermission });
+  const sel = $("inputSel"), keep = sel.value || store.get("input") || "";
+  sel.innerHTML = "";
+  const named = list.some((d) => !/^Input \d+$/.test(d.label));
+  if (!named) sel.append(new Option("Default input (allow the mic to see the rest)", ""));
+  for (const d of list) if (named) sel.append(new Option(d.label + (d.bluetooth ? " (Bluetooth: phone-call quality)" : ""), d.id));
+  if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
+  state.inputsNamed = named;
+  describeInput();
+}
+async function describeInput() {
+  const id = $("inputSel").value;
+  store.set("input", id);
+  if (!state.inputsNamed) { $("inputInfo").textContent = ""; return; }
+  try {
+    const p = await probeInput(id || undefined);
+    const ch = p.channels === 1 ? "1 channel (mono)" : `${p.channels} channels`;
+    $("inputInfo").textContent = `${ch}${p.sampleRate ? ` at ${(p.sampleRate / 1000).toFixed(1)} kHz` : ""}. Every channel gets recorded; pick board and room mics afterwards.`;
+  } catch { $("inputInfo").textContent = ""; }
+}
+$("inputSel").addEventListener("pointerdown", () => { if (!state.inputsNamed) refreshInputs(true); }, { once: true });
+$("inputSel").addEventListener("change", describeInput);
+navigator.mediaDevices?.addEventListener?.("devicechange", () => refreshInputs(false));
+
+async function refreshSaved() {
+  const list = await savedRecordings();
+  $("recovery").classList.toggle("hidden", !list.length);
+  const box = $("recoveryList"); box.innerHTML = "";
+  const any = list.some((x) => x.state === "recording");
+  $("recovery").querySelector(".label").firstChild.textContent = any ? "Recordings on this device (one didn't finish) " : "Recordings on this device ";
+  for (const info of list) {
+    const row = document.createElement("div"); row.className = "item";
+    const when = info.name.replace(/^live-/, "").replace(/T(\d\d)-(\d\d)-(\d\d)/, " $1:$2");
+    row.innerHTML = `<b>${esc(when)}</b><span class="mono">${fmt(info.seconds || 0)}</span><span class="note">${(info.bytes / 1e9).toFixed(2)} GB</span>${info.state === "recording" ? '<span class="badge check">unfinished</span>' : ""}`;
+    const open = document.createElement("button"); open.className = "small"; open.textContent = info.state === "recording" ? "Recover" : "Open";
+    open.onclick = async () => { const rec = await openSaved(info); loadSet(rec.file, { recording: rec }); };
+    const del = document.createElement("button"); del.className = "small"; del.textContent = "Delete";
+    del.onclick = async () => { if (confirm("Delete this recording from this device? This can't be undone.")) { await deleteRecording(info.name); refreshSaved(); } };
+    row.append(open, del); box.append(row);
+  }
+}
+
+const drop = $("drop");
+drop.addEventListener("click", () => $("file").click());
+drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } });
+drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files[0]; if (f) loadSet(f); });
+$("file").addEventListener("change", () => { const f = $("file").files[0]; if (f) loadSet(f); $("file").value = ""; });
+
+// =====================================================================
+// Recording
+// =====================================================================
+const recorder = new LiveRecorder();
+let clipHold = [];
+$("recStart").addEventListener("click", async () => {
+  $("recStart").disabled = true;
+  try {
+    state.inputDb = 0; $("inVol").value = 0; $("inVolVal").textContent = "0.0 dB";
+    const info = await recorder.start({ deviceId: $("inputSel").value || undefined, safeMode: $("safeMode").checked,
+      onLevels: showLevels, onWarn: (m) => { $("recWarn").innerHTML = `<span class="warn">${esc(m)}</span>`; }, onLost: (rec) => rec && loadRecorded(rec) });
+    refreshInputs(false);
+    show("rec");
+    buildMeters(info.channels);
+    const est = await navigator.storage?.estimate?.().catch(() => null);
+    const perHour = info.fs * info.channels * 4 * 3600;
+    const room = est ? ` · room for about ${Math.max(0, (est.quota - est.usage) / perHour).toFixed(1)} hours` : "";
+    $("recInfo").innerHTML = `${esc(info.device || "Input")}<br>${info.channels} ch · ${(info.fs / 1000).toFixed(1)} kHz · 32-bit float · saving to ${info.storage === "disk" ? "this device as it records" : "memory (keep this tab open)"}${room}`;
+    $("recWarn").textContent = "";
+    $("markCount").textContent = "";
+    $("levNow").textContent = "";
+  } catch (err) {
+    $("recSupport").innerHTML = `<span class="bad">Couldn't start recording: ${esc(err.message || err.name)}.</span> ${err.name === "NotAllowedError" ? "Allow the microphone for this page and try again." : ""}`;
+  } finally { $("recStart").disabled = false; }
+});
+function buildMeters(n) {
+  const box = $("meters"); box.innerHTML = ""; clipHold = new Array(n).fill(0);
+  for (let c = 0; c < n; c++) {
+    const row = document.createElement("div"); row.className = "chMeter";
+    row.innerHTML = `<span>${n === 1 ? "Mono" : n === 2 ? (c ? "Right" : "Left") : `Input ${c + 1}`}</span><div class="track"><div class="fill"></div></div><span class="val">-inf</span>`;
+    box.append(row);
+  }
+}
+function showLevels({ peaks, pinned, leveledDb, seconds }) {
+  $("recTime").textContent = fmt(seconds).padStart(7, "0:");
+  const rows = $("meters").children, now = performance.now();
+  peaks.forEach((p, c) => {
+    const db = 20 * Math.log10(p + 1e-9) + state.inputDb, row = rows[c]; if (!row) return;
+    const w = Math.max(0, Math.min(100, ((db + 60) / 60) * 100));
+    const fill = row.querySelector(".fill"); fill.style.width = w + "%"; fill.style.setProperty("--w", (100 / Math.max(w, 1)) * 100 + "%");
+    if (pinned[c] > 0) clipHold[c] = now + 2500;
+    row.classList.toggle("clip", now < clipHold[c]);
+    row.querySelector(".val").textContent = now < clipHold[c] ? "CLIP" : db < -90 ? "-inf" : db.toFixed(1);
+  });
+  if ($("leveler").checked) $("levNow").textContent = `leveled ${(leveledDb + state.inputDb).toFixed(0)} dB`;
+}
+$("inVol").addEventListener("input", () => { state.inputDb = +$("inVol").value; $("inVolVal").textContent = `${state.inputDb.toFixed(1)} dB`; });
+$("leveler").addEventListener("change", () => { if (!$("leveler").checked) $("levNow").textContent = "off"; });
+$("recMark").addEventListener("click", () => { $("markCount").textContent = `(${recorder.mark()})`; });
+$("recStop").addEventListener("click", async () => {
+  $("recStop").disabled = true; $("recStop").textContent = "Saving...";
+  const rec = await recorder.stop();
+  $("recStop").disabled = false; $("recStop").textContent = "Stop";
+  if (rec) loadRecorded(rec);
+});
+async function loadRecorded(rec) {
+  rec.leveler = $("leveler").checked; rec.inputDb = state.inputDb;
+  updateSaved(rec.name, { leveler: rec.leveler, inputDb: rec.inputDb });
+  loadSet(rec.file, { recording: rec });
+}
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest?.("input, textarea, select")) return;
+  if (recorder.state === "recording" && e.key.toLowerCase() === "m") $("recMark").click();
+  else if (!$("editor").classList.contains("hidden") && e.code === "Space") { e.preventDefault(); togglePlay(); }
+});
+window.addEventListener("beforeunload", (e) => { if (recorder.state === "recording") { e.preventDefault(); e.returnValue = ""; } });
+
+function show(view) {
+  $("startView").classList.toggle("hidden", view !== "start");
+  $("recView").classList.toggle("hidden", view !== "rec");
+  $("editor").classList.toggle("hidden", view !== "edit");
+  $("newSet").classList.toggle("hidden", view !== "edit");
+}
+$("newSet").addEventListener("click", () => {
+  if (!confirm("Start a new set? Titles and edits for this one aren't saved yet.")) return;
+  player.stop(); state.src = null; state.songs = []; state.preview.clear(); state.prepared = null; clearOutputs();
+  $("setName").textContent = ""; show("start"); refreshSaved();
+});
+
+// =====================================================================
+// Loading + finding the songs
+// =====================================================================
+async function loadSet(file, { recording } = {}) {
+  player.stop();
+  show("edit");
+  state.fileName = file.name; state.recordingName = recording?.name ?? null;
+  state.markers = recording?.markers ?? [];
+  state.songs = []; state.preview.clear(); state.prepared = null; state.keepGap.clear(); state.open.clear(); clearOutputs();
+  $("setName").textContent = recording ? `Recording from ${recording.name.replace(/^live-/, "").replace(/T(\d\d)-(\d\d)-\d\d$/, " $1:$2")}` : file.name;
+  $("analyseText").textContent = "Opening the recording...";
+  setBar(0);
+  try { state.src = await openSource(file, audio()); }
+  catch { $("analyseText").innerHTML = `<span class="bad">Couldn't read that file.</span> Try WAV, MP3, M4A or FLAC.`; return; }
+  const src = state.src;
+  state.inputDb = recording?.inputDb ?? 0;
+  state.leveler = recording ? recording.leveler !== false : false;
+  $("gVol").value = state.inputDb; $("gVolVal").textContent = `${state.inputDb.toFixed(1)} dB`; $("gLeveler").checked = state.leveler;
+  $("gainPanel").classList.remove("hidden");
+  setupRouting();
+  $("markLegend").classList.toggle("hidden", !state.markers.length);
+  if (!$("mDate").value) $("mDate").value = recording ? new Date().toISOString().slice(0, 10) : "";
+  resizeTimeline();
+  await detect();
+}
+
+async function detect() {
+  const src = state.src;
+  await ready;
+  $("analyseText").textContent = `Finding the songs in ${fmt(src.duration)} of audio...`;
+  $("analyseBar").classList.remove("hidden");
+  const desc = { ...describeSource(src), gainTrack: null }; // detect on the raw level
+  const t0 = performance.now();
+  const res = await rpc({ type: "analyse", source: desc }, (p) => setBar(p.pct));
+  state.analysis = res.result; state.overview = res.overview; state.levelerDb = res.levelerDb;
+  applyGain();
+  state.songs = res.result.songs.map((s) => newSong(s.start, s.end, { conf: s.confidence, level: s.level }));
+  $("analyseBar").classList.add("hidden");
+  const n = state.songs.length;
+  $("analyseText").textContent = n ? `Found ${n} song${n === 1 ? "" : "s"} in ${((performance.now() - t0) / 1000).toFixed(0)} s. Check the edges, then name them.`
+    : "No songs found. Use + Song here to mark them by hand.";
+  if (n) state.open.add(state.songs[0].id);
+  changed();
+}
+const setBar = (pct) => { $("analyseBar").firstElementChild.style.width = pct + "%"; };
+
+function newSong(start, end, extra = {}) {
+  return { id: nextSongId++, start, end, title: "", explicit: false, isrc: "", applause: "short", fadeIn: 0.1, fadeOut: null, conf: 1, level: null, ...extra };
+}
+
+// ---------- routing (multi-input recordings) ----------
+function setupRouting() {
+  const src = state.src, ch = src.channels ?? 2;
+  $("routingPanel").classList.toggle("hidden", !(ch > 2 && src.routing));
+  if (!(ch > 2 && src.routing)) return;
+  $("routingInfo").textContent = `${ch} inputs recorded`;
+  const pairs = [];
+  for (let c = 0; c + 1 < ch; c += 2) pairs.push([`${c},${c + 1}`, `Inputs ${c + 1} + ${c + 2}`]);
+  for (let c = 0; c < ch; c++) pairs.push([`${c},${c}`, `Input ${c + 1} (mono)`]);
+  const fill = (sel, withNone) => { sel.innerHTML = ""; if (withNone) sel.append(new Option("None", "")); for (const [v, t] of pairs) sel.append(new Option(t, v)); };
+  fill($("rMain"), false); fill($("rRoom"), true);
+  src.routing = { ...DEFAULT_ROUTING, main: [0, 1] };
+  $("rMain").value = "0,1"; $("rRoom").value = "";
+  $("roomControls").classList.add("hidden");
+}
+const pairOf = (v) => (v ? v.split(",").map(Number) : null);
+function routingChanged() {
+  const r = state.src.routing;
+  r.main = pairOf($("rMain").value); r.room = pairOf($("rRoom").value);
+  r.roomDb = +$("rRoomDb").value; r.mainDelay = Math.round((+$("rDelay").value / 1000) * state.src.fs);
+  $("rRoomVal").textContent = `${r.roomDb.toFixed(1)} dB`; $("rDelayVal").textContent = `${(+$("rDelay").value).toFixed(1)} ms`;
+  $("roomControls").classList.toggle("hidden", !r.room);
+  soundChanged();
+}
+for (const id of ["rMain", "rRoom"]) $(id).addEventListener("change", routingChanged);
+for (const id of ["rRoomDb", "rDelay"]) $(id).addEventListener("input", routingChanged);
+$("redetect").addEventListener("click", () => detect());
+// Find how much later the room mics hear things than the board: cross-correlate
+// a loud stretch at 8 kHz, then refine at full rate.
+$("rAuto").addEventListener("click", async () => {
+  const src = state.src, r = src.routing; if (!r.room) return;
+  $("rAuto").disabled = true; $("rAuto").textContent = "Listening...";
+  const loud = [...state.songs].sort((a, b) => (b.level ?? -99) - (a.level ?? -99))[0];
+  const at = loud ? (loud.start + loud.end) / 2 : src.duration / 2, fs = src.fs, n = Math.round(fs * 8);
+  const raw = await src.readRaw(Math.max(0, Math.round(at * fs) - n / 2), n);
+  const mono = (p) => Float32Array.from(raw[p[0]], (v, i) => 0.5 * (v + raw[p[1] ?? p[0]][i]));
+  const a = mono(r.main), b = mono(r.room), dec = Math.max(1, Math.round(fs / 8000));
+  const down = (x) => Float32Array.from({ length: Math.floor(x.length / dec) }, (_, i) => { let s = 0; for (let k = 0; k < dec; k++) s += x[i * dec + k]; return s; });
+  const A = down(a), B = down(b), maxLag = Math.round((0.15 * fs) / dec);
+  const corr = (X, Y, lag, from, to) => { let s = 0; for (let i = from; i < to; i++) s += X[i] * Y[i + lag]; return s; };
+  let best = 0, bestV = -Infinity;
+  for (let lag = 0; lag <= maxLag; lag++) { const v = corr(A, B, lag, 0, A.length - maxLag); if (v > bestV) { bestV = v; best = lag; } }
+  let fine = best * dec, fineV = -Infinity;
+  for (let lag = Math.max(0, best * dec - dec); lag <= best * dec + dec; lag++) { const v = corr(a, b, lag, 0, Math.round(fs * 2)); if (v > fineV) { fineV = v; fine = lag; } }
+  $("rDelay").value = ((fine / fs) * 1000).toFixed(1);
+  $("rAuto").disabled = false; $("rAuto").textContent = "Line up automatically";
+  routingChanged();
+});
+
+// ---------- level: input volume + smart leveler (non-destructive) ----------
+function applyGain() {
+  if (state.src) state.src.gainTrack = buildGainTrack(state.levelerDb, state.inputDb, state.leveler);
+}
+$("gVol").addEventListener("input", () => { state.inputDb = +$("gVol").value; $("gVolVal").textContent = `${state.inputDb.toFixed(1)} dB`; applyGain(); soundChanged(); });
+$("gLeveler").addEventListener("change", () => { state.leveler = $("gLeveler").checked; applyGain(); soundChanged(); });
+
+// =====================================================================
+// Songs: what gets kept, and how each one ends
+// =====================================================================
+const songIndex = (id) => state.songs.findIndex((s) => s.id === id);
+function applauseAfter(song) { // seconds of applause straight after a song ends
+  const t = state.analysis?.timeline ?? [];
+  let n = 0, miss = 0;
+  for (let x = Math.floor(song.end); x < t.length && n + miss < 30; x++) {
+    if (t[x] === "applause") { n += 1 + miss; miss = 0; } else if (++miss > 1) break;
+  }
+  return n;
+}
+// The part of the recording that becomes the track
+function renderRange(i) {
+  const s = state.songs[i], next = state.songs[i + 1], limit = (next ? next.start : state.src.duration) - 0.2;
+  const clap = applauseAfter(s);
+  let end = s.end, fadeOut = 0.6;
+  if (s.applause === "short") { end = s.end + Math.min(clap, 4); fadeOut = clap ? 2 : 0.6; }
+  if (s.applause === "full") { end = s.end + Math.min(clap + 1, 15); fadeOut = 2.5; } // long "applause" is usually talk too
+  end = Math.max(s.end, Math.min(end, limit));
+  return { start: s.start, end, fadeIn: s.fadeIn, fadeOut: s.fadeOut ?? fadeOut };
+}
+// Kept stretches of the show (for "skip cuts" and the full-show file)
+function pieces() {
+  const out = [];
+  state.songs.forEach((s, i) => {
+    const rr = renderRange(i), last = out[out.length - 1];
+    if (last && last.joinNext) { last.end = rr.end; last.joinNext = state.keepGap.has(s.id); return; }
+    out.push({ start: rr.start, end: rr.end, joinNext: state.keepGap.has(s.id) });
+  });
+  return out.map((p) => ({ start: p.start, end: p.end })); // a kept gap is inside its piece
+}
+function gapKind(a, b) {
+  const t = state.analysis?.timeline ?? [], counts = {};
+  for (let x = Math.floor(a); x < Math.min(t.length, Math.ceil(b)); x++) counts[t[x]] = (counts[t[x]] ?? 0) + 1;
+  return Object.entries(counts).sort((x, y) => y[1] - x[1])[0]?.[0] ?? "quiet";
+}
+
+// structure changed: renumber, redraw everything, drop stale previews
+function changed() {
+  state.songs.sort((a, b) => a.start - b.start);
+  renderSongs(); drawTimeline(); updateSummary(); clearOutputs();
+  for (const [id, p] of state.preview) if (p.key !== previewKey(id)) state.preview.delete(id);
+}
+function updateSummary() {
+  const N = state.songs.length;
+  const total = state.songs.reduce((a, _, i) => { const r = renderRange(i); return a + r.end - r.start; }, 0);
+  $("sumTracks").textContent = N; $("sumLength").textContent = fmt(total);
+  $("sumCut").textContent = state.src ? fmt(state.src.duration - total) : "0:00";
+  $("exportGo").disabled = !N; $("encoreGo").disabled = !N;
+}
+
+function renderSongs() {
+  const box = $("songs"); box.innerHTML = "";
+  const N = state.songs.length;
+  state.songs.forEach((s, i) => {
+    if (i > 0) box.append(gapRow(state.songs[i - 1], s));
+    const color = COLORS[i % COLORS.length], d = document.createElement("details");
+    d.className = "song"; d.style.setProperty("--c", color); d.open = state.open.has(s.id); d.dataset.id = s.id;
+    const rr = renderRange(i);
+    d.innerHTML = `<summary><span class="num">${pad2(i + 1)}</span><span class="sTitle ${s.title ? "" : "untitled"}">${esc(s.title || `Song ${i + 1}`)}</span>
+      ${s.conf < 0.5 ? '<span class="badge check" title="The edges of this one were hard to call. Give it a listen.">check edges</span>' : "<span></span>"}
+      <span class="sMeta">${fmt(rr.end - rr.start)}</span></summary>
+      <div class="songBody">
+        <div class="grid2">
+          <label class="field wide">Title<input data-k="title" value="${esc(s.title)}" placeholder="Song ${i + 1}" autocomplete="off"></label>
+          <label class="field">ISRC <small>(optional)</small><input data-k="isrc" value="${esc(s.isrc)}" autocomplete="off"></label>
+          <label class="check" style="align-self:end;padding-bottom:6px"><input type="checkbox" data-k="explicit" ${s.explicit ? "checked" : ""}> Explicit</label>
+        </div>
+        <div class="edges">
+          <div class="edge"><div class="label">Starts <span>drag or click to listen</span></div><canvas data-edge="start"></canvas>
+            <div class="row"><span class="t">${fmt(s.start, true)}</span><button data-nudge="start,-1">-1s</button><button data-nudge="start,-0.1">-.1</button><button data-nudge="start,0.1">+.1</button><button data-nudge="start,1">+1s</button><button data-play="start">Play</button></div></div>
+          <div class="edge"><div class="label">Ends <span>${applauseAfter(s) ? `${applauseAfter(s)} s of applause after` : ""}</span></div><canvas data-edge="end"></canvas>
+            <div class="row"><span class="t">${fmt(s.end, true)}</span><button data-nudge="end,-1">-1s</button><button data-nudge="end,-0.1">-.1</button><button data-nudge="end,0.1">+.1</button><button data-nudge="end,1">+1s</button><button data-play="end">Play end</button></div></div>
+        </div>
+        <div><div class="label">Applause at the end</div>
+          <div class="seg" data-seg="applause">${[["cut", "Cut it"], ["short", "Short tail"], ["full", "Keep it all"]].map(([v, t]) => `<button data-v="${v}" class="${s.applause === v ? "on" : ""}">${t}</button>`).join("")}</div></div>
+        <div class="songActions">
+          <button class="small" data-act="split" title="Split this song in two where the playhead is">Split at playhead</button>
+          ${i < N - 1 ? '<button class="small" data-act="merge" title="One song, not two">Merge with next</button>' : ""}
+          <button class="small" data-act="remove" title="Not a song: cut it out">Not a song</button>
+          <button class="small" data-act="master" title="Play this song mastered">Hear it mastered</button>
+        </div>
+      </div>`;
+    d.addEventListener("toggle", () => { if (d.open) { state.open.add(s.id); drawEdges(d, s); } else state.open.delete(s.id); });
+    d.querySelectorAll("input[data-k]").forEach((inp) => inp.addEventListener(inp.type === "checkbox" ? "change" : "input", () => {
+      s[inp.dataset.k] = inp.type === "checkbox" ? inp.checked : inp.value;
+      if (inp.dataset.k === "title") { const t = d.querySelector(".sTitle"); t.textContent = s.title || `Song ${i + 1}`; t.classList.toggle("untitled", !s.title); }
+      clearOutputs();
+    }));
+    d.querySelectorAll("[data-nudge]").forEach((b) => b.addEventListener("click", () => { const [edge, by] = b.dataset.nudge.split(","); moveEdge(s, edge, s[edge] + +by); }));
+    d.querySelectorAll("[data-play]").forEach((b) => b.addEventListener("click", () => player.play(b.dataset.play === "start" ? s.start : Math.max(s.start, s.end - 6))));
+    d.querySelectorAll("[data-seg=applause] button").forEach((b) => b.addEventListener("click", () => { s.applause = b.dataset.v; changed(); }));
+    d.querySelector("[data-act=split]").addEventListener("click", () => {
+      const t = player.time();
+      if (t <= s.start + 5 || t >= s.end - 5) { $("abNote").textContent = "Move the playhead inside this song (at least 5 s from either edge) to split it."; return; }
+      const b = newSong(t, s.end); s.end = t; state.songs.push(b); state.open.add(b.id); changed();
+    });
+    d.querySelector("[data-act=merge]")?.addEventListener("click", () => { const nx = state.songs[i + 1]; s.end = nx.end; state.songs.splice(i + 1, 1); changed(); });
+    d.querySelector("[data-act=remove]").addEventListener("click", () => { state.songs.splice(i, 1); changed(); });
+    d.querySelector("[data-act=master]").addEventListener("click", () => { setMastered(true); player.play(s.start); });
+    box.append(d);
+    if (d.open) requestAnimationFrame(() => drawEdges(d, s));
+  });
+}
+function gapRow(a, b) {
+  const row = document.createElement("div"); row.className = "gapRow";
+  const ia = songIndex(a.id), from = renderRange(ia).end, len = b.start - from;
+  const kind = gapKind(from, b.start);
+  row.innerHTML = `<span>${fmt(Math.max(0, len))} of <b>${GAP_NAMES[kind] ?? kind}</b> between songs</span>`;
+  const sel = document.createElement("select"); sel.className = "field";
+  sel.append(new Option("Cut it out", "cut"), new Option("Keep it (full show file)", "keep"));
+  sel.value = state.keepGap.has(a.id) ? "keep" : "cut";
+  sel.addEventListener("change", () => { if (sel.value === "keep") state.keepGap.add(a.id); else state.keepGap.delete(a.id); drawTimeline(); updateSummary(); clearOutputs(); });
+  const play = document.createElement("button"); play.className = "small"; play.textContent = "Listen";
+  play.onclick = () => player.play(from);
+  row.append(sel, play);
+  return row;
+}
+function moveEdge(s, edge, t) {
+  const i = songIndex(s.id), prev = state.songs[i - 1], next = state.songs[i + 1];
+  if (edge === "start") s.start = Math.max(prev ? prev.end + 0.3 : 0, Math.min(t, s.end - 5));
+  else s.end = Math.min(next ? next.start - 0.3 : state.src.duration, Math.max(t, s.start + 5));
+  s.start = +s.start.toFixed(2); s.end = +s.end.toFixed(2);
+  const d = document.querySelector(`details.song[data-id="${s.id}"]`);
+  if (d) {
+    const [ts, te] = d.querySelectorAll(".edge .t"); ts.textContent = fmt(s.start, true); te.textContent = fmt(s.end, true);
+    const rr = renderRange(i); d.querySelector(".sMeta").textContent = fmt(rr.end - rr.start);
+    drawEdges(d, s, edge);
+  }
+  drawTimeline(); updateSummary(); clearOutputs();
+  state.preview.delete(s.id);
+  debounceRebuild();
+}
+let rebuildTimer = 0;
+function debounceRebuild() { clearTimeout(rebuildTimer); rebuildTimer = setTimeout(() => { if (!document.querySelector(".edge canvas.dragging")) renderSongs(); }, 1200); }
+
+// Close-up waveforms of a song's start and end (16 s around each edge)
+const edgeView = new WeakMap();
+async function drawEdges(d, s, only) {
+  for (const cv of d.querySelectorAll("canvas[data-edge]")) {
+    const edge = cv.dataset.edge;
+    if (only && only !== edge && edgeView.has(cv)) continue;
+    let view = edgeView.get(cv);
+    if (!view || view.songId !== s.id || !cv.classList.contains("dragging") && (s[edge] < view.a + 2 || s[edge] > view.b - 2)) {
+      const a = Math.max(0, s[edge] - 8), b = Math.min(state.src.duration, s[edge] + 8);
+      view = { songId: s.id, a, b, peaks: null }; edgeView.set(cv, view);
+      const fs = state.src.fs, { l, r } = await state.src.read(Math.round(a * fs), Math.round((b - a) * fs));
+      const W = 400, per = Math.max(1, Math.floor(l.length / W)), pk = new Float32Array(W);
+      for (let x = 0; x < W; x++) { let m = 0; for (let k = x * per; k < (x + 1) * per && k < l.length; k += 2) m = Math.max(m, Math.abs(l[k]), Math.abs(r[k])); pk[x] = m; }
+      view.peaks = pk;
+      if (!cv.dataset.wired) wireEdge(cv, d);
+    }
+    paintEdge(cv, view, s, edge, COLORS[songIndex(s.id) % COLORS.length]);
+  }
+}
+function paintEdge(cv, view, s, edge, color) {
+  const dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const pk = view.peaks; if (!pk) return;
+  const mx = Math.max(0.05, ...pk), tx = (t) => ((t - view.a) / (view.b - view.a)) * W, ex = tx(s[edge]);
+  for (let x = 0; x < W; x++) {
+    const v = pk[Math.floor((x / W) * pk.length)] / mx, h = Math.max(1, v * (H / 2 - 4)), t = view.a + (x / W) * (view.b - view.a);
+    const inSong = edge === "start" ? t >= s[edge] : t <= s[edge];
+    g.fillStyle = inSong ? color : "rgba(145,136,125,0.35)";
+    g.fillRect(x, H / 2 - h, 1, h * 2);
+  }
+  g.fillStyle = "#f2efe8"; g.fillRect(Math.round(ex) - 1, 0, 2, H);
+  const pt = player.time();
+  if (pt >= view.a && pt <= view.b) { g.fillStyle = "rgba(242,239,232,0.6)"; g.fillRect(Math.round(tx(pt)), 0, 1, H); }
+}
+function wireEdge(cv, d) {
+  cv.dataset.wired = 1;
+  let down = null;
+  const timeAt = (e) => { const v = edgeView.get(cv), rc = cv.getBoundingClientRect(); return v.a + ((e.clientX - rc.left) / rc.width) * (v.b - v.a); };
+  cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); down = { x: e.clientX, moved: false }; });
+  cv.addEventListener("pointermove", (e) => {
+    if (!down) return;
+    if (Math.abs(e.clientX - down.x) > 3) { down.moved = true; cv.classList.add("dragging"); }
+    if (down.moved) { const s = state.songs[songIndex(+d.dataset.id)]; moveEdge(s, cv.dataset.edge, timeAt(e)); }
+  });
+  cv.addEventListener("pointerup", (e) => {
+    if (down && !down.moved) player.play(timeAt(e));
+    down = null; cv.classList.remove("dragging"); debounceRebuild();
+  });
+}
+
+$("addSong").addEventListener("click", () => {
+  const t = player.time();
+  if (state.songs.some((s) => t >= s.start && t < s.end)) { $("abNote").textContent = "The playhead is inside a song. Use Split at playhead on that song instead."; return; }
+  const next = state.songs.find((s) => s.start > t);
+  const s = newSong(t, Math.min(t + 180, next ? next.start - 0.5 : state.src.duration));
+  if (s.end - s.start < 5) { $("abNote").textContent = "Not enough room for a song here."; return; }
+  state.songs.push(s); state.open.add(s.id); changed();
+});
+$("applySetlist").addEventListener("click", () => {
+  const lines = $("mSetlist").value.split(/\r?\n/).map((x) => x.replace(/^\s*\d+\s*[.)\-:]?\s+/, "").trim()).filter(Boolean);
+  lines.forEach((t, i) => { if (state.songs[i]) state.songs[i].title = t; });
+  if (lines.length !== state.songs.length) $("abNote").textContent = `The setlist has ${lines.length} songs and ${state.songs.length} were found. Titles were filled in order; check the ones at the end.`;
+  changed();
+});
+
+// =====================================================================
+// Timeline: the whole set, songs in colour, cuts in grey
+// =====================================================================
+const tl = $("timeline");
+function resizeTimeline() { const dpr = devicePixelRatio || 1; tl.width = tl.clientWidth * dpr; tl.height = tl.clientHeight * dpr; drawTimeline(); }
+window.addEventListener("resize", () => { resizeTimeline(); document.querySelectorAll("details.song[open]").forEach((d) => { const s = state.songs[songIndex(+d.dataset.id)]; if (s) drawEdges(d, s); }); });
+function drawTimeline() {
+  const ov = state.overview, src = state.src;
+  const dpr = devicePixelRatio || 1, W = tl.clientWidth, H = tl.clientHeight, g = tl.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  if (!ov || !src) return;
+  const dur = src.duration, X = (t) => (t / dur) * W, top = 18, mid = top + (H - top - 14) / 2, half = (H - top - 14) / 2;
+  const regions = state.songs.map((s, i) => ({ ...renderRange(i), song: s, color: COLORS[i % COLORS.length] }));
+  const kept = pieces();
+  const mx = Math.max(0.05, ...ov.peaks);
+  for (let x = 0; x < W; x++) {
+    const t = ((x + 0.5) / W) * dur, c0 = Math.floor((x / W) * ov.cols), c1 = Math.max(c0 + 1, Math.floor(((x + 1) / W) * ov.cols));
+    let p = 0, lv = 0; for (let c = c0; c < c1 && c < ov.cols; c++) { p = Math.max(p, ov.peaks[c]); lv = Math.max(lv, ov.level[c]); }
+    const reg = regions.find((r) => t >= r.start && t < r.end), keep = kept.some((k) => t >= k.start && t < k.end);
+    const h = Math.max(1, Math.sqrt(p / mx) * half), hl = Math.max(0.5, Math.sqrt(lv / mx) * half);
+    g.fillStyle = reg ? reg.color : keep ? "rgba(242,239,232,0.45)" : "rgba(145,136,125,0.28)";
+    g.globalAlpha = reg ? 0.55 : 1; g.fillRect(x, mid - h, 1, h * 2);
+    if (reg) { g.globalAlpha = 1; g.fillRect(x, mid - hl, 1, hl * 2); }
+  }
+  g.globalAlpha = 1;
+  g.font = "600 11px 'DM Sans', sans-serif"; g.textBaseline = "top";
+  regions.forEach((r, i) => {
+    const a = X(r.song.start), b = X(r.song.end);
+    g.fillStyle = r.color; g.fillRect(a, top - 4, Math.max(2, b - a), 3);
+    g.fillRect(Math.round(a), top - 4, 2, H - top); g.fillRect(Math.round(b) - 2, top - 4, 2, H - top);
+    if (b - a > 18) { g.fillStyle = r.color; g.fillText(String(i + 1).padStart(2, "0"), a + 4, 1); }
+    if (b - a > 90 && r.song.title) { g.fillStyle = "#bdb4a9"; g.fillText(r.song.title.slice(0, Math.floor((b - a - 30) / 6)), a + 24, 1); }
+  });
+  g.fillStyle = "#91887d"; g.textBaseline = "bottom";
+  for (let i = 0; i <= state.songs.length; i++) { // label what's in each cut
+    const from = i ? regions[i - 1].end : 0, to = i < regions.length ? regions[i].start : dur;
+    if (X(to) - X(from) > 70) { const k = gapKind(from, to); g.fillText(`${GAP_NAMES[k] ?? k} ${fmt(to - from)}`, X(from) + 4, H - 1); }
+  }
+  g.fillStyle = "#e8b04b";
+  for (const m of state.markers) g.fillRect(Math.round(X(m)), top, 1, H - top - 14);
+  const pt = player.time();
+  g.fillStyle = "#f2efe8"; g.fillRect(Math.round(X(pt)), 0, 2, H);
+}
+// click to listen; drag a song's edge to move it
+let tlDrag = null;
+const tlTime = (e) => { const rc = tl.getBoundingClientRect(); return Math.max(0, Math.min(state.src.duration, ((e.clientX - rc.left) / rc.width) * state.src.duration)); };
+function edgeAt(e) {
+  const rc = tl.getBoundingClientRect(), px = e.clientX - rc.left, W = rc.width, dur = state.src.duration;
+  let best = null;
+  for (const s of state.songs) for (const edge of ["start", "end"]) {
+    const d = Math.abs((s[edge] / dur) * W - px);
+    if (d < 7 && (!best || d < best.d)) best = { s, edge, d };
+  }
+  return best;
+}
+tl.addEventListener("pointerdown", (e) => {
+  if (!state.src) return;
+  const hit = edgeAt(e);
+  tl.setPointerCapture(e.pointerId);
+  tlDrag = hit ? { ...hit } : { seek: true };
+  if (!hit) player.play(tlTime(e));
+});
+tl.addEventListener("pointermove", (e) => {
+  if (!state.src) return;
+  if (tlDrag?.s) moveEdge(tlDrag.s, tlDrag.edge, tlTime(e));
+  else if (tlDrag?.seek) player.play(tlTime(e));
+  else tl.style.cursor = edgeAt(e) ? "ew-resize" : "pointer";
+});
+tl.addEventListener("pointerup", () => { if (tlDrag?.s) renderSongs(); tlDrag = null; });
+tl.addEventListener("dblclick", (e) => {
+  const t = tlTime(e), s = state.songs.find((x) => t >= x.start && t < x.end);
+  if (s) { state.open.add(s.id); renderSongs(); document.querySelector(`details.song[data-id="${s.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+});
+
+// =====================================================================
+// Player: streams the set in 1 s pieces (never loads the whole show), plays
+// mastered songs when "Mastered" is on, and can skip the cut parts.
+// =====================================================================
+const player = {
+  gen: 0, playing: false, segs: [], sources: [], pos: 0, timer: 0, busy: false,
+  time() {
+    if (!this.playing || !ctx) return this.pos;
+    const now = ctx.currentTime, seg = this.segs.find((s) => now >= s.t && now < s.t + s.dur);
+    if (seg) return seg.pos + (now - seg.t);
+    const last = this.segs[this.segs.length - 1];
+    return last && now >= last.t + last.dur ? last.pos + last.dur : this.pos;
+  },
+  play(at) {
+    if (!state.src) return;
+    this.stop(true); audio().resume();
+    this.pos = Math.max(0, Math.min(at ?? this.pos, state.src.duration - 0.05));
+    this.playing = true; this.gen++;
+    this.nextPos = this.pos; this.nextTime = ctx.currentTime + 0.08;
+    this.timer = setInterval(() => this.pump(), 80); this.pump();
+    setPlayIcon(true); tick();
+  },
+  stop(keep) {
+    if (this.playing) this.pos = this.time();
+    this.gen++; this.playing = false; clearInterval(this.timer);
+    for (const s of this.sources) { try { s.stop(); } catch { /* done */ } }
+    this.sources = []; this.segs = []; this.busy = false;
+    if (!keep) { setPlayIcon(false); drawTimeline(); }
+  },
+  async pump() {
+    if (this.busy || !this.playing) return;
+    this.busy = true; const gen = this.gen;
+    try {
+      while (this.playing && gen === this.gen && this.nextTime < ctx.currentTime + 1.2) {
+        if (this.nextPos >= state.src.duration - 0.01) { if (ctx.currentTime > this.nextTime) { this.stop(); this.pos = 0; } break; }
+        const chunk = await audioAt(this.nextPos);
+        if (gen !== this.gen) return;
+        if (chunk.jump !== undefined) { this.nextPos = chunk.jump; continue; }
+        const n = chunk.l.length; if (!n) { this.nextPos += 0.5; continue; }
+        const buf = ctx.createBuffer(2, n, chunk.fs); buf.copyToChannel(chunk.l, 0); buf.copyToChannel(chunk.r, 1);
+        const node = ctx.createBufferSource(); node.buffer = buf; node.connect(ctx.destination);
+        if (this.nextTime < ctx.currentTime + 0.02) this.nextTime = ctx.currentTime + 0.05; // fell behind: small gap, carry on
+        node.start(this.nextTime);
+        node.onended = () => { this.sources = this.sources.filter((s) => s !== node); };
+        this.sources.push(node);
+        const dur = n / chunk.fs;
+        this.segs.push({ t: this.nextTime, pos: this.nextPos, dur }); if (this.segs.length > 40) this.segs.shift();
+        this.nextTime += dur; this.nextPos += dur;
+      }
+    } finally { if (gen === this.gen) this.busy = false; }
+  },
+};
+async function audioAt(pos) {
+  const src = state.src, fs = src.fs;
+  const ranges = state.songs.map((_, i) => renderRange(i)), si = ranges.findIndex((r) => pos >= r.start && pos < r.end);
+  if ($("skipCuts").checked && si < 0 && !pieces().some((p) => pos >= p.start && pos < p.end)) {
+    const nx = ranges.find((r) => r.start > pos);
+    return { jump: nx ? nx.start : src.duration };
+  }
+  // stop each piece at the next boundary so a mastered song starts exactly on time
+  const bounds = ranges.flatMap((r) => [r.start, r.end]).filter((b) => b > pos + 1e-3);
+  const end = Math.min(pos + 1, src.duration, ...bounds), n = Math.max(1, Math.round((end - pos) * fs));
+  if (si >= 0) {
+    const s = state.songs[si], p = state.preview.get(s.id), key = previewKey(s.id);
+    if (state.mastered && p?.key === key && p.l) {
+      const off = Math.round((pos - ranges[si].start) * fs);
+      return { l: p.l.subarray(off, off + n), r: p.r.subarray(off, off + n), fs };
+    }
+    if (state.mastered) requestPreview(s.id);
+    const { l, r } = await src.read(Math.round(pos * fs), n);
+    if (!state.mastered && p?.key === key && p.l) { const g = Math.pow(10, (p.lufs - p.origLufs) / 20); for (let i = 0; i < n; i++) { l[i] *= g; r[i] *= g; } } // same loudness as the master
+    return { l, r, fs };
+  }
+  const { l, r } = await src.read(Math.round(pos * fs), n);
+  return { l, r, fs };
+}
+function setPlayIcon(on) { $("playIcon").setAttribute("d", on ? "M6 5h4v14H6zM14 5h4v14h-4z" : "M7 5v14l12-7z"); $("play").setAttribute("aria-label", on ? "Pause" : "Play"); }
+const togglePlay = () => (player.playing ? player.stop() : player.play());
+$("play").addEventListener("click", togglePlay);
+$("rw").addEventListener("click", () => { const t = Math.max(0, player.time() - 10); player.playing ? player.play(t) : (player.pos = t, drawTimeline()); });
+$("ff").addEventListener("click", () => { const t = Math.min(state.src.duration, player.time() + 10); player.playing ? player.play(t) : (player.pos = t, drawTimeline()); });
+let lastSong = null;
+function tick() {
+  if (!state.src) return;
+  const t = player.time();
+  $("time").textContent = `${fmt(t)} / ${fmt(state.src.duration)}`;
+  drawTimeline();
+  const s = state.songs.find((x, i) => { const r = renderRange(i); return t >= r.start && t < r.end; });
+  if ((s?.id ?? null) !== lastSong) {
+    document.querySelectorAll("details.song.playing").forEach((d) => d.classList.remove("playing"));
+    if (s) document.querySelector(`details.song[data-id="${s.id}"]`)?.classList.add("playing");
+    lastSong = s?.id ?? null;
+  }
+  document.querySelectorAll("details.song[open]").forEach((d) => {
+    const so = state.songs[songIndex(+d.dataset.id)];
+    d.querySelectorAll("canvas[data-edge]").forEach((cv) => { const v = edgeView.get(cv); if (v?.peaks && so && t >= v.a - 1 && t <= v.b + 1) paintEdge(cv, v, so, cv.dataset.edge, COLORS[songIndex(so.id) % COLORS.length]); });
+  });
+  if (player.playing) requestAnimationFrame(tick);
+}
+
+// ---------- A/B: original vs mastered ----------
+function setMastered(on) {
+  state.mastered = on;
+  $("abOrig").classList.toggle("on", !on); $("abMaster").classList.toggle("on", on);
+  $("abNote").textContent = on ? "Mastered songs play as they'll sound on the release. Parts that get cut play as recorded." : "";
+  if (player.playing) player.play(player.time());
+}
+$("abOrig").addEventListener("click", () => setMastered(false));
+$("abMaster").addEventListener("click", () => setMastered(true));
+
+// =====================================================================
+// Sound: one set of settings for the whole show
+// =====================================================================
+function settings() {
+  // Low / Mid / High map onto the chain's tone bands (75 Hz shelf, 1.5 kHz, 9.5 kHz);
+  // "tame harsh phone mic" dips the 3.5 kHz band
+  return { style: state.style, intensity: state.intensity, targetLufs: TARGETS[state.target].lufs,
+           tone: [state.eq.low, 0, state.eq.mid, state.harsh ? -3 : 0, state.eq.high] };
+}
+const soundKey = () => JSON.stringify([settings(), state.even, state.rumble, state.src?.routing ?? null, state.inputDb, state.leveler]);
+function loudestSong() {
+  const withLevel = state.songs.filter((s) => s.level !== null);
+  if (withLevel.length) return withLevel.reduce((a, b) => (b.level > a.level ? b : a));
+  return state.songs.reduce((a, b) => (b.end - b.start > a.end - a.start ? b : a));
+}
+const previewKey = (id) => { const i = songIndex(id); return i < 0 ? "" : soundKey() + JSON.stringify(renderRange(i)); };
+
+async function prepare(onText) {
+  const key = soundKey(), loud = loudestSong(), lk = key + loud.start + loud.end;
+  if (state.prepared?.key === lk) return state.prepared;
+  await ready;
+  const res = await rpc({ type: "prepare", source: describeSource(state.src), song: { start: loud.start, end: loud.end }, settings: settings(), rumble: state.rumble },
+    (p) => onText?.(p.text));
+  state.prepared = { key: lk, learned: res.learned, lufs: res.lufs };
+  return state.prepared;
+}
+async function masterSong(i, onText) {
+  const prep = await prepare(onText);
+  return rpc({ type: "song", source: describeSource(state.src), song: renderRange(i), settings: settings(), learned: prep.learned, rumble: state.rumble,
+    even: state.even, refLufs: prep.lufs });
+}
+let previewBusy = null;
+async function requestPreview(id) {
+  if (previewBusy === id) return;
+  const key = previewKey(id), cur = state.preview.get(id);
+  if (cur?.key === key) return;
+  previewBusy = id;
+  const i = songIndex(id);
+  $("abNote").textContent = `Mastering song ${i + 1} so you can hear it...`;
+  try {
+    const res = await masterSong(i, (t) => { $("abNote").textContent = t; });
+    if (previewKey(id) === key) {
+      state.preview.set(id, { key, l: res.l, r: res.r, lufs: res.lufs, origLufs: res.origLufs });
+      while (state.preview.size > 3) state.preview.delete(state.preview.keys().next().value); // keep memory sane
+      $("abNote").textContent = `Song ${i + 1} mastered: ${res.lufs.toFixed(1)} LUFS, peak ${res.peakDb.toFixed(1)} dBTP.`;
+      if (player.playing && state.mastered) player.play(player.time());
+    }
+  } catch (err) { $("abNote").textContent = `Couldn't master that song: ${err.message}`; }
+  finally { previewBusy = null; }
+}
+let soundTimer = 0;
+function soundChanged() {
+  state.prepared = null; clearOutputs();
+  clearTimeout(soundTimer);
+  soundTimer = setTimeout(() => {
+    if (!state.mastered || !state.src) return;
+    const s = state.songs.find((x, i) => { const r = renderRange(i), t = player.time(); return t >= r.start && t < r.end; });
+    if (s) requestPreview(s.id);
+  }, 500);
+}
+
+function setupSound() {
+  const box = $("styles");
+  STYLES.slice(0, 4).forEach((s, i) => { // only the styles fitted to measurements
+    const b = document.createElement("button"); b.textContent = s.name; b.title = s.blurb;
+    b.addEventListener("click", () => { state.style = i; paintSound(); soundChanged(); });
+    box.append(b);
+  });
+  TARGETS.forEach((t, i) => {
+    const b = document.createElement("button"); b.innerHTML = `${t.name}<br><small>${t.lufs} LUFS</small>`;
+    b.addEventListener("click", () => { state.target = i; paintSound(); soundChanged(); });
+    $("targets").append(b);
+  });
+  $("intensity").addEventListener("input", () => {
+    state.intensity = $("intensity").value / 100; const v = +$("intensity").value;
+    $("intensityVal").textContent = v === 50 ? "Normal" : v < 50 ? `Light (${v}%)` : `Heavy (${v}%)`; soundChanged();
+  });
+  for (const [k, id] of [["low", "eqLow"], ["mid", "eqMid"], ["high", "eqHigh"]]) {
+    const el = $(id), out = $(id + "Val");
+    el.addEventListener("input", () => { state.eq[k] = +el.value; out.textContent = `${(+el.value).toFixed(1)} dB`; soundChanged(); });
+    el.addEventListener("dblclick", () => { el.value = 0; el.dispatchEvent(new Event("input")); });
+  }
+  $("even").addEventListener("input", () => {
+    state.even = $("even").value / 100; const v = +$("even").value;
+    $("evenVal").textContent = v === 0 ? "As played" : v === 100 ? "All equal" : `${v}% evened out`; soundChanged();
+  });
+  $("rumble").addEventListener("change", () => { state.rumble = $("rumble").checked; soundChanged(); });
+  $("harsh").addEventListener("change", () => { state.harsh = $("harsh").checked; soundChanged(); });
+  paintSound();
+}
+function paintSound() {
+  [...$("styles").children].forEach((b, i) => b.classList.toggle("on", i === state.style));
+  [...$("targets").children].forEach((b, i) => b.classList.toggle("on", i === state.target));
+  $("blurb").textContent = STYLES[state.style].blurb;
+}
+
+// =====================================================================
+// Show details, export, Encore
+// =====================================================================
+fillGenreSelect($("mGenre"));
+$("mArt").addEventListener("change", async () => {
+  const f = $("mArt").files[0]; if (!f) { state.art = null; $("mArtPreview").classList.add("hidden"); return; }
+  state.art = { bytes: new Uint8Array(await f.arrayBuffer()), mime: f.type || "image/jpeg", name: f.name };
+  $("mArtPreview").src = URL.createObjectURL(f); $("mArtPreview").classList.remove("hidden"); clearOutputs();
+});
+for (const id of ["mArtist", "mTitle", "mVenue", "mCity", "mDate", "mGenre"]) $(id).addEventListener("input", () => {
+  clearOutputs();
+  if (id === "mTitle" || id === "mVenue" || id === "mArtist") $("setName").textContent = releaseTitle() + ($("mArtist").value ? ` · ${$("mArtist").value}` : "");
+});
+function releaseTitle() {
+  const v = $("mVenue").value.trim();
+  return $("mTitle").value.trim() || (v ? `Live at ${v}` : "Live");
+}
+function showMeta() {
+  const date = $("mDate").value, where = [$("mVenue").value.trim(), $("mCity").value.trim()].filter(Boolean).join(", ");
+  return { artist: $("mArtist").value.trim(), album: releaseTitle(), venue: $("mVenue").value.trim(), city: $("mCity").value.trim(), date,
+           year: date ? date.slice(0, 4) : String(new Date().getFullYear()), genre: $("mGenre").value,
+           comment: `Recorded live${where ? ` at ${where}` : ""}${date ? `, ${date}` : ""}` };
+}
+const trackName = (i, s) => `${pad2(i + 1)} - ${clean(s.title) || `Song ${i + 1}`}`;
+
+let outputUrls = [];
+function clearOutputs() {
+  if (!state.outputs && !outputUrls.length) return;
+  state.outputs = null;
+  outputUrls.forEach((u) => URL.revokeObjectURL(u)); outputUrls = [];
+  $("exportResults").innerHTML = ""; $("exportStatus").textContent = "";
+}
+function link(blob, name, label) {
+  const a = document.createElement("a"), url = URL.createObjectURL(blob); outputUrls.push(url);
+  a.href = url; a.download = name; a.className = "dl"; a.textContent = `${label} (${(blob.size / 1e6).toFixed(1)} MB)`;
+  $("exportResults").append(a);
+}
+const mp3Of = (l, r, fs, onPct) => new Promise((resolve, reject) => {
+  const w = new Worker("mp3-worker.js");
+  w.onmessage = (e) => { if (e.data.type === "progress") onPct?.(e.data.pct); else { resolve(e.data.mp3); w.terminate(); } };
+  w.onerror = (e) => { reject(new Error(e.message)); w.terminate(); };
+  w.postMessage({ l, r, fs, kbps: 320 }, [l.buffer, r.buffer]);
+});
+
+async function exportAll() {
+  if (state.outputs) return state.outputs;
+  const meta = showMeta(), N = state.songs.length, status = (t) => { $("exportStatus").textContent = t; };
+  const wantWav = $("fWav").checked, wantMp3 = $("fMp3").checked;
+  if (!wantWav && !wantMp3) { status("Pick at least one format."); return null; }
+  player.stop(); $("exportGo").disabled = true; $("encoreGo").disabled = true;
+  try {
+    const files = [], tracks = [];
+    for (let i = 0; i < N; i++) {
+      const s = state.songs[i];
+      status(`Mastering ${i + 1} of ${N}: ${s.title || `Song ${i + 1}`}...`);
+      const res = await masterSong(i, (t) => status(t));
+      const tags = { ...meta, title: s.title || `Song ${i + 1}`, track: `${i + 1}/${N}`, isrc: s.isrc };
+      const base = trackName(i, s), t = { n: i + 1, title: tags.title, explicit: s.explicit, isrc: s.isrc || null,
+        seconds: +(res.l.length / res.fs).toFixed(2), lufs: +res.lufs.toFixed(1), peakDb: +res.peakDb.toFixed(1), files: {} };
+      if (wantWav) { const name = `${base}.wav`; files.push({ name, blob: wavFile(res.l, res.r, res.fs, 24, tags, state.art), label: `${base}.wav` }); t.files.wav = name; }
+      if (wantMp3) {
+        const mp3 = await mp3Of(res.l, res.r, res.fs, (p) => status(`Encoding MP3 ${i + 1} of ${N}... ${p}%`));
+        const name = `${base}.mp3`; files.push({ name, blob: new Blob([id3(tags, state.art), mp3], { type: "audio/mpeg" }), label: name }); t.files.mp3 = name;
+      }
+      tracks.push(t);
+    }
+    let show = null;
+    if ($("fShow").checked) {
+      status("Making the full-show file...");
+      const prep = await prepare();
+      const res = await rpc({ type: "show", source: describeSource(state.src), pieces: pieces(), settings: settings(), learned: prep.learned, rumble: state.rumble,
+        bits: 24, meta: { ...meta, title: `${meta.album} (full show)` }, art: state.art }, (p) => status(`Making the full-show file... ${p.pct}%`));
+      const name = `${clean(meta.album)} (full show).wav`;
+      files.push({ name, blob: res.blob, label: name }); show = { file: name, seconds: +res.seconds.toFixed(1) };
+    }
+    const st = settings();
+    const manifest = {
+      kind: "encore-live-release", version: 1, createdWith: "Encore Music Studio Live", createdAt: new Date().toISOString(),
+      release: { type: "live", title: meta.album, artist: meta.artist, venue: meta.venue, city: meta.city, date: meta.date || null, year: meta.year,
+                 genre: meta.genre || null, cover: state.art ? `cover.${state.art.mime === "image/png" ? "png" : "jpg"}` : null, explicit: tracks.some((t) => t.explicit) },
+      tracks, show,
+      mastering: { style: STYLES[st.style].name, intensity: st.intensity, targetLufs: st.targetLufs, eq: { ...state.eq }, rumbleFilter: state.rumble, tameHarsh: state.harsh, sharedSettings: true },
+    };
+    const extra = [{ name: "manifest.json", blob: new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" }) }];
+    if (state.art) extra.push({ name: manifest.release.cover, blob: new Blob([state.art.bytes], { type: state.art.mime }) });
+    status("Packing the zip...");
+    const folder = clean(`${meta.artist ? meta.artist + " - " : ""}${meta.album}`);
+    const zipBlob = await zip([...files, ...extra].map((f) => ({ name: `${folder}/${f.name}`, blob: f.blob })));
+    $("exportResults").innerHTML = "";
+    link(zipBlob, `${folder}.zip`, `Everything (${folder}.zip)`);
+    for (const f of files) link(f.blob, f.name, f.label);
+    const loudest = Math.max(...tracks.map((t) => t.lufs)), quietest = Math.min(...tracks.map((t) => t.lufs));
+    status(`Done. ${N} tracks, ${quietest.toFixed(1)} to ${loudest.toFixed(1)} LUFS (songs keep their live dynamics).`);
+    state.outputs = { manifest, files: [...files, ...extra], zip: zipBlob };
+    return state.outputs;
+  } catch (err) {
+    status(`Something went wrong: ${err.message}`); return null;
+  } finally { $("exportGo").disabled = false; $("encoreGo").disabled = false; }
+}
+$("exportGo").addEventListener("click", exportAll);
+
+// Inside encoremusic.studio the site provides window.EncoreStudio.createLiveRelease
+// (see INTEGRATION.md): it uploads the files and opens a new release, ready to price.
+$("encoreGo").addEventListener("click", async () => {
+  const out = await exportAll(); if (!out) return;
+  const hook = window.EncoreStudio?.createLiveRelease;
+  if (hook) {
+    $("exportStatus").textContent = "Sending to Encore...";
+    try { await hook(out.manifest, out.files.map((f) => ({ name: f.name, blob: f.blob }))); $("exportStatus").textContent = "Sent. Finish the sale details on Encore."; }
+    catch (err) { $("exportStatus").textContent = `Encore didn't take it: ${err.message}. The files below are ready to upload by hand.`; }
+  } else {
+    $("exportStatus").textContent = "Running outside the Encore site, so here's the release package instead: the zip has every track, the cover and a manifest.json Encore can read.";
+  }
+});
+
+// ---------- go ----------
+setupSound();
+show("start");
+refreshInputs(false);
+refreshSaved();
+if (!window.AudioWorkletNode || !navigator.mediaDevices?.getUserMedia) { $("recSupport").textContent = "This browser can't record here. You can still drop a recording."; $("recStart").disabled = true; }
