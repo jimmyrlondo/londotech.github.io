@@ -105,11 +105,12 @@ self.onmessage = async (e) => {
       // Learn on the loudest song, then set the drive so THAT song lands on
       // the target. Every other song uses the same settings.
       const { l, r } = await readRange(src, d.song.start, d.song.end, d.rumble);
+      const origLufs = integratedLufs(l, r, src.fs); // so the original can be played at the master's loudness
       self.postMessage({ type: "progress", id: d.id, phase: "prepare", text: "Listening to the loudest song..." });
       const learned = M.learnOffline(l, r, src.fs, d.settings);
       const res = M.renderToTarget(l, r, src.fs, d.settings, learned,
         (pass) => self.postMessage({ type: "progress", id: d.id, phase: "prepare", text: pass ? "Fine-tuning the loudness..." : "Setting the loudness..." }));
-      self.postMessage({ type: "prepared", id: d.id, learned: res.learned, lufs: res.lufs });
+      self.postMessage({ type: "prepared", id: d.id, learned: res.learned, lufs: res.lufs, origLufs });
       return;
     }
 

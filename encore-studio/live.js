@@ -17,7 +17,7 @@ const state = {
   src: null, fileName: "", recordingName: null, analysis: null, overview: null, markers: [],
   songs: [], keepGap: new Set(), open: new Set(), levelerDb: null, leveler: false, inputDb: 0,
   style: 0, intensity: 0.5, target: 1, eq: { low: 0, mid: 0, high: 0 }, rumble: true, harsh: false,
-  even: 0.5, mastered: false, art: null, prepared: null, preview: new Map(), outputs: null,
+  even: 0.5, mastered: false, art: null, prepared: null, outputs: null,
 };
 let nextSongId = 1;
 
@@ -332,7 +332,7 @@ function show(view) {
 }
 $("newSet").addEventListener("click", () => {
   if (!confirm("Start a new set? Titles and edits for this one aren't saved yet.")) return;
-  player.stop(); state.src = null; state.songs = []; state.preview.clear(); state.prepared = null; clearOutputs();
+  player.stop(); state.src = null; state.songs = []; state.prepared = null; clearOutputs();
   $("setName").textContent = ""; show("start"); refreshSaved();
 });
 
@@ -346,7 +346,7 @@ async function loadSet(file, { recording } = {}) {
   state.markers = recording?.markers ?? [];
   state.chNames = recording?.channelNames ?? null;
   state.chosenSetup = recording?.setup ?? "auto";
-  state.songs = []; state.preview.clear(); state.prepared = null; state.keepGap.clear(); state.open.clear(); state.selected = null; clearOutputs();
+  state.songs = []; state.prepared = null; state.keepGap.clear(); state.open.clear(); state.selected = null; clearOutputs();
   $("setName").textContent = recording ? `Recording from ${recording.name.replace(/^live-/, "").replace(/T(\d\d)-(\d\d)-\d\d$/, " $1:$2")}` : file.name;
   $("analyseText").textContent = "Opening the recording...";
   setBar(0);
@@ -384,6 +384,7 @@ async function detect() {
   changed();
   if (n && $("mSetlist").value.trim()) applySetlist(); // a setlist typed during soundcheck names the songs
   player.pos = 0; tick(); // time + scrub bar sized to the set
+  state.live = null; if (mnode) refreshLearned();
 }
 const setBar = (pct) => { $("analyseBar").firstElementChild.style.width = pct + "%"; };
 
@@ -551,7 +552,7 @@ function changed() {
   state.songs.sort((a, b) => a.start - b.start);
   if (state.selected && songIndex(state.selected) < 0) state.selected = null;
   renderSongs(); selectSong(state.selected); updateSummary(); clearOutputs();
-  for (const [id, p] of state.preview) if (p.key !== previewKey(id)) state.preview.delete(id);
+  if (mnode) { clearTimeout(soundTimer); soundTimer = setTimeout(refreshLearned, 800); } // the loudest song may have changed
 }
 function updateSummary() {
   const N = state.songs.length;
@@ -635,18 +636,18 @@ function moveEdge(s, edge, t) {
   if (edge === "start") {
     s.start = Math.max(0, Math.min(t, s.end - 5));
     for (let prev = state.songs[i - 1]; prev && s.start < prev.end + 0.3; prev = state.songs[i - 1]) {
-      if (s.start - 0.3 - prev.start < 5) { state.preview.delete(prev.id); state.songs.splice(i - 1, 1); i--; absorbed = true; }
-      else { prev.end = +(s.start - 0.3).toFixed(2); state.preview.delete(prev.id); break; }
+      if (s.start - 0.3 - prev.start < 5) { state.songs.splice(i - 1, 1); i--; absorbed = true; }
+      else { prev.end = +(s.start - 0.3).toFixed(2); break; }
     }
   } else {
     s.end = Math.min(state.src.duration, Math.max(t, s.start + 5));
     for (let next = state.songs[i + 1]; next && s.end > next.start - 0.3; next = state.songs[i + 1]) {
-      if (next.end - (s.end + 0.3) < 5) { state.preview.delete(next.id); state.songs.splice(i + 1, 1); absorbed = true; }
-      else { next.start = +(s.end + 0.3).toFixed(2); state.preview.delete(next.id); break; }
+      if (next.end - (s.end + 0.3) < 5) { state.songs.splice(i + 1, 1); absorbed = true; }
+      else { next.start = +(s.end + 0.3).toFixed(2); break; }
     }
   }
   s.start = +s.start.toFixed(2); s.end = +s.end.toFixed(2);
-  if (absorbed) { renderSongs(); drawTimeline(); updateSummary(); clearOutputs(); state.preview.delete(s.id); return; }
+  if (absorbed) { renderSongs(); drawTimeline(); updateSummary(); clearOutputs(); return; }
   const d = document.querySelector(`details.song[data-id="${s.id}"]`);
   if (d) {
     const [ts, te] = d.querySelectorAll(".edge .t"); ts.textContent = fmt(s.start, true); te.textContent = fmt(s.end, true);
@@ -654,7 +655,7 @@ function moveEdge(s, edge, t) {
     drawEdges(d, s, edge);
   }
   drawTimeline(); updateSummary(); clearOutputs();
-  state.preview.delete(s.id);
+ 
   debounceRebuild();
 }
 let rebuildTimer = 0;
@@ -827,19 +828,19 @@ tl.addEventListener("pointermove", (e) => {
 function joinSongs(i) { // song i and i+1 become one
   const a = state.songs[i], b = state.songs[i + 1]; if (!a || !b) return;
   a.end = b.end; a.title ||= b.title; state.songs.splice(i + 1, 1);
-  state.preview.delete(a.id); state.preview.delete(b.id);
+ 
   selectSong(a.id); changed();
   $("abNote").textContent = `Joined into song ${i + 1}.`;
 }
 function removeSong(id) {
   const i = songIndex(id); if (i < 0) return;
-  state.songs.splice(i, 1); state.preview.delete(id); state.selected = null; changed();
+  state.songs.splice(i, 1); state.selected = null; changed();
   $("abNote").textContent = `Removed. That part is now cut out (drag a neighbour's edge over it to keep it in a song).`;
 }
 function splitSong(id) {
   const s = state.songs[songIndex(id)], t = player.time();
   if (!s || t <= s.start + 5 || t >= s.end - 5) { $("abNote").textContent = "Put the playhead inside this song (at least 5 s from either edge) to split it there."; return; }
-  const b = newSong(t, s.end); s.end = t; state.songs.push(b); state.open.add(b.id); state.preview.delete(s.id);
+  const b = newSong(t, s.end); s.end = t; state.songs.push(b); state.open.add(b.id);
   selectSong(b.id); changed();
   $("abNote").textContent = "Split in two. If that was wrong, hit Join on the timeline.";
 }
@@ -914,6 +915,7 @@ const player = {
     if (this.busy || !this.playing) return;
     this.busy = true; const gen = this.gen;
     try {
+      await ensureMasterGraph();
       while (this.playing && gen === this.gen && this.nextTime < ctx.currentTime + 1.2) {
         if (this.nextPos >= state.src.duration - 0.01) { if (ctx.currentTime > this.nextTime) { this.stop(); this.pos = 0; } break; }
         const chunk = await audioAt(this.nextPos);
@@ -921,7 +923,7 @@ const player = {
         if (chunk.jump !== undefined) { this.nextPos = chunk.jump; continue; }
         const n = chunk.l.length; if (!n) { this.nextPos += 0.5; continue; }
         const buf = ctx.createBuffer(2, n, chunk.fs); buf.copyToChannel(chunk.l, 0); buf.copyToChannel(chunk.r, 1);
-        const node = ctx.createBufferSource(); node.buffer = buf; node.connect(ctx.destination);
+        const node = ctx.createBufferSource(); node.buffer = buf; node.connect(playIn);
         if (this.nextTime < ctx.currentTime + 0.02) this.nextTime = ctx.currentTime + 0.05; // fell behind: small gap, carry on
         node.start(this.nextTime);
         node.onended = () => { this.sources = this.sources.filter((s) => s !== node); };
@@ -940,20 +942,9 @@ async function audioAt(pos) {
     const nx = ranges.find((r) => r.start > pos);
     return { jump: nx ? nx.start : src.duration };
   }
-  // stop each piece at the next boundary so a mastered song starts exactly on time
+  // stop each piece at song boundaries (keeps skip-cuts exact)
   const bounds = ranges.flatMap((r) => [r.start, r.end]).filter((b) => b > pos + 1e-3);
   const end = Math.min(pos + 1, src.duration, ...bounds), n = Math.max(1, Math.round((end - pos) * fs));
-  if (si >= 0) {
-    const s = state.songs[si], p = state.preview.get(s.id), key = previewKey(s.id);
-    if (state.mastered && p?.key === key && p.l) {
-      const off = Math.round((pos - ranges[si].start) * fs);
-      return { l: p.l.subarray(off, off + n), r: p.r.subarray(off, off + n), fs };
-    }
-    if (state.mastered) requestPreview(s.id);
-    const { l, r } = await src.read(Math.round(pos * fs), n);
-    if (!state.mastered && p?.key === key && p.l) { const g = Math.pow(10, (p.lufs - p.origLufs) / 20); for (let i = 0; i < n; i++) { l[i] *= g; r[i] *= g; } } // same loudness as the master
-    return { l, r, fs };
-  }
   const { l, r } = await src.read(Math.round(pos * fs), n);
   return { l, r, fs };
 }
@@ -982,6 +973,7 @@ function tick() {
     document.querySelectorAll("details.song.playing").forEach((d) => d.classList.remove("playing"));
     if (s) document.querySelector(`details.song[data-id="${s.id}"]`)?.classList.add("playing");
     lastSong = s?.id ?? null;
+    applyLearnedForSong(s);
   }
   document.querySelectorAll("details.song[open]").forEach((d) => {
     const so = state.songs[songIndex(+d.dataset.id)];
@@ -991,11 +983,11 @@ function tick() {
 }
 
 // ---------- A/B: original vs mastered ----------
-function setMastered(on) {
+function setMastered(on, note) {
   state.mastered = on;
   $("abOrig").classList.toggle("on", !on); $("abMaster").classList.toggle("on", on);
-  $("abNote").textContent = on ? "Mastered songs play as they'll sound on the release. Parts that get cut play as recorded." : "";
-  if (player.playing) player.play(player.time());
+  mnode?.port.postMessage({ type: "compare", on: !on }); // smooth crossfade, no restart
+  $("abNote").textContent = note ?? (on ? "Mastered: the Sound settings change what you hear right away." : "Original: as recorded, played at the same loudness as the master so you can compare fairly.");
 }
 $("abOrig").addEventListener("click", () => setMastered(false));
 $("abMaster").addEventListener("click", () => setMastered(true));
@@ -1004,90 +996,137 @@ $("abMaster").addEventListener("click", () => setMastered(true));
 // Sound: one set of settings for the whole show
 // =====================================================================
 function settings() {
-  // Low / Mid / High map onto the chain's tone bands (75 Hz shelf, 1.5 kHz, 9.5 kHz);
-  // "tame harsh phone mic" dips the 3.5 kHz band
+  // Low / Mid / High map onto the chain's tone bands (75 Hz shelf, 300 Hz, 1.5 kHz,
+  // 3.5 kHz, 9.5 kHz). Low and High also reach into their neighbours (300 Hz,
+  // 3.5 kHz) at half strength, so they're easy to hear after loudness matching;
+  // "tame harsh phone mic" dips 3.5 kHz.
+  const e = state.eq;
   return { style: state.style, intensity: state.intensity, targetLufs: TARGETS[state.target].lufs,
-           tone: [state.eq.low, 0, state.eq.mid, state.harsh ? -3 : 0, state.eq.high] };
+           tone: [e.low, e.low * 0.5, e.mid, e.high * 0.5 + (state.harsh ? -3 : 0), e.high] };
 }
-const soundKey = () => JSON.stringify([settings(), state.even, state.rumble, state.src?.routing ?? null, state.inputDb, state.leveler]);
 function loudestSong() {
   const withLevel = state.songs.filter((s) => s.level !== null);
   if (withLevel.length) return withLevel.reduce((a, b) => (b.level > a.level ? b : a));
   return state.songs.reduce((a, b) => (b.end - b.start > a.end - a.start ? b : a));
 }
-const previewKey = (id) => { const i = songIndex(id); return i < 0 ? "" : soundKey() + JSON.stringify(renderRange(i)); };
 
+// learning doesn't depend on "song to song" (that's applied per song), so leave it out of the key
+const learnKey = () => JSON.stringify([settings(), state.rumble, state.src?.routing ?? null, state.inputDb, state.leveler]);
 async function prepare(onText) {
-  const key = soundKey(), loud = loudestSong(), lk = key + loud.start + loud.end;
+  const key = learnKey(), loud = loudestSong(), lk = key + loud.start + loud.end;
   if (state.prepared?.key === lk) return state.prepared;
+  if (state.preparing?.key === lk) return state.preparing.promise;
   await ready;
-  const res = await rpc({ type: "prepare", source: describeSource(state.src), song: { start: loud.start, end: loud.end }, settings: settings(), rumble: state.rumble },
-    (p) => onText?.(p.text));
-  state.prepared = { key: lk, learned: res.learned, lufs: res.lufs };
-  return state.prepared;
+  const promise = rpc({ type: "prepare", source: describeSource(state.src), song: { start: loud.start, end: loud.end }, settings: settings(), rumble: state.rumble },
+    (p) => onText?.(p.text)).then((res) => {
+    if (state.preparing?.key === lk) state.preparing = null;
+    const prep = { key: lk, learned: res.learned, lufs: res.lufs, origLufs: res.origLufs };
+    if (learnKey() + loud.start + loud.end === lk) state.prepared = prep;
+    return prep;
+  }, (err) => { if (state.preparing?.key === lk) state.preparing = null; throw err; });
+  state.preparing = { key: lk, promise };
+  return promise;
 }
 async function masterSong(i, onText) {
   const prep = await prepare(onText);
   return rpc({ type: "song", source: describeSource(state.src), song: renderRange(i), settings: settings(), learned: prep.learned, rumble: state.rumble,
     even: state.even, refLufs: prep.lufs });
 }
-let previewBusy = null;
-async function requestPreview(id) {
-  if (previewBusy === id) return;
-  const key = previewKey(id), cur = state.preview.get(id);
-  if (cur?.key === key) return;
-  previewBusy = id;
-  const i = songIndex(id);
-  $("abNote").textContent = `Mastering song ${i + 1} so you can hear it...`;
+
+// ---------- live mastering while you listen ----------
+// The same engine as the Master page runs on the audio thread, so style,
+// intensity and EQ change instantly. The set's loudness ("learned" drive) is
+// worked out in the background on the loudest song and swapped in when ready;
+// "song to song" nudges the drive per song as playback moves through the set.
+let mnode = null, playIn = null, rumbleHp = null, graphReady = null;
+function ensureMasterGraph() {
+  if (graphReady) return graphReady;
+  graphReady = (async () => {
+    const c = audio();
+    await c.audioWorklet.addModule("worklet.js");
+    mnode = new AudioWorkletNode(c, "encore-master", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
+    playIn = c.createGain();
+    rumbleHp = c.createBiquadFilter(); rumbleHp.type = "highpass"; rumbleHp.Q.value = 0.7071;
+    rumbleHp.frequency.value = state.rumble ? 30 : 5;
+    playIn.connect(rumbleHp).connect(mnode).connect(c.destination);
+    const wasm = await (await fetch("master.wasm")).arrayBuffer();
+    const up = new Promise((res) => { mnode.port.onmessage = (e) => { if (e.data.type === "ready") res(); }; });
+    mnode.port.postMessage({ type: "init", wasm }, [wasm]);
+    mnode.port.postMessage({ type: "settings", settings: settings() });
+    mnode.port.postMessage({ type: "compare", on: !state.mastered });
+    await up;
+    refreshLearned();
+  })();
+  return graphReady;
+}
+let learnToken = 0;
+async function refreshLearned() {
+  if (!state.src || !state.songs.length) return;
+  const token = ++learnToken;
+  const t0 = setTimeout(() => { if (token === learnToken && state.mastered) $("abNote").textContent = "Setting the loudness for these settings..."; }, 400);
   try {
-    const res = await masterSong(i, (t) => { $("abNote").textContent = t; });
-    if (previewKey(id) === key) {
-      state.preview.set(id, { key, l: res.l, r: res.r, lufs: res.lufs, origLufs: res.origLufs });
-      while (state.preview.size > 3) state.preview.delete(state.preview.keys().next().value); // keep memory sane
-      $("abNote").textContent = `Song ${i + 1} mastered: ${res.lufs.toFixed(1)} LUFS, peak ${res.peakDb.toFixed(1)} dBTP.`;
-      if (player.playing && state.mastered) player.play(player.time());
-    }
-  } catch (err) { $("abNote").textContent = `Couldn't master that song: ${err.message}`; }
-  finally { previewBusy = null; }
+    const prep = await prepare();
+    if (token !== learnToken) return;
+    state.live = prep;
+    applyLearnedForSong(state.songs.find((x) => x.id === lastSong) ?? null, true);
+    // Original plays at the master's loudness, so A/B compares sound, not volume
+    if (prep.origLufs > -90) mnode?.port.postMessage({ type: "match", gain: Math.pow(10, (prep.lufs - prep.origLufs) / 20) });
+    if (state.mastered) $("abNote").textContent = `Mastered: loudest song at ${prep.lufs.toFixed(1)} LUFS. The Sound settings change what you hear right away.`;
+  } catch (err) { if (token === learnToken) $("abNote").textContent = `Couldn't set the loudness: ${err.message}`; }
+  finally { clearTimeout(t0); }
+}
+let lastLearnedKey = "";
+function applyLearnedForSong(song, force) {
+  if (!mnode || !state.live) return;
+  const learned = state.live.learned.slice(), loud = loudestSong();
+  const lift = song && song.level !== null && loud?.level !== null ? Math.max(0, loud.level - song.level) * state.even : 0;
+  learned[2] = Math.max(-6, Math.min(24, learned[2] + lift));
+  const key = learned.join();
+  if (!force && key === lastLearnedKey) return;
+  lastLearnedKey = key;
+  mnode.port.postMessage({ type: "learned", learned });
 }
 let soundTimer = 0;
-function soundChanged() {
-  state.prepared = null; clearOutputs();
+function soundChanged(fromSound) {
+  clearOutputs();
+  if (!state.src) return;
+  // hear it straight away
+  mnode?.port.postMessage({ type: "settings", settings: settings() });
+  if (rumbleHp) rumbleHp.frequency.setTargetAtTime(state.rumble ? 30 : 5, rumbleHp.context.currentTime, 0.02);
+  applyLearnedForSong(state.songs.find((x) => x.id === lastSong) ?? null);
+  if (fromSound && !state.mastered && !$("editor").classList.contains("hidden")) setMastered(true, "Switched to Mastered so you can hear the Sound settings. Original is one click away.");
+  // then the exact loudness for these settings, in the background
   clearTimeout(soundTimer);
-  soundTimer = setTimeout(() => {
-    if (!state.mastered || !state.src) return;
-    const s = state.songs.find((x, i) => { const r = renderRange(i), t = player.time(); return t >= r.start && t < r.end; });
-    if (s) requestPreview(s.id);
-  }, 500);
+  soundTimer = setTimeout(refreshLearned, 600);
 }
 
 function setupSound() {
   const box = $("styles");
   STYLES.slice(0, 4).forEach((s, i) => { // only the styles fitted to measurements
     const b = document.createElement("button"); b.textContent = s.name; b.title = s.blurb;
-    b.addEventListener("click", () => { state.style = i; paintSound(); soundChanged(); });
+    b.addEventListener("click", () => { state.style = i; paintSound(); soundChanged(true); });
     box.append(b);
   });
   TARGETS.forEach((t, i) => {
     const b = document.createElement("button"); b.innerHTML = `${t.name}<br><small>${t.lufs} LUFS</small>`;
-    b.addEventListener("click", () => { state.target = i; paintSound(); soundChanged(); });
+    b.addEventListener("click", () => { state.target = i; paintSound(); soundChanged(true); });
     $("targets").append(b);
   });
   $("intensity").addEventListener("input", () => {
     state.intensity = $("intensity").value / 100; const v = +$("intensity").value;
-    $("intensityVal").textContent = v === 50 ? "Normal" : v < 50 ? `Light (${v}%)` : `Heavy (${v}%)`; soundChanged();
+    $("intensityVal").textContent = v === 50 ? "Normal" : v < 50 ? `Light (${v}%)` : `Heavy (${v}%)`; soundChanged(true);
   });
   for (const [k, id] of [["low", "eqLow"], ["mid", "eqMid"], ["high", "eqHigh"]]) {
     const el = $(id), out = $(id + "Val");
-    el.addEventListener("input", () => { state.eq[k] = +el.value; out.textContent = `${(+el.value).toFixed(1)} dB`; soundChanged(); });
+    el.addEventListener("input", () => { state.eq[k] = +el.value; out.textContent = `${(+el.value).toFixed(1)} dB`; soundChanged(true); });
     el.addEventListener("dblclick", () => { el.value = 0; el.dispatchEvent(new Event("input")); });
   }
   $("even").addEventListener("input", () => {
     state.even = $("even").value / 100; const v = +$("even").value;
-    $("evenVal").textContent = v === 0 ? "As played" : v === 100 ? "All equal" : `${v}% evened out`; soundChanged();
+    $("evenVal").textContent = v === 0 ? "As played" : v === 100 ? "All equal" : `${v}% evened out`; soundChanged(true);
   });
-  $("rumble").addEventListener("change", () => { state.rumble = $("rumble").checked; soundChanged(); });
-  $("harsh").addEventListener("change", () => { state.harsh = $("harsh").checked; soundChanged(); });
+  $("rumble").addEventListener("change", () => { state.rumble = $("rumble").checked; soundChanged(true); });
+  $("harsh").addEventListener("change", () => { state.harsh = $("harsh").checked; soundChanged(true); });
   paintSound();
 }
 function paintSound() {
