@@ -346,7 +346,7 @@ async function loadSet(file, { recording } = {}) {
   state.markers = recording?.markers ?? [];
   state.chNames = recording?.channelNames ?? null;
   state.chosenSetup = recording?.setup ?? "auto";
-  state.songs = []; state.preview.clear(); state.prepared = null; state.keepGap.clear(); state.open.clear(); clearOutputs();
+  state.songs = []; state.preview.clear(); state.prepared = null; state.keepGap.clear(); state.open.clear(); state.selected = null; clearOutputs();
   $("setName").textContent = recording ? `Recording from ${recording.name.replace(/^live-/, "").replace(/T(\d\d)-(\d\d)-\d\d$/, " $1:$2")}` : file.name;
   $("analyseText").textContent = "Opening the recording...";
   setBar(0);
@@ -548,7 +548,8 @@ function gapKind(a, b) {
 // structure changed: renumber, redraw everything, drop stale previews
 function changed() {
   state.songs.sort((a, b) => a.start - b.start);
-  renderSongs(); drawTimeline(); updateSummary(); clearOutputs();
+  if (state.selected && songIndex(state.selected) < 0) state.selected = null;
+  renderSongs(); selectSong(state.selected); updateSummary(); clearOutputs();
   for (const [id, p] of state.preview) if (p.key !== previewKey(id)) state.preview.delete(id);
 }
 function updateSummary() {
@@ -627,10 +628,24 @@ function gapRow(a, b) {
   return row;
 }
 function moveEdge(s, edge, t) {
-  const i = songIndex(s.id), prev = state.songs[i - 1], next = state.songs[i + 1];
-  if (edge === "start") s.start = Math.max(prev ? prev.end + 0.3 : 0, Math.min(t, s.end - 5));
-  else s.end = Math.min(next ? next.start - 0.3 : state.src.duration, Math.max(t, s.start + 5));
+  // Dragging into a neighbour pushes its edge along; squeeze it under 5 s and
+  // it's absorbed (a false split gets fixed just by dragging over it).
+  let i = songIndex(s.id), absorbed = false;
+  if (edge === "start") {
+    s.start = Math.max(0, Math.min(t, s.end - 5));
+    for (let prev = state.songs[i - 1]; prev && s.start < prev.end + 0.3; prev = state.songs[i - 1]) {
+      if (s.start - 0.3 - prev.start < 5) { state.preview.delete(prev.id); state.songs.splice(i - 1, 1); i--; absorbed = true; }
+      else { prev.end = +(s.start - 0.3).toFixed(2); state.preview.delete(prev.id); break; }
+    }
+  } else {
+    s.end = Math.min(state.src.duration, Math.max(t, s.start + 5));
+    for (let next = state.songs[i + 1]; next && s.end > next.start - 0.3; next = state.songs[i + 1]) {
+      if (next.end - (s.end + 0.3) < 5) { state.preview.delete(next.id); state.songs.splice(i + 1, 1); absorbed = true; }
+      else { next.start = +(s.end + 0.3).toFixed(2); state.preview.delete(next.id); break; }
+    }
+  }
   s.start = +s.start.toFixed(2); s.end = +s.end.toFixed(2);
+  if (absorbed) { renderSongs(); drawTimeline(); updateSummary(); clearOutputs(); state.preview.delete(s.id); return; }
   const d = document.querySelector(`details.song[data-id="${s.id}"]`);
   if (d) {
     const [ts, te] = d.querySelectorAll(".edge .t"); ts.textContent = fmt(s.start, true); te.textContent = fmt(s.end, true);
@@ -744,7 +759,21 @@ function drawTimeline() {
     g.fillRect(Math.round(a), top - 4, 2, H - top); g.fillRect(Math.round(b) - 2, top - 4, 2, H - top);
     if (b - a > 18) { g.fillStyle = r.color; g.fillText(String(i + 1).padStart(2, "0"), a + 4, 1); }
     if (b - a > 90 && r.song.title) { g.fillStyle = "#bdb4a9"; g.fillText(r.song.title.slice(0, Math.floor((b - a - 30) / 6)), a + 24, 1); }
+    if (r.song.id === state.selected) { g.strokeStyle = "#f2efe8"; g.lineWidth = 2; g.strokeRect(a + 1, top - 3, Math.max(2, b - a - 2), H - top - 12); }
   });
+  // "Join" where two songs (nearly) touch: one click undoes a false split
+  joinChips = [];
+  g.font = "700 10px 'DM Sans', sans-serif"; g.textBaseline = "middle";
+  for (let i = 0; i + 1 < state.songs.length; i++) {
+    const s = state.songs[i], nx = state.songs[i + 1];
+    if (nx.start - s.end > 3) continue;
+    const x = X((s.end + nx.start) / 2), w = 34, h = 16, y = top + 4;
+    g.fillStyle = "#0c0a09"; g.strokeStyle = "#f2efe8"; g.lineWidth = 1;
+    g.beginPath(); g.roundRect?.(x - w / 2, y, w, h, 8); g.fill(); g.stroke();
+    g.fillStyle = "#f2efe8"; g.textAlign = "center"; g.fillText("Join", x, y + h / 2 + 0.5); g.textAlign = "start";
+    joinChips.push({ i, x0: x - w / 2, x1: x + w / 2, y0: y, y1: y + h });
+  }
+  g.font = "600 11px 'DM Sans', sans-serif";
   g.fillStyle = "#91887d"; g.textBaseline = "bottom";
   for (let i = 0; i <= state.songs.length; i++) { // label what's in each cut
     const from = i ? regions[i - 1].end : 0, to = i < regions.length ? regions[i].start : dur;
@@ -767,18 +796,71 @@ function edgeAt(e) {
   }
   return best;
 }
+let joinChips = [];
+const chipAt = (e) => { const rc = tl.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top; return joinChips.find((c) => x >= c.x0 - 3 && x <= c.x1 + 3 && y >= c.y0 - 3 && y <= c.y1 + 3); };
 tl.addEventListener("pointerdown", (e) => {
   if (!state.src) return;
+  const chip = chipAt(e);
+  if (chip) { joinSongs(chip.i); return; }
   const hit = edgeAt(e);
   tl.setPointerCapture(e.pointerId);
   tlDrag = hit ? { ...hit } : { seek: true };
-  if (!hit) player.play(tlTime(e));
+  if (!hit) {
+    const t = tlTime(e);
+    selectSong(state.songs.find((x) => t >= x.start && t < x.end)?.id ?? null);
+    player.play(t);
+  }
 });
 tl.addEventListener("pointermove", (e) => {
   if (!state.src) return;
   if (tlDrag?.s) moveEdge(tlDrag.s, tlDrag.edge, tlTime(e));
   else if (tlDrag?.seek) player.play(tlTime(e));
-  else tl.style.cursor = edgeAt(e) ? "ew-resize" : "pointer";
+  else tl.style.cursor = chipAt(e) ? "pointer" : edgeAt(e) ? "ew-resize" : "pointer";
+});
+
+// ---------- song tools: join / remove / split, from the timeline ----------
+function joinSongs(i) { // song i and i+1 become one
+  const a = state.songs[i], b = state.songs[i + 1]; if (!a || !b) return;
+  a.end = b.end; a.title ||= b.title; state.songs.splice(i + 1, 1);
+  state.preview.delete(a.id); state.preview.delete(b.id);
+  selectSong(a.id); changed();
+  $("abNote").textContent = `Joined into song ${i + 1}.`;
+}
+function removeSong(id) {
+  const i = songIndex(id); if (i < 0) return;
+  state.songs.splice(i, 1); state.preview.delete(id); state.selected = null; changed();
+  $("abNote").textContent = `Removed. That part is now cut out (drag a neighbour's edge over it to keep it in a song).`;
+}
+function splitSong(id) {
+  const s = state.songs[songIndex(id)], t = player.time();
+  if (!s || t <= s.start + 5 || t >= s.end - 5) { $("abNote").textContent = "Put the playhead inside this song (at least 5 s from either edge) to split it there."; return; }
+  const b = newSong(t, s.end); s.end = t; state.songs.push(b); state.open.add(b.id); state.preview.delete(s.id);
+  selectSong(b.id); changed();
+  $("abNote").textContent = "Split in two. If that was wrong, hit Join on the timeline.";
+}
+function selectSong(id) {
+  state.selected = id;
+  const i = songIndex(id), bar = $("songTools");
+  bar.classList.toggle("hidden", i < 0);
+  if (i >= 0) {
+    const s = state.songs[i], rr = renderRange(i);
+    $("toolName").textContent = `${pad2(i + 1)} ${s.title || `Song ${i + 1}`} · ${fmt(rr.end - rr.start)}`;
+    $("toolPrev").disabled = i === 0; $("toolNext").disabled = i === state.songs.length - 1;
+  }
+  drawTimeline();
+}
+$("toolPrev").addEventListener("click", () => { const i = songIndex(state.selected); if (i > 0) joinSongs(i - 1); });
+$("toolNext").addEventListener("click", () => { const i = songIndex(state.selected); if (i >= 0) joinSongs(i); });
+$("toolRemove").addEventListener("click", () => removeSong(state.selected));
+$("toolSplit").addEventListener("click", () => splitSong(state.selected));
+$("toolOpen").addEventListener("click", () => {
+  const id = state.selected; state.open.add(id); renderSongs();
+  document.querySelector(`details.song[data-id="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest?.("input, textarea, select") || $("editor").classList.contains("hidden") || !state.selected) return;
+  if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeSong(state.selected); }
+  if (e.key === "Escape") selectSong(null);
 });
 tl.addEventListener("pointerup", () => { if (tlDrag?.s) renderSongs(); tlDrag = null; });
 tl.addEventListener("dblclick", (e) => {

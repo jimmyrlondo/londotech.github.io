@@ -126,6 +126,8 @@
   #time { color: var(--soft); font-family: var(--family-mono); font-size: 13px; min-width: 130px; }
   .ab { display: inline-flex; gap: 4px; margin-left: auto; }
   .ab button { padding: 6px 12px; font-size: 13px; }
+  .songTools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding: 8px 10px; border: 1px solid var(--divider-strong); border-radius: 12px; }
+  .songTools b { font-size: 13.5px; margin-right: 6px; }
   #abNote { color: var(--dim); font-size: 12px; }
 
   .cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); gap: 12px; margin-top: 12px; align-items: start; }
@@ -312,7 +314,7 @@
     <div class="panel">
       <div class="tlBar">
         <b id="analyseText">Finding the songs...</b>
-        <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>Songs (drag the edges)</span><span><i class="sw" style="background:var(--dim);opacity:.4"></i>Cut out</span><span id="markLegend" class="hidden"><i class="sw" style="background:var(--warn)"></i>Your markers</span></div>
+        <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>Songs: click to select, drag edges, Join where two meet</span><span><i class="sw" style="background:var(--dim);opacity:.4"></i>Cut out</span><span id="markLegend" class="hidden"><i class="sw" style="background:var(--warn)"></i>Your markers</span></div>
       </div>
       <div class="progress" id="analyseBar"><div></div></div>
       <canvas id="timeline" aria-label="The whole set: songs in colour, cut sections grey. Click to listen, drag a song's edge to move it."></canvas>
@@ -324,6 +326,14 @@
         <button id="addSong" class="small" title="Start a new song where the playhead is">+ Song here</button>
         <label class="check" style="font-size:13px"><input type="checkbox" id="skipCuts"> Skip the cut parts</label>
         <div class="ab"><button id="abOrig" class="on">Original</button><button id="abMaster">Mastered</button></div>
+      </div>
+      <div id="songTools" class="songTools hidden">
+        <b id="toolName"></b>
+        <button class="small" id="toolPrev" title="This song and the one before are really one song">Join with previous</button>
+        <button class="small" id="toolNext" title="This song and the one after are really one song">Join with next</button>
+        <button class="small" id="toolSplit" title="Two songs: split where the playhead is">Split at playhead</button>
+        <button class="small" id="toolRemove" title="Not a song: cut it out (Delete key)">Not a song</button>
+        <button class="small linkish" id="toolOpen">Edit details</button>
       </div>
       <div id="abNote"></div>
     </div>
