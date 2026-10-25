@@ -383,6 +383,7 @@ async function detect() {
   if (n) state.open.add(state.songs[0].id);
   changed();
   if (n && $("mSetlist").value.trim()) applySetlist(); // a setlist typed during soundcheck names the songs
+  player.pos = 0; tick(); // time + scrub bar sized to the set
 }
 const setBar = (pct) => { $("analyseBar").firstElementChild.style.width = pct + "%"; };
 
@@ -804,7 +805,8 @@ tl.addEventListener("pointerdown", (e) => {
   if (chip) { joinSongs(chip.i); return; }
   const hit = edgeAt(e);
   tl.setPointerCapture(e.pointerId);
-  tlDrag = hit ? { ...hit } : { seek: true };
+  // on an edge: it only moves once you actually drag; a plain click plays from there
+  tlDrag = hit ? { ...hit, x0: e.clientX, moved: false } : { seek: true };
   if (!hit) {
     const t = tlTime(e);
     selectSong(state.songs.find((x) => t >= x.start && t < x.end)?.id ?? null);
@@ -813,7 +815,10 @@ tl.addEventListener("pointerdown", (e) => {
 });
 tl.addEventListener("pointermove", (e) => {
   if (!state.src) return;
-  if (tlDrag?.s) moveEdge(tlDrag.s, tlDrag.edge, tlTime(e));
+  if (tlDrag?.s) {
+    if (!tlDrag.moved && Math.abs(e.clientX - tlDrag.x0) > 4) tlDrag.moved = true;
+    if (tlDrag.moved) moveEdge(tlDrag.s, tlDrag.edge, tlTime(e));
+  }
   else if (tlDrag?.seek) player.play(tlTime(e));
   else tl.style.cursor = chipAt(e) ? "pointer" : edgeAt(e) ? "ew-resize" : "pointer";
 });
@@ -849,6 +854,7 @@ function selectSong(id) {
   }
   drawTimeline();
 }
+$("toolPlay").addEventListener("click", () => { const s = state.songs[songIndex(state.selected)]; if (s) player.play(s.start); });
 $("toolPrev").addEventListener("click", () => { const i = songIndex(state.selected); if (i > 0) joinSongs(i - 1); });
 $("toolNext").addEventListener("click", () => { const i = songIndex(state.selected); if (i >= 0) joinSongs(i); });
 $("toolRemove").addEventListener("click", () => removeSong(state.selected));
@@ -862,7 +868,14 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeSong(state.selected); }
   if (e.key === "Escape") selectSong(null);
 });
-tl.addEventListener("pointerup", () => { if (tlDrag?.s) renderSongs(); tlDrag = null; });
+tl.addEventListener("pointerup", () => {
+  const d = tlDrag; tlDrag = null;
+  if (!d?.s) return;
+  if (d.moved) { renderSongs(); return; }
+  // clicked a song's edge: play from its start (or the last few seconds of its end)
+  selectSong(d.s.id);
+  player.play(d.edge === "start" ? d.s.start : Math.max(d.s.start, d.s.end - 6));
+});
 tl.addEventListener("dblclick", (e) => {
   const t = tlTime(e), s = state.songs.find((x) => t >= x.start && t < x.end);
   if (s) { state.open.add(s.id); renderSongs(); document.querySelector(`details.song[data-id="${s.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
@@ -945,6 +958,14 @@ async function audioAt(pos) {
   return { l, r, fs };
 }
 function setPlayIcon(on) { $("playIcon").setAttribute("d", on ? "M6 5h4v14H6zM14 5h4v14h-4z" : "M7 5v14l12-7z"); $("play").setAttribute("aria-label", on ? "Pause" : "Play"); }
+// scrub bar: drag to find your place anywhere in the set
+let scrubbing = false;
+$("scrub").addEventListener("input", () => {
+  scrubbing = true; const t = +$("scrub").value;
+  $("time").textContent = `${fmt(t)} / ${fmt(state.src.duration)}`;
+  player.pos = t; if (!player.playing) drawTimeline();
+});
+$("scrub").addEventListener("change", () => { scrubbing = false; const t = +$("scrub").value; if (player.playing) player.play(t); else { player.pos = t; tick(); } });
 const togglePlay = () => (player.playing ? player.stop() : player.play());
 $("play").addEventListener("click", togglePlay);
 $("rw").addEventListener("click", () => { const t = Math.max(0, player.time() - 10); player.playing ? player.play(t) : (player.pos = t, drawTimeline()); });
@@ -954,6 +975,7 @@ function tick() {
   if (!state.src) return;
   const t = player.time();
   $("time").textContent = `${fmt(t)} / ${fmt(state.src.duration)}`;
+  if (!scrubbing) { $("scrub").max = state.src.duration; $("scrub").value = t; }
   drawTimeline();
   const s = state.songs.find((x, i) => { const r = renderRange(i); return t >= r.start && t < r.end; });
   if ((s?.id ?? null) !== lastSong) {
