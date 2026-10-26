@@ -120,9 +120,9 @@ export function mixCheck(l, r, fs) {
   const bassSide = lowpassEnergy(side, fs, 120), bassMid = lowpassEnergy(mid, fs, 120);
   const bassWidth = db(bassSide) - db(bassMid);
   if (bassWidth > -10) add(bassWidth > -6 ? "problem" : "warn", "Bass is spread wide in stereo",
-    `Below 120 Hz, the stereo (side) part is only ${Math.abs(bassWidth).toFixed(0)} dB under the centre. Wide bass can thin out or cancel on phone speakers, club systems and vinyl.`,
-    "Keep kick, bass and sub elements panned centre; check stereo wideners or chorus on low instruments.");
-  else add("good", "Bass is centred", "The low end is focused in the middle, so it'll translate to phones and big systems.");
+    `Below 120 Hz, the stereo (side) part is only ${Math.abs(bassWidth).toFixed(0)} dB under the center. Wide bass can thin out or cancel on phone speakers, club systems and vinyl.`,
+    "Keep kick, bass and sub elements panned center; check stereo wideners or chorus on low instruments.");
+  else add("good", "Bass is centered", "The low end is focused in the middle, so it'll translate to phones and big systems.");
 
   const monoLoss = db(eM) - db((eL + eR) / 2);
   // out-of-phase sections: 1 s windows with negative L/R correlation
@@ -141,7 +141,7 @@ export function mixCheck(l, r, fs) {
   if (Math.abs(balance) > 1.5) add("warn", `Mix leans ${balance > 0 ? "left" : "right"}`, `The ${balance > 0 ? "left" : "right"} side is ${Math.abs(balance).toFixed(1)} dB louder overall.`, "Check panning and stereo bus balance.");
 
   const dc = Math.max(Math.abs(sumL / n), Math.abs(sumR / n));
-  if (dc > 0.002) add("warn", "DC offset", "The waveform is shifted off centre, which wastes headroom and can click at edits.", "A low cut (even at 10-20 Hz) on the mix bus removes it.");
+  if (dc > 0.002) add("warn", "DC offset", "The waveform is shifted off center, which wastes headroom and can click at edits.", "A low cut (even at 10-20 Hz) on the mix bus removes it.");
 
   // ---- 5. silence at the ends ----
   const quiet = (i) => Math.max(Math.abs(l[i]), Math.abs(r[i])) < 0.001; // -60 dBFS
