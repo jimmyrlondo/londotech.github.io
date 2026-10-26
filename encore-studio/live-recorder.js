@@ -155,7 +155,7 @@ export class LiveRecorder {
       };
       track.onmute = () => { if (this.state !== "idle") onWarn?.("An input went silent (another app may have taken it)."); };
     }
-    await this.ctx.audioWorklet.addModule("capture-worklet.js");
+    await this.ctx.audioWorklet.addModule(new URL("capture-worklet.js", import.meta.url));
     this.node = new AudioWorkletNode(this.ctx, "encore-capture", {
       numberOfInputs: 1, numberOfOutputs: 1, channelCount: this.channels, channelCountMode: "explicit",
       channelInterpretation: "discrete", processorOptions: { channels: this.channels },
