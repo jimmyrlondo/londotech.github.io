@@ -996,13 +996,10 @@ $("abMaster").addEventListener("click", () => setMastered(true));
 // Sound: one set of settings for the whole show
 // =====================================================================
 function settings() {
-  // Low / Mid / High map onto the chain's tone bands (75 Hz shelf, 300 Hz, 1.5 kHz,
-  // 3.5 kHz, 9.5 kHz). Low and High also reach into their neighbours (300 Hz,
-  // 3.5 kHz) at half strength, so they're easy to hear after loudness matching;
-  // "tame harsh phone mic" dips 3.5 kHz.
-  const e = state.eq;
+  // Low / Mid / High drive the engine's own broad EQ (160 Hz shelf, 1.2 kHz,
+  // 5 kHz shelf); "tame harsh phone mic" dips the style's 3.5 kHz band.
   return { style: state.style, intensity: state.intensity, targetLufs: TARGETS[state.target].lufs,
-           tone: [e.low, e.low * 0.5, e.mid, e.high * 0.5 + (state.harsh ? -3 : 0), e.high] };
+           eq: { ...state.eq }, tone: [0, 0, 0, state.harsh ? -3 : 0, 0] };
 }
 function loudestSong() {
   const withLevel = state.songs.filter((s) => s.level !== null);

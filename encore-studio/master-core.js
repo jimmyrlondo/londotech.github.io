@@ -39,6 +39,9 @@ function applySettings(x, h, s) {
   const t = eq.map((v, k) => v + ref[k]); // reference matching adds to the EQ
   x.mc_settings(h, s.style ?? 0, s.intensity ?? 0.6, s.inputDb ?? 0, s.targetLufs ?? -14, s.ceilingDb ?? -1,
     s.glue ?? 0.5, s.width ?? 0, s.sat ?? 0, t[0], t[1], t[2], t[3], t[4]);
+  // the Low / Mid / High sliders: a broad EQ stage of its own (160 Hz shelf, 1.2 kHz, 5 kHz shelf)
+  const e = s.eq ?? {};
+  x.mc_user_eq?.(h, e.low ?? 0, e.mid ?? 0, e.high ?? 0);
 }
 
 export async function loadMaster(wasmBytesOrModule) {

@@ -140,10 +140,10 @@ function onWorker(e) {
 
 // ---------- settings ----------
 function settings() {
-  // Low / Mid / High map onto the chain's tone bands (75 Hz shelf, 1.5 kHz, 9.5 kHz)
+  // Low / Mid / High drive the engine's own broad EQ (160 Hz shelf, 1.2 kHz, 5 kHz shelf)
   return { style: state.style, intensity: state.intensity,
            targetLufs: state.refMatch ? state.refTargetLufs : TARGETS[state.target].lufs,
-           tone: [state.eq.low, 0, state.eq.mid, 0, state.eq.high],
+           eq: { ...state.eq },
            refTone: state.refMatch ? state.refTone : [0, 0, 0, 0, 0],
            glue: state.refMatch ? state.refGlue : 0.5 };
 }
