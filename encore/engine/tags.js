@@ -1,6 +1,7 @@
 // Release-ready files: tagged WAV (16/24-bit) and ID3 tags for MP3, plus
 // sensible file names. meta = { artist, title, album, year, genre, track,
-// isrc, comment }, art = { bytes: Uint8Array, mime } or null.
+// isrc, comment } plus, for albums, { albumArtist, composer, publisher,
+// copyright, disc, explicit, lyrics, upc }. art = { bytes: Uint8Array, mime } or null.
 
 const enc = new TextEncoder();
 
@@ -31,10 +32,16 @@ const textFrame = (id, text) => frame(id, concat([new Uint8Array([1]), utf16(tex
 export function id3(meta, art) {
   const frames = [];
   const t = (id, v) => { if (v !== undefined && v !== null && String(v).trim() !== "") frames.push(textFrame(id, String(v).trim())); };
-  t("TIT2", meta.title); t("TPE1", meta.artist); t("TPE2", meta.artist); t("TALB", meta.album);
-  t("TYER", meta.year); t("TCON", meta.genre); t("TRCK", meta.track); t("TSRC", meta.isrc);
+  t("TIT2", meta.title); t("TPE1", meta.artist); t("TPE2", meta.albumArtist || meta.artist); t("TALB", meta.album);
+  t("TYER", meta.year); t("TCON", meta.genre); t("TRCK", meta.track); t("TPOS", meta.disc); t("TSRC", meta.isrc);
+  t("TCOM", meta.composer); t("TPUB", meta.publisher); t("TCOP", meta.copyright);
   t("TSSE", "Encore Music Studio");
+  // user-defined text: description, then the value (both UTF-16)
+  const txxx = (desc, v) => frames.push(frame("TXXX", concat([new Uint8Array([1]), utf16(desc), new Uint8Array([0, 0]), utf16(String(v))])));
+  if (meta.explicit) txxx("ITUNESADVISORY", "1"); // what Apple Music and most players read
+  if (meta.upc?.trim?.()) txxx("BARCODE", meta.upc.trim());
   if (meta.comment) frames.push(frame("COMM", concat([new Uint8Array([1]), enc.encode("eng"), utf16(""), new Uint8Array([0, 0]), utf16(meta.comment)])));
+  if (meta.lyrics?.trim?.()) frames.push(frame("USLT", concat([new Uint8Array([1]), enc.encode("eng"), utf16(""), new Uint8Array([0, 0]), utf16(meta.lyrics.trim())])));
   if (art?.bytes?.length) {
     // APIC: Latin-1 MIME, picture type 3 = front cover, empty description
     frames.push(frame("APIC", concat([new Uint8Array([0]), enc.encode(art.mime || "image/jpeg"), new Uint8Array([0, 3, 0]), art.bytes])));
@@ -56,7 +63,7 @@ function quantize(x, bits, rng) {
 
 function infoChunk(meta) {
   const items = [["INAM", meta.title], ["IART", meta.artist], ["IPRD", meta.album], ["ICRD", meta.year],
-                 ["IGNR", meta.genre], ["ITRK", meta.track], ["ICMT", meta.comment], ["ISFT", "Encore Music Studio"]];
+                 ["IGNR", meta.genre], ["ITRK", meta.track], ["ICOP", meta.copyright], ["ICMT", meta.comment], ["ISFT", "Encore Music Studio"]];
   const parts = [enc.encode("INFO")];
   for (const [id, v] of items) {
     if (v === undefined || v === null || String(v).trim() === "") continue;
