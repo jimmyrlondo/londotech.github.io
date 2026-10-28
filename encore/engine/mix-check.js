@@ -108,11 +108,11 @@ export function mixCheck(l, r, fs) {
   const lows = avg(0, 1), mud = avg(3, 4), harsh = avg(6, 7), top = avg(8, 9);
   const tone = { lows, mud, harsh, top };
   let toneOk = true;
-  if (lows < -5) { toneOk = false; add("warn", "Thin low end", `The deep bass (40-60 Hz) is about ${Math.abs(lows).toFixed(0)} dB lighter than in most finished mixes.`, "Check the kick and bass in the mix. Fire style adds a lot of low end if that's the sound you want."); }
+  if (lows < -5) { toneOk = false; add("warn", "Thin low end", `The deep bass (40-60 Hz) is about ${Math.abs(lows).toFixed(0)} dB lighter than in most finished mixes.`, "Check the kick and bass in the mix. Heavy style adds a lot of low end if that's the sound you want."); }
   if (lows > 5) { toneOk = false; add("warn", "Heavy, boomy low end", `The deep bass is about ${lows.toFixed(0)} dB heavier than in most finished mixes, which eats loudness and can sound boomy on big speakers.`, "Try a low cut around 30 Hz on tracks that don't need sub-bass, and check the kick/bass balance."); }
-  if (mud > 3) { toneOk = false; add("warn", "Muddy low mids", `There's about ${mud.toFixed(0)} dB extra around 250-500 Hz, where mixes get cloudy and boxy.`, "Small cuts around 250-400 Hz on guitars, keys or the bus usually clear it up. Clarity style also trims this area."); }
-  if (harsh > 3) { toneOk = false; add("warn", "Harsh upper mids", `There's about ${harsh.toFixed(0)} dB extra around 2-4 kHz, the range that sounds piercing when turned up.`, "Look at bright guitars, cymbals and vocal edge. Tape style smooths this range."); }
-  if (top < -5) { toneOk = false; add("info", "Dull top end", `The highs (8-12 kHz) are about ${Math.abs(top).toFixed(0)} dB lower than most finished mixes.`, "Fine if that's the vibe. Otherwise the High EQ or Clarity/Tape styles add air."); }
+  if (mud > 3) { toneOk = false; add("warn", "Muddy low mids", `There's about ${mud.toFixed(0)} dB extra around 250-500 Hz, where mixes get cloudy and boxy.`, "Small cuts around 250-400 Hz on guitars, keys or the bus usually clear it up. Bright style also trims this area."); }
+  if (harsh > 3) { toneOk = false; add("warn", "Harsh upper mids", `There's about ${harsh.toFixed(0)} dB extra around 2-4 kHz, the range that sounds piercing when turned up.`, "Look at bright guitars, cymbals and vocal edge. Warm style smooths this range."); }
+  if (top < -5) { toneOk = false; add("info", "Dull top end", `The highs (8-12 kHz) are about ${Math.abs(top).toFixed(0)} dB lower than most finished mixes.`, "Fine if that's the vibe. Otherwise the High EQ or Bright/Warm styles add air."); }
   if (top > 4) { toneOk = false; add("warn", "Very bright / fizzy top", `The highs are about ${top.toFixed(0)} dB hotter than most finished mixes, which can sound fizzy and tiring.`, "Check cymbals and vocal sibilance; a de-esser or gentle high shelf cut helps."); }
   if (toneOk) add("good", "Balanced tone", "Lows, mids and highs sit about where most finished mixes do.");
 
