@@ -2,14 +2,14 @@
 // the Node test. Plain ES module, no dependencies.
 
 export const STYLES = [
-  { name: "Universal", blurb: "Balanced tone and gentle glue for any mix" },
-  { name: "Fire", blurb: "Punchy lows and forward mids for rock and punk" },
-  { name: "Clarity", blurb: "Open, airy top end, light touch on dynamics" },
-  { name: "Tape", blurb: "Warm saturation and a rounded top" },
-  { name: "Natural", blurb: "Barely there: light glue, keeps the dynamics" },
-  { name: "Spatial", blurb: "Wide stereo and a touch of air and ambience" },
-  { name: "Cinematic", blurb: "Big, saturated and wide" },
-  { name: "Punch", blurb: "Energetic bass and bright highs" },
+  { name: "Balanced", blurb: "Balanced tone and gentle glue for any mix" },
+  { name: "Heavy", blurb: "Punchy lows and forward mids for rock and punk" },
+  { name: "Bright", blurb: "Open, airy top end, light touch on dynamics" },
+  { name: "Warm", blurb: "Warm saturation and a rounded top" },
+  { name: "Gentle", blurb: "Barely there: light glue, keeps the dynamics" },
+  { name: "Wide", blurb: "Wide stereo and a touch of air and ambience" },
+  { name: "Arena", blurb: "Big, saturated and wide" },
+  { name: "Drive", blurb: "Energetic bass and bright highs" },
 ];
 
 export const TARGETS = [
