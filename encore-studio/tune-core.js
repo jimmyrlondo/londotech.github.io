@@ -3,7 +3,7 @@
 // The same YIN detector and string matching as Encore: Studio's tuner.
 
 /** YIN pitch estimate (de Cheveigne & Kawahara): Hz, or 0 when there's no clear note */
-export function estimatePitch(x, sampleRate, minHz = 28, maxHz = 2100) {
+export function estimatePitch(x, sampleRate, minHz = 25, maxHz = 2100) {
   const n = x.length;
   const tauMin = Math.max(2, Math.floor(sampleRate / maxHz));
   const tauMax = Math.min(n >> 1, Math.floor(sampleRate / minHz));
@@ -62,6 +62,23 @@ const NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 export function noteName(midi, withOctave = true) {
   if (midi < 0 || midi == null) return '--';
   return NAMES[((midi % 12) + 12) % 12] + (withOctave ? String(Math.floor(midi / 12) - 1) : '');
+}
+
+/**
+ * What to show for a tuning: each course's notes, a pair or group at one pitch shown once with its count.
+ * midi: every string, low side first. courses: strings per course (empty or all 1: single strings).
+ */
+export function pillsFor(midi, courses) {
+  const pills = [];
+  let s = 0;
+  (courses && courses.length ? courses : midi.map(() => 1)).forEach((size, course) => {
+    for (const note of midi.slice(s, s + size)) {
+      const same = pills.find(p => p.course === course && p.note === note);
+      if (same) same.count++; else pills.push({ note, course, count: 1 });
+    }
+    s += size;
+  });
+  return pills;
 }
 
 /** The pitch a note should be, in Hz, at reference `a4` in the temperament (offsets turned to `root`) */

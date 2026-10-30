@@ -1,7 +1,7 @@
 // Encore Tune: the page. Listens to a microphone or interface input in the
 // browser (nothing is recorded or sent anywhere) and shows the string or note
 // you're playing and how far off it is.
-import { estimatePitch, downsample, reading, noteName, noteHz } from './tune-core.js';
+import { estimatePitch, downsample, reading, noteName, noteHz, pillsFor } from './tune-core.js';
 import { TUNINGS } from './tunings.js';
 
 const $ = id => document.getElementById(id);
@@ -36,13 +36,17 @@ $('strobe').checked = store.get('strobe', '0') === '1';
 $('tone').value = store.get('tone', 'pluck');
 $('volume').value = store.get('volume', '60');
 
-let strings = [], tuned = [], instrument = null, playing = null, last = null, ctx = null;
+// strings: what a pitch is matched against, one per pill (a pair at one pitch is one pill)
+let pills = [], strings = [], tuned = [], instrument = null, playing = null, last = null, ctx = null, hasCourses = false;
 
 function fillTunings(keep) {
   instrument = instruments[+$('instrument').value];
   $('tuning').innerHTML = '';
   instrument.tunings.forEach((t, i) => {
-    const notes = t.notes.length ? '  (' + t.notes.map(n => n.replace(/\d+$/, '')).join(' ') + ')' : '';
+    // one name per course
+    let at = 0;
+    const firsts = t.courses.map(size => { const n = t.notes[at]; at += size; return n.replace(/\d+$/, ''); });
+    const notes = t.notes.length ? '  (' + firsts.join(' ') + ')' : '';
     $('tuning').append(new Option(t.name + notes, i));
   });
   $('tuning').value = String(Math.min(keep ?? 0, instrument.tunings.length - 1));
@@ -53,7 +57,9 @@ function fillTunings(keep) {
 function tuningChanged() {
   const t = instrument.tunings[+$('tuning').value] || instrument.tunings[0];
   stopTone();
-  strings = t.midi;
+  pills = pillsFor(t.midi, t.courses);
+  hasCourses = t.courses.some(c => c > 1);
+  strings = pills.map(p => p.note);
   tuned = strings.map(() => false);
   store.set('instrument', instrument.name);
   store.set('tuning', $('tuning').value);
@@ -66,16 +72,30 @@ function tuningChanged() {
 function drawStrings(r) {
   const box = $('strings');
   box.innerHTML = '';
+  let group = null;
   strings.forEach((m, i) => {
+    if (!group || pills[i].course !== pills[i - 1].course) {
+      group = document.createElement('div');
+      const size = instrument.tunings[+$('tuning').value]?.courses[pills[i].course] || 1;
+      group.className = 'course' + (size > 1 ? ' paired' : '');
+      box.append(group);
+    }
     const p = document.createElement('button');
     const sounding = playing && playing.string === i;
     p.type = 'button';
     p.className = 'pill' + (r && r.string === i ? ' active' : '') + (tuned[i] ? ' done' : '') + (sounding ? ' playing' : '');
     p.textContent = noteName(m + (instrument.transpose || 0));
     p.title = sounding ? 'Stop' : 'Hear ' + p.textContent;
+    if (pills[i].count > 1) {
+      const c = document.createElement('span');
+      c.className = 'count';
+      c.textContent = '\u00d7' + pills[i].count;
+      p.append(c);
+      p.title += ' (' + pills[i].count + ' strings at this pitch)';
+    }
     if (r && r.string === i && !sounding) { p.style.borderColor = colourFor(r); p.style.background = colourFor(r) + '33'; }
     p.onclick = () => toggleTone(i);
-    box.append(p);
+    group.append(p);
   });
   $('hearHint').classList.toggle('hidden', !strings.length);
 }
@@ -89,7 +109,9 @@ $('a4preset').onchange = () => { if ($('a4preset').value) { $('a4').value = $('a
 $('temperament').onchange = () => { store.set('temperament', $('temperament').value); $('root').disabled = $('temperament').value === '0'; };
 $('root').onchange = () => store.set('root', $('root').value);
 $('root').disabled = $('temperament').value === '0';
-$('strobe').onchange = () => store.set('strobe', $('strobe').checked ? '1' : '0');
+const strobeHint = () => $('strobeHint').classList.toggle('hidden', !$('strobe').checked);
+$('strobe').onchange = () => { store.set('strobe', $('strobe').checked ? '1' : '0'); strobeHint(); };
+strobeHint();
 const replay = () => { if (playing) { const i = playing.string; stopTone(); toggleTone(i); } };
 $('tone').onchange = () => { store.set('tone', $('tone').value); replay(); };
 $('volume').oninput = () => { store.set('volume', $('volume').value); if (playing) playing.gain.gain.setTargetAtTime(volume(), ctx.currentTime, 0.03); };
@@ -238,6 +260,16 @@ function frame() {
   drawMeter();
 }
 
+// "  (string 6)", or for paired strings "  (course 6)" and, when the pair has two pitches, which one
+function whichString(r) {
+  if (r.string < 0) return '';
+  const p = pills[r.string], courses = pills[pills.length - 1].course + 1;
+  if (!hasCourses) return `  (string ${courses - p.course})`;
+  const same = pills.filter(q => q.course === p.course).map(q => q.note);
+  const which = same.length < 2 ? '' : p.note === Math.max(...same) ? ', high string' : ', low string';
+  return `  (course ${courses - p.course}${which})`;
+}
+
 function show() {
   const r = last, have = r && r.note >= 0, t = instrument.transpose || 0;
   $('big').innerHTML = have ? noteName(r.note + t, false) + '<sub>' + (Math.floor((r.note + t) / 12) - 1) + '</sub>' : '--';
@@ -247,7 +279,7 @@ function show() {
   status.style.color = colourFor(r);
   status.textContent = !have ? (strings.length ? 'Play a string' : 'Play a note')
     : Math.abs(r.cents) <= 3 ? 'In tune'
-    : (r.cents < 0 ? 'Flat ' : 'Sharp ') + Math.abs(r.cents).toFixed(0) + ' cents' + (r.string >= 0 ? `  (string ${strings.length - r.string})` : '');
+    : (r.cents < 0 ? 'Flat ' : 'Sharp ') + Math.abs(r.cents).toFixed(0) + ' cents' + whichString(r);
   $('hz').textContent = have ? `${smoothed.toFixed(1)} Hz   (target ${r.targetHz.toFixed(1)} Hz)` : '';
   drawStrings(r);
 }

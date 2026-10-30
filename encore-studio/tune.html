@@ -33,7 +33,12 @@
   .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); padding-top: 18px; }
   button.go { font: inherit; font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; cursor: pointer; }
   .panel { background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 20px 16px 22px; text-align: center; }
-  .strings { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .strings { display: flex; justify-content: center; gap: 10px 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .course { display: flex; gap: 3px; }
+  .course.paired { padding: 3px; border-radius: 12px; background: rgb(255 255 255 / 0.035); }
+  .pill .count { font-size: 10px; font-weight: 700; color: var(--dim); margin-left: 3px; }
+  .pill.playing .count { color: #fff; }
+  .strobeHint { color: var(--dim); font-size: 12px; margin-top: 6px; }
   .pill { font: inherit; min-width: 52px; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); font-weight: 700; position: relative; cursor: pointer; }
   .pill:hover { color: var(--text); border-color: var(--soft); }
   .pill.playing { color: #fff; background: #ff3b00; border-color: #ff3b00; }
@@ -87,7 +92,7 @@
     <label>Reference tone
       <div class="row"><select id="tone"><option value="pluck">Plucked (rings out)</option><option value="steady">Steady (until you stop it)</option></select><input id="volume" type="range" min="0" max="100" value="60" aria-label="Tone volume"></div>
     </label>
-    <label class="toggle"><input type="checkbox" id="strobe"> Strobe</label>
+    <label class="toggle" title="A strobe tuner: stripes drift left when you're flat, right when sharp, and stand still when you're in tune. It shows tiny differences a needle can hide."><input type="checkbox" id="strobe"> Strobe</label>
   </div>
 
   <section class="panel" id="panel">
@@ -97,6 +102,7 @@
     <div class="concert" id="concert"></div>
     <canvas id="meter"></canvas>
     <div class="scaleLabels"><span>flat</span><span>sharp</span></div>
+    <div class="strobeHint hidden" id="strobeHint">Strobe: the stripes drift left when you're flat and right when you're sharp. Tune until they stand still.</div>
     <div class="status" id="status">Tap a note to hear it, or press Start listening</div>
     <div class="hz" id="hz"></div>
     <div class="tip" id="tip"></div>
