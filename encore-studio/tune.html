@@ -34,7 +34,12 @@
   button.go { font: inherit; font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; cursor: pointer; }
   .panel { background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 20px 16px 22px; text-align: center; }
   .strings { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-  .pill { min-width: 52px; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--divider-strong); color: var(--soft); font-weight: 700; position: relative; }
+  .pill { font: inherit; min-width: 52px; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); font-weight: 700; position: relative; cursor: pointer; }
+  .pill:hover { color: var(--text); border-color: var(--soft); }
+  .pill.playing { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .pill.playing::before { content: '\266A'; margin-right: 4px; font-weight: 400; }
+  .hearHint { color: var(--dim); font-size: 12px; margin: -2px 0 10px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 9px 0 0; }
   .pill.active { color: var(--text); border-width: 2px; }
   .pill.done::after { content: ''; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
   .big { font-size: clamp(64px, 16vw, 104px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
@@ -64,7 +69,7 @@
 <main>
   <section class="start" id="startView">
     <h1>Tune anything.</h1>
-    <p>Guitar to bouzouki, lute to tuba: 82 instruments and 163 tunings, a needle or a strobe, any reference pitch, and historical temperaments for early music.</p>
+    <p>Guitar to bouzouki, lute to tuba: 82 instruments and 163 tunings, a needle or a strobe, any reference pitch, and historical temperaments for early music. No microphone? Tap any note below to hear it and tune by ear.</p>
     <button class="go" id="startBtn">Start listening</button>
     <div class="err hidden" id="err"></div>
   </section>
@@ -79,16 +84,20 @@
     <label>Temperament
       <div class="row"><select id="temperament"></select><select id="root" aria-label="Key"></select></div>
     </label>
+    <label>Reference tone
+      <div class="row"><select id="tone"><option value="pluck">Plucked (rings out)</option><option value="steady">Steady (until you stop it)</option></select><input id="volume" type="range" min="0" max="100" value="60" aria-label="Tone volume"></div>
+    </label>
     <label class="toggle"><input type="checkbox" id="strobe"> Strobe</label>
   </div>
 
   <section class="panel" id="panel">
     <div class="strings" id="strings"></div>
+    <div class="hearHint" id="hearHint">Tap a note to hear it. Tap it again to stop.</div>
     <div class="big" id="big">--</div>
     <div class="concert" id="concert"></div>
     <canvas id="meter"></canvas>
     <div class="scaleLabels"><span>flat</span><span>sharp</span></div>
-    <div class="status" id="status">Press Start listening</div>
+    <div class="status" id="status">Tap a note to hear it, or press Start listening</div>
     <div class="hz" id="hz"></div>
     <div class="tip" id="tip"></div>
   </section>

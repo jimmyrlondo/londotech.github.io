@@ -1,7 +1,7 @@
 // Encore Tune: the page. Listens to a microphone or interface input in the
 // browser (nothing is recorded or sent anywhere) and shows the string or note
 // you're playing and how far off it is.
-import { estimatePitch, downsample, reading, noteName } from './tune-core.js';
+import { estimatePitch, downsample, reading, noteName, noteHz } from './tune-core.js';
 import { TUNINGS } from './tunings.js';
 
 const $ = id => document.getElementById(id);
@@ -33,8 +33,10 @@ $('a4').value = store.get('a4', '440');
 $('temperament').value = store.get('temperament', '0');
 $('root').value = store.get('root', '0');
 $('strobe').checked = store.get('strobe', '0') === '1';
+$('tone').value = store.get('tone', 'pluck');
+$('volume').value = store.get('volume', '60');
 
-let strings = [], tuned = [], instrument = null;
+let strings = [], tuned = [], instrument = null, playing = null, last = null, ctx = null;
 
 function fillTunings(keep) {
   instrument = instruments[+$('instrument').value];
@@ -50,6 +52,7 @@ function fillTunings(keep) {
 
 function tuningChanged() {
   const t = instrument.tunings[+$('tuning').value] || instrument.tunings[0];
+  stopTone();
   strings = t.midi;
   tuned = strings.map(() => false);
   store.set('instrument', instrument.name);
@@ -64,12 +67,17 @@ function drawStrings(r) {
   const box = $('strings');
   box.innerHTML = '';
   strings.forEach((m, i) => {
-    const p = document.createElement('div');
-    p.className = 'pill' + (r && r.string === i ? ' active' : '') + (tuned[i] ? ' done' : '');
+    const p = document.createElement('button');
+    const sounding = playing && playing.string === i;
+    p.type = 'button';
+    p.className = 'pill' + (r && r.string === i ? ' active' : '') + (tuned[i] ? ' done' : '') + (sounding ? ' playing' : '');
     p.textContent = noteName(m + (instrument.transpose || 0));
-    if (r && r.string === i) { p.style.borderColor = colourFor(r); p.style.background = colourFor(r) + '33'; }
+    p.title = sounding ? 'Stop' : 'Hear ' + p.textContent;
+    if (r && r.string === i && !sounding) { p.style.borderColor = colourFor(r); p.style.background = colourFor(r) + '33'; }
+    p.onclick = () => toggleTone(i);
     box.append(p);
   });
+  $('hearHint').classList.toggle('hidden', !strings.length);
 }
 
 const colourFor = r => !r || r.note < 0 ? '#91887d' : Math.abs(r.cents) <= 3 ? '#22c55e' : Math.abs(r.cents) <= 15 ? '#eab308' : '#ef4444';
@@ -82,18 +90,101 @@ $('temperament').onchange = () => { store.set('temperament', $('temperament').va
 $('root').onchange = () => store.set('root', $('root').value);
 $('root').disabled = $('temperament').value === '0';
 $('strobe').onchange = () => store.set('strobe', $('strobe').checked ? '1' : '0');
+const replay = () => { if (playing) { const i = playing.string; stopTone(); toggleTone(i); } };
+$('tone').onchange = () => { store.set('tone', $('tone').value); replay(); };
+$('volume').oninput = () => { store.set('volume', $('volume').value); if (playing) playing.gain.gain.setTargetAtTime(volume(), ctx.currentTime, 0.03); };
+// a new reference pitch or temperament retunes a steady tone that's sounding
+for (const id of ['a4', 'a4preset', 'temperament', 'root']) $(id).addEventListener('change', () => { if (playing && playing.steady) replay(); });
 fillTunings(+store.get('tuning', '0'));
 
+// ---- reference tones: tap a string to hear it (no microphone needed)
+const volume = () => Math.pow(+$('volume').value / 100, 2) * 0.5;
+// a string-like spectrum: a full fundamental plus fading overtones, so low notes still come through small speakers
+const HARMONICS = [1, 0.62, 0.42, 0.3, 0.2, 0.14, 0.09, 0.06];
+
+function audio() {
+  ctx = ctx || new AudioContext();
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+
+function toneHz(i) {
+  return noteHz(strings[i], +$('a4').value || 440, TUNINGS.temperaments[+$('temperament').value].cents, +$('root').value);
+}
+
+/** A plucked note, built sample by sample so the pitch is exact: each overtone dies away faster than the last */
+function pluck(hz, seconds) {
+  const sr = ctx.sampleRate, n = Math.floor(sr * seconds), data = new Float32Array(n);
+  const parts = HARMONICS.map((a, k) => ({ w: 2 * Math.PI * hz * (k + 1) / sr, a, decay: Math.exp(-(1.1 + k * 0.9) / sr) }))
+                         .filter(p => p.w < Math.PI * 0.9);
+  for (const p of parts) {
+    let amp = p.a;
+    for (let t = 0; t < n; t++) { data[t] += amp * Math.sin(p.w * t); amp *= p.decay; }
+  }
+  let peak = 0;
+  for (let t = 0; t < n; t++) peak = Math.max(peak, Math.abs(data[t]));
+  const attack = Math.floor(sr * 0.004), tail = Math.floor(sr * 0.25);
+  for (let t = 0; t < n; t++) {
+    let g = 1 / (peak || 1);
+    if (t < attack) g *= t / attack;
+    if (t > n - tail) g *= (n - t) / tail;
+    data[t] *= g;
+  }
+  const buffer = ctx.createBuffer(1, n, sr);
+  buffer.copyToChannel(data, 0);
+  return buffer;
+}
+
+function toggleTone(i) {
+  const again = playing && playing.string === i;
+  stopTone();
+  if (again) return;
+  audio();
+  const hz = toneHz(i), steady = $('tone').value === 'steady', now = ctx.currentTime;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(volume(), now + (steady ? 0.05 : 0.004));
+  gain.connect(ctx.destination);
+  let node;
+  if (steady) {
+    const real = new Float32Array(HARMONICS.length + 1), imag = new Float32Array(HARMONICS.length + 1);
+    HARMONICS.forEach((a, k) => { imag[k + 1] = a * Math.pow(0.8, k); });
+    node = ctx.createOscillator();
+    node.setPeriodicWave(ctx.createPeriodicWave(real, imag));
+    node.frequency.value = hz;
+  } else {
+    node = ctx.createBufferSource();
+    node.buffer = pluck(hz, 5);
+  }
+  node.connect(gain);
+  node.start(now);
+  const me = { string: i, node, gain, steady };
+  node.onended = () => { if (playing === me) { playing = null; drawStrings(last); } };
+  playing = me;
+  drawStrings(last);
+}
+
+function stopTone() {
+  if (!playing) return;
+  const p = playing, now = ctx.currentTime;
+  playing = null;
+  p.gain.gain.cancelScheduledValues(now);
+  p.gain.gain.setValueAtTime(p.gain.gain.value, now);
+  p.gain.gain.setTargetAtTime(0, now, 0.03);
+  try { p.node.stop(now + 0.2); } catch {}
+  drawStrings(last);
+}
+
 // ---- listening
-let ctx = null, analyser = null, source = null, stream = null, buf = null;
-let last = null, quiet = 0, smoothed = 0, inTuneFrames = 0, lastString = -1, strobePhase = 0;
+let analyser = null, source = null, stream = null, buf = null;
+let quiet = 0, smoothed = 0, inTuneFrames = 0, lastString = -1, strobePhase = 0;
 
 async function listen(deviceId) {
   if (stream) stream.getTracks().forEach(t => t.stop());
   stream = await navigator.mediaDevices.getUserMedia({ audio: {
     deviceId: deviceId ? { exact: deviceId } : undefined,
     echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-  ctx = ctx || new AudioContext();
+  audio();
   if (source) source.disconnect();
   source = ctx.createMediaStreamSource(stream);
   analyser = analyser || ctx.createAnalyser();

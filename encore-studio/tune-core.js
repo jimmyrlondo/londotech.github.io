@@ -64,6 +64,11 @@ export function noteName(midi, withOctave = true) {
   return NAMES[((midi % 12) + 12) % 12] + (withOctave ? String(Math.floor(midi / 12) - 1) : '');
 }
 
+/** The pitch a note should be, in Hz, at reference `a4` in the temperament (offsets turned to `root`) */
+export function noteHz(midi, a4, offsets, root) {
+  return a4 * Math.pow(2, (midi + offsets[(((midi - root) % 12) + 12) % 12] / 100 - 69) / 12);
+}
+
 /**
  * What a pitch means: the string it's nearest (within 3.5 semitones) or the nearest note,
  * and how many cents off. strings: MIDI notes of the tuning (empty: chromatic).
@@ -89,6 +94,6 @@ export function reading(hz, a4, strings, offsets, root) {
     r.note = n;
     r.cents = (m - target(n)) * 100;
   }
-  r.targetHz = a4 * Math.pow(2, (target(r.note) - 69) / 12);
+  r.targetHz = noteHz(r.note, a4, offsets, root);
   return r;
 }
