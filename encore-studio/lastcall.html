@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Last Call · Encore Music Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 900px; margin: 0 auto; padding: 18px 16px 48px; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; flex: none; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .product { font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+  .product .sep { color: var(--dim); margin: 0 8px; font-weight: 400; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
+  .note { color: var(--dim); font-size: 13px; }
+  @media (max-width: 640px) { .bar .note { display: none; } .bar { gap: 10px; } .bar .chip-label { display: none; } }
+
+  button.go { font: inherit; font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; cursor: pointer; }
+  button.go:hover { background: var(--brand-primary-hover); }
+  button.small { font: inherit; font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+  button.small:hover { border-color: var(--soft); }
+
+  .start { text-align: center; padding: 30px 0 10px; }
+  .start h1 { font-size: clamp(28px, 6vw, 44px); line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.02em; }
+  .start p { color: var(--soft); max-width: 600px; margin: 0 auto 20px; }
+  .drop { display: block; cursor: pointer; border: 1.5px dashed var(--divider-strong); border-radius: var(--radius-panel); padding: 34px 16px; text-align: center; background: var(--panel); transition: border-color .15s, background .15s; }
+  .drop.over { border-color: #ff3b00; background: var(--bg-surface-hover); }
+  .drop .hint { color: var(--dim); font-size: 13px; margin-top: 12px; }
+  .drop .coverLine { margin-top: 14px; font-size: 13px; color: var(--soft); }
+  .linkish { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .checks-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 18px auto 0; max-width: 680px; }
+  .checks-list span { font-size: 12px; color: var(--soft); border: 1px solid var(--divider); border-radius: 999px; padding: 3px 10px; }
+  .err { color: var(--red); margin-top: 12px; }
+
+  .progress { margin: 18px 0; display: grid; gap: 8px; }
+  .prow { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; background: var(--panel); border: 1px solid var(--divider); border-radius: 10px; padding: 10px 12px; }
+  .prow .pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .prow .pstate { color: var(--dim); font-size: 13px; }
+  .prow .ptrack { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; }
+  .prow .ptrack i { display: block; height: 100%; width: 0; background: #ff3b00; transition: width .2s; }
+
+  /* the report */
+  .verdict { border-radius: var(--radius-panel); padding: 20px 18px; margin: 8px 0 16px; border: 1px solid var(--divider); background: var(--panel); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .verdict .vicon { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 22px; color: var(--ink-dark); flex: none; }
+  .verdict h2 { margin: 0; font-size: clamp(22px, 5vw, 30px); letter-spacing: -0.02em; line-height: 1.15; }
+  .verdict .vsum { color: var(--soft); font-size: 14px; }
+  .verdict .vtext { flex: 1 1 260px; min-width: 0; }
+  .v-ready .vicon { background: var(--green); } .v-notes .vicon { background: var(--warn); } .v-fix .vicon { background: var(--red); color: #fff; }
+  .v-ready { border-color: rgb(123 211 164 / 0.45); } .v-notes { border-color: rgb(232 176 75 / 0.45); } .v-fix { border-color: rgb(239 68 68 / 0.5); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .copied { color: var(--green); font-size: 13px; align-self: center; }
+
+  section.block { margin: 22px 0; }
+  section.block > h3, details.track > summary { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); font-weight: 700; margin: 0 0 8px; }
+  details.track { margin: 22px 0; }
+  details.track > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; text-transform: none; letter-spacing: 0; font-size: 17px; color: var(--text); padding: 4px 0 10px; }
+  details.track > summary::-webkit-details-marker { display: none; }
+  details.track > summary::before { content: '\25B8'; color: var(--dim); font-size: 13px; transition: transform .15s; }
+  details.track[open] > summary::before { transform: rotate(90deg); }
+  .tname { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+  .tmeta { color: var(--dim); font-size: 13px; font-weight: 400; }
+
+  .checks { display: grid; gap: 8px; }
+  .check { display: grid; grid-template-columns: 78px 1fr; gap: 12px; background: var(--panel); border: 1px solid var(--divider); border-left: 3px solid var(--sc); border-radius: 10px; padding: 12px 14px; }
+  .check .badge { align-self: start; font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--sc); border: 1px solid var(--sc); border-radius: 999px; padding: 2px 0; text-align: center; }
+  .check .ctitle { font-weight: 700; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+  .check .val { font-family: var(--family-mono); font-size: 13px; font-weight: 400; color: var(--soft); overflow-wrap: anywhere; }
+  .check p { margin: 4px 0 0; color: var(--soft); font-size: 14px; overflow-wrap: anywhere; }
+  .check p.fix { color: var(--text); }
+  .check p.fix b { color: var(--sc); }
+  .s-pass { --sc: var(--green); } .s-note { --sc: var(--blue); } .s-warn { --sc: var(--warn); } .s-fail { --sc: var(--red); }
+  .check.s-pass p { font-size: 13px; }
+  @media (max-width: 560px) { .check { grid-template-columns: 1fr; gap: 6px; } .check .badge { justify-self: start; padding: 2px 10px; } }
+
+  .mini { margin-top: 10px; display: grid; gap: 3px; font-size: 13px; }
+  .mini .mrow { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) auto; gap: 10px; align-items: center; color: var(--soft); }
+  .mini .mrow b { color: var(--text); font-weight: 600; }
+  .mini .num { font-family: var(--family-mono); font-size: 12px; text-align: right; white-space: nowrap; }
+  .corrbar { height: 6px; border-radius: 3px; background: var(--track); position: relative; }
+  .corrbar::after { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--divider-strong); }
+  .corrbar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+
+  .timeline { margin: 0 0 10px; }
+  .timeline svg { width: 100%; height: 54px; display: block; background: var(--panel); border: 1px solid var(--divider); border-radius: 10px; }
+  .tlabels { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); margin-top: 3px; gap: 10px; }
+  .tlegend { display: flex; gap: 12px; flex-wrap: wrap; }
+  .tlegend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 0; }
+
+  .coverRow { display: flex; gap: 14px; align-items: flex-start; }
+  .coverRow .checks { flex: 1; min-width: 0; }
+  .thumb { width: 112px; height: 112px; border-radius: 8px; object-fit: cover; border: 1px solid var(--divider); background: var(--panel); flex: none; }
+  @media (max-width: 560px) { .coverRow { flex-direction: column; } }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--divider); border-radius: 10px; margin-bottom: 8px; }
+  table.tracks { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 520px; }
+  table.tracks th, table.tracks td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--divider); white-space: nowrap; }
+  table.tracks th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  table.tracks td.n { font-family: var(--family-mono); font-size: 12px; }
+  table.tracks td.name { white-space: normal; overflow-wrap: anywhere; min-width: 140px; }
+  table.tracks tr:last-child td { border-bottom: 0; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sc); margin-right: 6px; }
+  .footnote { color: var(--dim); font-size: 12px; margin-top: 26px; }
+
+  @media print {
+    :root { --bg: #fff; --panel: #fff; --text: #111; --soft: #333; --dim: #666; --divider: #ccc; --divider-strong: #999; --track: #e5e5e5;
+            --green: #0a7a45; --blue: #0b6aa8; --warn: #a86500; --red: #c01818; color-scheme: light; }
+    body { background: #fff; color: #111; font-size: 12px; }
+    .bar, .actions, #startView, #progress, .noprint { display: none !important; }
+    main { max-width: none; padding: 0; }
+    .check, .verdict, .timeline, tr { break-inside: avoid; }
+    details.track > summary::before { display: none; }
+    .verdict .vicon { color: #fff !important; }
+    .tablewrap { overflow: visible; }
+    table.tracks { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg>
+  <span class="chip-label">STUDIO</span>
+  <span class="product"><span class="sep">/</span>Last Call</span>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a></nav>
+  <span class="note">Checks on your device only. Nothing is uploaded.</span>
+</div>
+
+<main>
+  <section id="startView">
+    <div class="start">
+      <h1>The last check before you release.</h1>
+      <p>Drop in your finished master, or every track of the album, and Last Call checks it the way Spotify, Apple Music and your distributor will: loudness, peaks, clipping, mono, the start and end, the file format, tags and cover art. Anything that needs fixing comes with how to fix it, in plain English.</p>
+    </div>
+    <div class="drop" id="drop">
+      <button class="go" id="chooseBtn" type="button">Choose your master</button>
+      <div class="hint">or drop audio files here (WAV, FLAC, AIFF, MP3, M4A, OGG). Several files are checked as an album.</div>
+      <div class="coverLine">Cover art (optional): drop the image along with the audio, or <button class="linkish" id="coverBtn" type="button">add it here</button>. <span id="coverName"></span></div>
+    </div>
+    <input type="file" id="files" class="hidden" multiple accept="audio/*,image/*,.wav,.wave,.flac,.aif,.aiff,.mp3,.m4a,.aac,.ogg,.opus">
+    <input type="file" id="coverFile" class="hidden" accept="image/*">
+    <div class="err hidden" id="err"></div>
+    <div class="checks-list" aria-label="What Last Call checks">
+      <span>Loudness on each service</span><span>True peak</span><span>Clipping</span><span>Mono and phase</span><span>Stereo balance</span>
+      <span>Silence and clicks at the ends</span><span>File format</span><span>Hidden MP3</span><span>Tags and ISRC</span><span>Cover art</span><span>Album consistency</span>
+    </div>
+  </section>
+
+  <section id="progress" class="progress hidden" aria-live="polite"></section>
+
+  <section id="report" class="hidden">
+    <div class="verdict" id="verdict">
+      <div class="vicon" id="vicon"></div>
+      <div class="vtext"><h2 id="vlabel"></h2><div class="vsum" id="vsum"></div></div>
+      <div class="actions">
+        <button class="small" id="printBtn" type="button">Print report</button>
+        <button class="small" id="copyBtn" type="button">Copy report as text</button>
+        <button class="small" id="againBtn" type="button">Check other files</button>
+        <span class="copied hidden" id="copied">Copied</span>
+      </div>
+    </div>
+    <div id="albumBlock"></div>
+    <section class="block" id="coverBlock">
+      <h3>Cover art</h3>
+      <div class="coverRow"><img class="thumb hidden" id="thumb" alt="Cover art"><div class="checks" id="coverChecks"></div></div>
+      <div class="noprint" style="margin-top:8px"><button class="small" id="coverBtn2" type="button">Add or replace cover art</button></div>
+    </section>
+    <div id="tracks"></div>
+    <p class="footnote">Measured on your own device; nothing was uploaded. Streaming figures are estimates from each service's published loudness level, and services change their settings from time to time. Last Call reads what's in the file: your distributor also checks the details you type into its upload form.</p>
+  </section>
+</main>
+<script type="module" src="lastcall.js"></script>
+</body>
+</html>
