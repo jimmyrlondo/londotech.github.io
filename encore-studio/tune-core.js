@@ -114,3 +114,68 @@ export function reading(hz, a4, strings, offsets, root) {
   r.targetHz = noteHz(r.note, a4, offsets, root);
   return r;
 }
+
+// ---- drums: a drum's hit isn't one clean pitch (its overtones don't line up and it dies away fast),
+// so instead of following a note, each hit is caught and its spectrum's main peak measured
+
+/** In-place radix-2 FFT (re, im: Float64Array, length a power of two) */
+export function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const a = i + k, b = a + len / 2;
+        const tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti;
+        re[a] += tr; im[a] += ti;
+        const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr;
+      }
+    }
+  }
+}
+
+/**
+ * The main note of a drum hit, in Hz (0 when there isn't one). x: the sound just after the hit.
+ * lowest: take the lowest clear peak (within 10 dB of the strongest) instead of the strongest one;
+ * that's the drum's own note when you hit the middle, where the strongest peak can be an overtone.
+ */
+export function drumPeak(x, sampleRate, minHz, maxHz, lowest = false, size = 32768) {
+  const n = Math.min(x.length, size), re = new Float64Array(size), im = new Float64Array(size);
+  let energy = 0;
+  for (let i = 0; i < n; i++) { re[i] = x[i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1))); energy += x[i] * x[i]; }
+  if (energy / n < 1e-6) return 0;
+  fft(re, im);
+  const lo = Math.max(2, Math.floor(minHz * size / sampleRate)), hi = Math.min(size / 2 - 2, Math.ceil(maxHz * size / sampleRate));
+  const mag = k => Math.log(re[k] * re[k] + im[k] * im[k] + 1e-20);
+  let best = lo;
+  for (let k = lo; k <= hi; k++) if (mag(k) > mag(best)) best = k;
+  if (lowest) {
+    const floor = mag(best) - Math.log(10);  // 10 dB under the strongest, in power
+    for (let k = lo + 1; k < best; k++)
+      if (mag(k) > floor && mag(k) >= mag(k - 1) && mag(k) >= mag(k + 1)) { best = k; break; }
+  }
+  const a = mag(best - 1), b = mag(best), c = mag(best + 1), denom = a - 2 * b + c;
+  const shift = Math.abs(denom) > 1e-12 ? 0.5 * (a - c) / denom : 0;
+  return (best + shift) * sampleRate / size;
+}
+
+/** How far each rod's pitch is from the average of the ones measured, in cents (null where not measured yet) */
+export function rodSpread(hz) {
+  const got = hz.filter(h => h > 0);
+  if (!got.length) return { mean: 0, cents: hz.map(() => null) };
+  const mean = Math.pow(2, got.reduce((s, h) => s + Math.log2(h), 0) / got.length);
+  return { mean, cents: hz.map(h => h > 0 ? 1200 * Math.log2(h / mean) : null) };
+}
+
+/** Notes for toms tuned in steps: the highest tom's note, then each one `step` semitones lower */
+export function tomSteps(top, count, step) {
+  return Array.from({ length: count }, (_, i) => top - i * step);
+}
