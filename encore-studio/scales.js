@@ -421,7 +421,7 @@ function drawTones() {
   const notes = spellScale(scale, root);
   $('tones').innerHTML = notes.map(x => {
     const odd = soundsAs(x.note), isChar = scale.char.includes(x.d);
-    const tip = (isChar ? 'A colour note: it gives ' + scale.name + ' its flavour. ' : '') + (odd ? nt(x.note) + ' is spelled that way because it is the ' + x.d + ' of the scale; it sounds the same as ' + odd + '.' : '');
+    const tip = (isChar ? 'A color note: it gives ' + scale.name + ' its flavor. ' : '') + (odd ? nt(x.note) + ' is spelled that way because it is the ' + x.d + ' of the scale; it sounds the same as ' + odd + '.' : '');
     const lit = nowMidi != null && mod12(nowMidi) === x.pc;
     return `<button class="tone${x.d === '1' ? ' root' : ''}${isChar ? ' char' : ''}${lit ? ' now' : ''}" data-pc="${x.pc}" ${tip ? `data-tip="${esc(tip)}"` : ''}><b>${esc(nt(x.note))}</b><span>${esc(x.d)}</span></button>`;
   }).join('');
@@ -510,7 +510,7 @@ function renderLearn() {
   h += `<dt>${term('formula', 'Formula')}</dt><dd class="mono">${scale.f.map(d => scale.char.includes(d) ? `<b style="color:${BLUE}">${esc(d)}</b>` : esc(d)).join(' ')}</dd>`;
   h += `<dt>${term('steps', 'Steps')}</dt><dd><div class="stepsRow">${steps.map((t, i) => `<span class="${sizes[i] === 1 ? 'H' : sizes[i] >= 3 ? 'big' : ''}">${esc(t)}</span>`).join('')}</div></dd>`;
   h += `<dt>Notes</dt><dd>${notes.map(n => esc(nt(n.note))).join(' ')}${notes.some(n => soundsAs(n.note)) ? ` <span class="sub">(${notes.filter(n => soundsAs(n.note)).map(n => esc(nt(n.note)) + ' sounds as ' + esc(soundsAs(n.note))).join(', ')}; see ${term('enharmonic', 'spelling')})</span>` : ''}</dd>`;
-  if (chars.length) h += `<dt>${term('char', 'Colour note' + (chars.length > 1 ? 's' : ''))}</dt><dd>${chars.map(n => `<b>${esc(nt(n.note))}</b> (the ${esc(n.d)})`).join(', ')}. ${esc(charLine(chars))}</dd>`;
+  if (chars.length) h += `<dt>${term('char', 'Color note' + (chars.length > 1 ? 's' : ''))}</dt><dd>${chars.map(n => `<b>${esc(nt(n.note))}</b> (the ${esc(n.d)})`).join(', ')}. ${esc(charLine(chars))}</dd>`;
   h += `<dt>Mood</dt><dd>${esc(scale.mood)}</dd>`;
   h += `<dt>Where you hear it</dt><dd>${esc(scale.genres)}</dd>`;
   if (scale.aka.length) h += `<dt>Also called</dt><dd>${esc(scale.aka.join(', '))}</dd>`;
@@ -601,7 +601,7 @@ function runFit() {
   };
   if (chords.length === 1) {
     const c = chords[0], list = scalesForChord(c, { limit: 6 });
-    h += `<h2>Scales over ${esc(c.symbol)}</h2><p class="sub">Each is built on ${esc(nt(c.root))}, the chord's root. The first is the everyday choice; the others add other colours.</p><div class="rows">`;
+    h += `<h2>Scales over ${esc(c.symbol)}</h2><p class="sub">Each is built on ${esc(nt(c.root))}, the chord's root. The first is the everyday choice; the others add other colors.</p><div class="rows">`;
     list.forEach((r, k) => { h += row(r, k === 0); });
     h += '</div>';
   } else {
@@ -618,7 +618,7 @@ function runFit() {
       const k = fitResults.push(best) - 1;
       const second = res.perChord[i][1];
       h += `<span class="ch">${esc(c.symbol)}</span><span><button data-show="${k}">${esc(nt(best.root))} ${esc(best.scale.name)}</button>${best.inKey || res.blues ? '' : ' <small style="display:inline">(outside the key)</small>'}`
-        + `<small>${esc(best.reasons.slice(1).find(x => /colour/.test(x)) || best.reasons[0])}${second ? ' Also try ' + esc(nt(second.root) + ' ' + second.scale.name) + '.' : ''}</small></span>`;
+        + `<small>${esc(best.reasons.slice(1).find(x => /color/.test(x)) || best.reasons[0])}${second ? ' Also try ' + esc(nt(second.root) + ' ' + second.scale.name) + '.' : ''}</small></span>`;
     });
     h += '</div>';
   }
@@ -650,7 +650,7 @@ function renderModes() {
   if (fam) {
     const par = parentOf(scale, root);
     h += `<h2>Same notes, different home</h2><p class="sub">The ${term('mode', 'modes')} of ${esc(nt(par.root))} ${esc(par.scale.name)}: every one uses these same notes; only the home note (in bold) changes. That change of home is what changes the sound.</p><div class="modeList">`;
-    for (const m of fam) h += modeRow(m.scale, m.root, { sub: 'Mode ' + m.mode + (m.scale.char.length ? ', colour: ' + m.scale.char.join(' ') : '') });
+    for (const m of fam) h += modeRow(m.scale, m.root, { sub: 'Mode ' + m.mode + (m.scale.char.length ? ', color: ' + m.scale.char.join(' ') : '') });
     h += '</div>';
   } else {
     const rots = rotations(scale, root).filter(r => r.k > 0 || true);
@@ -671,7 +671,7 @@ function renderModes() {
   }
   h += `<h2>Same home, different notes</h2><p class="sub">The seven modes on ${esc(nt(root))}, ${term('brightness', 'brightest to darkest')}. Notes in orange are the ones that differ from ${esc(nt(root))} ${esc(scale.name)}.</p>`;
   h += `<div class="bright"><span>brighter</span><span>darker</span></div><div class="modeList">`;
-  for (const id of BRIGHTNESS) h += modeRow(SCALE[id], root, { diff: true, sub: SCALE[id].char.length ? 'Colour: ' + SCALE[id].char.join(' ') : '' });
+  for (const id of BRIGHTNESS) h += modeRow(SCALE[id], root, { diff: true, sub: SCALE[id].char.length ? 'Color: ' + SCALE[id].char.join(' ') : '' });
   h += '</div>';
   const fm = parentOf(scale, root);
   if (fm && fm.family !== 'major') {
@@ -743,7 +743,7 @@ async function startPractice() {
   $('practBtn').classList.add('running');
   $('scoreBox').classList.add('hidden');
   $('practWhat').textContent = describeSeq(seq);
-  $('tabPractise').innerHTML = 'Practise<span class="dot"></span>';
+  $('tabPractise').innerHTML = 'Practice<span class="dot"></span>';
   practice.timer = setInterval(listenTick, 12);
   updatePractice('Play the first note: ' + nt(seq[0].note) + (withClick ? ' (after the 4 count-in clicks)' : '') + '.');
 }
@@ -819,7 +819,7 @@ function endPracticeUi() {
   if (ctx) stopDrone();
   $('practBtn').textContent = 'Start listening';
   $('practBtn').classList.remove('running');
-  $('tabPractise').textContent = 'Practise';
+  $('tabPractise').textContent = 'Practice';
   if (practiceMarks) { practiceMarks = null; drawMain(); }
 }
 $('practBtn').onclick = () => { if (practice) finishPractice(); else startPractice(); };
@@ -865,7 +865,7 @@ $('earOpts').onclick = e => {
   const right = ear.picked === ear.q.answer, s = ear.q.scale, picked = ear.q.options[ear.picked];
   if (right) ear.right++;
   renderEar();
-  const chars = s.char.length ? ' Its colour: the ' + s.char.join(' and ') + '.' : '';
+  const chars = s.char.length ? ' Its color: the ' + s.char.join(' and ') + '.' : '';
   $('earFeedback').innerHTML = (right ? '<b style="color:var(--green)">Yes!</b> ' + esc(nt(ear.root) + ' ' + s.name) + '.' + esc(chars) + ' ' + esc(s.why)
     : '<b style="color:var(--red)">Not quite.</b> It was ' + esc(nt(ear.root) + ' ' + s.name) + '.' + esc(chars) + ' ' + esc(differsText(s, picked)))
     + ` <button class="small" id="earShow">Show it</button>`;

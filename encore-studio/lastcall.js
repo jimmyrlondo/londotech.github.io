@@ -144,7 +144,7 @@ function checkHtml(c) {
       const v = Math.max(-1, Math.min(1, b.corr)), left = v < 0 ? 50 + v * 50 : 50, width = Math.abs(v) * 50;
       const color = v < 0 ? "var(--red)" : v < 0.5 ? "var(--warn)" : "var(--green)";
       return `<div class="mrow"><b>${esc(b.name)} <span class="tmeta">${esc(b.hz)}</span></b><span class="corrbar" title="left/right correlation: +1 same, 0 unrelated, -1 opposite"><i style="left:${left}%;width:${width}%;background:${color}"></i></span><span class="num">${b.corr.toFixed(2)}</span></div>`;
-    }).join("")}<div class="tmeta">Bars: how alike left and right are in each range (+1 the same, below 0 cancelling in mono).</div></div>`;
+    }).join("")}<div class="tmeta">Bars: how alike left and right are in each range (+1 the same, below 0 canceling in mono).</div></div>`;
   }
   return `<div class="check s-${c.status}"><div class="badge">${STATUS[c.status]}</div><div class="cbody">
     <div class="ctitle">${esc(c.title)} <span class="val">${esc(c.value)}</span></div>

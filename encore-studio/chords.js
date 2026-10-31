@@ -602,7 +602,7 @@ function voicedNotes() {
   });
 }
 const numeralFor = i => prog.items[i].rn || numeralOf(prog.key, prog.items[i].chord, palette, prog.items[i + 1] && prog.items[i + 1].chord);
-const KIND_WORD = { resolve: 'resolves', surprise: 'surprise', strong: 'strong', smooth: 'smooth', step: 'step', leap: 'leap', colour: 'colour' };
+const KIND_WORD = { resolve: 'resolves', surprise: 'surprise', strong: 'strong', smooth: 'smooth', step: 'step', leap: 'leap', colour: 'color' };
 
 function renderWrite() {
   fillKeys();

@@ -192,7 +192,7 @@ function renderItem(f, el) {
   const line = el.querySelector(".status-line");
   line.className = "status-line";
   if (f.status === "error") { line.className += " err"; line.textContent = f.error; }
-  else if (f.status === "cancelled") { line.className += " err"; line.textContent = "Cancelled."; }
+  else if (f.status === "cancelled") { line.className += " err"; line.textContent = "Canceled."; }
   else if (f.result) {
     line.className += " done";
     line.innerHTML = `Done: <span></span>, ${fmtBytes(f.result.blob.size)}. <a download>Download</a>`;
@@ -333,7 +333,7 @@ async function convertAll() {
   state.running = false; state.worker = null;
   $("cancelBtn").classList.add("hidden");
   const failed = state.files.filter((f) => f.status === "error").length;
-  if (state.cancel) setStatus(`Cancelled. ${ok} ${ok === 1 ? "file" : "files"} finished.`);
+  if (state.cancel) setStatus(`Canceled. ${ok} ${ok === 1 ? "file" : "files"} finished.`);
   else if (state.files.length === 1 && ok === 1) { setStatus("Done. Your download has started."); download(state.files[0].result); }
   else setStatus(`${ok} of ${state.files.length} converted${failed ? `, ${failed} couldn't be` : ""}.${ok > 1 ? " Download them one by one or all at once as a zip." : ""}`);
   renderAll();
@@ -399,7 +399,7 @@ try { const saved = localStorage.getItem("encore.convert.preset"); if (saved && 
 setupTabs(); setupOptions(); setupTags(); setupDrop();
 renderPresets(); renderAll(); renderTags();
 $("convertBtn").onclick = convertAll;
-$("cancelBtn").onclick = () => { if (!state.running) return; state.cancel = true; if (state.worker) { state.worker.terminate(); state.worker = null; state.rejectCurrent?.(new Error("cancelled")); } setStatus("Cancelling..."); };
+$("cancelBtn").onclick = () => { if (!state.running) return; state.cancel = true; if (state.worker) { state.worker.terminate(); state.worker = null; state.rejectCurrent?.(new Error("cancelled")); } setStatus("Canceling..."); };
 $("zipBtn").onclick = downloadZip;
 $("clearBtn").onclick = () => { for (const f of state.files) if (f.result) URL.revokeObjectURL(f.result.url); state.files = []; state.sel = null; renderAll(); renderTags(); setStatus("Add a track to start."); };
 detectCaps().then(renderAll);

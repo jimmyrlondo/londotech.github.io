@@ -107,12 +107,12 @@ const MAJOR_TRIADS = [
   ['iii', 'T', 'A soft stand-in for home: it shares two notes with {I}. Often walks on to vi or IV.'],
   ['IV', 'S', 'Away from home but relaxed. It leans back to {I} (the "amen" ending) or pushes on to V.'],
   ['V', 'D', 'Tension. Its 3rd ({3}) is a half step under {tonic} and wants to rise to it.'],
-  ['vi', 'T', 'Home\'s darker twin (the relative minor): it shares two of {I}\'s three notes. A favourite surprise after V.'],
+  ['vi', 'T', 'Home\'s darker twin (the relative minor): it shares two of {I}\'s three notes. A favorite surprise after V.'],
   ['vii°', 'D', 'Tense and unstable. It is V7 without its root, so it pulls home just as hard.'],
 ];
 const MAJOR_SEVENTHS = [
   ['Imaj7', 'T', 'Home with a soft, dreamy major 7th ({7}) on top. Jazz, soul and bossa nova use it as home.'],
-  ['ii7', 'S', 'The jazz favourite before V7: its root falls a 5th to V.'],
+  ['ii7', 'S', 'The jazz favorite before V7: its root falls a 5th to V.'],
   ['iii7', 'T', 'A mellow stand-in for home that leads nicely to vi.'],
   ['IVmaj7', 'S', 'Lush and open. Its 7th ({7}) is the 3rd of the key, so it floats instead of pulling.'],
   ['V7', 'D', 'The strongest pull in music. Its 3rd ({3}) and 7th ({b7}) clash a tritone apart and resolve inward into {I}.'],
@@ -134,7 +134,7 @@ const MINOR_SEVENTHS = [
   ['iiø7', 'S', 'Where the minor ii, V, i starts: half-diminished, moody, it sets up V7.'],
   ['bIIImaj7', 'T', 'The relative major\'s home, made dreamy with a major 7th.'],
   ['iv7', 'S', 'A soulful minor iv with a 7th.'],
-  ['bVImaj7', 'S', 'Lush and sad-beautiful; a favourite in ballads and R&B.'],
+  ['bVImaj7', 'S', 'Lush and sad-beautiful; a favorite in ballads and R&B.'],
   ['bVII7', 'D', 'A bluesy return home. It is also the V7 of bIII, so it can take you to the relative major.'],
   ['V7', 'D', 'The full-strength pull home in minor: its 3rd ({3}) rises to {tonic}, its 7th ({b7}) falls.'],
   ['vii°7', 'D', 'The diminished 7th: every note leans toward a note of i. Maximum suspense (and the sound of silent-film villains).'],
@@ -154,12 +154,12 @@ const SECONDARY_COLOUR = {
 const BORROWED = {
   major: [
     ['iv', 'S', 'The "sad IV", borrowed from {tonic} minor. Its {b3} sinks a half step as you go home: bittersweet (think the Beatles and Radiohead).'],
-    ['bVII', 'D', 'Rock\'s favourite borrowed chord (from the Mixolydian mode). It goes home with no leading tone: strong but laid-back.'],
+    ['bVII', 'D', 'Rock\'s favorite borrowed chord (from the Mixolydian mode). It goes home with no leading tone: strong but laid-back.'],
     ['bVI', 'S', 'Big and cinematic, borrowed from {tonic} minor. Try bVI, bVII, I for a heroic finish.'],
     ['bIII', 'T', 'A bold, rocky major chord a minor 3rd above home, borrowed from {tonic} minor.'],
     ['i', 'T', 'Home turned minor (borrowed from {tonic} minor): a sudden shadow over the song.'],
     ['iiø7', 'S', 'The minor key\'s ii: a darker, tenser way to set up V.'],
-    ['v', 'D', 'A minor v (Mixolydian flavour): a gentle, folky dominant with no leading tone.'],
+    ['v', 'D', 'A minor v (Mixolydian flavor): a gentle, folky dominant with no leading tone.'],
     ['II', 'S', 'A major II from the Lydian mode: bright and dreamy. Unlike V/V it doesn\'t have to go to V.'],
   ],
   minor: [
@@ -197,8 +197,8 @@ export function keyPalette(key) {
       return entry('secondary', rn, 'D', SECONDARY_WHY + (SECONDARY_COLOUR[rn] || ''), { target: t,
         fillWith: { target: chordSymbol(target), tr: noteText(target.root) } });
     }));
-  add('borrowed', 'Borrowed chords', minor ? 'Chords borrowed from ' + noteText(key.tonic) + ' major and its cousins (modal interchange): same home, new colours.'
-    : 'Chords borrowed from ' + noteText(key.tonic) + ' minor and its cousins (modal interchange): same home, darker or bolder colours.',
+  add('borrowed', 'Borrowed chords', minor ? 'Chords borrowed from ' + noteText(key.tonic) + ' major and its cousins (modal interchange): same home, new colors.'
+    : 'Chords borrowed from ' + noteText(key.tonic) + ' minor and its cousins (modal interchange): same home, darker or bolder colors.',
     BORROWED[key.mode].map(([rn, fn, why]) => entry('borrowed', rn, fn, why)));
   const spice = [];
   spice.push(entry('spice', 'bII', 'S', 'The Neapolitan: a major chord a half step above home. It usually comes right before V, often with its 3rd ({3}) in the bass. Dark and dramatic.', { label: 'N (bII)', target: 'V' }));
@@ -212,7 +212,7 @@ export function keyPalette(key) {
     spice.push(entry('spice', 'bII7/' + t, 'D', 'The tritone substitute for {orig}: same tense tritone ({3} and {b7}), but it slides down a half step into {target}. Smooth and jazzy.',
       { label: 'subV7/' + t, target: t, fillWith: { orig: chordSymbol(orig), target: chordSymbol(target) } }));
   }
-  add('spice', 'Spice', 'Stronger flavours: the Neapolitan, diminished passing chords, and jazz\'s tritone substitutions.', spice);
+  add('spice', 'Spice', 'Stronger flavors: the Neapolitan, diminished passing chords, and jazz\'s tritone substitutions.', spice);
   return { key, groups, all: groups.flatMap(g => g.items) };
 }
 
@@ -318,16 +318,16 @@ export function relate(key, from, to, palette = null) {
     const MOTION = {
       5: [6, 'strong', 'The root falls a 5th (' + noteText(from.root) + ' down to ' + noteText(to.root) + '): the strongest, most natural move in harmony, the circle of fifths.'],
       7: [5, 'strong', 'The root rises a 5th: a solid, open move.'],
-      8: [4.6, 'smooth', 'The root falls a 3rd, so the chords share two notes: a smooth change of colour.'],
-      9: [4.6, 'smooth', 'The root falls a 3rd, so the chords share two notes: a smooth change of colour.'],
-      3: [3, 'smooth', 'The root rises a 3rd: a fresh shift of colour.'],
-      4: [3, 'smooth', 'The root rises a 3rd: a fresh shift of colour.'],
+      8: [4.6, 'smooth', 'The root falls a 3rd, so the chords share two notes: a smooth change of color.'],
+      9: [4.6, 'smooth', 'The root falls a 3rd, so the chords share two notes: a smooth change of color.'],
+      3: [3, 'smooth', 'The root rises a 3rd: a fresh shift of color.'],
+      4: [3, 'smooth', 'The root rises a 3rd: a fresh shift of color.'],
       2: [4, 'step', 'The root steps up a whole step: it moves the song forward.'],
       1: [2.5, 'step', 'It creeps up a half step: tense and dramatic.'],
       10: [3.2, 'step', 'The root steps down: an easy walk downhill (great for bass lines).'],
       11: [2.5, 'step', 'It slides down a half step: smooth and chromatic.'],
       6: [1, 'leap', 'A tritone leap: unsettled and dramatic. Use it on purpose.'],
-      0: [1.5, 'colour', 'Same root, new colour: only the quality changes.'],
+      0: [1.5, 'colour', 'Same root, new color: only the quality changes.'],
     }[d];
     [score, kind, why] = MOTION;
     if ((d === 8 || d === 9 || d === 3 || d === 4) && common.length !== 2) why = why.replace(', so the chords share two notes', '');

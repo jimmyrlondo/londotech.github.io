@@ -821,7 +821,7 @@ function formatCheck(info, m) {
 
   if (info.container === "unknown") {
     bump("warn");
-    parts.push("Last Call couldn't recognise this file type from its header, so it can't confirm the real format.");
+    parts.push("Last Call couldn't recognize this file type from its header, so it can't confirm the real format.");
     fixes.push("Export the master as a WAV (24-bit or 16-bit, 44.1 or 48 kHz). Every distributor takes that.");
   } else if (info.lossy) {
     bump("fail");

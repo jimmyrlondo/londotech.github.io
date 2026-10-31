@@ -459,7 +459,7 @@ function showRangeResult() {
       <div class="stat"><div class="k">Span</div><div class="v">${span} <small>semitones (${(span / 12).toFixed(1)} octaves)</small></div></div>
     </div>
     <div>${r.preset ? `Using a typical <b>${r.preset}</b> range.` : `Your range looks closest to a typical <b>${hints[0].name}</b>${alt}.`}
-    <span class="hint">That's only a rough guide: voice type also depends on the colour of your voice and where it changes gear, and ranges usually grow with practice. Sing what feels good.</span></div>
+    <span class="hint">That's only a rough guide: voice type also depends on the color of your voice and where it changes gear, and ranges usually grow with practice. Sing what feels good.</span></div>
     <div class="hint" style="margin-top:8px">${r.preset ? '' : 'Saved as your range. '}Exercises stay inside it, and the lanes outside it are dimmed on the pitch view.</div>`;
 }
 
@@ -470,7 +470,7 @@ function describeWarmupMode() {
   const ex = buildWarmup(myRange(), $('wuLength').value);
   $('wuTime').textContent = `About ${Math.round(warmupSeconds(ex, phones()) / 60)} minutes, ${ex.length} exercises`;
   $('wuMode').textContent = phones() ? 'Headphones on: you\'ll sing along with each pattern as it plays.'
-    : 'No headphones: each pattern plays first (blue bars), then it\'s your turn (grey bars), so the microphone only hears you. With headphones you can sing along instead.';
+    : 'No headphones: each pattern plays first (blue bars), then it\'s your turn (gray bars), so the microphone only hears you. With headphones you can sing along instead.';
 }
 $('wuLength').onchange = () => { store.set('wuLength', $('wuLength').value); describeWarmupMode(); };
 $('wuSkip').onclick = () => { skipExercise = true; if (job && job.step) job.step.stop = true; };
@@ -733,7 +733,7 @@ function showKeys() {
   const fit = k => k.comfortable ? '<span class="tag ok">comfortable</span>' : k.fits ? `<span class="tag mid">fits, ${k.high > r.tessHi && k.low < r.tessLo ? 'stretches both ends' : 'a bit ' + (k.high > r.tessHi ? 'high' : 'low')}</span>` : '<span class="tag no">out of range</span>';
   const keyOf = k => k.key ? ` (key of ${k.key})` : '';
   let head;
-  if (!best.fits) head = `<div class="say">This melody spans ${Math.abs(hi - lo)} semitones, wider than your range (${r.high - r.low}).</div><div class="sub">The closest fit is ${shiftWords(best.shift)}${keyOf(best)}: a few notes will still sit outside. You could take the highest phrase down an octave, or keep practising: ranges grow.</div>`;
+  if (!best.fits) head = `<div class="say">This melody spans ${Math.abs(hi - lo)} semitones, wider than your range (${r.high - r.low}).</div><div class="sub">The closest fit is ${shiftWords(best.shift)}${keyOf(best)}: a few notes will still sit outside. You could take the highest phrase down an octave, or keep practicing: ranges grow.</div>`;
   else if (best.shift === 0) head = `<div class="say">Sing it as written${keyOf(best)}.</div><div class="sub">The melody (${nn(lo)} to ${nn(hi)}) ${best.comfortable ? 'sits right in your comfortable notes.' : 'fits your range.'}</div>`;
   else {
     const capo = capoFor(best.shift);
@@ -786,7 +786,7 @@ function drawProgress() {
   const lastWeek = matches.filter(h => Date.now() - new Date(h.t) < 7 * 864e5);
   $('progStats').innerHTML = `
     <div class="stat"><div class="k">Practice streak</div><div class="v">${streak(days, today)} <small>day${streak(days, today) === 1 ? '' : 's'}</small></div></div>
-    <div class="stat"><div class="k">Days practised</div><div class="v">${days.length}</div></div>
+    <div class="stat"><div class="k">Days practiced</div><div class="v">${days.length}</div></div>
     <div class="stat"><div class="k">Your range</div><div class="v">${data.range ? `${nn(data.range.low)} <small>to</small> ${nn(data.range.high)}` : '<small>not tested yet</small>'}</div></div>
     <div class="stat"><div class="k">Matching, last 7 days</div><div class="v">${lastWeek.length ? Math.round(lastWeek.reduce((a, h) => a + h.score, 0) / lastWeek.length) + ' <small>points</small>' : '<small>no rounds yet</small>'}</div></div>`;
   chart($('chartRange'), $('tipRange'), ranges, 'range');

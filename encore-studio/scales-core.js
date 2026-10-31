@@ -66,7 +66,7 @@ export const SCALES = [
   S('harmonic_minor', 'Harmonic minor', 'minor', ['1', '2', 'b3', '4', '5', 'b6', '7'], {
     char: ['7'], near: 'aeolian', prior: 0.5,
     mood: 'Dramatic, intense, classical, exotic.',
-    genres: 'Classical, neoclassical metal (Yngwie Malmsteen), tango, East European and Middle Eastern flavoured music.',
+    genres: 'Classical, neoclassical metal (Yngwie Malmsteen), tango, East European and Middle Eastern flavored music.',
     why: 'Natural minor with its 7th raised, so the V chord turns major and pulls home hard. The gap from b6 up to 7 (a step and a half) gives its exotic edge.' }),
   S('melodic_minor', 'Melodic minor (jazz minor)', 'minor', ['1', '2', 'b3', '4', '5', '6', '7'], {
     aka: ['Jazz minor', 'Ascending melodic minor'], char: ['6', '7'], near: 'dorian', prior: 0.5,
@@ -106,7 +106,7 @@ export const SCALES = [
     char: ['#2'], near: 'lydian', prior: 1.4,
     mood: 'Bright, strange, shimmering.',
     genres: 'Jazz, fusion and film music; rare.',
-    why: 'Lydian with a raised 2nd: the #2 crowds up against the major 3rd for a bright but uneasy colour.' }),
+    why: 'Lydian with a raised 2nd: the #2 crowds up against the major 3rd for a bright but uneasy color.' }),
   S('ultralocrian', 'Altered diminished (Ultralocrian)', 'hminor', ['1', 'b2', 'b3', 'b4', 'b5', 'b6', 'bb7'], {
     aka: ['Ultralocrian', 'Super-Locrian bb7'], char: ['bb7'], near: 'altered', prior: 1.2,
     mood: 'Very dark, very tense.',
@@ -206,7 +206,7 @@ export const SCALES = [
     why: 'Whole step, half step, over and over. It holds a diminished 7th chord on its root, with a note a whole step above each chord tone.' }),
   S('chromatic', 'Chromatic', 'sym', ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'], {
     near: null, prior: 99, sym: true,
-    mood: 'No flavour of its own: all twelve notes.',
+    mood: 'No flavor of its own: all twelve notes.',
     genres: 'Every style uses chromatic passing notes; whole melodies built on it are modern classical and film.',
     why: 'Every half step. It is the set every other scale is chosen from, so it has no home of its own.' }),
 
@@ -227,7 +227,7 @@ export const SCALES = [
     char: ['b2', 'b6'], near: 'phrygian_dominant', prior: 1.3,
     mood: 'Exotic, ornate, intense.',
     genres: 'Byzantine chant, Arabic, Turkish and Greek music, North Indian classical (Raga Bhairav), surf rock (Misirlou), desert scenes in film.',
-    why: 'Two step-and-a-half gaps, each wrapped in half steps (b2 to 3, b6 to 7), so every strong note has a neighbour a half step away.' }),
+    why: 'Two step-and-a-half gaps, each wrapped in half steps (b2 to 3, b6 to 7), so every strong note has a neighbor a half step away.' }),
   S('neapolitan_minor', 'Neapolitan minor', 'world', ['1', 'b2', 'b3', '4', '5', 'b6', '7'], {
     char: ['b2'], near: 'harmonic_minor', prior: 1.3,
     mood: 'Dark, operatic, dramatic.',
@@ -239,9 +239,9 @@ export const SCALES = [
     genres: 'Classical and opera; jazz.',
     why: 'Melodic minor with a b2: a heavy start (1, b2, b3) that climbs into a bright major top half.' }),
   S('persian', 'Persian', 'world', ['1', 'b2', '3', '4', 'b5', 'b6', '7'], {
-    char: ['b5'], near: 'double_harmonic', prior: 1.6, approx: 'A Western name. Persian classical music (the dastgah system) uses intervals that fall between our 12 notes, so this is a 12-tone flavour, not a real dastgah.',
+    char: ['b5'], near: 'double_harmonic', prior: 1.6, approx: 'A Western name. Persian classical music (the dastgah system) uses intervals that fall between our 12 notes, so this is a 12-tone flavor, not a real dastgah.',
     mood: 'Mysterious, tense, exotic.',
-    genres: 'Western film and metal music reaching for a Persian colour.',
+    genres: 'Western film and metal music reaching for a Persian color.',
     why: 'Double harmonic with a flat 5th: half steps everywhere, and a home chord that is neither major nor minor but tense.' }),
   S('hirajoshi', 'Hirajoshi', 'world', ['1', '2', 'b3', '5', 'b6'], {
     near: 'aeolian', prior: 1.4, note: 'Sources disagree on this name. This is the version most guitar books use.',
@@ -256,7 +256,7 @@ export const SCALES = [
   S('insen', 'Insen', 'world', ['1', 'b2', '4', '5', 'b7'], {
     char: ['b2'], near: 'in', prior: 1.5,
     mood: 'Dark, open, meditative.',
-    genres: 'Japanese music, and Western film and game music wanting a Japanese colour.',
+    genres: 'Japanese music, and Western film and game music wanting a Japanese color.',
     why: 'Like In, but with a b7 instead of a b6: one half step fewer, so it sounds more open.' }),
   S('iwato', 'Iwato', 'world', ['1', 'b2', '4', 'b5', 'b7'], {
     char: ['b5'], near: 'locrian', prior: 1.6,
@@ -271,8 +271,8 @@ export const SCALES = [
   S('kumoi', 'Kumoi', 'world', ['1', '2', 'b3', '5', '6'], {
     near: 'dorian', prior: 1.5, note: 'Names for Japanese scales vary between sources. This is the version most Western references use.',
     mood: 'Gentle, wistful.',
-    genres: 'Japanese-flavoured music; also used in jazz.',
-    why: 'A minor 3rd and a major 6th with only one half step (2 to b3): soft minor colour.' }),
+    genres: 'Japanese-flavored music; also used in jazz.',
+    why: 'A minor 3rd and a major 6th with only one half step (2 to b3): soft minor color.' }),
   S('pelog', 'Pelog (12-tone approximation)', 'world', ['1', 'b2', 'b3', '5', 'b6'], {
     near: 'phrygian', prior: 1.6,
     approx: 'Real pelog, from Javanese and Balinese gamelan, has seven uneven steps that differ from one gamelan to the next. This five-note set (close to pelog selisir) is the usual approximation on Western instruments.',
@@ -586,7 +586,7 @@ function reasonsFor(s, c, f, same, context) {
                           : 'Has every note of ' + sym + '.');
   if (same && context) r.push('Uses the same notes as the rest of the progression (' + context.name + ').');
   const chr = s.char.map(d => f.notes.find(n => n.d === d)).filter(Boolean);
-  if (chr.length) r.push('Its colour note' + (chr.length > 1 ? 's' : '') + ': ' + list(chr.map(n => noteText(n.note) + ' (' + labelOver(c, n.note) + ' over the chord)')) + '.');
+  if (chr.length) r.push('Its color note' + (chr.length > 1 ? 's' : '') + ': ' + list(chr.map(n => noteText(n.note) + ' (' + labelOver(c, n.note) + ' over the chord)')) + '.');
   if (f.avoid.length) r.push('Careful with ' + list(f.avoid.map(n => noteText(n.note))) + ': a half step above a chord tone, so pass through ' + (f.avoid.length > 1 ? 'them' : 'it') + ' rather than landing there.');
   else r.push('No clashing notes: you can hold any note over this chord.');
   return r;

@@ -836,7 +836,7 @@ function joinSongs(i) { // song i and i+1 become one
 function removeSong(id) {
   const i = songIndex(id); if (i < 0) return;
   state.songs.splice(i, 1); state.selected = null; changed();
-  $("abNote").textContent = `Removed. That part is now cut out (drag a neighbour's edge over it to keep it in a song).`;
+  $("abNote").textContent = `Removed. That part is now cut out (drag a neighbor's edge over it to keep it in a song).`;
 }
 function splitSong(id) {
   const s = state.songs[songIndex(id)], t = player.time();
