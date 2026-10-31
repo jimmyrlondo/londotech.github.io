@@ -1,0 +1,3 @@
+Acoustic kit: nine hits from Virtuosity Drums by Versilian Studios (https://versilian-studios.com/virtuosity-drums/,
+https://github.com/sfzinstruments/virtuosity_drums), released under CC0 1.0 (public domain; see LICENSE.txt).
+Trimmed to their attacks, shortened with fades and leveled for Encore Beatpad.

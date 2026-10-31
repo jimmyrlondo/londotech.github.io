@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Beatpad · Encore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased;
+         display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); flex: none; }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=search] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong);
+         border-radius: 6px; padding: 6px 9px; min-width: 0; min-height: 36px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 4px 0 0; min-height: 24px; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 36px; cursor: pointer; }
+  .toggle input { width: 18px; height: 18px; accent-color: #ff3b00; margin: 0; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 13px; min-height: 36px; white-space: nowrap; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  button.small.on, button.go { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  button.go { font-weight: 700; border: 0; border-radius: 999px; padding: 8px 18px; min-height: 36px; }
+  .tip { color: var(--dim); font-size: 13px; margin: 6px 0 0; }
+  .err { color: var(--red); font-size: 13px; }
+  .warn { color: var(--warn); font-size: 13px; }
+  kbd { font-family: var(--family-mono); font-size: 12px; color: var(--text); border: 1px solid var(--divider-strong); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; white-space: nowrap; }
+
+  /* the page: pads on the left, the tabs on the right; one screen, the side panel scrolls inside */
+  .app { flex: 1 1 auto; min-height: 0; width: 100%; max-width: 1600px; margin: 0 auto; padding: 12px 16px; display: grid; gap: 14px;
+         grid-template-columns: minmax(0, 1fr) clamp(340px, 31vw, 460px); }
+  .left { display: flex; flex-direction: column; gap: 10px; min-height: 0; min-width: 0; }
+  .kitRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 36px; }
+  .kitRow select { max-width: 240px; font-weight: 700; }
+  .kitRow #keyLayout { max-width: 170px; font-weight: 400; }
+  .credit { color: var(--dim); font-size: 12px; }
+  .credit a { color: var(--soft); }
+  .flashMsg { margin-left: auto; color: var(--soft); font-size: 13px; text-align: right; min-width: 0; }
+  .flashMsg.bad { color: var(--warn); }
+
+  .padWrap { flex: 1 1 auto; min-height: 0; container-type: size; display: flex; align-items: center; justify-content: center; }
+  .pads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: clamp(6px, 1.6cqmin, 14px);
+          width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .pad { position: relative; overflow: hidden; border-radius: 14px; border: 1px solid var(--divider-strong); color: var(--text); text-align: left;
+         background: linear-gradient(180deg, #2c2723, #1d1916); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 2px 0 #0a0807;
+         display: flex; flex-direction: column; justify-content: space-between; padding: clamp(8px, 2cqmin, 14px); cursor: pointer; touch-action: none; }
+  .pad .flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 55%, #ff6c40, #ff3b00 70%); opacity: 0; pointer-events: none; }
+  .pad > :not(.flash) { position: relative; pointer-events: none; }
+  .pad .nm { font-weight: 800; font-size: clamp(14px, 3.4cqmin, 24px); line-height: 1.15; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  .pad .src { font-size: clamp(11px, 1.9cqmin, 13px); color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pad .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 6px; }
+  .pad .foot kbd { font-size: clamp(11px, 2.2cqmin, 15px); background: rgb(0 0 0 / 0.25); }
+  .pad .midi { font-family: var(--family-mono); font-size: 11px; color: var(--dim); }
+  .pad.sel { border-color: #f2efe8; box-shadow: 0 0 0 2px rgb(242 239 232 / 0.25); }
+  .pad.empty { background: transparent; border-style: dashed; }
+  .pad.empty .nm { color: var(--dim); }
+  .pad.muted { opacity: .45; }
+  .pad.drop { border-color: #22d3ee; box-shadow: 0 0 0 3px rgb(34 211 238 / 0.35); }
+  .pads.mapping .pad { border-style: dashed; }
+  .pads.mapping .pad.sel { border-style: solid; border-color: #ff3b00; box-shadow: 0 0 0 3px rgb(255 59 0 / 0.4); }
+  .pads.mapping .pad.sel .foot kbd { color: #fff; border-color: #ff3b00; }
+  .pad .loading { position: absolute; right: 10px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+
+  /* play, record, repeat, tempo */
+  .transport { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: none; }
+  .tbtn { font-weight: 700; font-size: 14px; color: var(--text); background: var(--panel); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 6px 14px; min-height: 40px;
+          display: inline-flex; align-items: center; gap: 7px; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .tbtn:hover { border-color: var(--soft); }
+  .tbtn i { display: inline-block; width: 10px; height: 10px; }
+  #playBtn i { border-left: 10px solid currentColor; border-top: 6px solid transparent; border-bottom: 6px solid transparent; width: 0; height: 0; }
+  #playBtn.on i { border: 0; width: 10px; height: 10px; background: currentColor; }
+  #recBtn i { border-radius: 50%; background: #ef4444; }
+  #recBtn.on { background: #ef4444; border-color: #ef4444; color: #fff; }
+  #recBtn.on i { background: #fff; }
+  #recBtn.armed { border-color: #ef4444; color: #ef4444; }
+  .tbtn.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .bpmBox { display: inline-flex; align-items: center; border: 1px solid var(--divider-strong); border-radius: 10px; overflow: hidden; min-height: 40px; }
+  .bpmBox button { background: transparent; border: 0; color: var(--text); width: 32px; min-height: 38px; font-size: 18px; }
+  .bpmBox input { width: 58px; border: 0; border-radius: 0; text-align: center; font-weight: 700; background: transparent; min-height: 38px; padding: 0; -moz-appearance: textfield; }
+  .bpmBox input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .bpmBox span { font-size: 11px; color: var(--dim); padding-right: 8px; }
+  .loopInfo { font-family: var(--family-mono); font-size: 13px; color: var(--soft); margin-left: auto; white-space: nowrap; }
+  .more { flex: none; display: flex; flex-direction: column; gap: 6px; }
+  .moreRow { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+  .moreRow label { flex: 0 1 auto; }
+  .moreRow select { min-width: 92px; }
+  #lane { width: 100%; height: 48px; display: block; border-radius: 8px; background: #110e0d; cursor: default; }
+
+  /* the tabs */
+  .side { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; flex: none; align-items: center; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 7px 11px; min-height: 36px; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBar .closeSheet { margin-left: auto; display: none; }
+  .tabBar .loopTab { display: none; }
+  .tabBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding-top: 10px; }
+  .tabBody > section.show { display: block; }
+  .tabBody h2 { font-size: 16px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .tabBody h3 { font-size: 14px; margin: 14px 0 6px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
+  .grid2 > * { min-width: 0; }
+  .wide { grid-column: 1 / -1; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .val { font-family: var(--family-mono); font-size: 12px; color: var(--soft); float: right; }
+  label .lab { display: flex; justify-content: space-between; gap: 6px; }
+  .seg { display: inline-flex; border: 1px solid var(--divider-strong); border-radius: 10px; padding: 2px; gap: 2px; }
+  .seg button { font-size: 13px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 8px; padding: 5px 10px; min-height: 30px; }
+  .seg button.on { color: #fff; background: #ff3b00; }
+  #wave { width: 100%; height: 64px; display: block; border-radius: 8px; background: #110e0d; margin: 8px 0 4px; }
+  .padHead { display: flex; gap: 8px; align-items: center; }
+  .padHead input { flex: 1; font-weight: 700; }
+  .padNum { font-family: var(--family-mono); font-size: 12px; color: var(--dim); white-space: nowrap; }
+  .soundLine { font-size: 13px; color: var(--soft); margin: 8px 0 6px; overflow-wrap: anywhere; }
+
+  .drop { border: 2px dashed var(--divider-strong); border-radius: 12px; padding: 12px; text-align: center; color: var(--soft); font-size: 13px; }
+  .drop.over { border-color: #22d3ee; color: var(--text); }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+  .chips button { font-size: 12px; font-weight: 700; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 3px 10px; }
+  .chips button.on { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .item { display: flex; align-items: center; gap: 6px; padding: 5px 6px 5px 10px; border: 1px solid var(--divider); border-radius: 10px; background: var(--bg-subtle-default); }
+  .item[draggable=true] { cursor: grab; }
+  .item .what { flex: 1; min-width: 0; }
+  .item .what b { display: block; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .what small { display: block; color: var(--dim); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item.on { border-color: #ff3b00; background: rgb(255 59 0 / 0.08); }
+  .item .mini { flex: none; min-width: 34px; height: 32px; border-radius: 8px; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); font-size: 12px; font-weight: 700; padding: 0 8px; }
+  .item .mini:hover { border-color: var(--soft); }
+  .presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .presets button { text-align: left; background: var(--bg-subtle-default); border: 1px solid var(--divider); border-radius: 10px; padding: 8px 10px; color: var(--text); }
+  .presets button b { display: block; font-size: 14px; }
+  .presets button small { display: block; color: var(--dim); font-size: 12px; line-height: 1.35; }
+  .presets button.on { border-color: #ff3b00; }
+  .map { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .map td { padding: 4px 4px; border-bottom: 1px solid var(--divider); }
+  .map td:first-child { color: var(--soft); }
+  .map td:nth-child(3) { font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
+  .help p, .help li { font-size: 14px; color: var(--soft); }
+  .help p { margin: 6px 0; }
+  .help ul, .help ol { padding-left: 20px; margin: 6px 0; }
+  .help b { color: var(--text); }
+  .help pre { font-family: var(--family-mono); font-size: 11.5px; line-height: 1.5; background: #110e0d; border: 1px solid var(--divider); border-radius: 8px; padding: 10px; overflow-x: auto; color: var(--soft); }
+  .report { font-size: 13px; margin-top: 8px; }
+  .report ul { margin: 4px 0; padding-left: 18px; color: var(--warn); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #2c2723; border: 1px solid var(--divider-strong); color: var(--text); padding: 10px 16px;
+           border-radius: 10px; font-size: 14px; z-index: 60; max-width: calc(100vw - 32px); pointer-events: none; }
+  .pageDrop { position: fixed; inset: 0; z-index: 40; background: rgb(12 10 9 / 0.7); border: 3px dashed #22d3ee; display: flex; align-items: center; justify-content: center;
+              font-size: 20px; font-weight: 700; pointer-events: none; }
+  .phoneTabs { display: none; }
+
+  @media (max-height: 760px) and (min-width: 761px) {
+    .app { padding: 8px 16px; gap: 10px; }
+    .left { gap: 8px; }
+    #lane { height: 36px; }
+  }
+
+  /* a phone: the pads take the screen, everything else is a sheet that slides up from the tabs at the bottom */
+  @media (max-width: 760px) {
+    .app { grid-template-columns: minmax(0, 1fr); padding: 8px 10px calc(4px + env(safe-area-inset-bottom)); gap: 8px; display: flex; flex-direction: column; }
+    .left { flex: 1 1 auto; }
+    .kitRow { display: none; }
+    .padWrap { container-type: size; }
+    .pads { width: 100cqw; height: 100cqh; gap: 8px; }
+    .transport { gap: 6px; flex-wrap: nowrap; }
+    .tbtn { padding: 6px 10px; min-height: 44px; }
+    .transport .toggle, .loopInfo { display: none; }
+    .bpmBox { min-height: 44px; }
+    .bpmBox input { width: 46px; }
+    .left > .more { display: none; }
+    .side { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; max-height: 78dvh; border-radius: 16px 16px 0 0; transform: translateY(105%); transition: transform .18s ease-out;
+            box-shadow: 0 -10px 40px rgb(0 0 0 / 0.6); padding-bottom: env(safe-area-inset-bottom); }
+    .side.open { transform: none; }
+    .tabBar .closeSheet { display: block; }
+    .tabBar [data-tab] { display: none; }
+    .tabBar::before { content: attr(data-title); font-weight: 800; font-size: 16px; padding: 4px 8px; }
+    .phoneTabs { display: flex; gap: 4px; flex: none; }
+    .phoneTabs button { flex: 1 1 0; min-width: 0; font-size: 13px; font-weight: 700; color: var(--soft); background: var(--panel); border: 1px solid var(--divider); border-radius: 10px; min-height: 44px; padding: 0 2px; }
+    .phoneTabs button.on { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+    .pad .midi { display: none; }
+    .grid2 { gap: 8px 10px; }
+  }
+  @media (hover: none) { .keysOnly { display: none; } }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="Encore Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink on" href="beatpad.html" aria-current="page">Beatpad</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a><a class="navlink" href="basement.html">Basement Studio</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><option value="master.html">Master</option><option value="live.html">Live</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html" selected>Beatpad</option><option value="voice.html">Voice</option><option value="restore.html">Restore</option><option value="lastcall.html">Last Call</option><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="tag.html">Tag</option><option value="convert.html">Convert</option><option value="basement.html">Basement Studio</option></select>
+</div>
+
+<main class="app" id="app">
+  <section class="left" aria-label="Pads">
+    <div class="kitRow">
+      <select id="kitSelect" aria-label="Kit"></select>
+      <select id="keyLayout" class="keysOnly" aria-label="Keys" title="Which keys play the pads"></select>
+      <button class="small keysOnly" id="mapKeysBtn" title="Click a pad, then press the key you want for it">Map keys</button>
+      <button class="small" id="midiBtn" title="Play the pads from a MIDI pad controller or keyboard">MIDI</button>
+      <span class="credit hidden" id="credit"></span>
+      <span class="flashMsg" id="flashMsg" role="status" aria-live="polite"></span>
+    </div>
+    <div class="padWrap" id="padWrap"><div class="pads" id="pads" aria-label="Drum pads"></div></div>
+    <div class="transport" id="transport">
+      <button class="tbtn" id="playBtn" title="Play the loop (and the click)"><i></i>Play</button>
+      <button class="tbtn" id="recBtn" title="Record what you play into the loop (one bar of count-in when it starts from stopped)"><i></i>Rec</button>
+      <button class="tbtn" id="repeatBtn" title="Hold this (or Space) and hold a pad: it repeats in time"><span>Repeat</span></button>
+      <div class="bpmBox"><button id="bpmDown" aria-label="Slower">&minus;</button><input type="number" id="bpm" min="40" max="240" step="1" value="90" aria-label="Tempo (BPM)"><span>BPM</span><button id="bpmUp" aria-label="Faster">+</button></div>
+      <label class="toggle"><input type="checkbox" id="clickOn" checked> Click</label>
+      <span class="loopInfo" id="loopInfo"></span>
+    </div>
+    <div class="more" id="more">
+      <div class="moreRow">
+        <label>Loop <select id="bars"><option value="1">1 bar</option><option value="2" selected>2 bars</option><option value="4">4 bars</option></select></label>
+        <label>Quantize <select id="quantize"></select></label>
+        <label>Repeat <select id="repeatRate"><option value="2">1/8</option><option value="3">1/8 triplet</option><option value="4" selected>1/16</option><option value="6">1/16 triplet</option><option value="8">1/32</option></select></label>
+        <label class="toggle"><input type="checkbox" id="repeatLatch"> Repeat stays on</label>
+        <button class="small" id="undoBtn" disabled>Undo take</button>
+        <button class="small" id="clearBtn" disabled>Clear</button>
+        <button class="small" id="exportLoopBtn" disabled>Save loop as WAV</button>
+      </div>
+      <canvas id="lane" aria-label="The loop: every hit you've recorded"></canvas>
+    </div>
+  </section>
+
+  <section class="side" id="side" aria-label="Settings">
+    <div class="tabBar" role="tablist" id="tabBar" data-title="Pad">
+      <button data-tab="pad" class="on" role="tab">Pad</button>
+      <button data-tab="lib" role="tab">Library</button>
+      <button data-tab="kits" role="tab">Kits</button>
+      <button data-tab="keys" role="tab">Keys &amp; MIDI</button>
+      <button data-tab="loop" class="loopTab" role="tab">Loop</button>
+      <button data-tab="help" role="tab">Help</button>
+      <button class="small closeSheet" id="closeSheet">Close</button>
+    </div>
+    <div class="tabBody" id="tabBody">
+      <section id="tab-pad" class="show">
+        <div class="padHead"><span class="padNum" id="pdNum">Pad 1</span><input type="text" id="pdName" maxlength="24" aria-label="Pad name"></div>
+        <div class="soundLine" id="pdSound"></div>
+        <div class="row">
+          <button class="small" id="pdFile">Load a sound file</button>
+          <select id="pdBuiltin" aria-label="Built-in sound" style="flex: 1 1 140px"></select>
+          <button class="small" id="pdClear">Empty</button>
+          <input type="file" id="pdFileInput" accept="audio/*,.wav,.mp3,.flac,.ogg,.opus,.m4a,.aac,.aif,.aiff" class="hidden">
+        </div>
+        <canvas id="wave" aria-label="The sound, with where it starts and stops"></canvas>
+        <div class="grid2">
+          <label><span class="lab">Volume <span class="val" id="vVolume"></span></span><input type="range" id="pdVolume" min="0" max="200" step="1"></label>
+          <label><span class="lab">Pitch <span class="val" id="vPitch"></span></span><input type="range" id="pdPitch" min="-24" max="24" step="1"></label>
+          <label><span class="lab">Pan <span class="val" id="vPan"></span></span><input type="range" id="pdPan" min="-100" max="100" step="1"></label>
+          <label><span class="lab">Fade out <span class="val" id="vFade"></span></span><input type="range" id="pdFade" min="0" max="1000" step="1"></label>
+          <label><span class="lab">Start <span class="val" id="vStart"></span></span><input type="range" id="pdStart" min="0" max="1000" step="1"></label>
+          <label><span class="lab">Length <span class="val" id="vEnd"></span></span><input type="range" id="pdEnd" min="1" max="1000" step="1"></label>
+          <div class="wide row">
+            <button class="small" id="pdAutoTrim" title="Cut the silence before the hit so it plays the moment you hit the pad">Auto-trim the start</button>
+            <select id="trimDb" aria-label="How quiet counts as silence"><option value="-50">below -50 dB</option><option value="-40" selected>below -40 dB</option><option value="-30">below -30 dB</option><option value="-20">below -20 dB</option></select>
+          </div>
+          <label>Choke group <select id="pdChoke"><option value="0">None</option></select></label>
+          <label>Hit again <span class="seg" id="pdMode"><button data-v="retrigger">Restarts</button><button data-v="layer">Layers</button></span></label>
+          <label class="keysOnly">Key <span class="row"><kbd id="pdKey"></kbd><button class="small" id="pdKeyBtn">Change</button></span></label>
+          <label>MIDI note <span class="row"><span id="pdMidi" class="val" style="float:none"></span><button class="small" id="pdMidiBtn">Learn</button></span></label>
+          <label class="toggle wide"><input type="checkbox" id="pdMute"> Mute this pad</label>
+        </div>
+        <p class="tip">Tip: drop a sound file straight onto any pad. Choke group: pads in the same group cut each other off (a closed hat stops an open one ringing).</p>
+      </section>
+
+      <section id="tab-lib">
+        <h2>Your sample library</h2>
+        <div class="drop" id="libDrop">Drop sound files here, or <button class="small" id="libAdd">Add files</button>
+          <input type="file" id="libInput" multiple accept="audio/*,.wav,.mp3,.flac,.ogg,.opus,.m4a,.aac,.aif,.aiff" class="hidden">
+          <div class="tip">Kept on this device only. Drag one onto a pad, or press Use to put it on the selected pad.</div></div>
+        <div class="row" style="margin-top:8px"><input type="search" id="libSearch" placeholder="Search" style="flex:1" aria-label="Search the library"></div>
+        <div class="chips" id="libTags"></div>
+        <ul class="list" id="libList"></ul>
+        <p class="tip" id="libInfo"></p>
+      </section>
+
+      <section id="tab-kits">
+        <h2>Kits</h2>
+        <h3 style="margin-top:4px">Built in</h3>
+        <div class="presets" id="presets"></div>
+        <h3>Yours <span class="tip" style="font-weight:400">(saved on this device as you change them)</span></h3>
+        <ul class="list" id="kitList"></ul>
+        <div class="grid2" style="margin-top:8px">
+          <label>Kit name <input type="text" id="kitName" maxlength="24"></label>
+          <label>Made by <input type="text" id="kitAuthor" maxlength="60"></label>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="small" id="kitDup">Duplicate</button>
+          <button class="small" id="kitDel">Delete</button>
+          <button class="small go" id="kitExport">Export kit (.beatpad)</button>
+        </div>
+        <h3>Bring in a kit</h3>
+        <div class="drop" id="kitDrop">Drop a .beatpad or .zip kit, or a folder of sounds, here.
+          <div class="row" style="justify-content:center;margin-top:6px"><button class="small" id="kitImport">Import a kit file</button><button class="small" id="kitFolder">Import a folder</button></div>
+          <input type="file" id="kitInput" accept=".beatpad,.zip,application/zip" class="hidden">
+          <input type="file" id="folderInput" webkitdirectory multiple class="hidden"></div>
+        <div class="report" id="kitReport"></div>
+      </section>
+
+      <section id="tab-keys">
+        <h2 class="keysOnly">Keys</h2>
+        <div class="row keysOnly">
+          <label style="flex:1 1 180px">Layout <select id="keyLayout2"></select></label>
+          <button class="small" id="mapKeysBtn2" style="align-self:flex-end">Map keys</button>
+        </div>
+        <p class="tip keysOnly" id="layoutAbout"></p>
+        <label class="toggle keysOnly"><input type="checkbox" id="numpadOn" checked> The numpad plays the pads too (7 8 9 / 4 5 6 / 1 2 3)</label>
+        <h3>MIDI</h3>
+        <div class="row">
+          <button class="small" id="midiOnBtn">Turn on MIDI</button>
+          <button class="small" id="midiLearn" disabled>Learn notes</button>
+          <button class="small" id="resetNotes">Reset to General MIDI</button>
+        </div>
+        <p class="tip" id="midiStatus">Play the pads from a MIDI pad controller, drum kit or keyboard. The browser asks first.</p>
+        <label class="toggle"><input type="checkbox" id="velOn" checked> How hard you hit sets the volume</label>
+        <label class="toggle"><input type="checkbox" id="aliasOn" checked> Other drum notes play the nearest pad (pedal hat plays closed hat...)</label>
+        <h3>What plays each pad</h3>
+        <table class="map" id="mapTable"></table>
+        <p class="tip" id="latencyInfo"></p>
+      </section>
+
+      <section id="tab-loop"></section>
+
+      <section id="tab-help" class="help">
+        <h2>How it works</h2>
+        <p><b>Play:</b> tap or click the pads (several at once on a phone), or use the keys. <span class="keysOnly">Each pad shows its key. A numpad's 7 8 9 / 4 5 6 / 1 2 3 match the pads exactly, and Q W E / A S D / Z X C do the same under your left hand.</span></p>
+        <p><b>Your own sounds:</b> drop a sound file (WAV, MP3, FLAC, OGG, M4A...) onto a pad, or pick a pad and press Load a sound file. Every file you bring in goes into your Library, kept on this device (nothing is uploaded). Beatpad cuts the silence in front of each sound so it plays the instant you hit. In the Pad tab you can set the volume, pitch, pan, start, length and fade, and the choke group.</p>
+        <p><b>Kits</b> are your nine pads: the sounds, their settings and their MIDI notes. Changes save as you go. Built-in kits stay as they are: change one and Beatpad saves your version as a new kit.</p>
+        <p class="keysOnly"><b>Keys:</b> pick a layout from the Keys list next to the kit: Number pad (7 8 9 / 4 5 6 / 1 2 3), QWE / ASD / ZXC (left hand, any laptop), Number row (1 to 9) or Right hand (U I O / J K L / M , .). A numpad plays the pads whichever you pick (you can turn that off under Keys &amp; MIDI). To make your own, press Map keys, click a pad, then press any key; if another pad had that key, the two swap, and Esc finishes. Your own keys are kept as Custom when you switch to a layout. Keys don't play while you're typing in a box.</p>
+        <p><b>MIDI:</b> press MIDI and allow it. Pads answer to General MIDI drum notes (36 kick, 38 snare, 42 closed hat, 46 open hat...), so most drum pads and e-kits just work. Learn notes: hit a pad on screen, then the pad or key on your controller.</p>
+        <p><b>Loop:</b> press Rec, wait out the one-bar count-in, and play. It keeps looping, and every pass adds to it (Undo take removes the last pass). Quantize snaps what you play to the grid. Hold Repeat (or Space) and hold a pad to roll it in time. Save loop as WAV gives you the loop as a file that loops cleanly.</p>
+        <h3>Share a kit: the .beatpad format</h3>
+        <p>A <b>.beatpad</b> kit is a normal zip file with a different ending: inside, a <b>kit.json</b> and the sound files. Export kit makes one; you can also make one by hand, or just zip a folder of sounds (no kit.json needed: files go on pads by a number at the front of the name like <b>01-kick.wav</b>, then by what the name says, like <b>snare.wav</b>, then in order).</p>
+<pre>{
+  "format": "beatpad", "version": 1,
+  "name": "My Kit", "author": "You",
+  "pads": [
+    { "slot": 1, "name": "Kick", "file": "01-kick.wav",
+      "volume": 1, "pitch": 0, "start": 0, "end": null,
+      "fade": 0, "pan": 0, "choke": 0,
+      "mode": "retrigger", "mute": false,
+      "key": "KeyZ", "midi": 36 }
+  ]
+}</pre>
+        <ul>
+          <li><b>slot</b>: 1 to 9, laid out like a numpad (1 2 3 the bottom row, 7 8 9 the top).</li>
+          <li><b>file</b>: a sound file in the zip, next to kit.json.</li>
+          <li><b>volume</b> 0 to 2 (1 = as recorded), <b>pitch</b> in semitones (-24 to 24), <b>pan</b> -1 (left) to 1 (right).</li>
+          <li><b>start</b> and <b>end</b> in seconds into the file (end null = to the end), <b>fade</b> in seconds.</li>
+          <li><b>choke</b>: 0 for none, or 1 to 8: pads in the same group cut each other off.</li>
+          <li><b>mode</b>: "retrigger" (a new hit restarts it) or "layer" (hits ring over each other).</li>
+          <li><b>key</b>: a keyboard key like "KeyZ" or just "z"; <b>midi</b>: a note number 0 to 127.</li>
+        </ul>
+        <p>Only <b>slot</b> and <b>file</b> are needed; everything else has a default. Your own keys stay yours when you import a kit (you can choose to use the kit's).</p>
+        <p class="tip">The built-in Acoustic kit: Virtuosity Drums by Versilian Studios, released as CC0 (public domain).</p>
+      </section>
+    </div>
+  </section>
+
+  <nav class="phoneTabs" id="phoneTabs" aria-label="Settings">
+    <button data-tab="pad">Pad</button><button data-tab="lib">Library</button><button data-tab="kits">Kits</button><button data-tab="loop">Loop</button><button data-tab="keys">MIDI</button><button data-tab="help">Help</button>
+  </nav>
+</main>
+<div class="toast hidden" id="toast"></div>
+<div class="pageDrop hidden" id="pageDrop">Drop to add to your library</div>
+<script type="module" src="beatpad.js"></script>
+</body>
+</html>
