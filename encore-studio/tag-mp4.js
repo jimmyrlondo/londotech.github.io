@@ -165,7 +165,8 @@ export function buildIlst(m) {
         items.push(box(atom, dataBox(21, u16be(Math.min(n, 65535)))));
       }
     } else if (a.startsWith("----:")) items.push(freeform(a.slice(5), vals));
-    else items.push(box(a, ...vals.map((v) => dataBox(a === "purl" || a === "egid" ? 0 : 1, utf8Bytes(v)))));
+    // M4A players read one genre: several are saved as one "Primary; Secondary" text
+    else items.push(box(a, ...(f.key === "genre" ? [vals.join("; ")] : vals).map((v) => dataBox(a === "purl" || a === "egid" ? 0 : 1, utf8Bytes(v)))));
   }
   for (const c of m.custom || []) if (c.name?.trim() && String(c.value ?? "").trim() !== "") items.push(freeform(c.name.trim(), customValues(c)));
   for (const o of m.other || []) if (o.sys === "mp4" && !o.remove && o.raw) items.push(o.raw);

@@ -14,26 +14,35 @@
 // in plain words.
 
 export const FIELDS = [
-  // ---- the main fields ----
-  { key: "title", label: "Title", main: true, id3: "TIT2", vorbis: "TITLE", mp4: "\xa9nam", riff: "INAM" },
-  { key: "artist", label: "Artist", main: true, id3: "TPE1", vorbis: "ARTIST", mp4: "\xa9ART", riff: "IART" },
-  { key: "album", label: "Album", main: true, id3: "TALB", vorbis: "ALBUM", mp4: "\xa9alb", riff: "IPRD" },
-  { key: "albumArtist", label: "Album artist", main: true, hint: "Who the album is filed under: usually the same as Artist.",
+  // ---- the main fields: what distributors ask for when you send a song in ----
+  { key: "title", label: "Title", main: true, id3: "TIT2", vorbis: "TITLE", mp4: "©nam", riff: "INAM" },
+  { key: "artist", label: "Artist", main: true, hint: "The main artist only. Featured artists go in their own box.", id3: "TPE1", vorbis: "ARTIST", mp4: "©ART", riff: "IART" },
+  { key: "featured", label: "Featured artist(s)", main: true, hint: "Distributors take these in their own box, not in Artist.",
+    id3: "TXXX:FEATURING", vorbis: "FEATURING", mp4: "----:FEATURING" },
+  { key: "album", label: "Album or release title", main: true, hint: "For a single, usually the song title.", id3: "TALB", vorbis: "ALBUM", mp4: "©alb", riff: "IPRD" },
+  { key: "albumArtist", label: "Album artist", main: true, hint: "Who the album is filed under. Follows Artist until you type your own.",
     id3: "TPE2", vorbis: "ALBUMARTIST", valt: ["ALBUM ARTIST", "ALBUM_ARTIST"], mp4: "aART" },
   { key: "track", label: "Track number", main: true, type: "num", id3: "*track", vorbis: "TRACKNUMBER", mp4: "*trkn", riff: "ITRK" },
   { key: "trackTotal", label: "Total tracks", main: true, type: "num", id3: "*track", vorbis: "TRACKTOTAL", valt: ["TOTALTRACKS"], mp4: "*trkn" },
-  { key: "disc", label: "Disc number", main: true, type: "num", id3: "*disc", vorbis: "DISCNUMBER", mp4: "*disk" },
-  { key: "discTotal", label: "Total discs", main: true, type: "num", id3: "*disc", vorbis: "DISCTOTAL", valt: ["TOTALDISCS"], mp4: "*disk" },
-  { key: "date", label: "Year or release date", main: true, hint: "2026, or the full date as 2026-05-01.", id3: "*date", vorbis: "DATE", valt: ["YEAR"], mp4: "\xa9day", riff: "ICRD" },
-  { key: "genre", label: "Genre", main: true, id3: "*genre", vorbis: "GENRE", mp4: "\xa9gen", riff: "IGNR" },
-  { key: "composer", label: "Composer", main: true, hint: "Who wrote the music.", id3: "TCOM", vorbis: "COMPOSER", mp4: "\xa9wrt" },
+  { key: "date", label: "Release date", main: true, hint: "2026, or the full date as 2026-05-01.", id3: "*date", vorbis: "DATE", valt: ["YEAR"], mp4: "©day", riff: "ICRD" },
+  { key: "genre", label: "Genre", main: true, id3: "*genre", vorbis: "GENRE", mp4: "©gen", riff: "IGNR" },
+  { key: "composer", label: "Songwriter or composer", main: true, hint: "Who wrote the song. Several names: separate them with ; like Ann Lee; Bo Diaz.", id3: "TCOM", vorbis: "COMPOSER", mp4: "©wrt" },
   { key: "isrc", label: "ISRC", main: true, hint: "The recording's ID code from your distributor, like US-ABC-26-00001.", id3: "TSRC", vorbis: "ISRC", mp4: "----:ISRC" },
+  { key: "barcode", label: "UPC / barcode", main: true, hint: "The release's barcode number (UPC or EAN) from your distributor.", id3: "TXXX:BARCODE", vorbis: "BARCODE", valt: ["UPC", "EAN"], mp4: "----:BARCODE" },
+  { key: "label", label: "Record label", main: true, hint: "Your own name is fine if you're independent. MP3 tags call this Publisher.", id3: "TPUB", vorbis: "LABEL", valt: ["ORGANIZATION"], mp4: "----:LABEL" },
+  { key: "phonographic", label: "(P) Recording copyright", main: true, hint: "Who owns the sound recording, like: 2026 Sick & Sad Records.", id3: "TPRO", vorbis: "PRODUCEDNOTICE", mp4: "----:PRODUCEDNOTICE" },
+  { key: "copyright", label: "(C) Copyright", main: true, hint: "Who owns the release and artwork, like: 2026 Sick & Sad Records.", id3: "TCOP", vorbis: "COPYRIGHT", mp4: "cprt", riff: "ICOP" },
   { key: "explicit", label: "Explicit or clean", main: true, type: "explicit", hint: "Clean means an edited version of an explicit song.",
     id3: "TXXX:ITUNESADVISORY", vorbis: "ITUNESADVISORY", mp4: "*rtng" },
-  { key: "bpm", label: "BPM", main: true, type: "num", hint: "Tempo in beats per minute.", id3: "TBPM", vorbis: "BPM", mp4: "*tmpo" },
-  { key: "key", label: "Key", main: true, hint: "The song's musical key, like Am or F#.", id3: "TKEY", vorbis: "INITIALKEY", valt: ["KEY"], mp4: "----:initialkey" },
-  { key: "comment", label: "Comment", main: true, type: "long", id3: "*comment", vorbis: "COMMENT", mp4: "\xa9cmt", riff: "ICMT" },
-  { key: "lyrics", label: "Lyrics", main: true, type: "long", hint: "Plain lyrics, no timings.", id3: "*lyrics", vorbis: "LYRICS", valt: ["UNSYNCEDLYRICS"], mp4: "\xa9lyr" },
+  { key: "language", label: "Language", main: true, hint: "The lyrics' language as a 3-letter code: eng, spa, pol... zxx means no words (instrumental).", id3: "TLAN", vorbis: "LANGUAGE", mp4: "----:LANGUAGE", riff: "ILNG" },
+  { key: "lyrics", label: "Lyrics", main: true, type: "long", hint: "Plain lyrics, no timings.", id3: "*lyrics", vorbis: "LYRICS", valt: ["UNSYNCEDLYRICS"], mp4: "©lyr" },
+
+  // ---- often used (in More fields) ----
+  { key: "disc", cat: "Often used", label: "Disc number", type: "num", hint: "For sets of more than one disc.", id3: "*disc", vorbis: "DISCNUMBER", mp4: "*disk" },
+  { key: "discTotal", cat: "Often used", label: "Total discs", type: "num", id3: "*disc", vorbis: "DISCTOTAL", valt: ["TOTALDISCS"], mp4: "*disk" },
+  { key: "bpm", cat: "Often used", label: "BPM", type: "num", hint: "Tempo in beats per minute.", id3: "TBPM", vorbis: "BPM", mp4: "*tmpo" },
+  { key: "key", cat: "Often used", label: "Key", hint: "The song's musical key, like Am or F#.", id3: "TKEY", vorbis: "INITIALKEY", valt: ["KEY"], mp4: "----:initialkey" },
+  { key: "comment", cat: "Often used", label: "Comment", type: "long", hint: "A note that players show with the song.", id3: "*comment", vorbis: "COMMENT", mp4: "©cmt", riff: "ICMT" },
 
   // ---- credits ----
   { key: "lyricist", cat: "Credits", label: "Lyricist", hint: "Who wrote the words.", id3: "TEXT", vorbis: "LYRICIST", mp4: "----:LYRICIST" },
@@ -46,12 +55,8 @@ export const FIELDS = [
   { key: "originalArtist", cat: "Credits", label: "Original artist", hint: "For a cover: who first recorded the song.", id3: "TOPE", vorbis: "ORIGINALARTIST", mp4: "----:ORIGINALARTIST" },
 
   // ---- release ----
-  { key: "label", cat: "Release", label: "Record label", hint: "MP3 tags call this Publisher.", id3: "TPUB", vorbis: "LABEL", valt: ["ORGANIZATION"], mp4: "----:LABEL" },
   { key: "publisher", cat: "Release", label: "Music publisher", hint: "The company that handles the song's publishing rights (not the label).", id3: "TXXX:PUBLISHER", vorbis: "PUBLISHER", mp4: "----:PUBLISHER" },
-  { key: "copyright", cat: "Release", label: "Copyright", hint: "Like: 2026 Sick & Sad Records.", id3: "TCOP", vorbis: "COPYRIGHT", mp4: "cprt", riff: "ICOP" },
-  { key: "phonographic", cat: "Release", label: "(P) Recording copyright", hint: "Who owns the sound recording itself, like: 2026 Sick & Sad Records.", id3: "TPRO", vorbis: "PRODUCEDNOTICE", mp4: "----:PRODUCEDNOTICE" },
   { key: "catalogNumber", cat: "Release", label: "Catalog number", hint: "The label's own number for the release.", id3: "TXXX:CATALOGNUMBER", vorbis: "CATALOGNUMBER", mp4: "----:CATALOGNUMBER" },
-  { key: "barcode", cat: "Release", label: "Barcode (UPC / EAN)", hint: "The release's barcode number from your distributor.", id3: "TXXX:BARCODE", vorbis: "BARCODE", valt: ["UPC", "EAN"], mp4: "----:BARCODE" },
   { key: "originalDate", cat: "Release", label: "Original release date", hint: "When the song first came out, for reissues and remasters.", id3: "*origdate", vorbis: "ORIGINALDATE", valt: ["ORIGINALYEAR"], mp4: "----:ORIGINALDATE" },
   { key: "compilation", cat: "Release", label: "Part of a compilation", type: "flag", hint: "Players file compilation tracks under the album, not each artist.", id3: "TCMP", vorbis: "COMPILATION", mp4: "*cpil" },
   { key: "media", cat: "Release", label: "Media type", hint: "What it was released on, like CD, Vinyl or Digital Media.", id3: "TMED", vorbis: "MEDIA", mp4: "----:MEDIA" },
@@ -62,7 +67,6 @@ export const FIELDS = [
   { key: "subtitle", cat: "About the song", label: "Subtitle", hint: "Extra words after the title, like a version name.", id3: "TIT3", vorbis: "SUBTITLE", mp4: "----:SUBTITLE" },
   { key: "grouping", cat: "About the song", label: "Grouping", hint: "Groups songs that belong together, like movements of one piece.", id3: "TIT1", vorbis: "GROUPING", mp4: "\xa9grp" },
   { key: "mood", cat: "About the song", label: "Mood", id3: "TMOO", vorbis: "MOOD", mp4: "----:MOOD" },
-  { key: "language", cat: "About the song", label: "Language", hint: "The lyrics' language as a 3-letter code: eng, spa, pol, deu...", id3: "TLAN", vorbis: "LANGUAGE", mp4: "----:LANGUAGE", riff: "ILNG" },
   { key: "description", cat: "About the song", label: "Description", type: "long", hint: "A longer description (podcasts use this).", id3: "TDES", vorbis: "DESCRIPTION", mp4: "desc" },
   { key: "work", cat: "About the song", label: "Work", hint: "Classical: the whole piece this track is part of.", id3: "TXXX:WORK", vorbis: "WORK", mp4: "\xa9wrk" },
   { key: "movementName", cat: "About the song", label: "Movement name", id3: "MVNM", vorbis: "MOVEMENTNAME", mp4: "\xa9mvn" },

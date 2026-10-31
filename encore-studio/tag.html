@@ -36,6 +36,7 @@
   input:disabled, select:disabled, textarea:disabled { opacity: .45; }
   input.mixed::placeholder { color: var(--warn); opacity: .8; font-style: italic; }
   input.bad { border-color: var(--red); }
+  input.follow { color: var(--soft); font-style: italic; }
   button { font: inherit; cursor: pointer; touch-action: manipulation; }
   button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 9px 20px; min-height: 40px; white-space: nowrap; }
   button.go:hover { background: #ff6c40; }
@@ -76,7 +77,7 @@
   #fileList { list-style: none; margin: 0; padding: 4px; overflow-y: auto; flex: 1 1 auto; min-height: 0; max-height: 34vh; }
   @media (min-width: 1000px) { #fileList { max-height: none; } }
   @media (max-width: 999px) { #fileList { max-height: 158px; } }
-  #fileList li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 9px; cursor: pointer; }
+  #fileList li { display: grid; grid-template-columns: 20px 28px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 9px; cursor: pointer; }
   #fileList li:hover { background: var(--bg-surface-hover); }
   #fileList li.focus { background: var(--bg-surface-strong); }
   #fileList li input { width: 16px; height: 16px; accent-color: #ff3b00; margin: 0; }
@@ -97,7 +98,22 @@
   .meta .t { font-weight: 700; color: var(--text); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .meta .line { overflow: hidden; text-overflow: ellipsis; }
   .coverNote { font-size: 11.5px; margin-top: 4px; line-height: 1.3; }
-  .coverNote.fail { color: var(--red); } .coverNote.warn { color: var(--warn); } .coverNote.pass { color: var(--green); }
+  .coverNote.fail { color: var(--red); } .coverNote.warn { color: var(--warn); } .coverNote.pass, .coverNote.ok { color: var(--green); } .coverNote.note, .coverNote.none { color: var(--soft); }
+  /* listening: a play button on each file, and the player */
+  .pbtn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  .pbtn:hover { border-color: #ff3b00; }
+  .pbtn.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .pbtn svg { width: 12px; height: 12px; display: block; fill: currentColor; }
+  .player { padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; flex: none; }
+  .player .pr { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .player .pbtn.big { width: 34px; height: 34px; flex: none; }
+  .player .pbtn.big svg { width: 14px; height: 14px; }
+  .player .pname { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player .ptime { font: 12px var(--family-mono, monospace); color: var(--soft); white-space: nowrap; }
+  .player input[type=range] { flex: 1; min-width: 0; accent-color: #ff3b00; height: 18px; margin: 0; }
+  .player .pr button.link { font-size: 12px; padding: 2px 3px; white-space: nowrap; }
+  .player .perr { font-size: 11.5px; color: var(--warn); line-height: 1.3; }
+  kbd { font: 10.5px var(--family-mono, monospace); color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 4px; white-space: nowrap; }
 
   /* right: tabs */
   .editor.card { padding: 0; }
@@ -124,8 +140,15 @@
   h3:first-child { margin-top: 0; }
   .batchNote { font-size: 13px; color: var(--warn); margin: 0 0 10px; }
   /* more fields */
-  .addBox { border: 1px solid var(--divider); border-radius: 10px; padding: 8px; margin-top: 12px; }
-  .addList { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 4px; max-height: 230px; overflow-y: auto; margin-top: 6px; }
+  .addBox { border: 1px solid var(--divider); border-radius: 10px; padding: 8px; margin-top: 12px; display: flex; flex-direction: column; min-height: 0; }
+  .addList { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); align-content: start; gap: 4px; max-height: 50vh; overflow-y: auto; margin-top: 6px; }
+  @media (min-width: 1000px) {
+    .tabBody > section.show[data-tab=more] { display: flex; flex-direction: column; height: 100%; }
+    section[data-tab=more] > * { flex: none; }
+    section[data-tab=more] > .addBox { flex: 1 1 auto; min-height: 220px; }
+    section[data-tab=more] > #addCustom { align-self: flex-start; }
+    .addList { flex: 1 1 0; min-height: 0; max-height: none; }
+  }
   .addList button { text-align: left; background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 5px 8px; color: var(--text); font-size: 13px; }
   .addList button:hover:not(:disabled) { border-color: var(--divider-strong); background: var(--bg-surface-hover); }
   .addList button:disabled { color: var(--dim); cursor: default; }
@@ -145,7 +168,24 @@
   th { color: var(--dim); font-weight: 600; font-size: 12px; white-space: nowrap; }
   td input { min-height: 30px; padding: 4px 6px; font-size: 13px; }
   td.num { width: 64px; } td.file { color: var(--dim); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .preview { font-size: 12px; color: var(--soft); margin: 4px 0 8px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .presets button { text-align: left; background: transparent; border: 1px solid var(--divider-strong); border-radius: 9px; padding: 5px 10px; color: var(--text); font-size: 13px; line-height: 1.25; }
+  .presets button small { display: block; font-size: 11px; color: var(--dim); }
+  .presets button:hover { border-color: var(--soft); }
+  .presets button.on { border-color: #ff3b00; background: rgb(255 59 0 / 0.1); }
+  .presets button .fit { font-size: 10.5px; color: var(--soft); margin-left: 6px; }
+  .tidy { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 8px; }
+  .tidy label { flex-direction: row; align-items: center; gap: 6px; font-size: 13px; color: var(--soft); }
+  .tidy input { width: 16px; height: 16px; accent-color: #ff3b00; margin: 0; }
+  td.nc { color: var(--dim); font-style: italic; } td.miss { color: var(--dim); }
+  .fixes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 8px 14px; }
+  .fix { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+  .applyRow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
+  button.go.slim { min-height: 34px; padding: 6px 16px; font-size: 14px; }
+  .coverCell { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); min-width: 0; }
+  .coverCell .stat { display: flex; gap: 8px; align-items: center; min-height: 34px; }
+  .coverCell img { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; flex: none; background: var(--bg-subtle-default); }
+  .coverCell .coverNote { margin: 0; }
   /* file tab */
   dl.info { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 14px; margin: 0; font-size: 13.5px; }
   dl.info dt { color: var(--dim); } dl.info dd { margin: 0; overflow-wrap: anywhere; }
@@ -215,6 +255,12 @@
       </div>
       <div class="meta" id="meta"></div>
     </div>
+    <div class="card player hidden" id="playerCard" aria-label="Listen">
+      <div class="pr"><button class="pbtn big" id="pPlay" title="Play or pause (Alt+P)" aria-label="Play"></button><div class="pname" id="pName"></div><kbd title="Play or pause from anywhere, even while typing">Alt+P</kbd></div>
+      <div class="pr"><span class="ptime" id="pCur">0:00</span><input type="range" id="pSeek" min="0" max="1000" value="0" step="1" aria-label="Position"><span class="ptime" id="pDur">0:00</span></div>
+      <div class="pr"><button class="link" id="pBack" title="Back 10 seconds">-10 s</button><button class="link" id="pMid" title="Jump to the middle of the song">Middle</button><button class="link" id="pFwd" title="Forward 30 seconds">+30 s</button><span style="flex:1"></span><span class="hint">Listen while you type</span></div>
+      <div class="perr hidden" id="pErr"></div>
+    </div>
   </aside>
 
   <section class="card editor" id="editor">
@@ -233,7 +279,7 @@
         <p class="muted">Tags are written straight into the file without re-encoding: the audio stays bit for bit the same, and every saved copy is checked to prove it.</p>
         <button class="go" id="emptyPick">Choose files</button>
       </div>
-      <section data-tab="main"><div id="batchNote" class="batchNote hidden"></div><div class="grid" id="mainGrid"></div></section>
+      <section data-tab="main"><div id="batchNote" class="batchNote hidden"></div><div class="hint" style="margin:-2px 0 8px">What distributors (DistroKid, CD Baby, TuneCore and the like) ask for when you send a song in. Everything else is in More fields.</div><div class="grid" id="mainGrid"></div></section>
       <section data-tab="more">
         <div class="grid" id="moreGrid"></div>
         <div class="addBox">
@@ -259,22 +305,27 @@
         <div class="row" style="margin-top:10px"><button class="small" id="addPic">Add a picture</button><input type="file" id="picInput" accept="image/*" multiple hidden></div>
       </section>
       <section data-tab="album">
-        <div class="hint" style="margin-bottom:8px">These work on the selected tracks (or all tracks if none are selected), in the order of the list.</div>
-        <div class="tools2">
-          <button class="small" id="numberTracks">Number tracks in list order</button>
-          <button class="small" id="titleCaseBtn">Title Case titles</button>
-          <button class="small" id="trimBtn">Trim extra spaces</button>
+        <div class="hint" id="albumScope" style="margin-bottom:4px"></div>
+        <h3>Read titles from file names</h3>
+        <div class="hint">Pick how your files are named. The one that fits the most files is picked for you. Nothing changes until you press Apply.</div>
+        <div class="presets" id="presets" role="radiogroup" aria-label="How the files are named"></div>
+        <div class="row wrap hidden" id="customRow" style="margin-bottom:8px"><input id="namePatternIn" value="{track} - {artist} - {title}" spellcheck="false" aria-label="Custom pattern" style="flex:1 1 240px">
+          <span class="hint" style="flex:1 1 260px">Use {track} {artist} {title} {album} {albumArtist} {disc} {date} {genre}, and {skip} for parts to ignore.</span></div>
+        <div class="tidy hidden" id="tidyRow"><label><input type="checkbox" id="tdSpaces"> Dashes and underscores to spaces</label><label><input type="checkbox" id="tdCase"> Title Case</label><label><input type="checkbox" id="tdNum"> Drop leading track numbers</label></div>
+        <div class="tableWrap"><table><thead><tr><th>File name</th><th>Title</th><th>Artist</th><th>Track #</th></tr></thead><tbody id="fillRows"></tbody></table></div>
+        <div class="applyRow"><button class="go slim" id="fillApply">Apply</button><span class="hint" id="fillSummary"></span></div>
+        <h3>Quick fixes</h3>
+        <div class="fixes">
+          <div class="fix"><button class="small" id="numberTracks">Number tracks in list order</button><span class="hint">Sets track 1, 2, 3... down the list, and the total. Sort by name first if the list is out of order.</span></div>
+          <div class="fix"><button class="small" id="titleCaseBtn">Title Case titles</button><span class="hint">Capitalizes titles like a book cover: you know acoustic becomes You Know Acoustic. Names like AC/DC stay as they are.</span></div>
+          <div class="fix"><button class="small" id="trimBtn">Trim extra spaces</button><span class="hint">Removes doubled spaces, and spaces at the start or end, in every field.</span></div>
         </div>
-        <div class="tools2">
-          <label style="flex:1 1 260px">Fill from file name <input id="namePatternIn" value="{track} - {artist} - {title}" spellcheck="false"></label>
-          <button class="small" id="fillFromName" style="align-self:flex-end">Fill in</button>
-        </div>
-        <div class="hint">Use {track} {disc} {artist} {title} {album} {albumArtist} {date} {genre}, and {skip} for parts to ignore.</div>
-        <div class="preview" id="namePreview"></div>
+        <h3>Track list</h3>
+        <div class="hint" style="margin-bottom:6px">Edit numbers, titles and artists side by side.</div>
         <div class="tableWrap"><table><thead><tr><th>#</th><th>Title</th><th>Artist</th><th>File</th></tr></thead><tbody id="albumRows"></tbody></table></div>
         <h3>Album sheet</h3>
+        <div class="hint" style="margin-bottom:6px">A sheet lists every track's tags, one row per file, for cataloguing or editing in a spreadsheet. Importing matches rows to files by file name.</div>
         <div class="tools2"><button class="small" id="expJson">Export tags (JSON)</button><button class="small" id="expCsv">Export tags (CSV)</button><button class="small" id="impSheet">Import JSON or CSV</button><input type="file" id="sheetInput" accept=".json,.csv,application/json,text/csv" hidden></div>
-        <div class="hint">A sheet lists every track's tags, one row per file, for cataloguing or editing in a spreadsheet. Importing matches rows to files by file name.</div>
       </section>
       <section data-tab="file"><div id="fileInfo"></div></section>
     </div>

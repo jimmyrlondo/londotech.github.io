@@ -21,3 +21,6 @@
   .bar .toolPick { min-width: 140px; }
   .bar > button, .bar > a.small { white-space: nowrap; flex: none; }
 }
+/* whatever a tool shows at the right end of the bar takes only the room it needs, so the tabs fill the rest */
+.bar #songName, .bar #setName { flex: 0 1 auto; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar .spacer { flex: 0 0 0; }

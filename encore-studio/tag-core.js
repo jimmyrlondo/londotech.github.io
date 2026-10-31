@@ -527,6 +527,147 @@ export function fileNameFor(m, pattern, ext, original) {
   return (name || String(original).replace(/\.[^.]+$/, "")) + "." + ext;
 }
 
+// ---------- genres: a primary and a secondary ----------
+// The model keeps genres as fields.genre ("Rock; Pop") plus multi.genre ([Rock, Pop])
+// when there are several. Each writer stores them its own way: ID3v2.4 separate
+// values in TCON, ID3v2.3 "Rock; Pop", Vorbis two GENRE comments, M4A one atom
+// "Rock; Pop". Reading splits any of those back apart.
+const splitGenres = (list) => list.flatMap((x) => String(x ?? "").split(";")).map((x) => x.trim()).filter(Boolean);
+export function genresOf(m) {
+  const v = m.fields.genre;
+  if (v === undefined || v === null || String(v).trim() === "") return [];
+  return splitGenres(m.multi?.genre && m.multi.genre.join("; ") === v ? m.multi.genre : [v]);
+}
+export function setGenres(m, list) {
+  const vals = splitGenres(list);
+  m.multi ??= {};
+  if (!vals.length) { delete m.fields.genre; delete m.multi.genre; }
+  else { m.fields.genre = vals.join("; "); if (vals.length > 1) m.multi.genre = vals; else delete m.multi.genre; }
+  return m;
+}
+// The two boxes on the page: [primary, secondary (any further ones joined with "; ")].
+// Kept on the model while typing, so emptying Primary doesn't move Secondary up.
+export function genreSlots(m) {
+  const g = genresOf(m), keep = m.genreSlots;
+  if (keep && splitGenres(keep).join("; ") === g.join("; ")) return [...keep];
+  return [g[0] ?? "", g.slice(1).join("; ")];
+}
+export function setGenreSlot(m, slot, value) {
+  const s = genreSlots(m);
+  s[slot] = String(value ?? "");
+  m.genreSlots = s;
+  return setGenres(m, s);
+}
+
+// ---------- album artist: follows Artist until someone types their own ----------
+// m.aaFollow: true while Album artist mirrors Artist. Set when a file is loaded:
+// an empty album artist, or one that's the same as the artist, follows.
+export function initAlbumArtist(m) {
+  const a = String(m.fields.artist ?? "").trim(), aa = String(m.fields.albumArtist ?? "").trim();
+  m.aaFollow = aa === "" || aa === a;
+  return mirrorAlbumArtist(m);
+}
+export function mirrorAlbumArtist(m) {
+  if (!m.aaFollow) return m;
+  m.multi ??= {};
+  const v = m.fields.artist;
+  if (v === undefined || v === null || String(v) === "") { delete m.fields.albumArtist; delete m.multi.albumArtist; }
+  else {
+    m.fields.albumArtist = v;
+    if (m.multi.artist && m.multi.artist.join("; ") === v) m.multi.albumArtist = [...m.multi.artist]; else delete m.multi.albumArtist;
+  }
+  return m;
+}
+export function setAlbumArtistFollow(m, on) { m.aaFollow = !!on; return mirrorAlbumArtist(m); }
+
+// ---------- cover art: square is the rule; size is only advice ----------
+// { level: "none" | "ok" | "note" | "warn", text }. "note" is a gentle remark, never an error.
+export function coverRule(img) {
+  if (!img) return { level: "none", text: "No cover art yet." };
+  if (!img.width || !img.height) return { level: "warn", text: "Couldn't read this image's size. JPG or PNG work in every player and store." };
+  const size = `${img.width} x ${img.height}`;
+  if (img.width !== img.height) return { level: "warn", text: `Not square (${size}). Stores want a square cover: crop it so both sides match.` };
+  if (img.type && img.type !== "jpeg" && img.type !== "png") return { level: "warn", text: `Square, ${size}, but it's a ${img.type.toUpperCase()} file. Stores and most players want JPG or PNG.` };
+  if (img.width < 1000) return { level: "note", text: `Square, ${size}. Many stores like 1000 x 1000 or bigger; scans of older covers are often smaller, and that's fine to keep.` };
+  return { level: "ok", text: `Square, ${size}. Good to go.` };
+}
+
+// ---------- reading titles from file names: preset patterns ----------
+export const NAME_PRESETS = [
+  { id: "title", label: "Title only", example: "you know acoustic" },
+  { id: "track-title", label: "01 Title", example: "01 You Know" },
+  { id: "track-dash-title", label: "01 - Title", example: "01 - You Know" },
+  { id: "artist-title", label: "Artist - Title", example: "Skeleton Drive - You Know" },
+  { id: "track-artist-title", label: "01 - Artist - Title", example: "01 - Skeleton Drive - You Know" },
+  { id: "artist-album-track-title", label: "Artist - Album - 01 - Title", example: "Skeleton Drive - Basement - 01 - You Know" },
+];
+const baseName = (name) => String(name).replace(/^.*[\\/]/, "").replace(/\.[a-z0-9]{2,5}$/i, "").replace(/_/g, " ").replace(/\s+/g, " ").trim();
+const PRESET_PARTS = {
+  title: ["title"],
+  "track-title": ["track", "sp", "title"],
+  "track-dash-title": ["track", "dash", "title"],
+  "artist-title": ["artist", "dash", "title"],
+  "track-artist-title": ["track", "dash", "artist", "dash", "title"],
+  "artist-album-track-title": ["artist", "dash", "album", "dash", "track", "dash", "title"],
+};
+// The parts of a file name for a preset, or null if it doesn't fit.
+// opts (Title only): { spaces: dashes to spaces, titleCase, stripNumber: drop a leading "01 " }
+export function presetFill(name, id, opts = {}) {
+  if (id === "custom") return opts.pattern ? parseFileName(name, opts.pattern) : null;
+  const parts = PRESET_PARTS[id];
+  if (!parts) return null;
+  const base = baseName(name);
+  // " - " splits when the name has it (so "Jay-Z - Song" keeps Jay-Z whole); otherwise any dash
+  const dash = /\s[-\u2013\u2014]\s/.test(base) ? "\\s+[-\\u2013\\u2014]\\s+" : "\\s*[-\\u2013\\u2014]\\s*";
+  const keys = [];
+  let re = "^";
+  for (const p of parts) {
+    if (p === "dash") re += dash;
+    else if (p === "sp") re += "(?:\\s*[.)]\\s*|\\s+)";
+    else { keys.push(p); re += p === "track" ? "(\\d{1,3})\\.?" : p === "title" ? "(.+)" : "(.+?)"; }
+  }
+  const x = new RegExp(re + "$", "u").exec(base);
+  if (!x) return null;
+  const out = {};
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i], v = x[i + 1].trim();
+    if (k === "track") { out.track = String(parseInt(v, 10)); continue; }
+    if (!v || /^[-\u2013\u2014.,]|[-\u2013\u2014,]$/.test(v)) return null; // a part that starts or ends with a separator: the pattern doesn't really fit
+    out[k] = v;
+  }
+  if (id === "title") {
+    let t = out.title;
+    if (opts.stripNumber) t = t.replace(/^\d{1,3}(?:\s*[-\u2013\u2014.)]\s*|\s+)(?=\S)/, "");
+    if (opts.spaces) t = t.replace(/[-\u2013\u2014]+/g, " ").replace(/\s+/g, " ").trim();
+    if (opts.titleCase) t = titleCase(t);
+    if (!t) return null;
+    out.title = t;
+  }
+  return out;
+}
+// how much a fit says: more parts is more specific; an artist or album that's only digits is suspect
+const fitScore = (r) => Object.keys(r).length - Object.entries(r).filter(([k, v]) => k !== "track" && /^\d+$/.test(v)).length * 0.5;
+// The preset that fits the most file names (ties: the more specific one)
+export function pickPreset(names, opts = {}) {
+  let best = null;
+  for (const p of NAME_PRESETS) {
+    let n = 0, score = 0;
+    for (const name of names) { const r = presetFill(name, p.id, opts); if (r) { n++; score += fitScore(r); } }
+    if (n && (!best || n > best.n || (n === best.n && score > best.score))) best = { id: p.id, n, score };
+  }
+  return best ? best.id : "title";
+}
+// What applying a preset would do: [{ name, match, values, changes }] (changes: only what differs)
+export function fillPreview(files, id, opts = {}) {
+  return files.map(({ name, fields = {} }) => {
+    const r = presetFill(name, id, opts);
+    if (!r) return { name, match: false, values: {}, changes: {} };
+    const changes = {};
+    for (const [k, v] of Object.entries(r)) if (String(fields[k] ?? "") !== v) changes[k] = v;
+    return { name, match: true, values: r, changes };
+  });
+}
+
 // ---------- album sheets: JSON and CSV ----------
 export function toJSON(tracks) {
   return JSON.stringify({ tool: "Encore Tag", version: 1, exported: new Date().toISOString(), tracks: tracks.map(({ name, model: m }) => ({

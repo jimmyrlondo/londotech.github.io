@@ -1,11 +1,12 @@
 // Encore Tag: the page. Drop tracks, edit their tags (one track or several at
 // once), save new copies. Reading, writing and the safety check all live in
 // tag-core.js; this file is the editor around them. Nothing is uploaded.
-import { readTags, writeTags, verifyWrite, FIELDS, FIELD, canStore, imageInfo, isrcCheck, titleCase, tidy, parseFileName, fileNameFor, toCSV, toJSON, readSheet } from "./tag-core.js";
+import { readTags, writeTags, verifyWrite, FIELDS, FIELD, canStore, imageInfo, isrcCheck, titleCase, tidy, fileNameFor, toCSV, toJSON, readSheet,
+  genreSlots, setGenreSlot, initAlbumArtist, mirrorAlbumArtist, setAlbumArtistFollow, coverRule, NAME_PRESETS, presetFill, pickPreset, fillPreview } from "./tag-core.js";
 import { PICTURE_TYPES, FORMAT_NAME, SYSTEM } from "./tag-fields.js";
 import { sniffMime } from "./tag-bin.js";
 import { lrcToLines } from "./tag-id3.js";
-import { coverCheck, fmtTime } from "./lastcall-core.js";
+import { fmtTime } from "./lastcall-core.js";
 import { GENRES } from "./genres.js";
 import { zip } from "./zip.js";
 
@@ -39,6 +40,7 @@ async function addFiles(list) {
     let model;
     try { model = readTags(bytes, file.name); } catch (e) { model = { format: null, fields: {}, multi: {}, custom: [], pictures: [], other: [], notes: [], readOnly: e.message, info: { name: file.name, size: bytes.length } }; }
     if (!model.format && !AUDIO.test(file.name)) continue;
+    if (!model.readOnly) initAlbumArtist(model);
     const f = { id: nextId++, name: file.name, bytes, model, dirty: false, saved: null };
     state.files.push(f); added.push(f);
   }
@@ -55,8 +57,15 @@ function setField(key, value) {
   for (const f of editable()) {
     if (value === "") delete f.model.fields[key]; else f.model.fields[key] = value;
     delete f.model.multi?.[key];
+    fieldChanged(f, key);
   }
   touch();
+}
+// after a field changed on one file: album artist follows artist; typing an album artist stops that
+function fieldChanged(f, key) {
+  if (key === "albumArtist") f.model.aaFollow = false;
+  if (key === "artist") mirrorAlbumArtist(f.model);
+  if (key === "genre") delete f.model.genreSlots;
 }
 // a field across the selected tracks: { value, mixed }
 function fieldState(key) {
@@ -81,7 +90,9 @@ function renderList() {
   $("fileList").innerHTML = state.files.map((f) => {
     const m = f.model, badge = m.readOnly ? '<span class="badge ro">READ ONLY</span>' : f.saved?.ok ? '<span class="badge saved">SAVED</span>' : f.saved && !f.saved.ok ? '<span class="badge fail">NOT SAVED</span>' : f.dirty ? '<span class="badge edited">EDITED</span>' : `<span class="badge">${esc(FORMAT_NAME[m.format] || "?")}</span>`;
     const sub = [m.fields.track ? "#" + m.fields.track : "", m.fields.title || "", m.fields.artist || ""].filter(Boolean).join("  ");
+    const on = player.id === f.id && !audio.paused;
     return `<li data-id="${f.id}" class="${f.id === state.focus ? "focus" : ""}"><input type="checkbox" ${state.sel.has(f.id) ? "checked" : ""} aria-label="Select ${esc(f.name)}">
+      <button class="pbtn${on ? " on" : ""}" data-play="${f.id}" title="${on ? "Pause" : "Play"} (Alt+P plays the open track)" aria-label="${on ? "Pause" : "Play"} ${esc(f.name)}">${on ? ICON.pause : ICON.play}</button>
       <div style="min-width:0"><div class="fname">${esc(f.name)}</div><div class="fsub">${esc(sub || (m.info?.duration ? fmtTime(m.info.duration) : ""))}</div></div>${badge}</li>`;
   }).join("");
   const n = state.sel.size;
@@ -110,11 +121,12 @@ function renderCurrent() {
   $("coverRemove").disabled = !fronts.some(Boolean);
   $("coverPick").textContent = fronts.some(Boolean) ? "Replace" : "Add";
   let check = "";
-  if (same && p) { const c = coverCheck(imageInfo(p.bytes)); check = `<div class="coverNote ${c.status === "pass" ? "pass" : c.status === "fail" ? "fail" : "warn"}">${esc(imgText(p))}. ${esc(c.status === "pass" ? "Good for every store." : firstSentence(c.detail))}</div>`; }
+  if (same && p) { const c = coverRule(imageInfo(p.bytes)); check = `<div class="coverNote ${c.level}">${esc(c.text)}</div>`; }
   if (t.length > 1) {
     const fm = [...new Set(t.map((f) => FORMAT_NAME[f.model.format] || "?"))];
     $("meta").innerHTML = `<div class="t">${t.length} tracks selected</div><div class="line">${esc(fm.join(", "))}</div><div class="line">${esc(fmtTime(t.reduce((a, f) => a + (f.model.info?.duration || 0), 0)))} in all</div>
       <div class="line muted">Edits apply to all of them. A cover added here goes on every one.</div>${check}`;
+    refreshCoverCell();
     return;
   }
   const m = t[0].model, i = m.info || {};
@@ -123,6 +135,7 @@ function renderCurrent() {
     <div class="line">${esc(i.label || FORMAT_NAME[m.format] || "Unknown")}${i.duration ? ", " + esc(fmtTime(i.duration)) : ""}</div><div class="line muted">${esc(quality)}</div>
     <div class="line muted">${esc(kb(i.size || t[0].bytes.length))}${i.tagFormats?.length ? ", tags: " + esc(i.tagFormats.join(", ")) : ", no tags yet"}</div>
     ${m.readOnly ? `<div class="coverNote fail">${esc(m.readOnly)}</div>` : ""}${check}`;
+  refreshCoverCell();
 }
 
 // ---------- field inputs ----------
@@ -137,7 +150,8 @@ function control(f, idSuffix = "") {
   if (f.type === "long") return `<textarea ${attrs} rows="${f.key === "comment" ? 2 : 3}">${esc(st.value)}</textarea>`;
   return `<input ${attrs} value="${esc(st.value)}" ${f.type === "num" ? 'inputmode="numeric"' : ""} ${f.key === "genre" ? 'list="genres"' : ""} spellcheck="${f.type === "num" || f.key === "isrc" || /^mb|^url|^rg/.test(f.key) ? "false" : "true"}" autocomplete="off">`;
 }
-const MAIN_HINTS = new Set(["albumArtist", "isrc", "explicit"]); // the main fields whose name alone isn't enough
+// the main fields whose name alone isn't enough
+const MAIN_HINTS = new Set(["featured", "isrc", "explicit", "phonographic", "copyright"]);
 function fieldCell(f, { removable = false, cls = "" } = {}) {
   const why = whyNot(f.key);
   return `<label class="${cls}" ${f.hint ? `title="${esc(f.hint)}"` : ""}><span class="lbl"><span>${esc(f.label)}</span>${removable ? `<button class="x" data-remove="${f.key}" title="Remove this field" aria-label="Remove ${esc(f.label)}">×</button>` : ""}</span>${control(f)}
@@ -157,6 +171,7 @@ function wireInputs(root) {
       setField(key, el.value);
       if (key === "isrc") checkIsrc(el);
       if (key === "title" || key === "artist" || key === "track") { renderCurrentTitleOnly(); }
+      if (key === "artist") refreshAA({ value: true });
     });
     if (key === "isrc") checkIsrc(el);
   }
@@ -164,29 +179,107 @@ function wireInputs(root) {
 function checkIsrc(el) { const v = el.value.trim(), bad = v !== "" && !isrcCheck(v).valid; el.classList.toggle("bad", bad); $("isrcBad")?.classList.toggle("hidden", !bad); }
 function renderCurrentTitleOnly() { const t = targets(); if (t.length === 1) { const el = $("meta").querySelector(".t"); if (el) el.textContent = t[0].model.fields.title || t[0].name; } }
 
+// album artist: follows Artist (shown dimmer, "same as artist") until someone types their own
+function aaState() {
+  const t = editable(), n = t.filter((f) => f.model.aaFollow).length;
+  return { all: t.length > 0 && n === t.length, some: n, total: t.length };
+}
+function albumArtistCell() {
+  const f = FIELD.albumArtist, st = fieldState("albumArtist"), a = aaState();
+  const ph = st.mixed ? "(different, leave to keep)" : "";
+  return `<label class="wideOnPhone" title="${esc(f.hint)}"><span class="lbl"><span>Album artist</span><button class="link${a.all ? " hidden" : ""}" id="aaLink" style="padding:0;font-size:11.5px" title="Make Album artist follow Artist again">use artist</button></span>
+    <input id="f_albumArtist" data-aa value="${esc(st.value)}" placeholder="${esc(ph)}" class="${[st.mixed ? "mixed" : "", a.all ? "follow" : ""].join(" ")}" spellcheck="true" autocomplete="off">
+    <span class="hint" id="aaHint">${esc(aaHintText(a))}</span></label>`;
+}
+function aaHintText(a = aaState()) {
+  if (a.all) return a.total > 1 ? "Same as artist (each track's own)" : "Same as artist";
+  if (a.some) return `${a.some} of ${a.total} tracks follow their artist`;
+  return "Your own. \"use artist\" links it back.";
+}
+// after Artist or Album artist changed: update the album artist box without redrawing it (that would lose the cursor)
+function refreshAA({ value = false } = {}) {
+  const el = $("f_albumArtist"); if (!el) return;
+  const a = aaState(), st = fieldState("albumArtist");
+  if (value) { el.value = st.value; el.classList.toggle("mixed", st.mixed); }
+  el.classList.toggle("follow", a.all);
+  el.placeholder = st.mixed ? "(different, leave to keep)" : "";
+  $("aaHint").textContent = aaHintText(a);
+  $("aaLink").classList.toggle("hidden", a.all);
+}
+// genres: Primary and Secondary, saved the way each format holds them
+function genreState(slot) {
+  const vals = editable().map((f) => genreSlots(f.model)[slot] ?? "");
+  const same = vals.every((v) => v === vals[0]);
+  return { value: same ? vals[0] ?? "" : "", mixed: !same };
+}
+// how a second genre is saved, for the formats being edited: [short line under the box, full explanation]
+function genreHint() {
+  const fm = formats(), sys = new Set(fm.map((x) => SYSTEM[x])), short = [], long = [];
+  if (sys.has("id3")) {
+    if ($("id3Ver").value === "4") { short.push("MP3/WAV/AIFF: two genres (ID3v2.4)."); long.push("MP3, WAV and AIFF with ID3v2.4 tags keep both as separate genres."); }
+    else { short.push('MP3/WAV/AIFF: "Primary; Secondary".'); long.push('ID3v2.3 (MP3, WAV, AIFF) has one genre box, so both go in it as "Primary; Secondary", the usual way to write two genres there. Pick ID3v2.4 in the save bar to keep them as separate genres.'); }
+  }
+  if (sys.has("vorbis")) { short.push("FLAC/Ogg: two GENRE tags."); long.push("FLAC and Ogg save two GENRE tags."); }
+  if (sys.has("mp4")) { short.push('M4A: one genre, "Primary; Secondary".'); long.push("M4A holds only one genre, so it's saved as \"Primary; Secondary\"."); }
+  return [short.join(" "), long.join(" ")];
+}
+function genreCell(slot) {
+  const st = genreState(slot), label = slot ? "Secondary genre" : "Genre", [hint, why] = slot ? genreHint() : ["", ""];
+  return `<label class="wideOnPhone" ${why ? `title="${esc(why)}"` : ""}><span class="lbl"><span>${label}</span>${slot ? '<span class="hint">optional</span>' : ""}</span>
+    <input id="f_genre${slot}" data-genre="${slot}" value="${esc(st.value)}" list="genres" placeholder="${st.mixed ? "(different, leave to keep)" : ""}" class="${st.mixed ? "mixed" : ""}" spellcheck="true" autocomplete="off">
+    ${slot && hint ? `<span class="hint" id="genreHint">${esc(hint)}</span>` : ""}</label>`;
+}
+// cover art: square is the rule, size is only advice
+function coverCell() {
+  const t = editable(), fronts = t.map((f) => frontOf(f.model)), same = fronts.every((p) => sameBytes(p?.bytes, fronts[0]?.bytes)), p = fronts[0];
+  const c = !same ? { level: "note", text: "The selected tracks have different covers." } : coverRule(p ? imageInfo(p.bytes) : null);
+  return `<div class="coverCell wide" id="coverCell"><span class="lbl" style="justify-content:flex-start;gap:10px"><span>Cover art</span><span class="hint">A square image. JPG or PNG work everywhere.</span></span>
+    <div class="stat">${same && p ? `<img src="${picUrl(p)}" alt="">` : ""}<span class="coverNote ${c.level}">${esc(c.text)}</span>
+    <button class="small" id="mainCover">${fronts.some(Boolean) ? "Replace" : "Add cover"}</button><button class="link" id="mainPics">All pictures</button></div></div>`;
+}
+const LANGS = [["eng", "English"], ["spa", "Spanish"], ["fra", "French"], ["deu", "German"], ["ita", "Italian"], ["por", "Portuguese"], ["pol", "Polish"], ["slv", "Slovenian"], ["hrv", "Croatian"],
+  ["ces", "Czech"], ["slk", "Slovak"], ["hun", "Hungarian"], ["nld", "Dutch"], ["swe", "Swedish"], ["nor", "Norwegian"], ["dan", "Danish"], ["fin", "Finnish"], ["rus", "Russian"], ["ukr", "Ukrainian"],
+  ["ell", "Greek"], ["tur", "Turkish"], ["ara", "Arabic"], ["heb", "Hebrew"], ["hin", "Hindi"], ["jpn", "Japanese"], ["kor", "Korean"], ["zho", "Chinese"], ["som", "Somali"], ["nep", "Nepali"],
+  ["mul", "Several languages"], ["zxx", "No words (instrumental)"]];
 function renderMain() {
   const t = editable();
   $("batchNote").classList.toggle("hidden", t.length < 2);
   $("batchNote").textContent = t.length > 1 ? `Editing ${t.length} tracks at once. "(different)" means each keeps its own value unless you type a new one. Titles and numbers per track: Album tools.` : "";
   const F = (k, o) => fieldCell(FIELD[k], o);
   $("mainGrid").innerHTML = (targets().length && !t.length) ? `<div class="wide why">${esc(targets()[0].model.readOnly)}</div>` : [
-    F("title", { cls: "wideOnPhone" }), F("artist", { cls: "wideOnPhone" }), F("album", { cls: "wideOnPhone" }), F("albumArtist", { cls: "wideOnPhone" }),
-    pairCell("track", "trackTotal", "Track"), pairCell("disc", "discTotal", "Disc"), F("date"), F("genre"), F("composer"), F("isrc"), F("explicit"), F("bpm"), F("key"),
-    F("comment", { cls: "wide" }),
-  ].join("") + `<datalist id="genres">${genreList.map((g) => `<option value="${esc(g)}">`).join("")}</datalist>`;
+    F("title", { cls: "wideOnPhone" }), F("artist", { cls: "wideOnPhone" }), F("featured", { cls: "wideOnPhone" }), F("album", { cls: "wideOnPhone" }), albumArtistCell(),
+    pairCell("track", "trackTotal", "Track number"), F("date"), genreCell(0), genreCell(1), F("composer", { cls: "wideOnPhone" }), F("isrc"), F("barcode"),
+    F("label", { cls: "wideOnPhone" }), F("phonographic", { cls: "wideOnPhone" }), F("copyright", { cls: "wideOnPhone" }), F("explicit"), F("language"), coverCell(),
+  ].join("") + `<datalist id="genres">${genreList.map((g) => `<option value="${esc(g)}">`).join("")}</datalist><datalist id="langs">${LANGS.map(([c, n]) => `<option value="${c}">${esc(n)}</option>`).join("")}</datalist>`;
+  $("f_language")?.setAttribute("list", "langs");
+  $("f_language")?.setAttribute("spellcheck", "false");
   wireInputs($("mainGrid"));
+  const aa = $("f_albumArtist");
+  if (aa) {
+    aa.oninput = () => { for (const f of editable()) { f.model.aaFollow = false; if (aa.value === "") delete f.model.fields.albumArtist; else f.model.fields.albumArtist = aa.value; delete f.model.multi?.albumArtist; } touch(); refreshAA(); };
+    $("aaLink").onclick = (e) => { e.preventDefault(); for (const f of editable()) setAlbumArtistFollow(f.model, true); touch(); refreshAA({ value: true }); };
+  }
+  for (const el of $("mainGrid").querySelectorAll("[data-genre]")) el.oninput = () => {
+    for (const f of editable()) setGenreSlot(f.model, +el.dataset.genre, el.value);
+    el.classList.remove("mixed"); el.placeholder = ""; touch();
+  };
+  wireCoverCell();
 }
+function wireCoverCell() { if ($("mainCover")) { $("mainCover").onclick = () => $("coverInput").click(); $("mainPics").onclick = () => showTab("pictures"); } }
+// the cover changed: redraw just the cover box on the Main tab
+function refreshCoverCell() { const el = $("coverCell"); if (!el || !editable().length) return; el.outerHTML = coverCell(); wireCoverCell(); }
 
 // ---------- more fields ----------
 const MORE = FIELDS.filter((f) => !f.main);
 const PAIRED = { trackTotal: 1, discTotal: 1, movementTotal: 1 };
+const PAIR_OF = { disc: ["discTotal", "Disc number"], movement: ["movementTotal", "Movement"] };
 function renderMore() {
   const t = editable();
-  const shown = MORE.filter((f) => !PAIRED[f.key] && (state.added.has(f.key) || t.some((x) => String(x.model.fields[f.key] ?? "") !== "" || (f.key === "movement" && x.model.fields.movementTotal))));
-  $("moreGrid").innerHTML = shown.length ? shown.map((f) => f.key === "movement" ? pairCell("movement", "movementTotal", "Movement", "") : fieldCell(f, { removable: true })).join("")
-    : '<div class="wide hint">No extra fields yet. Add any of the ones below: credits, label and catalog numbers, sort names, MusicBrainz IDs, ReplayGain, web links and more.</div>';
+  const shown = MORE.filter((f) => !PAIRED[f.key] && (state.added.has(f.key) || t.some((x) => String(x.model.fields[f.key] ?? "") !== "" || (PAIR_OF[f.key] && x.model.fields[PAIR_OF[f.key][0]]))));
+  $("moreGrid").innerHTML = shown.length ? shown.map((f) => PAIR_OF[f.key] ? pairCell(f.key, PAIR_OF[f.key][0], PAIR_OF[f.key][1], "") : fieldCell(f, { removable: true })).join("")
+    : '<div class="wide hint">No extra fields yet. Add any of the ones below: disc number, BPM, key, comment, credits, catalog numbers, sort names, MusicBrainz IDs, ReplayGain, web links and more.</div>';
   wireInputs($("moreGrid"));
-  for (const b of $("moreGrid").querySelectorAll("[data-remove]")) b.onclick = (e) => { e.preventDefault(); const k = b.dataset.remove; setField(k, ""); if (k === "movement") setField("movementTotal", ""); state.added.delete(k); renderMore(); };
+  for (const b of $("moreGrid").querySelectorAll("[data-remove]")) b.onclick = (e) => { e.preventDefault(); const k = b.dataset.remove; setField(k, ""); if (PAIR_OF[k]) setField(PAIR_OF[k][0], ""); state.added.delete(k); renderMore(); };
   renderAddList();
   renderCustom();
   updateTabCounts();
@@ -284,14 +377,14 @@ function renderPictures() {
   const t = editable(), f = t[0];
   const m4a = formats().includes("m4a");
   $("picHint").textContent = !t.length ? "" : (t.length > 1 ? `Showing the pictures in ${f.name}. Adding one adds it to all ${t.length} selected tracks.` : "") +
-    (m4a ? " M4A files keep pictures but not their kind or description; the first is the cover." : "") + " JPG or PNG work everywhere; stores want a square cover, 3000 x 3000.";
+    (m4a ? " M4A files keep pictures but not their kind or description; the first is the cover." : "") + " JPG or PNG work everywhere. Stores want a square cover; 3000 x 3000 is the best size if you have it, but any square image is fine to use.";
   $("addPic").disabled = !t.length;
   $("pics").innerHTML = !f ? "" : f.model.pictures.map((p, i) => {
-    const c = p.type === 3 ? coverCheck(imageInfo(p.bytes)) : null;
+    const c = p.type === 3 ? coverRule(imageInfo(p.bytes)) : null;
     return `<div class="pic" data-i="${i}"><img src="${picUrl(p)}" alt=""><div class="stack">
       <select data-ptype aria-label="Picture kind" ${t.length > 1 ? "disabled" : ""}>${PICTURE_TYPES.map((n, k) => `<option value="${k}" ${k === p.type ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
       <input data-pdesc value="${esc(p.desc || "")}" placeholder="Description (optional)" aria-label="Description" ${t.length > 1 ? "disabled" : ""}>
-      <span class="hint">${esc(imgText(p))}${c && c.status !== "pass" ? "" : ""}</span>${c && c.status !== "pass" ? `<span class="why">${esc(firstSentence(c.detail))}</span>` : ""}
+      <span class="hint">${esc(imgText(p))}</span>${c && c.level !== "ok" ? `<span class="coverNote ${c.level}">${esc(c.text)}</span>` : ""}
       <span class="row"><button class="small" data-pdel ${t.length > 1 ? "disabled" : ""}>Remove</button>${i ? `<button class="small" data-pfront ${t.length > 1 ? "disabled" : ""}>Make it the cover</button>` : ""}</span></div></div>`;
   }).join("") || (f ? '<div class="hint">No pictures in this file.</div>' : "");
   $("pics").querySelectorAll(".pic").forEach((el) => {
@@ -331,27 +424,55 @@ $("coverBox").addEventListener("drop", async (e) => {
 const albumSet = () => (editable().length > 1 ? editable() : state.files.filter((f) => !f.model.readOnly));
 function renderAlbum() {
   const list = albumSet();
+  $("albumScope").textContent = editable().length > 1 ? `Working on the ${list.length} selected tracks, in list order.` : `Working on all ${list.length} track${list.length === 1 ? "" : "s"} in the list, in order. Select several to work on just those.`;
   $("albumRows").innerHTML = list.map((f) => `<tr data-id="${f.id}"><td class="num"><input value="${esc(f.model.fields.track || "")}" data-k="track" inputmode="numeric" aria-label="Track number"></td>
     <td><input value="${esc(f.model.fields.title || "")}" data-k="title" aria-label="Title"></td><td><input value="${esc(f.model.fields.artist || "")}" data-k="artist" aria-label="Artist"></td><td class="file" title="${esc(f.name)}">${esc(f.name)}</td></tr>`).join("");
   $("albumRows").querySelectorAll("tr").forEach((tr) => {
     const f = byId(+tr.dataset.id);
-    tr.querySelectorAll("input").forEach((inp) => inp.oninput = () => { if (inp.value === "") delete f.model.fields[inp.dataset.k]; else f.model.fields[inp.dataset.k] = inp.value; delete f.model.multi?.[inp.dataset.k]; touch([f]); });
+    tr.querySelectorAll("input").forEach((inp) => inp.oninput = () => { const k = inp.dataset.k; if (inp.value === "") delete f.model.fields[k]; else f.model.fields[k] = inp.value; delete f.model.multi?.[k]; fieldChanged(f, k); touch([f]); });
   });
-  namePreview();
+  renderFill();
 }
-function namePreview() {
-  const f = albumSet()[0];
-  if (!f) { $("namePreview").textContent = ""; return; }
-  const r = parseFileName(f.name, $("namePatternIn").value);
-  $("namePreview").textContent = r ? `${f.name} gives: ` + Object.entries(r).map(([k, v]) => `${FIELD[k]?.label || k} "${v}"`).join(", ") : `"${f.name}" doesn't match that pattern.`;
+// reading titles from file names: preset patterns, picked for you, previewed before anything changes
+const fill = { preset: null, auto: true, names: "" };
+const tidyOpts = () => ({ spaces: $("tdSpaces").checked, titleCase: $("tdCase").checked, stripNumber: $("tdNum").checked, pattern: $("namePatternIn").value });
+for (const [id, key, d] of [["tdSpaces", "tdSpaces", "1"], ["tdCase", "tdCase", "1"], ["tdNum", "tdNum", "1"]]) {
+  $(id).checked = store.get(key, d) === "1";
+  $(id).onchange = () => { store.set(key, $(id).checked ? "1" : "0"); renderFill(); };
 }
 $("namePatternIn").value = store.get("fillPattern", $("namePatternIn").value);
-$("namePatternIn").oninput = () => { store.set("fillPattern", $("namePatternIn").value); namePreview(); };
-$("fillFromName").onclick = () => {
+$("namePatternIn").oninput = () => { store.set("fillPattern", $("namePatternIn").value); renderFill(); };
+function renderFill() {
+  const list = albumSet(), names = list.map((f) => f.name), o = tidyOpts();
+  // a new set of files: pick the preset again (unless the person chose one for this set)
+  if (names.join("\n") !== fill.names) { fill.names = names.join("\n"); fill.auto = true; }
+  if (fill.auto || !fill.preset) fill.preset = names.length ? pickPreset(names, o) : "title";
+  const fits = Object.fromEntries(NAME_PRESETS.map((p) => [p.id, names.filter((n) => presetFill(n, p.id, o)).length]));
+  $("presets").innerHTML = NAME_PRESETS.map((p) => `<button role="radio" aria-checked="${p.id === fill.preset}" class="${p.id === fill.preset ? "on" : ""}" data-preset="${p.id}">${esc(p.label)}<span class="fit">${names.length ? `fits ${fits[p.id]} of ${names.length}` : ""}</span><small>${esc(p.example)}</small></button>`).join("")
+    + `<button role="radio" aria-checked="${fill.preset === "custom"}" class="${fill.preset === "custom" ? "on" : ""}" data-preset="custom">Custom...<small>your own pattern</small></button>`;
+  for (const b of $("presets").querySelectorAll("[data-preset]")) b.onclick = () => { fill.preset = b.dataset.preset; fill.auto = false; renderFill(); };
+  $("customRow").classList.toggle("hidden", fill.preset !== "custom");
+  $("tidyRow").classList.toggle("hidden", fill.preset !== "title");
+  const rows = fillPreview(list.map((f) => ({ name: f.name, fields: f.model.fields })), fill.preset, o);
+  const cell = (r, k) => (!r.values[k] ? '<td class="nc">no change</td>' : k in r.changes ? `<td>${esc(r.values[k])}</td>` : `<td class="nc" title="${esc(r.values[k])}">no change</td>`);
+  $("fillRows").innerHTML = rows.map((r) => `<tr><td class="file" title="${esc(r.name)}">${esc(r.name)}</td>${r.match ? cell(r, "title") + cell(r, "artist") + cell(r, "track") : '<td class="miss" colspan="3">Doesn\'t fit this pattern, so it\'s left as it is.</td>'}</tr>`).join("")
+    || '<tr><td class="miss" colspan="4">No tracks.</td></tr>';
+  const changing = rows.filter((r) => Object.keys(r.changes).length).length, missed = rows.filter((r) => !r.match).length;
+  $("fillApply").disabled = !changing;
+  $("fillApply").textContent = changing ? `Apply to ${changing} track${changing === 1 ? "" : "s"}` : "Apply";
+  $("fillSummary").textContent = !rows.length ? "" : !changing ? (missed === rows.length ? "None of the names fit this pattern. Try another one above." : "Nothing would change: the tags already match.")
+    : missed ? `${missed} file name${missed === 1 ? " doesn't" : "s don't"} fit and will be left as they are.` : "";
+}
+$("fillApply").onclick = () => {
+  const list = albumSet(), o = tidyOpts();
   let n = 0;
-  const list = albumSet();
-  for (const f of list) { const r = parseFileName(f.name, $("namePatternIn").value); if (!r) continue; Object.assign(f.model.fields, r); for (const k of Object.keys(r)) delete f.model.multi?.[k]; n++; touch([f]); }
-  setStatus(n ? "ok" : "bad", n ? `Filled in ${n} of ${list.length} tracks from their file names.` : "None of the file names match that pattern.");
+  for (const f of list) {
+    const r = presetFill(f.name, fill.preset, o); if (!r) continue;
+    let changed = false;
+    for (const [k, v] of Object.entries(r)) { if (String(f.model.fields[k] ?? "") === v) continue; f.model.fields[k] = v; delete f.model.multi?.[k]; fieldChanged(f, k); changed = true; }
+    if (changed) { n++; touch([f]); }
+  }
+  setStatus("ok", `Filled in ${n} track${n === 1 ? "" : "s"} from ${n === 1 ? "its file name" : "their file names"}.`);
   renderAll();
 };
 $("numberTracks").onclick = () => {
@@ -359,12 +480,13 @@ $("numberTracks").onclick = () => {
   list.forEach((f, i) => { f.model.fields.track = String(i + 1); f.model.fields.trackTotal = String(list.length); });
   touch(list); setStatus("ok", `Numbered ${list.length} tracks 1 to ${list.length}, in list order.`); renderAll();
 };
-$("titleCaseBtn").onclick = () => { const list = albumSet(); for (const f of list) if (f.model.fields.title) f.model.fields.title = titleCase(f.model.fields.title); touch(list); renderAll(); };
+$("titleCaseBtn").onclick = () => { const list = albumSet(); for (const f of list) if (f.model.fields.title) f.model.fields.title = titleCase(f.model.fields.title); touch(list); setStatus("ok", `Title Cased ${list.length} title${list.length === 1 ? "" : "s"}.`); renderAll(); };
 $("trimBtn").onclick = () => {
   const list = albumSet();
   for (const f of list) {
     for (const [k, v] of Object.entries(f.model.fields)) { const t = FIELD[k]?.type === "long" ? String(v).replace(/[ \t]+$/gm, "").trim() : tidy(v); if (t !== v) { f.model.fields[k] = t; delete f.model.multi?.[k]; } }
     for (const c of f.model.custom) { c.value = tidy(c.value); c.name = c.name.trim(); }
+    mirrorAlbumArtist(f.model); delete f.model.genreSlots;
   }
   touch(list); setStatus("ok", "Trimmed extra spaces."); renderAll();
 };
@@ -386,7 +508,9 @@ $("sheetInput").onchange = async (e) => {
   for (const r of rows) {
     const f = state.files.find((x) => x.name.toLowerCase() === String(r.file).toLowerCase());
     if (!f || f.model.readOnly) continue;
-    for (const [k, v] of Object.entries(r.fields)) { if (!FIELD[k]) continue; if (String(v) === "") delete f.model.fields[k]; else f.model.fields[k] = String(v); delete f.model.multi?.[k]; }
+    for (const [k, v] of Object.entries(r.fields)) { if (!FIELD[k]) continue; if (String(v) === "") delete f.model.fields[k]; else f.model.fields[k] = String(v); delete f.model.multi?.[k]; if (k !== "artist") fieldChanged(f, k); }
+    if ("albumArtist" in r.fields && String(r.fields.albumArtist) === String(f.model.fields.artist ?? "")) f.model.aaFollow = true;
+    if ("artist" in r.fields) fieldChanged(f, "artist");
     for (const c of r.custom) { const ex = f.model.custom.find((x) => x.name === c.name); if (ex) { ex.value = String(c.value); delete ex.values; } else f.model.custom.push({ name: c.name, value: String(c.value) }); }
     if (typeof r.synced === "string" && SYSTEM[f.model.format] === "id3") f.model.synced = r.synced;
     touch([f]); n++;
@@ -446,7 +570,7 @@ function renderSaveBar() {
 $("id3Ver").value = store.get("id3", "3");
 $("nameMode").value = store.get("nameMode", "same");
 $("namePattern").value = store.get("namePattern", $("namePattern").value);
-$("id3Ver").onchange = () => store.set("id3", $("id3Ver").value);
+$("id3Ver").onchange = () => { store.set("id3", $("id3Ver").value); if ($("genreHint")) { const [h, w] = genreHint(); $("genreHint").textContent = h; $("genreHint").closest("label").title = w; } };
 $("nameMode").onchange = () => { store.set("nameMode", $("nameMode").value); renderSaveBar(); };
 $("namePattern").oninput = () => store.set("namePattern", $("namePattern").value);
 $("optToggle").onclick = () => $("saveBar").classList.toggle("more");
@@ -487,6 +611,7 @@ window.addEventListener("beforeunload", (e) => { if (state.files.some((f) => f.d
 $("fileList").onclick = (e) => {
   const li = e.target.closest("li"); if (!li) return;
   const id = +li.dataset.id;
+  if (e.target.closest("[data-play]")) { playToggle(id); return; }
   if (e.target.tagName === "INPUT") { if (e.target.checked) state.sel.add(id); else state.sel.delete(id); state.focus = id; }
   else if (e.shiftKey && state.focus) { const a = state.files.findIndex((f) => f.id === state.focus), b2 = state.files.findIndex((f) => f.id === id); for (const f of state.files.slice(Math.min(a, b2), Math.max(a, b2) + 1)) state.sel.add(f.id); }
   else if (e.ctrlKey || e.metaKey) { if (state.sel.has(id)) state.sel.delete(id); else state.sel.add(id); state.focus = id; }
@@ -497,7 +622,7 @@ $("selAll").onchange = (e) => { state.sel = e.target.checked ? new Set(state.fil
 $("sortName").onclick = () => { state.files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })); renderAll(); };
 $("clearAll").onclick = () => {
   if (state.files.some((f) => f.dirty) && !confirm("Some tracks have changes you haven't saved. Clear the list anyway?")) return;
-  state.files = []; state.sel = new Set(); state.focus = null; state.added.clear(); setStatus("", ""); renderAll();
+  stopPlayer(); state.files = []; state.sel = new Set(); state.focus = null; state.added.clear(); setStatus("", ""); renderAll();
 };
 
 // ---------- dropping files ----------
@@ -518,10 +643,81 @@ window.addEventListener("drop", async (e) => {
   else if (imgs.length && editable().length) { const im = await readImage(imgs[0]); if (im) setFront(im.bytes, im.mime); }
 });
 
+// ---------- listening: one track at a time, with an <audio> element ----------
+// The play button on a file plays that file. Choosing another file stops what's
+// playing and loads the new one, paused: it plays when you press play (or Alt+P).
+// Space is left alone, so it types spaces in the fields.
+const ICON = { play: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.2v9.6L10.5 6z"/></svg>', pause: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1.2h3v9.6H2zM7 1.2h3v9.6H7z"/></svg>' };
+const audio = new Audio();
+audio.preload = "metadata";
+const player = { id: null, url: null, seeking: false };
+window.__player = { audio, player }; // read by the headless browser check
+const MIME = { mp3: "audio/mpeg", wav: "audio/wav", aiff: "audio/aiff", flac: "audio/flac", m4a: "audio/mp4", ogg: "audio/ogg", opus: "audio/ogg" };
+function loadPlayer(id) {
+  if (player.id === id) return;
+  audio.pause();
+  if (player.url) URL.revokeObjectURL(player.url);
+  player.id = id; player.url = null;
+  $("pErr").classList.add("hidden");
+  const f = byId(id);
+  if (f) { player.url = URL.createObjectURL(new Blob([f.bytes], { type: MIME[f.model.format] || "application/octet-stream" })); audio.src = player.url; }
+  else audio.removeAttribute("src");
+  renderPlayer();
+}
+function stopPlayer() { audio.pause(); if (player.url) URL.revokeObjectURL(player.url); player.id = null; player.url = null; audio.removeAttribute("src"); renderPlayer(); }
+async function playToggle(id = player.id ?? state.focus) {
+  if (id == null) return;
+  if (id !== player.id) loadPlayer(id);
+  if (audio.paused) { try { await audio.play(); } catch (e) { if (e.name !== "AbortError") showPlayErr(); } } else audio.pause();
+}
+function showPlayErr() {
+  const f = byId(player.id);
+  $("pErr").textContent = `This browser can't play ${f ? FORMAT_NAME[f.model.format] || "this" : "this"} file${f?.model.format === "aiff" ? " (most browsers don't play AIFF)" : ""}. Tagging and saving still work.`;
+  $("pErr").classList.remove("hidden");
+}
+const dur = () => (Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : byId(player.id)?.model.info?.duration || 0);
+function renderPlayer() {
+  $("playerCard").classList.toggle("hidden", !state.files.length);
+  const f = byId(player.id), on = !!f && !audio.paused;
+  $("pPlay").innerHTML = on ? ICON.pause : ICON.play;
+  $("pPlay").classList.toggle("on", on);
+  $("pPlay").setAttribute("aria-label", on ? "Pause" : "Play");
+  $("pName").textContent = f ? (f.model.fields.title || f.name) : "Choose a track to listen";
+  $("pName").title = f ? f.name : "";
+  renderTime();
+  for (const b of $("fileList").querySelectorAll("[data-play]")) {
+    const me = +b.dataset.play === player.id && on;
+    b.classList.toggle("on", me); b.innerHTML = me ? ICON.pause : ICON.play;
+    b.title = (me ? "Pause" : "Play") + " (Alt+P plays the open track)";
+  }
+}
+function renderTime() {
+  const d = dur();
+  $("pCur").textContent = fmtTime(audio.currentTime || 0);
+  $("pDur").textContent = fmtTime(d);
+  if (!player.seeking) $("pSeek").value = d ? Math.round((audio.currentTime / d) * 1000) : 0;
+}
+for (const ev of ["play", "pause", "ended", "loadedmetadata", "emptied"]) audio.addEventListener(ev, renderPlayer);
+audio.addEventListener("timeupdate", renderTime);
+audio.addEventListener("error", () => { if (audio.getAttribute("src")) showPlayErr(); });
+$("pPlay").onclick = () => playToggle();
+$("pSeek").oninput = () => { player.seeking = true; const d = dur(); $("pCur").textContent = fmtTime((+$("pSeek").value / 1000) * d); };
+$("pSeek").onchange = () => { const d = dur(); if (d) audio.currentTime = (+$("pSeek").value / 1000) * d; player.seeking = false; };
+const jump = (t) => { if (player.id == null && state.focus != null) loadPlayer(state.focus); const d = dur(); audio.currentTime = Math.max(0, Math.min(d ? d - 0.25 : 0, t)); renderTime(); };
+$("pBack").onclick = () => jump(audio.currentTime - 10);
+$("pFwd").onclick = () => jump(audio.currentTime + 30);
+$("pMid").onclick = () => jump(dur() / 2);
+document.addEventListener("keydown", (e) => { if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === "KeyP") { e.preventDefault(); playToggle(); } });
+// the open track changed: stop the old one, load the new one paused
+function followFocus() {
+  if (state.focus == null) { if (player.id != null && !byId(player.id)) stopPlayer(); else renderPlayer(); return; }
+  if (player.id !== state.focus) loadPlayer(state.focus); else renderPlayer();
+}
+
 // ---------- everything ----------
 function renderAll() {
   if (state.focus && !state.sel.has(state.focus)) state.focus = targets()[0]?.id ?? null;
-  renderList(); renderCurrent(); renderMain(); renderMore(); renderLyrics(); renderPictures(); renderFile(); renderSaveBar();
+  renderList(); renderCurrent(); renderMain(); renderMore(); renderLyrics(); renderPictures(); renderFile(); renderSaveBar(); followFocus();
   if (state.tab === "album") renderAlbum();
   showTab(state.tab);
 }
