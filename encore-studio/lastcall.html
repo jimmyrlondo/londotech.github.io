@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Last Call · Encore Music Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,6 +14,14 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
   main { max-width: 900px; margin: 0 auto; padding: 18px 16px 48px; }
+  /* wide screens: the verdict and cover beside the checks, which scroll in their own column */
+  @media screen and (min-width: 1100px) {
+    main:has(#report:not(.hidden)) { max-width: 1320px; padding-bottom: 16px; }
+    #report:not(.hidden) { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 18px; align-items: start; }
+    .repL { position: sticky; top: 76px; }
+    .repR { max-height: calc(100vh - 96px); overflow-y: auto; padding-right: 4px; }
+    .repL .verdict .actions { flex-wrap: wrap; }
+  }
   .hidden { display: none !important; }
   .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
          background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
@@ -126,6 +135,12 @@
     .tablewrap { overflow: visible; }
     table.tracks { min-width: 0; }
   }
+  details.passed { margin-top: 8px; border: 1px solid var(--divider); border-radius: 10px; }
+  details.passed > summary { cursor: pointer; padding: 10px 12px; font-size: 13px; color: var(--soft); display: flex; align-items: center; gap: 8px; list-style: none; }
+  details.passed > summary::-webkit-details-marker { display: none; }
+  details.passed > summary::after { content: 'Show'; margin-left: auto; color: var(--dim); font-size: 12px; flex: none; }
+  details.passed[open] > summary::after { content: 'Hide'; }
+  details.passed > .checks { padding: 0 8px 8px; }
 </style>
 </head>
 <body>
@@ -133,7 +148,7 @@
   <svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg>
   <span class="chip-label">STUDIO</span>
   <span class="product"><span class="sep">/</span>Last Call</span>
-  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="chords.html">Chords</a></nav>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a></nav>
   <span class="note">Checks on your device only. Nothing is uploaded.</span>
 </div>
 
@@ -160,6 +175,7 @@
   <section id="progress" class="progress hidden" aria-live="polite"></section>
 
   <section id="report" class="hidden">
+    <div class="repL">
     <div class="verdict" id="verdict">
       <div class="vicon" id="vicon"></div>
       <div class="vtext"><h2 id="vlabel"></h2><div class="vsum" id="vsum"></div></div>
@@ -170,14 +186,17 @@
         <span class="copied hidden" id="copied">Copied</span>
       </div>
     </div>
-    <div id="albumBlock"></div>
     <section class="block" id="coverBlock">
       <h3>Cover art</h3>
       <div class="coverRow"><img class="thumb hidden" id="thumb" alt="Cover art"><div class="checks" id="coverChecks"></div></div>
       <div class="noprint" style="margin-top:8px"><button class="small" id="coverBtn2" type="button">Add or replace cover art</button></div>
     </section>
+    </div>
+    <div class="repR">
+    <div id="albumBlock"></div>
     <div id="tracks"></div>
     <p class="footnote">Measured on your own device; nothing was uploaded. Streaming figures are estimates from each service's published loudness level, and services change their settings from time to time. Last Call reads what's in the file: your distributor also checks the details you type into its upload form.</p>
+    </div>
   </section>
 </main>
 <script type="module" src="lastcall.js"></script>

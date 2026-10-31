@@ -403,8 +403,26 @@ let refSource = null, refGain = null;
 
 function setupReference() {
   const panes = { tabMix: "mixList", tabRef: "refPane", tabStream: "streamPane" };
-  const showTab = (tab) => { for (const [t, p] of Object.entries(panes)) { $(t).classList.toggle("on", t === tab); $(p).classList.toggle("hidden", t !== tab); } };
-  for (const t of Object.keys(panes)) $(t).addEventListener("click", () => showTab(t));
+  const showTab = (tab) => {
+    if (!panes[tab]) tab = "tabMix";
+    for (const [t, p] of Object.entries(panes)) {
+      const on = t === tab;
+      $(t).classList.toggle("on", on); $(t).setAttribute("aria-selected", on); $(t).tabIndex = on ? 0 : -1;
+      $(p).classList.toggle("hidden", !on);
+    }
+    try { localStorage.setItem("encore-master-tab", tab); } catch {}
+  };
+  for (const t of Object.keys(panes)) {
+    $(t).addEventListener("click", () => showTab(t));
+    $(t).addEventListener("keydown", (e) => { // arrow keys move between the tabs (WAI-ARIA tabs pattern) instead of seeking
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+      e.preventDefault(); e.stopPropagation();
+      const ids = Object.keys(panes), i = ids.indexOf(t);
+      const next = e.key === "Home" ? ids[0] : e.key === "End" ? ids[ids.length - 1] : ids[(i + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length];
+      showTab(next); $(next).focus();
+    });
+  }
+  showTab((() => { try { return localStorage.getItem("encore-master-tab"); } catch { return null; } })()); // runs before saved() exists
   const pick = () => { $("refFile").value = ""; $("refFile").click(); };
   $("refLoad").addEventListener("click", pick);
   $("refChange").addEventListener("click", pick);
@@ -610,6 +628,8 @@ function drawLevel(g, w, h, col, played, colOf) {
 }
 
 window.addEventListener("resize", () => { drawWave(); drawSpectrum(); });
+// the layout sizes these canvases to fit the window, so redraw whenever their box changes (not only on window resize)
+if (window.ResizeObserver) { const ro = new ResizeObserver(() => { drawWave(); drawSpectrum(); }); ro.observe($("wave")); ro.observe($("spectrum")); }
 
 function drawSpectrum() {
   const c = $("spectrum"), dpr = window.devicePixelRatio || 1;

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Live · Encore Music Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +19,7 @@
 
   .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
          background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
-  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; flex: none; }
   .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
   .product { font-weight: 700; letter-spacing: -0.01em; }
   .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
@@ -135,7 +136,7 @@
   #abNote { color: var(--dim); font-size: 12px; }
 
   .cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); gap: 12px; margin-top: 12px; align-items: start; }
-  .side { display: flex; flex-direction: column; gap: 12px; }
+  .side { display: flex; flex-direction: column; }
   #songs { display: flex; flex-direction: column; gap: 8px; }
   details.song { background: var(--panel); border: 1px solid var(--edge); border-left: 4px solid var(--c); border-radius: var(--radius-panel); }
   details.song[open] { border-color: var(--divider-strong); border-left-color: var(--c); }
@@ -195,15 +196,58 @@
   .kv { display: flex; justify-content: space-between; color: var(--dim); font-size: 12.5px; }
   .kv b { color: var(--text); font-family: var(--family-mono); font-weight: 400; font-size: 12px; }
 
+  /* ---- right column: Show | Sound | Release tabs, action always at the bottom ---- */
+  .tabsBox { background: var(--panel); border: 1px solid var(--edge); border-radius: var(--radius-panel); min-width: 0; overflow: clip; display: flex; flex-direction: column; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; flex: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: 1 0 auto; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 8px 13px; min-height: 38px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover:not(.on) { color: var(--text); background: rgb(255 255 255 / 0.06); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 12px 14px 14px; }
+  .tabBody > section { display: none; }
+  .tabBody > section.show { display: block; }
+  .tabBody .sub + .sub { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--divider); }
+  .artRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .art .artRow img { margin-top: 0; width: 44px; height: 44px; }
+  .sideFoot { flex: none; border-top: 1px solid var(--divider); padding: 10px 14px 12px; background: var(--panel); }
+  .footBtns { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; }
+  .footBtns button { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #newSet { white-space: nowrap; flex: none; }
+  @media (max-width: 1380px) and (min-width: 681px) { .bar .note { display: none; } }
+  .sideFoot #exportGo, .sideFoot #encoreGo { width: 100%; margin: 0; padding: 10px 12px; }
+  .sideFoot #exportStatus { margin-top: 6px; }
+  .sideFoot #exportStatus:empty { display: none; }
+  #exportResults:not(:empty) { margin-top: 12px; }
+  #songs { min-width: 0; }
+
+  /* desktop: the editor fits the window; the songs and the tab body scroll inside their own boxes */
+  @media (min-width: 1000px) and (min-height: 600px) {
+    body:has(#editor:not(.hidden)) main { padding-bottom: 14px; }
+    #editor:not(.hidden) { display: flex; flex-direction: column; height: calc(100dvh - 60px - 28px); margin-top: 0; }
+    #editor > .panel { flex: none; }
+    #timeline { height: clamp(96px, calc(24dvh - 66px), 150px); }
+    .cols { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+    #songs { overflow-y: auto; min-height: 0; padding-right: 4px; scrollbar-width: thin; }
+    .side { min-height: 0; }
+    .tabBody { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+    .sideFoot #exportStatus { max-height: 3.6em; overflow-y: auto; }
+  }
+  @media (max-width: 1400px) { .cols { grid-template-columns: minmax(0, 1.2fr) minmax(360px, 1fr); } }
   @media (max-width: 1000px) { .cols { grid-template-columns: 1fr; } }
+  /* stacked (phone, small windows): the action bar sticks to the bottom of the screen while the panel is in view */
+  @media not ((min-width: 1000px) and (min-height: 600px)) { .sideFoot { position: sticky; bottom: 0; z-index: 2; border-radius: 0 0 var(--radius-panel) var(--radius-panel); } }
   @media (max-width: 680px) {
     .start, .recControls, .edges { grid-template-columns: 1fr; }
     #recTime { font-size: 40px; }
     #timeline { height: 110px; }
     .bar .note, #setName { display: none; }
     .ab { margin-left: 0; }
+    main { padding-bottom: 20px; }
+    .tlBar .legend { flex: 1 1 100%; justify-content: flex-start; gap: 4px 12px; }
+    .styles { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .styles button { padding: 8px 2px; font-size: 13px; }
   }
-  @media (max-width: 460px) { .grid2 { grid-template-columns: 1fr; } }
+  @media (max-width: 460px) { #recView .grid2 { grid-template-columns: 1fr; } .sideFoot #encoreGo { padding: 8px 12px; } }
 </style>
 </head>
 <body>
@@ -211,7 +255,7 @@
   <svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg>
   <span class="chip-label">STUDIO</span>
   <span class="product"><span class="sep">/</span>Live</span>
-  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a></nav>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a></nav>
   <span class="note">Your recording never leaves your device.</span>
   <span class="spacer"></span>
   <div id="setName"></div>
@@ -345,108 +389,120 @@
     </div>
 
     <div class="cols">
-      <div id="songs"></div>
+      <div id="songs" aria-label="Songs"></div>
 
-      <div class="side">
-        <div class="panel hidden" id="routingPanel">
-          <div class="label">Inputs <span id="routingInfo"></span></div>
-          <div id="chanBars" class="chanBars"></div>
-          <p id="routeText" class="routeText"></p>
-          <div class="label" style="margin-top:12px">How was it set up?</div>
-          <div class="setups" id="setups">
-            <button data-setup="single"><b>One input</b><small>a mic or one cable, heard in both ears</small></button>
-            <button data-setup="stereo"><b>Stereo pair</b><small>board L/R out, or a stereo mic</small></button>
-            <button data-setup="blend"><b>Blend to the middle</b><small>separate mics or instruments</small></button>
-            <button data-setup="boardRoom"><b>Board + more</b><small>board feed with room mics or other inputs blended in</small></button>
-          </div>
-          <div id="setupPick" class="grid2" style="margin-top:10px">
-            <label class="field" id="pickOneWrap">Input<select id="pickOne"></select></label>
-            <label class="field" id="pickAWrap">Input<select id="pickA"></select></label>
-            <label class="field" id="pickBWrap">and<select id="pickB"></select></label>
-            <label class="field" id="pickPairWrap">Inputs<select id="pickPair"></select></label>
-            <label class="field" id="pickRoomWrap">Room or crowd mics<select id="pickRoom"></select></label>
-          </div>
-          <div id="roomControls" class="hidden" style="margin-top:10px">
-            <div class="label">Room mic level <span class="val" id="rRoomVal">-6.0 dB</span></div>
-            <input id="rRoomDb" type="range" min="-24" max="6" step="0.5" value="-6" aria-label="Room mic level">
-            <div class="label" style="margin-top:10px">Line up board and room <span class="val" id="rDelayVal">0.0 ms</span></div>
-            <input id="rDelay" type="range" min="0" max="150" step="0.1" value="0" aria-label="Board delay">
-            <button id="rAuto" class="small" style="margin-top:6px">Line up automatically</button>
-            <p class="hint" style="margin-top:6px">Sound reaches the room mics a little after the board. Delaying the board to match keeps the blend from sounding hollow.</p>
-          </div>
-          <button id="redetect" class="small hidden" style="margin-top:10px">Find the songs again with these inputs</button>
+      <div class="side tabsBox" id="sidePanel">
+        <div class="tabBar" role="tablist" aria-label="Show, sound and release">
+          <button role="tab" id="tabShow" data-tab="show" aria-controls="paneShow" aria-selected="false">Show</button>
+          <button role="tab" id="tabInputs" data-tab="inputs" aria-controls="routingPanel" aria-selected="false" class="hidden">Inputs</button>
+          <button role="tab" id="tabSound" data-tab="sound" aria-controls="paneSound" aria-selected="false">Sound</button>
+          <button role="tab" id="tabRelease" data-tab="release" aria-controls="paneRelease" aria-selected="false">Release</button>
         </div>
-
-        <div class="panel">
-          <div class="label">The show</div>
-          <div class="grid2">
-            <label class="field">Artist<input id="mArtist" autocomplete="off"></label>
-            <label class="field">Release title<input id="mTitle" autocomplete="off" placeholder="Live at ..."></label>
-            <label class="field">Venue<input id="mVenue" autocomplete="off"></label>
-            <label class="field">City<input id="mCity" autocomplete="off"></label>
-            <label class="field">Date<input id="mDate" type="date"></label>
-            <label class="field">Genre<select id="mGenre"><option value="">Choose a genre</option></select></label>
-            <label class="field wide art">Cover art <small>(optional, JPG or PNG)</small><input id="mArt" type="file" accept="image/jpeg,image/png"><img id="mArtPreview" class="hidden" alt="Cover art preview"></label>
-            <label class="field wide">Setlist <small>(paste one song per line to fill in the titles)</small><textarea id="mSetlist" placeholder="Opener&#10;Second song&#10;..."></textarea></label>
-          </div>
-          <button id="applySetlist" class="small" style="margin-top:8px">Fill in titles</button>
-        </div>
-
-        <div class="panel hidden" id="gainPanel">
-          <div class="label">Level <span>from the recording</span></div>
-          <div class="label" style="margin-top:4px">Input volume <span class="val" id="gVolVal">0.0 dB</span></div>
-          <input id="gVol" type="range" min="-24" max="12" step="0.5" value="0" aria-label="Input volume">
-          <label class="check" style="margin-top:8px"><input type="checkbox" id="gLeveler" checked> Smart leveler</label>
-        </div>
-
-        <div class="panel">
-          <div class="label">Sound <span>same settings on every song</span></div>
-          <div class="section">
-            <div class="styles" id="styles"></div>
-            <div id="blurb"></div>
-          </div>
-          <div class="section">
-            <div class="label">Intensity <span id="intensityVal">Normal</span></div>
-            <input id="intensity" type="range" min="0" max="100" value="50" aria-label="Intensity">
-          </div>
-          <div class="section">
-            <div class="label">Loudness <span>the loudest song hits this; the rest keep their place</span></div>
-            <div class="targets" id="targets"></div>
-          </div>
-          <div class="section">
-            <div class="label">Song to song <span id="evenVal">50% evened out</span></div>
-            <input id="even" type="range" min="0" max="100" value="50" aria-label="Song to song loudness">
-            <div class="scale"><span>As played</span><span>All equal</span></div>
-            <p class="hint" style="margin-top:6px">As played keeps the quiet songs quiet, like the room. All equal brings every song up to the loudest.</p>
-          </div>
-          <div class="section">
-            <div class="label">EQ</div>
-            <div class="eq">
-              <label>Low <output id="eqLowVal">0.0 dB</output><input id="eqLow" type="range" min="-6" max="6" step="0.5" value="0" aria-label="Low EQ"></label>
-              <label>Mid <output id="eqMidVal">0.0 dB</output><input id="eqMid" type="range" min="-6" max="6" step="0.5" value="0" aria-label="Mid EQ"></label>
-              <label>High <output id="eqHighVal">0.0 dB</output><input id="eqHigh" type="range" min="-6" max="6" step="0.5" value="0" aria-label="High EQ"></label>
+        <div class="tabBody">
+          <section class="hidden" id="routingPanel" data-tab="inputs" role="tabpanel" aria-labelledby="tabInputs">
+            <div class="label">Inputs <span id="routingInfo"></span></div>
+            <div id="chanBars" class="chanBars"></div>
+            <p id="routeText" class="routeText"></p>
+            <div class="label" style="margin-top:12px">How was it set up?</div>
+            <div class="setups" id="setups">
+              <button data-setup="single"><b>One input</b><small>a mic or one cable, heard in both ears</small></button>
+              <button data-setup="stereo"><b>Stereo pair</b><small>board L/R out, or a stereo mic</small></button>
+              <button data-setup="blend"><b>Blend to the middle</b><small>separate mics or instruments</small></button>
+              <button data-setup="boardRoom"><b>Board + more</b><small>board feed with room mics or other inputs blended in</small></button>
             </div>
-          </div>
-          <div class="section">
-            <label class="check"><input type="checkbox" id="rumble" checked> Rumble filter <small>(stage thumps, AC hum)</small></label>
-            <label class="check" style="margin-top:4px"><input type="checkbox" id="harsh"> Tame harsh phone mic <small>(softens 3 to 4 kHz)</small></label>
-          </div>
-        </div>
+            <div id="setupPick" class="grid2" style="margin-top:10px">
+              <label class="field" id="pickOneWrap">Input<select id="pickOne"></select></label>
+              <label class="field" id="pickAWrap">Input<select id="pickA"></select></label>
+              <label class="field" id="pickBWrap">and<select id="pickB"></select></label>
+              <label class="field" id="pickPairWrap">Inputs<select id="pickPair"></select></label>
+              <label class="field" id="pickRoomWrap">Room or crowd mics<select id="pickRoom"></select></label>
+            </div>
+            <div id="roomControls" class="hidden" style="margin-top:10px">
+              <div class="label">Room mic level <span class="val" id="rRoomVal">-6.0 dB</span></div>
+              <input id="rRoomDb" type="range" min="-24" max="6" step="0.5" value="-6" aria-label="Room mic level">
+              <div class="label" style="margin-top:10px">Line up board and room <span class="val" id="rDelayVal">0.0 ms</span></div>
+              <input id="rDelay" type="range" min="0" max="150" step="0.1" value="0" aria-label="Board delay">
+              <button id="rAuto" class="small" style="margin-top:6px">Line up automatically</button>
+              <p class="hint" style="margin-top:6px">Sound reaches the room mics a little after the board. Delaying the board to match keeps the blend from sounding hollow.</p>
+            </div>
+            <button id="redetect" class="small hidden" style="margin-top:10px">Find the songs again with these inputs</button>
+          </section>
 
-        <div class="panel">
-          <div class="label">Release</div>
-          <div class="formats">
-            <label><input type="checkbox" id="fWav" checked> WAV 24-bit</label>
-            <label><input type="checkbox" id="fMp3" checked> MP3 320</label>
+          <section id="paneShow" data-tab="show" role="tabpanel" aria-labelledby="tabShow">
+            <div class="grid2">
+              <label class="field">Artist<input id="mArtist" autocomplete="off"></label>
+              <label class="field">Release title<input id="mTitle" autocomplete="off" placeholder="Live at ..."></label>
+              <label class="field">Venue<input id="mVenue" autocomplete="off"></label>
+              <label class="field">City<input id="mCity" autocomplete="off"></label>
+              <label class="field">Date<input id="mDate" type="date"></label>
+              <label class="field">Genre<select id="mGenre"><option value="">Choose a genre</option></select></label>
+              <label class="field wide art">Cover art <small>(optional, JPG or PNG)</small><span class="artRow"><input id="mArt" type="file" accept="image/jpeg,image/png"><img id="mArtPreview" class="hidden" alt="Cover art preview"></span></label>
+              <label class="field wide">Setlist <small>(paste one song per line to fill in the titles)</small><textarea id="mSetlist" placeholder="Opener&#10;Second song&#10;..."></textarea></label>
+            </div>
+            <button id="applySetlist" class="small" style="margin-top:8px">Fill in titles</button>
+          </section>
+
+          <section id="paneSound" data-tab="sound" role="tabpanel" aria-labelledby="tabSound">
+            <div class="hidden sub" id="gainPanel">
+              <div class="label">Level <span>from the recording</span></div>
+              <div class="label" style="margin-top:4px">Input volume <span class="val" id="gVolVal">0.0 dB</span></div>
+              <input id="gVol" type="range" min="-24" max="12" step="0.5" value="0" aria-label="Input volume">
+              <label class="check" style="margin-top:8px"><input type="checkbox" id="gLeveler" checked> Smart leveler</label>
+            </div>
+            <div class="sub">
+              <div class="label">Sound <span>same settings on every song</span></div>
+              <div class="section">
+                <div class="styles" id="styles"></div>
+                <div id="blurb"></div>
+              </div>
+              <div class="section">
+                <div class="label">Intensity <span id="intensityVal">Normal</span></div>
+                <input id="intensity" type="range" min="0" max="100" value="50" aria-label="Intensity">
+              </div>
+              <div class="section">
+                <div class="label">Loudness <span>the loudest song hits this; the rest keep their place</span></div>
+                <div class="targets" id="targets"></div>
+              </div>
+              <div class="section">
+                <div class="label">Song to song <span id="evenVal">50% evened out</span></div>
+                <input id="even" type="range" min="0" max="100" value="50" aria-label="Song to song loudness">
+                <div class="scale"><span>As played</span><span>All equal</span></div>
+                <p class="hint" style="margin-top:6px">As played keeps the quiet songs quiet, like the room. All equal brings every song up to the loudest.</p>
+              </div>
+              <div class="section">
+                <div class="label">EQ</div>
+                <div class="eq">
+                  <label>Low <output id="eqLowVal">0.0 dB</output><input id="eqLow" type="range" min="-6" max="6" step="0.5" value="0" aria-label="Low EQ"></label>
+                  <label>Mid <output id="eqMidVal">0.0 dB</output><input id="eqMid" type="range" min="-6" max="6" step="0.5" value="0" aria-label="Mid EQ"></label>
+                  <label>High <output id="eqHighVal">0.0 dB</output><input id="eqHigh" type="range" min="-6" max="6" step="0.5" value="0" aria-label="High EQ"></label>
+                </div>
+              </div>
+              <div class="section">
+                <label class="check"><input type="checkbox" id="rumble" checked> Rumble filter <small>(stage thumps, AC hum)</small></label>
+                <label class="check" style="margin-top:4px"><input type="checkbox" id="harsh"> Tame harsh phone mic <small>(softens 3 to 4 kHz)</small></label>
+              </div>
+            </div>
+          </section>
+
+          <section id="paneRelease" data-tab="release" role="tabpanel" aria-labelledby="tabRelease">
+            <div class="label">Formats</div>
+            <div class="formats">
+              <label><input type="checkbox" id="fWav" checked> WAV 24-bit</label>
+              <label><input type="checkbox" id="fMp3" checked> MP3 320</label>
+            </div>
+            <label class="check" style="margin-top:8px"><input type="checkbox" id="fShow"> Also one continuous file of the whole show <small>(cuts removed)</small></label>
+            <div class="kv" style="margin-top:10px"><span>Tracks</span><b id="sumTracks">0</b></div>
+            <div class="kv"><span>Total length</span><b id="sumLength">0:00</b></div>
+            <div class="kv"><span>Cut out</span><b id="sumCut">0:00</b></div>
+            <div id="exportResults"></div>
+          </section>
+        </div>
+        <div class="sideFoot">
+          <div class="footBtns">
+            <button id="exportGo" class="primary">Master &amp; create files</button>
+            <button id="encoreGo">Send to Encore &amp; set up a sale</button>
           </div>
-          <label class="check" style="margin-top:8px"><input type="checkbox" id="fShow"> Also one continuous file of the whole show <small>(cuts removed)</small></label>
-          <div class="kv" style="margin-top:10px"><span>Tracks</span><b id="sumTracks">0</b></div>
-          <div class="kv"><span>Total length</span><b id="sumLength">0:00</b></div>
-          <div class="kv"><span>Cut out</span><b id="sumCut">0:00</b></div>
-          <button id="exportGo" class="primary">Master &amp; create files</button>
-          <button id="encoreGo">Send to Encore &amp; set up a sale</button>
-          <div id="exportStatus"></div>
-          <div id="exportResults"></div>
+          <div id="exportStatus" role="status" aria-live="polite"></div>
         </div>
       </div>
     </div>

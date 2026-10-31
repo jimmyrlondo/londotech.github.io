@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chords · Encore Music Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,8 +14,9 @@
   * { box-sizing: border-box; }
   html, body { overflow-x: hidden; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
-  main { max-width: 1100px; margin: 0 auto; padding: 18px 16px 64px; }
+  main { max-width: 1440px; margin: 0 auto; padding: 12px 16px 40px; }
   .hidden { display: none !important; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
          background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
   .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
@@ -27,82 +29,122 @@
   .tools::-webkit-scrollbar { display: none; }
   @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
   .note { color: var(--dim); font-size: 13px; white-space: nowrap; }
-  @media (max-width: 900px) { .bar .note { display: none; } }
+  @media (max-width: 1100px) { .bar .note { display: none; } }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
 
-  h1 { font-size: clamp(26px, 5vw, 38px); line-height: 1.1; margin: 6px 0 6px; letter-spacing: -0.02em; }
-  h2 { font-size: 17px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 16px; margin: 0 0 4px; letter-spacing: -0.01em; }
   h3 { font-size: 14px; margin: 0 0 4px; }
-  .lede { color: var(--soft); margin: 0 0 14px; max-width: 760px; }
   .muted { color: var(--dim); font-size: 13px; }
-  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; margin: 8px 0 14px; }
+  .hint { color: var(--dim); font-size: 12.5px; margin-top: 8px; }
   label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); min-width: 0; }
-  select, input[type=number], input[type=text] { font: inherit; font-size: 14px; color: var(--text); background: var(--panel); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 7px 9px; min-width: 0; width: 100%; }
+  label.tb { flex-direction: row; align-items: center; gap: 6px; white-space: nowrap; }
+  label.chk { flex-direction: row; align-items: center; gap: 6px; color: var(--soft); font-size: 13px; white-space: nowrap; cursor: pointer; }
+  label.chk input { accent-color: #ff3b00; width: 16px; height: 16px; margin: 0; }
+  select, input[type=number], input[type=text] { font: inherit; font-size: 14px; color: var(--text); background: var(--panel); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 6px 8px; min-width: 0; height: 36px; }
   input[type=range] { accent-color: #ff3b00; width: 100%; }
   .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  :focus-visible { outline: 2px solid #ff6c40; outline-offset: 2px; }
+
+  /* top line: the tool tabs, the instrument toolbar, About */
+  .topline { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin: 0 0 10px; }
   .tabs, .seg { display: inline-flex; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 3px; gap: 3px; flex-wrap: wrap; }
-  .tabs button, .seg button { font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 999px; padding: 7px 16px; cursor: pointer; }
+  .tabs button, .seg button { font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 999px; padding: 6px 15px; cursor: pointer; white-space: nowrap; }
+  .tabs button:hover, .seg button:hover { color: var(--text); }
   .tabs button.on, .seg button.on { color: #fff; background: #ff3b00; }
-  .seg button { font-size: 13px; padding: 5px 12px; }
-  button.small { font: inherit; font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 14px; cursor: pointer; white-space: nowrap; }
+  .seg button { font-size: 13px; padding: 4px 12px; }
+  .toolbar { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; margin-left: auto; min-width: 0; }
+  #instrument { width: 170px; } #tuning { width: 200px; } #capo { width: 104px; }
+  .popWrap { position: relative; }
+  .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: 240px; display: grid; gap: 10px; background: #221e1b; border: 1px solid var(--divider-strong); border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / .45); }
+  .menu select { width: 100%; }
+  button.small { font: inherit; font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 5px 13px; cursor: pointer; white-space: nowrap; min-height: 32px; }
   button.small:hover { border-color: var(--soft); }
   button.small.primary { background: #ff3b00; border-color: #ff3b00; color: #fff; font-weight: 700; }
   button.small:disabled { opacity: .45; cursor: default; }
-  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 16px; margin-bottom: 14px; min-width: 0; }
-  .panelHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  button.small[aria-expanded="true"] { border-color: #ff3b00; }
+  button.round { width: 32px; padding: 0; font-weight: 700; }
+  .about { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 12px 16px; margin: 0 0 10px; color: var(--soft); font-size: 14px; }
+  .about b { color: var(--text); }
+  .about p { margin: 4px 0 0; }
+
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 14px; min-width: 0; }
+  .panelHead { display: flex; align-items: center; justify-content: space-between; gap: 8px 10px; flex-wrap: wrap; margin-bottom: 10px; }
   .term { border-bottom: 1px dotted var(--dim); cursor: help; }
-  .topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 4px 0 12px; }
+  .view { display: grid; gap: 12px; min-width: 0; }
 
   /* fretboard and piano: they scroll sideways in their own box, never the page */
   .scroller { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; border-radius: 10px; background: var(--bg-subtle-default); border: 1px solid var(--divider); }
   .scroller svg { display: block; }
+  #neck { width: 100%; height: auto; min-width: calc(var(--w, 900) * 1px); max-width: calc(var(--w, 900) * 1.12px); }
+  #piano { width: 100%; height: auto; min-width: calc(var(--w, 800) * 1px); max-width: calc(var(--w, 800) * 1.12px); }
   #neck .hit { fill: transparent; cursor: pointer; }
   #neck .hit:hover { fill: rgb(255 255 255 / 0.06); }
   #neck .lbl { cursor: pointer; }
   .piano .key { cursor: pointer; }
 
-  /* the answer */
-  .answer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-  @media (max-width: 760px) { .answer { grid-template-columns: minmax(0, 1fr); } }
-  .big { font-size: clamp(40px, 9vw, 64px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; word-break: break-word; }
-  .bigSub { color: var(--soft); margin-top: 4px; }
-  .formula { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
-  .tone { display: flex; flex-direction: column; align-items: center; min-width: 46px; padding: 6px 8px; border-radius: 9px; border: 1px solid var(--divider-strong); }
+  /* Name it: the input on the left, the answer on the right */
+  .nameGrid { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .big { font-size: clamp(38px, 8vw, 58px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; word-break: break-word; }
+  .bigSub { color: var(--soft); margin-top: 4px; font-size: 14px; }
+  .formula { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
+  .tone { display: flex; flex-direction: column; align-items: center; min-width: 44px; padding: 5px 8px; border-radius: 9px; border: 1px solid var(--divider-strong); }
   .tone b { font-size: 16px; }
   .tone span { font-size: 12px; color: var(--dim); font-family: var(--family-mono); }
   .tone.root { border-color: #ff3b00; }
   .tone.root b { color: #ff6c40; }
   .tone.gone { opacity: .45; border-style: dashed; }
   .alts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .alt { font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+  .alt { font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
   .alt.on { color: var(--text); border-color: #ff3b00; }
   .explain { color: var(--soft); font-size: 14px; margin: 8px 0 0; }
-  .empty { color: var(--dim); padding: 14px 0; }
+  .empty { color: var(--dim); padding: 10px 0; }
+  .sect { border-top: 1px solid var(--divider); margin-top: 12px; padding-top: 10px; }
 
   /* chord boxes (shape diagrams) */
-  .shapes { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
-  @media (max-width: 640px) { .shapes { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; } }
-  .shape { font: inherit; color: var(--text); background: transparent; border: 1px solid var(--divider); border-radius: 10px; padding: 6px 4px 8px; cursor: pointer; text-align: center; min-width: 0; }
+  .shapes { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; align-content: start; }
+  @media (max-width: 640px) { .shapes { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; } }
+  .shape { font: inherit; color: var(--text); background: transparent; border: 1px solid var(--divider); border-radius: 10px; padding: 5px 4px 6px; cursor: pointer; text-align: center; min-width: 0; }
   .shape:hover, .shape.on { border-color: #ff3b00; }
-  .shape svg { width: 100%; max-width: 104px; height: auto; display: block; margin: 0 auto; }
-  .shape .cap { font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
+  .shape svg { width: 100%; max-width: 92px; height: auto; display: block; margin: 0 auto; }
+  .shape .cap { font-family: var(--family-mono); font-size: 12px; color: var(--soft); overflow-wrap: anywhere; }
   .shape .sub { font-size: 11px; color: var(--dim); }
+  .luSelects { display: grid; grid-template-columns: 90px minmax(0, 1.4fr) minmax(0, 1fr); gap: 8px; flex: 1 1 520px; max-width: 720px; }
+  .luSelects select { width: 100%; }
+  .luFoot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 10px; }
+  .picked { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--soft); min-height: 32px; }
 
-  /* the key map */
-  .groups { display: grid; gap: 12px; }
-  .group { border-top: 1px solid var(--divider); padding-top: 10px; }
-  .group:first-child { border-top: 0; padding-top: 0; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .chip { font: inherit; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-left: 4px solid var(--dim); border-radius: 9px; padding: 5px 10px 6px; cursor: pointer; text-align: left; min-width: 64px; }
+  /* tabbed boxes inside a tool (as on Metronome) */
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .tabBar { display: flex; gap: 2px; padding: 5px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; flex: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 12px 14px 14px; min-height: 0; }
+  .tabBody > section { display: none; }
+  .tabBody > section.show { display: block; }
+
+  /* the key map: one compact row per group */
+  .groups { display: grid; gap: 0; }
+  .group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 14px; padding: 8px 0; border-top: 1px solid var(--divider); }
+  .group:first-child { border-top: 0; padding-top: 2px; }
+  .group h3 { margin: 0; }
+  .group .gb { font-size: 12px; color: var(--dim); line-height: 1.4; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font: inherit; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-left: 4px solid var(--dim); border-radius: 9px; padding: 3px 9px 4px; cursor: pointer; text-align: left; min-width: 58px; }
   .chip:hover { border-color: var(--soft); }
-  .chip .rn { display: block; font-size: 12px; color: var(--soft); font-family: var(--family-mono); white-space: nowrap; }
-  .chip .nm { display: block; font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .chip .rn { display: block; font-size: 11.5px; color: var(--soft); font-family: var(--family-mono); white-space: nowrap; }
+  .chip .nm { display: block; font-size: 15px; font-weight: 700; white-space: nowrap; }
   .fn-T { border-left-color: #7bd3a4 !important; }
   .fn-S { border-left-color: #22d3ee !important; }
   .fn-D { border-left-color: #ff6e28 !important; }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--dim); }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
-  .moves { display: grid; gap: 8px; }
-  .move { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
+  .mapInfo { font-size: 13px; color: var(--soft); background: var(--bg-subtle-default); border: 1px solid var(--divider); border-radius: 9px; padding: 7px 10px; margin: 8px 0 6px; min-height: 36px; }
+  .mapInfo b { color: var(--text); }
+  .moves { display: grid; gap: 7px; }
+  .move { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: center; }
+  .move .chip { width: 100%; }
   .move p { margin: 0; font-size: 13px; color: var(--soft); }
   .kind { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--dim); margin-right: 6px; }
   .kind.resolve { color: #ff6e28; }
@@ -110,38 +152,107 @@
   .kind.strong { color: #7bd3a4; }
   .kind.smooth { color: #22d3ee; }
 
-  /* the progression */
-  .timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
-  .bar-card { position: relative; border: 1px solid var(--divider-strong); border-radius: 10px; padding: 6px 6px 6px; background: var(--bg-subtle-default); cursor: pointer; min-width: 0; text-align: center; }
+  /* the progression strip */
+  .stripRow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .stripRow .gap { flex: 1 1 0; min-width: 0; }
+  #keySel { width: 230px; } #modeSel { width: 94px; } #styleSel { width: 200px; } #rhythm { width: 160px; }
+  .bpmBox { display: flex; flex-direction: row; align-items: center; gap: 4px; font-size: 12px; color: var(--dim); }
+  #tempo { width: 66px; }
+  #playBtn { min-width: 70px; }
+  .keyLine { margin: 6px 0 6px; }
+  .timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 7px; }
+  .bar-card { position: relative; border: 1px solid var(--divider-strong); border-radius: 10px; padding: 5px 4px 3px; background: var(--bg-subtle-default); cursor: pointer; min-width: 0; text-align: center; }
   .bar-card.sel { border-color: #ff3b00; }
   .bar-card.now { box-shadow: 0 0 0 2px #ff3b00 inset; }
-  .bar-card .nm { font-weight: 800; font-size: 17px; line-height: 1.2; word-break: break-word; }
-  .bar-card .rn { font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
-  .bar-card .why { font-size: 11px; min-height: 16px; }
-  .bar-card svg { width: 100%; max-width: 92px; height: auto; display: block; margin: 2px auto 0; }
-  .bar-card .tools2 { display: flex; justify-content: center; gap: 2px; margin-top: 2px; }
-  .bar-card .tools2 button { font: inherit; font-size: 12px; color: var(--dim); background: transparent; border: 0; padding: 2px 5px; cursor: pointer; border-radius: 5px; }
+  .bar-card .nm { font-weight: 800; font-size: 16px; line-height: 1.2; word-break: break-word; margin-top: 8px; }
+  .bar-card .rn { font-family: var(--family-mono); font-size: 11.5px; color: var(--soft); }
+  .bar-card .why { font-size: 11px; min-height: 15px; line-height: 1.3; }
+  .bar-card svg { width: 100%; max-width: 56px; height: auto; display: block; margin: 1px auto 0; }
+  .bar-card .tools2 { display: flex; justify-content: center; gap: 0; }
+  .bar-card .tools2 button { font: inherit; font-size: 13px; color: var(--dim); background: transparent; border: 0; padding: 1px 6px; cursor: pointer; border-radius: 5px; }
   .bar-card .tools2 button:hover { color: var(--text); background: rgb(255 255 255 / .06); }
-  .bar-card .beats { position: absolute; top: 5px; right: 7px; font-size: 10px; color: var(--dim); }
-  .bar-card .idx { position: absolute; top: 5px; left: 7px; font-size: 10px; color: var(--dim); }
-  .transport { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; margin: 12px 0 4px; }
-  .transport label { width: 128px; }
-  .transport label.wide { width: 170px; }
-  .detail { margin-top: 12px; border-top: 1px solid var(--divider); padding-top: 12px; }
-  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
-  @media (max-width: 760px) { .two { grid-template-columns: minmax(0, 1fr); } }
-  .capoRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 6px 0; border-bottom: 1px solid var(--divider); }
+  .bar-card .beats { position: absolute; top: 3px; right: 6px; font-size: 10px; color: var(--dim); }
+  .bar-card .idx { position: absolute; top: 3px; left: 6px; font-size: 10px; color: var(--dim); }
+  .writeLower { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
+  .side h2 { margin-bottom: 6px; }
+  .capoRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 7px 0; border-bottom: 1px solid var(--divider); }
   .capoRow:last-child { border-bottom: 0; }
-  .saved { display: grid; gap: 6px; margin-top: 8px; }
+  .modRow .why2 { font-size: 12px; color: var(--dim); margin-top: 3px; }
+  .saved { display: grid; gap: 6px; margin-top: 10px; }
   .savedRow { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
   pre.chart { font-family: var(--family-mono); font-size: 12px; color: var(--soft); background: var(--bg-subtle-default); border: 1px solid var(--divider); border-radius: 8px; padding: 10px; overflow-x: auto; margin: 8px 0 0; }
 
   /* quiz */
+  .quizPanel { max-width: 900px; }
   .quizQ { font-size: 20px; font-weight: 700; margin: 6px 0 12px; }
   .quizOpts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
   .quizOpts button { font: inherit; font-size: 17px; font-weight: 700; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 12px; cursor: pointer; }
   .quizOpts button.right { border-color: #059669; background: rgb(5 150 105 / .18); }
   .quizOpts button.wrong { border-color: #ef4444; background: rgb(239 68 68 / .14); }
+
+  /* phones: everything stacks, the toolbar gets its own line */
+  @media (max-width: 760px) {
+    main { padding: 10px 16px 32px; }
+    /* the toolbar's pieces join the top line's grid: tabs, then instrument and tuning, then capo, sound and About */
+    .topline { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; }
+    .topline .tabs { grid-column: 1 / -1; justify-self: start; }
+    .toolbar { display: contents; }
+    .toolbar > label.tb:nth-child(2) { grid-column: 2 / 4; }
+    .toolbar label.tb { min-width: 0; }
+    #aboutBtn { grid-column: 3; grid-row: 3; }
+    .toolbar label.tb span { display: none; }
+    .toolbar select { width: 100% !important; }
+    .toolbar .popWrap button { width: 100%; }
+    .tabs button { padding: 6px 11px; }
+    .luSelects { grid-template-columns: 76px minmax(0, 1fr); flex-basis: 100%; }
+    .luSelects label:last-child { grid-column: 1 / -1; }
+    .stripRow { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+    .stripRow > * { width: auto !important; min-width: 0; }
+    .stripRow .gap { display: none; }
+    #keySel { grid-column: span 6; grid-row: 1; } #modeSel { grid-column: span 3; grid-row: 1; } #progClear { grid-column: span 3; grid-row: 1; }
+    #styleSel { grid-column: span 6; } #rhythm { grid-column: span 6; }
+    #playBtn { grid-column: span 2; min-width: 0; padding: 5px 4px; } .bpmBox { grid-column: span 4; } .bpmBox input { flex: 1 1 auto; width: 0 !important; }
+    .stripRow .chk { grid-column: span 2; } #transDown, #transUp { grid-column: span 2; padding: 5px 4px; }
+    .bar-card svg { display: none; }
+    .bar-card .nm { margin-top: 10px; }
+    .writeLower .shapes, #luShapes { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+    .move { grid-template-columns: 80px minmax(0, 1fr); }
+    .timeline { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+    .writeLower .tabBar { flex-wrap: wrap; }
+    .writeLower .tabBar button { padding: 6px 10px; }
+    .writeLower .side:not(.show) { display: none; }
+    .writeLower .side { border-top-left-radius: 0; border-top-right-radius: 0; margin-top: -13px; border-top: 0; }
+    .writeLower .tabsBox:has(+ .side.show) .tabBody { display: none; }
+  }
+
+  /* wide screens: each tool fits the window, and only its inner panels scroll */
+  @media (min-width: 761px) {
+    .phoneOnly { display: none !important; }
+    .group { grid-template-columns: 190px minmax(0, 1fr); align-items: start; }
+    .luFoot { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  }
+  @media (min-width: 1000px) {
+    /* a slightly smaller neck fits the column rather than scrolling (on phones it keeps full-size tap targets) */
+    #neck, #piano { min-width: calc(var(--w, 900) * 0.85px); }
+    .nameGrid { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); }
+    .writeLower { grid-template-columns: minmax(0, 1fr) minmax(330px, 440px); }
+  }
+  @media (min-width: 1000px) and (min-height: 600px) {
+    main { height: calc(100vh - 60px); height: calc(100dvh - 60px); display: flex; flex-direction: column; padding-bottom: 14px; }
+    main > .view { flex: 1 1 auto; min-height: 0; }
+    .nameGrid { grid-template-rows: minmax(0, 100%); }
+    .nameGrid > .panel { max-height: 100%; overflow-y: auto; }
+    #shapesView > .panel { display: flex; flex-direction: column; min-height: 0; }
+    #luShapes { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 2px; }
+    #writeView { display: flex; flex-direction: column; }
+    #writeView > .strip { flex: none; }
+    .timeline { max-height: min(330px, 29vh); overflow-y: auto; padding: 1px; }
+    .writeLower { flex: 1 1 auto; min-height: 220px; grid-template-rows: minmax(0, 100%); }
+    .writeLower > * { min-height: 0; }
+    .writeLower .tabBody { flex: 1 1 auto; overflow-y: auto; }
+    .writeLower .side { overflow-y: auto; }
+    #quizView { align-content: start; }
+  }
 
   /* the explanation bubble */
   #pop { position: fixed; z-index: 50; max-width: min(340px, calc(100vw - 24px)); background: #221e1b; color: var(--text); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.45; box-shadow: 0 10px 30px rgb(0 0 0 / .45); pointer-events: none; }
@@ -154,159 +265,162 @@
   <svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg>
   <span class="chip-label">STUDIO</span>
   <span class="product"><span class="sep">/</span>Chords</span>
-  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a></nav>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a></nav>
   <span class="note">Name any chord. Learn where it can go.</span>
 </div>
 
+
 <main>
-  <h1>Chords that make sense.</h1>
-  <p class="lede">Put your fingers on the neck (or the keys) and see what you're playing, what it's called and why. Then pick a key and build a progression with every move explained: which chords pull, which ones surprise, and which ones borrow a colour from somewhere else.</p>
-
+  <h1 class="sr">Encore Chords: name any chord, find its shapes, write progressions</h1>
   <div class="topline">
-    <div class="tabs" role="tablist"><button id="tabName" class="on" role="tab">Name a chord</button><button id="tabWrite" role="tab">Write a progression</button><button id="tabQuiz" role="tab">Quiz</button></div>
+    <div class="tabs" role="tablist" aria-label="Chords tools" id="mainTabs">
+      <button id="tabName" role="tab" data-v="name" aria-controls="nameView">Name it</button><button id="tabShapes" role="tab" data-v="shapes" aria-controls="shapesView">Shapes</button><button id="tabWrite" role="tab" data-v="write" aria-controls="writeView">Progressions</button><button id="tabQuiz" role="tab" data-v="quiz" aria-controls="quizView">Quiz</button>
+    </div>
+    <div class="toolbar" id="instrumentControls">
+      <label class="tb"><span>Instrument</span><select id="instrument" aria-label="Instrument"></select></label>
+      <label class="tb"><span>Tuning</span><select id="tuning" aria-label="Tuning"></select></label>
+      <label class="tb"><span>Capo</span><select id="capo" aria-label="Capo"></select></label>
+      <div class="popWrap">
+        <button class="small" id="moreBtn" aria-expanded="false" aria-controls="moreMenu">Sound and frets</button>
+        <div class="menu hidden" id="moreMenu" role="group" aria-label="Sound and frets">
+          <label>Frets shown <select id="frets"><option>12</option><option selected>15</option><option>19</option><option>22</option><option>24</option></select></label>
+          <label>Sound <select id="tone"><option value="guitar">Plucked strings</option><option value="piano">Piano</option></select></label>
+          <label>Volume <input id="volume" type="range" min="0" max="100" value="70"></label>
+        </div>
+      </div>
+    </div>
+    <button class="small round" id="aboutBtn" aria-expanded="false" aria-controls="about" title="What is this?" aria-label="About Chords">?</button>
+  </div>
+  <div class="about hidden" id="about">
+    <b>Chords that make sense.</b>
+    <p>Put your fingers on the neck (or the keys) and see what you're playing, what it's called and why. Look up the shapes for any chord on your instrument and tuning. Then pick a key and build a progression with every move explained: which chords pull, which ones surprise, and which ones borrow a colour from somewhere else. Dotted words explain themselves when you hover or tap them.</p>
   </div>
 
-  <div class="controls" id="instrumentControls">
-    <label>Instrument <select id="instrument"></select></label>
-    <label>Tuning <select id="tuning"></select></label>
-    <label>Capo <select id="capo"></select></label>
-    <label>Frets shown <select id="frets"><option>12</option><option selected>15</option><option>19</option><option>22</option><option>24</option></select></label>
-    <label>Sound <select id="tone"><option value="guitar">Plucked strings</option><option value="piano">Piano</option></select></label>
-    <label>Volume <input id="volume" type="range" min="0" max="100" value="70"></label>
+  <!-- ============ Name it ============ -->
+  <div id="nameView" class="view nameGrid" role="tabpanel" aria-labelledby="tabName">
+    <section class="panel">
+      <div class="panelHead">
+        <div class="seg" id="inputSeg" aria-label="Play on"><button data-v="neck" class="on" aria-pressed="true">Neck</button><button data-v="piano" aria-pressed="false">Piano</button></div>
+        <div class="row">
+          <div class="seg" id="labelSeg" aria-label="Dots show"><button data-v="interval" class="on">Intervals</button><button data-v="note">Notes</button></div>
+          <label class="chk" id="ghostWrap"><input type="checkbox" id="ghost"> All chord tones</label>
+          <label class="tb" title="Which key to spell the note names in"><span>Spell for</span><select id="spellKey" style="width:150px"></select></label>
+          <button class="small" id="neckClear">Clear</button><button class="small hidden" id="pianoClear">Clear</button>
+        </div>
+      </div>
+      <div id="neckWrap">
+        <div class="scroller" id="neckBox"><svg id="neck" aria-label="Fretboard"></svg></div>
+        <div class="hint">Tap a fret to play it, tap it again to mute the string. Tap a string's name to switch it between open and muted. Shapes read <span class="term" data-term="shapes">low string first</span>.</div>
+      </div>
+      <div id="pianoWrap" class="hidden">
+        <div class="scroller piano" id="pianoBox"><svg id="piano" aria-label="Piano keyboard"></svg></div>
+        <div class="hint">Tap keys to build a chord on the piano instead. Whatever you played last gets named.</div>
+      </div>
+    </section>
+
+    <section class="panel" aria-live="polite">
+      <div class="big" id="bigName">--</div>
+      <div class="bigSub" id="bigText">Tap some notes and the name shows up here.</div>
+      <div class="formula" id="formula"></div>
+      <div class="explain" id="inversion"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="small primary" id="strumBtn" disabled>Strum it</button>
+        <button class="small" id="blockBtn" disabled>Play together</button>
+        <button class="small" id="toProg" disabled>Add to my progression</button>
+        <button class="small" id="toShapes" disabled>More shapes</button>
+      </div>
+      <div class="sect">
+        <h3>Other names for the same notes</h3>
+        <div class="muted">The same notes can be heard more than one way. The best fit is first; tap another to see it that way.</div>
+        <div class="alts" id="alts"></div>
+        <div class="explain" id="altWhy"></div>
+      </div>
+    </section>
   </div>
 
-  <!-- ============ Name a chord ============ -->
-  <div id="nameView">
-    <section class="panel">
-      <div class="panelHead">
-        <div><h2>The neck</h2><div class="muted">Tap a fret to play it, tap it again to mute the string. Tap a string's name to switch it between open and muted. Shapes read <span class="term" data-term="shapes">low string first</span>.</div></div>
-        <div class="row">
-          <div class="seg" id="labelSeg"><button data-v="interval" class="on">Intervals</button><button data-v="note">Notes</button></div>
-          <label class="row" style="flex-direction:row;color:var(--soft);font-size:13px"><input type="checkbox" id="ghost"> All chord tones</label>
-          <button class="small" id="neckClear">Clear</button>
-        </div>
-      </div>
-      <div class="scroller" id="neckBox"><svg id="neck" aria-label="Fretboard"></svg></div>
-    </section>
-
-    <section class="panel">
-      <div class="answer">
-        <div>
-          <div class="big" id="bigName">--</div>
-          <div class="bigSub" id="bigText">Tap some notes and the name shows up here.</div>
-          <div class="formula" id="formula"></div>
-          <div class="explain" id="inversion"></div>
-          <div class="row" style="margin-top:12px">
-            <button class="small primary" id="strumBtn" disabled>Strum it</button>
-            <button class="small" id="blockBtn" disabled>Play together</button>
-            <button class="small" id="toProg" disabled>Add to my progression</button>
-            <button class="small" id="toShapes" disabled>More shapes</button>
-          </div>
-        </div>
-        <div>
-          <h3>Other names for the same notes</h3>
-          <div class="muted">The same notes can be heard more than one way. The best fit is first; tap another to see it that way.</div>
-          <div class="alts" id="alts"></div>
-          <div class="explain" id="altWhy"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panelHead">
-        <div><h2>The keys</h2><div class="muted">Tap keys to build a chord on the piano instead. Whatever you played last gets named.</div></div>
-        <div class="row">
-          <label style="width:200px">Spell notes for <select id="spellKey"></select></label>
-          <button class="small" id="pianoClear">Clear</button>
-        </div>
-      </div>
-      <div class="scroller piano"><svg id="piano" aria-label="Piano keyboard"></svg></div>
-    </section>
-
+  <!-- ============ Shapes ============ -->
+  <div id="shapesView" class="view hidden" role="tabpanel" aria-labelledby="tabShapes">
     <section class="panel" id="lookupPanel">
       <div class="panelHead">
-        <div><h2>Find the shapes for a chord</h2><div class="muted">Pick a chord and see ways to play it on your instrument and tuning, easiest first. The root is <span style="color:#ff6c40">orange</span>. Tap a shape to put it on the neck.</div></div>
+        <div class="luSelects">
+          <label>Root <select id="luRoot"></select></label>
+          <label>Type <select id="luType"></select></label>
+          <label>Bass <select id="luBass"></select></label>
+        </div>
+        <div class="muted" style="flex:1 1 260px">Ways to play it on your instrument and tuning, easiest first. The root is <span style="color:#ff6c40">orange</span>. Tap a shape to hear it and put it on the neck.</div>
       </div>
-      <div class="controls">
-        <label>Root <select id="luRoot"></select></label>
-        <label>Type <select id="luType"></select></label>
-        <label>Bass <select id="luBass"></select></label>
+      <div class="explain" id="luInfo" style="margin:0 0 10px"></div>
+      <div class="shapes" id="luShapes"></div>
+      <div class="luFoot">
+        <div class="picked" id="luPicked"></div>
+        <div><h3>On piano</h3><div class="scroller piano"><svg id="luPiano" aria-label="Piano voicing"></svg></div></div>
       </div>
-      <div class="explain" id="luInfo"></div>
-      <div class="shapes" id="luShapes" style="margin-top:10px"></div>
-      <h3 style="margin-top:14px">On piano</h3>
-      <div class="scroller piano"><svg id="luPiano" aria-label="Piano voicing"></svg></div>
     </section>
   </div>
 
-  <!-- ============ Write a progression ============ -->
-  <div id="writeView" class="hidden">
-    <section class="panel">
-      <div class="controls">
-        <label>Key <select id="keySel"></select></label>
-        <label>Major or minor <select id="modeSel"><option value="major">Major</option><option value="minor">Minor</option></select></label>
-        <label>Start from a style <select id="styleSel"><option value="">Pick a starter...</option></select></label>
-      </div>
-      <div class="explain" id="styleWhy"></div>
-      <div class="muted" id="keyInfo"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panelHead">
-        <div><h2>Your progression</h2><div class="muted">Each box is a bar. Tap one to see it up close and get ideas for the next chord. The coloured word under a chord says how it moved there.</div></div>
-        <div class="row"><button class="small" id="transDown" title="Move everything down a half step">Transpose -1</button><button class="small" id="transUp" title="Move everything up a half step">Transpose +1</button><button class="small" id="progClear">Clear</button></div>
-      </div>
-      <div class="timeline" id="timeline"></div>
-      <div class="empty" id="timelineEmpty">Empty so far. Tap chords on the map below, or start from a style above.</div>
-      <div class="transport">
+  <!-- ============ Progressions ============ -->
+  <div id="writeView" class="view hidden" role="tabpanel" aria-labelledby="tabWrite">
+    <section class="panel strip">
+      <div class="stripRow">
+        <select id="keySel" aria-label="Key" title="Key"></select>
+        <select id="modeSel" aria-label="Major or minor" title="Major or minor"><option value="major">Major</option><option value="minor">Minor</option></select>
+        <select id="styleSel" aria-label="Start from a style" title="Start from a style"><option value="">Start from a style...</option></select>
+        <span class="gap"></span>
         <button class="small primary" id="playBtn">Play</button>
-        <label>Tempo (BPM) <input id="tempo" type="number" min="30" max="260" value="96"></label>
-        <label class="wide">Rhythm <select id="rhythm"><option value="strum">Strum every beat</option><option value="hold">Hold each chord</option><option value="oompah">Oom-pah (polka)</option></select></label>
-        <label class="row" style="flex-direction:row;color:var(--soft);font-size:13px;width:auto"><input type="checkbox" id="loop" checked> Loop</label>
+        <label class="bpmBox"><input id="tempo" type="number" min="30" max="260" value="96" aria-label="Tempo in BPM"> BPM</label>
+        <select id="rhythm" aria-label="Rhythm" title="Rhythm"><option value="strum">Strum every beat</option><option value="hold">Hold each chord</option><option value="oompah">Oom-pah (polka)</option></select>
+        <label class="chk"><input type="checkbox" id="loop" checked> Loop</label>
+        <button class="small" id="transDown" title="Move everything down a half step" aria-label="Transpose down a half step">-1</button><button class="small" id="transUp" title="Move everything up a half step" aria-label="Transpose up a half step">+1</button><button class="small" id="progClear">Clear</button>
       </div>
-      <div class="detail hidden" id="detail"></div>
+      <div class="muted keyLine" id="keyInfo"></div>
+      <div class="timeline" id="timeline" aria-label="Your progression, one box per bar"></div>
+      <div class="empty" id="timelineEmpty">Empty so far. Start from a style above, or tap chords in Next chord or Key map below. Tap a bar to see it up close.</div>
     </section>
 
-    <section class="panel">
-      <div class="panelHead">
-        <div><h2 id="nextTitle">Where can it go next?</h2><div class="muted" id="nextSub"></div></div>
-      </div>
-      <div class="moves" id="moves"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panelHead">
-        <div><h2>The map of <span id="mapKey">C major</span></h2><div class="muted">Tap a chord to add it. Hover (or add it) to read why it works.</div></div>
-        <div class="legend"><span><i style="background:#7bd3a4"></i><span class="term" data-term="tonic">Home</span></span><span><i style="background:#22d3ee"></i><span class="term" data-term="subdominant">Away</span></span><span><i style="background:#ff6e28"></i><span class="term" data-term="dominant">Tension</span></span><span><i style="background:var(--dim)"></i>Colour</span></div>
-      </div>
-      <div class="groups" id="groups"></div>
-    </section>
-
-    <section class="panel">
-      <h2>Change key</h2>
-      <div class="muted">A <span class="term" data-term="pivot">pivot chord</span> both keys share, the new key's V7, then its home chord: the smooth way to <span class="term" data-term="modulation">modulate</span>.</div>
-      <div id="mods" style="margin-top:8px"></div>
-    </section>
-
-    <div class="two">
-      <section class="panel">
-        <h2><span class="term" data-term="capo">Capo</span> helper</h2>
-        <div class="muted">Same sound, easier shapes: where to put a capo for this progression on your instrument.</div>
-        <div id="capoList" style="margin-top:8px"></div>
+    <div class="writeLower">
+      <section class="tabsBox">
+        <div class="tabBar" role="tablist" aria-label="Progression tools" id="progTabs">
+          <button role="tab" data-v="bar" id="ptabBar" class="phoneOnly" aria-controls="sidePanel">This bar</button><button role="tab" data-v="next" id="ptabNext" aria-controls="ptNext">Next chord</button><button role="tab" data-v="map" id="ptabMap" aria-controls="ptMap">Key map</button><button role="tab" data-v="mods" id="ptabMods" aria-controls="ptMods">Change key</button><button role="tab" data-v="capo" id="ptabCapo" aria-controls="ptCapo">Capo</button><button role="tab" data-v="save" id="ptabSave" aria-controls="ptSave">Save</button>
+        </div>
+        <div class="tabBody">
+          <section id="ptNext" role="tabpanel" aria-labelledby="ptabNext">
+            <h2 id="nextTitle">Where can it go next?</h2><div class="muted" id="nextSub" style="margin-bottom:8px"></div>
+            <div class="moves" id="moves"></div>
+          </section>
+          <section id="ptMap" role="tabpanel" aria-labelledby="ptabMap">
+            <div class="panelHead" style="margin-bottom:0">
+              <h2 style="margin:0">The map of <span id="mapKey">C major</span></h2>
+              <div class="legend"><span><i style="background:#7bd3a4"></i><span class="term" data-term="tonic">Home</span></span><span><i style="background:#22d3ee"></i><span class="term" data-term="subdominant">Away</span></span><span><i style="background:#ff6e28"></i><span class="term" data-term="dominant">Tension</span></span><span><i style="background:var(--dim)"></i>Colour</span></div>
+            </div>
+            <div class="mapInfo" id="mapInfo" aria-live="polite">Tap a chord to add it. Hover or tap one to read why it works here.</div>
+            <div class="groups" id="groups"></div>
+          </section>
+          <section id="ptMods" role="tabpanel" aria-labelledby="ptabMods">
+            <div class="muted">A <span class="term" data-term="pivot">pivot chord</span> both keys share, the new key's V7, then its home chord: the smooth way to <span class="term" data-term="modulation">modulate</span>.</div>
+            <div id="mods" style="margin-top:4px"></div>
+          </section>
+          <section id="ptCapo" role="tabpanel" aria-labelledby="ptabCapo">
+            <div class="muted">Same sound, easier shapes: where to put a <span class="term" data-term="capo">capo</span> for this progression on your instrument.</div>
+            <div id="capoList" style="margin-top:4px"></div>
+          </section>
+          <section id="ptSave" role="tabpanel" aria-labelledby="ptabSave">
+            <div class="row"><input type="text" id="progName" placeholder="Name this progression" aria-label="Progression name" style="flex:1 1 160px"><button class="small primary" id="saveBtn">Save</button></div>
+            <div class="row" style="margin-top:8px"><button class="small" id="copyChart">Copy chord chart</button><button class="small" id="dlChart">Download .txt</button></div>
+            <pre class="chart hidden" id="chartPre"></pre>
+            <div class="saved" id="savedList"></div>
+          </section>
+        </div>
       </section>
-      <section class="panel">
-        <h2>Save and share</h2>
-        <div class="row" style="margin-top:6px"><input type="text" id="progName" placeholder="Name this progression" style="flex:1 1 160px"><button class="small primary" id="saveBtn">Save</button></div>
-        <div class="row" style="margin-top:8px"><button class="small" id="copyChart">Copy chord chart</button><button class="small" id="dlChart">Download .txt</button></div>
-        <div class="saved" id="savedList"></div>
-        <pre class="chart hidden" id="chartPre"></pre>
+      <section class="panel side" id="sidePanel" aria-live="polite">
+        <div class="explain" id="styleWhy" style="margin:0 0 8px"></div>
+        <div id="detail"></div>
       </section>
     </div>
   </div>
 
   <!-- ============ Quiz ============ -->
-  <div id="quizView" class="hidden">
-    <section class="panel">
+  <div id="quizView" class="view hidden" role="tabpanel" aria-labelledby="tabQuiz">
+    <section class="panel quizPanel">
       <div class="panelHead">
         <div class="seg" id="quizSeg"><button data-v="numeral" class="on">Which numeral?</button><button data-v="name" class="">Name the chord</button><button data-v="next" class="">Where next?</button></div>
         <div class="muted" id="quizScore">0 right of 0</div>

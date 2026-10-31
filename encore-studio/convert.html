@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convert · Encore Music Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; flex: none; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .product { font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+  .product .sep { color: var(--dim); margin: 0 8px; font-weight: 400; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
+  .note { color: var(--dim); font-size: 13px; }
+  .bar .note { white-space: nowrap; margin-left: auto; }
+  @media (max-width: 1180px) { .bar .note { display: none; } }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  /* one screen: two columns on desktop (inner boxes scroll), stacked on phones */
+  main { max-width: 1320px; margin: 0 auto; padding: 14px 16px 16px; }
+  .layout { display: flex; flex-direction: column; gap: 12px; }
+  .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  @media (min-width: 900px) {
+    main { height: calc(100vh - 60px); }
+    .layout { display: grid; grid-template-columns: minmax(0, 6fr) minmax(360px, 5fr); gap: 14px; height: 100%; }
+    .col { min-height: 0; }
+    .listBox { flex: 1 1 auto; min-height: 0; }
+    .tabsBox { min-height: 0; display: flex; flex-direction: column; max-height: 100%; }
+    .tabBody { overflow-y: auto; min-height: 0; }
+  }
+  /* phones: drop zone, formats, Convert, then the list */
+  @media (max-width: 899px) {
+    .col { display: contents; }
+    .drop { order: 1; padding: 12px 14px; gap: 12px; } .drop .big { font-size: 16px; } .drop svg { width: 28px; height: 28px; }
+    .tabsBox { order: 2; } .actions { order: 3; } .listBox { order: 4; }
+    .presets .preset span { display: none; } .presets .preset { min-height: 40px; padding: 8px 10px; }
+    .tabBody { padding: 10px 12px 12px; }
+    main { padding-top: 12px; } .empty { padding: 10px 14px; font-size: 13px; } .listHead { padding: 7px 14px; } .help { margin-top: 8px; }
+    .list { max-height: 40vh; }
+  }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; }
+
+  .drop { display: flex; align-items: center; gap: 14px; cursor: pointer; border: 1.5px dashed var(--divider-strong); border-radius: 14px; padding: 16px; background: var(--panel); transition: border-color .15s, background .15s; }
+  .drop.over { border-color: #ff3b00; background: var(--bg-surface-hover); }
+  .drop .big { font-size: 18px; font-weight: 700; line-height: 1.25; }
+  .drop .hint { color: var(--dim); font-size: 13px; }
+  .drop svg { flex: none; color: #ff3b00; }
+  .linkish { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+  .listBox { display: flex; flex-direction: column; overflow: hidden; }
+  .listHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--divider); font-size: 13px; color: var(--dim); }
+  .list { list-style: none; margin: 0; padding: 0; overflow-y: auto; min-height: 0; }
+  @media (max-width: 899px) { .list { max-height: 46vh; } }
+  .empty { padding: 20px 14px; color: var(--dim); font-size: 14px; text-align: center; }
+  .item { padding: 10px 14px; border-bottom: 1px solid var(--divider); cursor: pointer; }
+  .item:last-child { border-bottom: 0; }
+  .item.sel { background: var(--bg-surface-hover); box-shadow: inset 3px 0 0 #ff3b00; }
+  .item .top { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .item .name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .x { flex: none; background: none; border: 0; color: var(--dim); font-size: 20px; line-height: 1; padding: 0 4px; }
+  .item .x:hover { color: var(--text); }
+  .item .src, .item .out { font-size: 12.5px; color: var(--dim); overflow-wrap: anywhere; }
+  .item .out b { color: var(--soft); font-weight: 600; }
+  .item .warn { font-size: 12.5px; color: var(--warn); margin-top: 3px; }
+  .item .err { font-size: 12.5px; color: var(--red); margin-top: 3px; }
+  .item .done { font-size: 12.5px; color: var(--green); margin-top: 3px; overflow-wrap: anywhere; }
+  .item .done a { color: var(--text); font-weight: 700; margin-left: 6px; }
+  .prog { height: 4px; border-radius: 2px; background: var(--track); margin-top: 6px; overflow: hidden; }
+  .prog > i { display: block; height: 100%; width: 0; background: #ff3b00; transition: width .15s; }
+
+  .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-size: 17px; font-weight: 800; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 34px; min-height: 48px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; background: #ff3b00; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  .status { font-size: 13px; color: var(--soft); flex: 1 1 180px; min-width: 0; }
+
+  .tabsBox { overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; flex: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 8px 13px; min-height: 38px; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBar button .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b00; margin-left: 6px; vertical-align: middle; }
+  .tabBar button.on .dot { background: #fff; }
+  .tabBody { padding: 12px 14px 14px; }
+  .tabBody > section { display: none; }
+  .tabBody > section.show { display: block; }
+
+  .presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  @media (max-width: 480px) { .presets { grid-template-columns: 1fr 1fr; gap: 6px; } }
+  .preset { text-align: left; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 7px 11px; min-height: 50px; min-width: 0; }
+  .preset:hover { border-color: var(--soft); }
+  .preset b { display: block; font-size: 14.5px; line-height: 1.25; }
+  .preset span { display: block; font-size: 12px; color: var(--dim); line-height: 1.3; }
+  .preset.on { border-color: #ff3b00; background: rgb(255 59 0 / 0.12); box-shadow: inset 0 0 0 1px #ff3b00; }
+  .preset:disabled { opacity: .4; cursor: not-allowed; }
+  .help { font-size: 12.5px; color: var(--dim); margin: 10px 0 0; }
+  .help b { color: var(--soft); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 12px; }
+  .grid .wide { grid-column: 1 / -1; }
+  label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); min-width: 0; }
+  select, input[type=text], input[type=number] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 6px 9px; min-width: 0; min-height: 38px; width: 100%; }
+  h3 { font-size: 13px; margin: 14px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  .cover { display: flex; align-items: center; gap: 12px; }
+  .cover img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); display: block; }
+  .cover .none { width: 64px; height: 64px; border-radius: 6px; border: 1px dashed var(--divider-strong); display: grid; place-items: center; font-size: 11px; color: var(--dim); text-align: center; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg>
+  <span class="chip-label">STUDIO</span>
+  <span class="product"><span class="sep">/</span>Convert</span>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a></nav>
+  <span class="note">Converts on your device. Nothing is uploaded.</span>
+</div>
+
+<main>
+  <div class="layout">
+    <div class="col">
+      <div class="drop" id="drop" role="button" tabindex="0" aria-label="Choose audio files to convert">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"/></svg>
+        <span>
+          <span class="big">Drop tracks here, or choose files</span><br>
+          <span class="hint">WAV, FLAC, AIFF, MP3, M4A, OGG, Opus, WebM. One file, or a whole <button class="linkish" id="folderBtn" type="button">folder</button>.</span>
+        </span>
+      </div>
+      <input type="file" id="files" multiple accept="audio/*,.wav,.flac,.aif,.aiff,.aifc,.mp3,.m4a,.mp4,.aac,.ogg,.oga,.opus,.webm,.caf" hidden>
+      <input type="file" id="folder" webkitdirectory multiple hidden>
+
+      <div class="actions">
+        <button class="go" id="convertBtn" disabled>Convert</button>
+        <button class="small hidden" id="cancelBtn">Cancel</button>
+        <button class="small hidden" id="zipBtn">Download all (.zip)</button>
+        <span class="status" id="status" aria-live="polite">Add a track to start. MP3 320 is ready to go.</span>
+      </div>
+
+      <section class="panel listBox">
+        <div class="listHead"><span id="listCount">No files yet</span><button class="linkish hidden" id="clearBtn" type="button">Clear list</button></div>
+        <ul class="list" id="list"><li class="empty" id="empty">Your files show up here, with what they are and what they'll become.</li></ul>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel tabsBox">
+        <div class="tabBar" role="tablist">
+          <button class="on" data-tab="format" role="tab">Format</button>
+          <button data-tab="options" role="tab">More options<span class="dot hidden" id="optDot"></span></button>
+          <button data-tab="tags" role="tab">Tags</button>
+        </div>
+        <div class="tabBody">
+          <section class="show" data-tab="format">
+            <div class="presets" id="presets" role="radiogroup" aria-label="Output format"></div>
+            <p class="help" id="presetHelp"></p>
+            <p class="help hidden" id="capsHelp"></p>
+          </section>
+
+          <section data-tab="options">
+            <h3>Sound</h3>
+            <div class="grid">
+              <label>Sample rate <select id="optRate">
+                <option value="0">From the preset</option><option value="keep">Keep the original</option>
+                <option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="88200">88.2 kHz</option><option value="96000">96 kHz</option>
+                <option value="32000">32 kHz</option><option value="22050">22.05 kHz</option><option value="16000">16 kHz</option></select></label>
+              <label>Bit depth <select id="optBits"><option value="0">From the preset</option><option value="16">16-bit</option><option value="24">24-bit</option><option value="32">32-bit float (WAV)</option></select></label>
+              <label>Channels <select id="optChannels"><option value="keep">From the preset</option><option value="stereo">Stereo</option><option value="mono">Mono (mix both)</option><option value="left">Left only</option><option value="right">Right only</option></select></label>
+              <label>Bitrate <select id="optKbps"><option value="0">From the preset</option><option>96</option><option>128</option><option>160</option><option>192</option><option>256</option><option>320</option></select></label>
+            </div>
+            <h3>Edit</h3>
+            <div class="grid">
+              <label>Start at <input type="text" id="optStart" placeholder="0:00" inputmode="decimal"></label>
+              <label>End at <input type="text" id="optEnd" placeholder="the end" inputmode="decimal"></label>
+              <label>Fade in (seconds) <input type="number" id="optFadeIn" min="0" step="0.5" placeholder="none"></label>
+              <label>Fade out (seconds) <input type="number" id="optFadeOut" min="0" step="0.5" placeholder="none"></label>
+              <label class="wide">Level <select id="optNorm"><option value="off">Leave it as it is</option><option value="peak">Normalize peaks to -1 dBFS</option><option value="lufs">Loudness to -14 LUFS (streaming level)</option></select></label>
+            </div>
+            <h3>File names</h3>
+            <div class="grid">
+              <label>Name each file <select id="optName"></select></label>
+              <label class="hidden" id="customWrap">Your pattern <input type="text" id="optCustom" value="{artist} - {title}"></label>
+            </div>
+            <p class="help">Patterns can use {name} {artist} {title} {album} {track} {year} {format}. Trim, fades and level apply to every file in the list. <button class="linkish" id="resetOpts" type="button">Reset these</button></p>
+          </section>
+
+          <section data-tab="tags">
+            <p class="help" id="tagsNone" style="margin-top:0">Add a file to see and change its tags. They're copied from the original into the new file.</p>
+            <div id="tagsForm" class="hidden">
+              <p class="help" id="tagsFor" style="margin:0 0 10px"></p>
+              <div class="grid">
+                <label class="wide">Title <input type="text" data-tag="title"></label>
+                <label>Artist <input type="text" data-tag="artist"></label>
+                <label>Album artist <input type="text" data-tag="albumArtist"></label>
+                <label>Album <input type="text" data-tag="album"></label>
+                <label>Year <input type="text" data-tag="year"></label>
+                <label>Track <input type="text" data-tag="track"></label>
+                <label>Genre <input type="text" data-tag="genre"></label>
+                <label>ISRC <input type="text" data-tag="isrc"></label>
+                <label>Composer <input type="text" data-tag="composer"></label>
+                <label class="wide">Comment <input type="text" data-tag="comment"></label>
+              </div>
+              <h3>Cover art</h3>
+              <div class="cover"><span id="coverBox"></span>
+                <span><button class="small" id="coverAdd" type="button">Replace</button> <button class="small" id="coverDel" type="button">Remove</button><br><span class="help" id="coverInfo"></span></span>
+                <input type="file" id="coverFile" accept="image/jpeg,image/png" hidden>
+              </div>
+              <p class="help">Changes go into the converted file only; your original isn't touched. Click a file in the list to edit its tags.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+<script type="module" src="convert.js"></script>
+</body>
+</html>

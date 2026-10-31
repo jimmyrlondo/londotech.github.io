@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scales · Encore Music Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1400px; margin: 0 auto; padding: 12px 16px 16px; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; flex: none; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; flex: none; }
+  .product { font-weight: 700; letter-spacing: -0.01em; flex: none; }
+  .product .sep { color: var(--dim); margin: 0 8px; font-weight: 400; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
+  .note { color: var(--dim); font-size: 13px; white-space: nowrap; }
+  @media (max-width: 1100px) { .bar .note { display: none; } }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  /* main view on one side, tabs on the other (stacked on narrow screens) */
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(0, 3fr) minmax(380px, 2fr); }
+    .layout > .tabsBox { position: sticky; top: 72px; }
+    .tabBody { max-height: calc(100vh - 146px); overflow-y: auto; }
+  }
+  .panel, .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; }
+  .panel { padding: 14px 16px; }
+  .tabsBox { overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 8px 12px; min-height: 38px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBar button .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b00; margin-left: 6px; vertical-align: middle; }
+  .tabBar button.on .dot { background: #fff; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding-top: 10px; }
+  .tabBody > section.show { display: block; }
+
+  label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); }
+  select, input[type=text] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 7px 9px; min-width: 0; min-height: 38px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 0; min-height: 24px; }
+  .toggle { flex-direction: row; align-items: center; gap: 7px; font-size: 14px; color: var(--text); min-height: 38px; cursor: pointer; white-space: nowrap; }
+  .toggle input { width: 18px; height: 18px; accent-color: #ff3b00; margin: 0; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 9px 20px; min-height: 40px; white-space: nowrap; }
+  button.go:hover { background: #ff6c40; }
+  button.go.running { background: #2c2723; border: 1px solid #ff3b00; }
+  a.small { display: inline-flex; align-items: center; text-decoration: none; margin-left: 6px; }
+  a.small, button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 13px; min-height: 36px; white-space: nowrap; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .seg { display: inline-flex; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 3px; gap: 2px; flex: none; }
+  .seg button { font-size: 13px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 999px; padding: 5px 12px; min-height: 30px; }
+  .seg button.on { color: #fff; background: #ff3b00; }
+  .tip { color: var(--dim); font-size: 13px; margin-top: 8px; }
+  .sub { color: var(--dim); font-size: 13px; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  .term { border-bottom: 1px dotted var(--dim); cursor: help; }
+  h2 { font-size: 15px; margin: 14px 0 6px; letter-spacing: -0.01em; }
+  h2:first-child { margin-top: 2px; }
+  p { margin: 4px 0 8px; }
+  .muted { color: var(--soft); }
+
+  /* the main view */
+  .pickRow { display: grid; grid-template-columns: minmax(84px, 110px) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+  .pickRow .stepBtns { display: flex; gap: 4px; }
+  .pickRow .stepBtns button { width: 38px; padding: 0; }
+  .head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 8px 0 2px; }
+  .head h1 { font-size: clamp(22px, 3vw, 30px); line-height: 1.15; margin: 0; letter-spacing: -0.02em; }
+  .badge { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: #0c0a09; background: var(--warn); border-radius: 4px; padding: 2px 6px; }
+  .tones { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+  .tone { display: flex; flex-direction: column; align-items: center; min-width: 42px; padding: 3px 7px; border-radius: 9px; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); }
+  .tone b { font-size: 16px; line-height: 1.25; }
+  .tone span { font-size: 11px; color: var(--dim); font-family: var(--family-mono); }
+  .tone.root { border-color: #ff3b00; }
+  .tone.root b { color: #ff6c40; }
+  .tone.char { border-color: var(--blue); }
+  .tone.char span { color: var(--blue); }
+  .tone.now { background: #ff3b00; border-color: #ff3b00; }
+  .tone.now b, .tone.now span { color: #fff; }
+  .viewRow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .viewRow select { flex: 1 1 200px; max-width: 340px; min-height: 36px; padding: 5px 8px; }
+  .neckBox, .pianoBox { overflow-x: auto; overflow-y: hidden; border-radius: 8px; -webkit-overflow-scrolling: touch; }
+  #neck, #piano { display: block; }
+  #neck .hit, #piano .key { cursor: pointer; }
+  .hit { fill: transparent; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); margin-top: 4px; align-items: center; }
+  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin-right: 5px; }
+  .playRow { display: flex; gap: 10px 14px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .tempo { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; color: var(--soft); flex: 1 1 200px; max-width: 320px; }
+  .tempo b { font-family: var(--family-mono); font-size: 13px; color: var(--text); min-width: 58px; }
+  .playRow select { min-height: 36px; padding: 5px 8px; }
+  .instLine { font-size: 12px; color: var(--dim); margin-top: 8px; }
+  .instLine button { font-size: 12px; color: var(--soft); background: none; border: 0; padding: 0; text-decoration: underline; }
+  .hint { font-size: 13px; color: var(--soft); margin-top: 6px; }
+  .hint button { font-size: 13px; color: #ff6c40; background: none; border: 0; padding: 0; text-decoration: underline; }
+
+  /* Learn */
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 12px; font-size: 14px; margin: 4px 0 6px; }
+  .facts dt { color: var(--dim); font-size: 12px; padding-top: 2px; }
+  .facts dd { margin: 0; }
+  .mono { font-family: var(--family-mono); font-size: 13px; }
+  .stepsRow { display: flex; flex-wrap: wrap; gap: 4px; }
+  .stepsRow span { font-family: var(--family-mono); font-size: 12px; border-radius: 5px; padding: 1px 6px; background: var(--bg-subtle-default); border: 1px solid var(--divider); }
+  .stepsRow span.H { color: #ff6c40; }
+  .stepsRow span.big { color: var(--blue); }
+  .approx { border: 1px solid var(--warn); color: var(--text); border-radius: 10px; padding: 8px 10px; font-size: 13px; margin: 6px 0; }
+  .why { font-size: 14px; color: var(--text); border-left: 3px solid #ff3b00; padding: 2px 0 2px 10px; margin: 6px 0 8px; }
+
+  /* lists in the tabs */
+  .rows { display: flex; flex-direction: column; gap: 5px; }
+  .crow { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 5px 8px; border: 1px solid var(--divider); border-radius: 9px; }
+  .crow .rn { font-weight: 800; font-size: 15px; }
+  .crow .nm b { font-size: 15px; }
+  .crow .nm small { display: block; color: var(--dim); font-size: 12px; font-family: var(--family-mono); }
+  .crow button { min-height: 32px; padding: 4px 10px; }
+  .crow.odd .rn { color: var(--dim); }
+  .srow { padding: 7px 10px; border: 1px solid var(--divider); border-radius: 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; align-items: center; }
+  .srow.best { border-color: #ff3b00; }
+  .srow .t { font-weight: 700; }
+  .srow .t small { font-weight: 400; color: var(--dim); margin-left: 6px; }
+  .srow ul { grid-column: 1 / -1; margin: 0; padding-left: 18px; font-size: 13px; color: var(--soft); }
+  .srow .acts { display: flex; gap: 4px; }
+  .srow .acts button { min-height: 30px; padding: 3px 10px; }
+  .examples { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 10px; }
+  .examples button { min-height: 30px; padding: 3px 10px; font-size: 12px; }
+  .fitIn { display: flex; gap: 6px; }
+  .fitIn input { flex: 1; }
+  .perChord { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 10px; align-items: baseline; font-size: 14px; }
+  .perChord .ch { font-weight: 800; }
+  .perChord button { font-size: 14px; color: var(--text); background: none; border: 0; padding: 0; text-align: left; border-bottom: 1px dotted var(--dim); }
+  .perChord small { color: var(--dim); display: block; font-size: 12px; }
+  .modeList { display: flex; flex-direction: column; gap: 4px; }
+  .mrow { display: grid; grid-template-columns: minmax(118px, 40%) minmax(0, 1fr); gap: 8px; align-items: center; padding: 5px 8px; border-radius: 9px; border: 1px solid var(--divider); background: transparent; color: var(--text); text-align: left; width: 100%; }
+  .mrow:hover { border-color: var(--soft); }
+  .mrow.on { border-color: #ff3b00; background: rgb(255 59 0 / 0.08); }
+  .mrow .mn b { font-size: 14px; }
+  .mrow .mn small { display: block; color: var(--dim); font-size: 11px; }
+  .mrow .ns { font-family: var(--family-mono); font-size: 12px; color: var(--soft); display: flex; flex-wrap: wrap; gap: 3px 6px; }
+  .mrow .ns .diff { color: #ff6c40; font-weight: 700; }
+  .mrow .ns .home { color: var(--text); font-weight: 700; }
+  .bright { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); margin: 2px 2px 4px; }
+
+  /* Practise */
+  .practSeg { margin-bottom: 8px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .grid2 > * { min-width: 0; }
+  .seqBox { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 6px; }
+  .seqBox span { font-size: 12px; font-weight: 700; min-width: 34px; text-align: center; padding: 3px 5px; border-radius: 7px; border: 1px solid var(--divider-strong); color: var(--soft); }
+  .seqBox span.now { border-color: #ff3b00; color: #fff; box-shadow: 0 0 0 2px rgb(255 59 0 / 0.35); }
+  .seqBox span.right { background: rgb(123 211 164 / 0.16); border-color: var(--green); color: var(--green); }
+  .seqBox span.missed { border-style: dashed; color: var(--dim); text-decoration: line-through; }
+  .seqBox span.tried { border-color: var(--red); color: var(--red); }
+  .heard { display: flex; align-items: baseline; gap: 12px; margin: 6px 0; }
+  .heard b { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; min-width: 72px; }
+  .heard span { font-size: 14px; }
+  .heard .ok { color: var(--green); }
+  .heard .bad { color: var(--red); }
+  .scoreBox { border-top: 1px solid var(--divider); padding-top: 10px; margin-top: 10px; }
+  .scoreBox .big { font-size: 34px; font-weight: 800; line-height: 1; }
+  .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+  .opts button { min-height: 44px; border-radius: 10px; font-weight: 700; font-size: 14px; white-space: normal; }
+  .opts button.right { background: rgb(123 211 164 / 0.16); border-color: var(--green); color: var(--green); }
+  .opts button.wrong { border-color: var(--red); color: var(--red); }
+  .headphones { font-size: 13px; color: var(--soft); border: 1px solid var(--divider); border-radius: 10px; padding: 8px 10px; margin: 8px 0; }
+
+  #pop { position: fixed; z-index: 50; max-width: min(340px, calc(100vw - 24px)); background: #221e1b; color: var(--text); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.45; box-shadow: 0 10px 30px rgb(0 0 0 / .45); pointer-events: none; }
+  #pop b { display: block; margin-bottom: 3px; font-size: 13px; }
+  #toast { position: fixed; z-index: 60; left: 50%; bottom: 18px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 8px 16px; border-radius: 999px; font-size: 14px; max-width: calc(100vw - 32px); text-align: center; }
+
+  /* phones: tighter */
+  @media (max-width: 640px) {
+    main { padding: 10px 12px 14px; }
+    .panel { padding: 12px; }
+    .pickRow { grid-template-columns: 84px minmax(0, 1fr); }
+    .pickRow .stepBtns { display: none; }
+    .head { margin-top: 6px; }
+    .head h1 { font-size: 21px; }
+    .tone { min-width: 38px; padding: 2px 5px; }
+    .tone b { font-size: 15px; }
+    .viewRow select { flex-basis: 100%; max-width: none; order: 3; }
+    .playRow { gap: 8px 10px; }
+    .tempo { flex-basis: 100%; max-width: none; order: 3; }
+    .playRow .long { display: none; }
+    .playRow .go { padding: 9px 18px; }
+    .tabBody { padding: 2px 12px 12px; }
+    .legend { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg>
+  <span class="chip-label">STUDIO</span>
+  <span class="product"><span class="sep">/</span>Scales</span>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a></nav>
+  <span class="note">Runs in your browser. Nothing is recorded.</span>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" id="mainView">
+    <div class="pickRow">
+      <label>Root <select id="root"></select></label>
+      <label>Scale <select id="scale"></select></label>
+      <div class="stepBtns"><button class="small" id="prevScale" aria-label="Previous scale" title="Previous scale">&lsaquo;</button><button class="small" id="nextScale" aria-label="Next scale" title="Next scale">&rsaquo;</button></div>
+    </div>
+    <div class="head"><h1 id="title">C Major</h1><span class="badge hidden" id="approxBadge" data-term="approx">12-TONE APPROXIMATION</span><span class="sub" id="headSub"></span></div>
+    <div class="tones" id="tones" aria-label="The scale's notes (tap one to hear it)"></div>
+    <div class="viewRow">
+      <div class="seg" id="viewSeg"><button data-v="neck">Neck</button><button data-v="piano">Piano</button></div>
+      <select id="position" aria-label="Where on the neck"></select>
+      <div class="seg" id="labelSeg"><button data-v="deg" title="Label the dots with scale degrees">1 2 3</button><button data-v="note" title="Label the dots with note names">C D E</button></div>
+    </div>
+    <div class="neckBox" id="neckBox"><svg id="neck" xmlns="http://www.w3.org/2000/svg" aria-label="The scale on the neck"></svg></div>
+    <div class="pianoBox hidden" id="pianoBox"><svg id="piano" xmlns="http://www.w3.org/2000/svg" aria-label="The scale on a piano"></svg></div>
+    <div class="legend" id="legend"><span><i style="background:#ff3b00"></i>Root</span><span><i style="background:#f2efe8"></i>Scale note</span><span><i style="border:2px solid #22d3ee"></i><span class="term" data-term="char">Colour note</span></span><span id="legendFaint" class="hidden"><i style="border:1.5px solid #6b625a"></i>Outside this position</span><span>Tap a note to hear it</span></div>
+    <div class="playRow">
+      <button class="go" id="playBtn">Play<span class="long"> up and down</span></button>
+      <label class="tempo">Tempo <input type="range" id="tempo" min="40" max="240" step="1" value="100" aria-label="Tempo"><b id="tempoV">100 BPM</b></label>
+      <label class="toggle" title="Hold the root underneath while it plays"><input type="checkbox" id="drone"><span class="term" data-term="drone">Drone</span></label>
+      <select id="tone" aria-label="Sound"><option value="guitar">Plucked</option><option value="piano">Piano</option></select>
+    </div>
+    <div class="hint hidden" id="hint"></div>
+    <div class="instLine" id="instLine"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Scale tools">
+      <button role="tab" data-tab="learn">Learn</button>
+      <button role="tab" data-tab="chords">Chords</button>
+      <button role="tab" data-tab="fit">Which scale?</button>
+      <button role="tab" data-tab="modes">Modes</button>
+      <button role="tab" data-tab="practise" id="tabPractise">Practise</button>
+      <button role="tab" data-tab="setup">Setup</button>
+    </div>
+    <div class="tabBody" id="tabBody">
+      <section data-tab="learn" id="learn"></section>
+
+      <section data-tab="chords">
+        <div class="viewRow"><div class="seg" id="chordSeg"><button data-v="3">Triads</button><button data-v="7">7th chords</button></div></div>
+        <p class="sub" id="chordsIntro"></p>
+        <div class="rows" id="chordRows"></div>
+        <p class="tip">Tap a chord to hear it. <span class="term" data-term="numeral">Numerals</span> count from the scale's root against the major scale, the way Encore Chords writes them.</p>
+      </section>
+
+      <section data-tab="fit">
+        <p class="sub" style="margin-top:0">Type a chord or a short progression and see which scales fit, and why. <span class="term" data-term="chordscale">How this works</span></p>
+        <div class="fitIn"><input type="text" id="fitText" placeholder="Am7 D7 G" aria-label="Chords" autocomplete="off" spellcheck="false"><button class="go" id="fitBtn">Find</button></div>
+        <div class="examples" id="fitExamples"></div>
+        <div id="fitOut"></div>
+      </section>
+
+      <section data-tab="modes" id="modes"></section>
+
+      <section data-tab="practise">
+        <div class="seg practSeg" id="practSeg"><button data-v="play">Play it</button><button data-v="ear">Name it (ear training)</button></div>
+        <div id="playPane">
+          <p class="sub" style="margin-top:0">Play the scale up and down, the notes shown on the neck. The app follows you note by note: the next note is ringed, right notes turn green.</p>
+          <div class="grid2">
+            <label>Microphone <select id="input"><option value="">Default microphone</option></select></label>
+            <label>Click <select id="clickMode"><option value="off">No click (your own pace)</option><option value="on">Click, one note per beat</option></select></label>
+          </div>
+          <div class="headphones">Wear headphones if you turn on the click or the drone, so the mic hears only your instrument. A clean tone works best (no heavy distortion).</div>
+          <div class="playRow" style="margin-top:4px"><button class="go" id="practBtn">Start listening</button><span class="sub" id="practWhat"></span></div>
+          <div class="err hidden" id="micErr"></div>
+          <div class="heard"><b id="heardNote">--</b><span id="heardText"></span></div>
+          <div class="seqBox" id="seqBox"></div>
+          <div class="scoreBox hidden" id="scoreBox"></div>
+        </div>
+        <div id="earPane" class="hidden">
+          <p class="sub" style="margin-top:0">It plays a scale; you name it. Listen for the colour note.</p>
+          <div class="grid2">
+            <label>Which scales <select id="earSet"></select></label>
+            <label>Root <select id="earRoot"><option value="random">A new root each time</option><option value="same">Always C (compare by ear)</option></select></label>
+          </div>
+          <div class="playRow"><button class="go" id="earNew">Play a scale</button><button class="small" id="earAgain" disabled>Hear it again</button><span class="sub" id="earScore"></span></div>
+          <div class="opts" id="earOpts"></div>
+          <p id="earFeedback" class="muted"></p>
+        </div>
+      </section>
+
+      <section data-tab="setup">
+        <div class="grid2">
+          <label>Instrument <select id="instrument"></select></label>
+          <label>Tuning <select id="tuning"></select></label>
+          <label>Capo <select id="capo"></select></label>
+          <label>Frets shown <select id="frets"><option>12</option><option>15</option><option>17</option><option>19</option><option>22</option><option>24</option></select></label>
+          <label>Volume <input type="range" id="volume" min="0" max="100" value="70"></label>
+          <label>Left-handed <select id="lefty"><option value="0">No</option><option value="1">Yes (flip the neck)</option></select></label>
+        </div>
+        <p class="tip">Any instrument and tuning from Encore Tune works here. Box and per-string patterns need strings that go up in pitch from low to high (a guitar, bass or mandolin); on a ukulele with a high G or a banjo you get the whole neck.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<div id="pop" class="hidden" role="tooltip"></div>
+<div id="toast" class="hidden" role="status"></div>
+<script type="module" src="scales.js"></script>
+</body>
+</html>

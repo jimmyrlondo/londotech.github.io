@@ -209,8 +209,12 @@ function render() {
     const meta = t.m ? [fmtLength(t.m.duration), `${f1(t.m.lufs)} LUFS`, formatShort(t.info, t.m)].join(" · ") : "";
     // problems first, then notes, then what passed
     const rank = { fail: 0, warn: 1, note: 2, pass: 3 }, sorted = t.checks.map((c, k) => ({ c, k })).sort((a, b) => rank[a.c.status] - rank[b.c.status] || a.k - b.k).map((x) => x.c);
+    // what passed folds into one line, so what needs a look stands out
+    const issues = sorted.filter((c) => c.status !== "pass"), passed = sorted.filter((c) => c.status === "pass");
+    const passedHtml = passed.length ? `<details class="passed"><summary><span class="dot s-pass"></span>${passed.length} check${passed.length > 1 ? "s" : ""} passed: ${esc(passed.map((c) => c.title).join(", "))}</summary>
+      <div class="checks">${passed.map(checkHtml).join("")}</div></details>` : "";
     return `<details class="track" ${open ? "open" : ""}><summary><span class="dot s-${st}"></span><span class="tname">${many ? `${i + 1}. ` : ""}${esc(t.name)}</span><span class="tmeta">${esc(meta)}</span></summary>
-      ${t.m ? timelineHtml(t) : ""}<div class="checks">${sorted.map(checkHtml).join("")}</div></details>`;
+      ${t.m ? timelineHtml(t) : ""}<div class="checks">${issues.map(checkHtml).join("")}</div>${passedHtml}</details>`;
   }).join("");
 
   $("progress").classList.add("hidden");
@@ -251,8 +255,8 @@ window.addEventListener("drop", (e) => { e.preventDefault(); dragDepth = 0; $("d
 
 // print: every track opened up, then back as it was
 let wasOpen = [];
-window.addEventListener("beforeprint", () => { wasOpen = [...document.querySelectorAll("details.track")].map((d) => d.open); document.querySelectorAll("details.track").forEach((d) => (d.open = true)); });
-window.addEventListener("afterprint", () => { document.querySelectorAll("details.track").forEach((d, i) => (d.open = wasOpen[i] ?? d.open)); });
+window.addEventListener("beforeprint", () => { wasOpen = [...document.querySelectorAll("details.track, details.passed")].map((d) => d.open); document.querySelectorAll("details.track, details.passed").forEach((d) => (d.open = true)); });
+window.addEventListener("afterprint", () => { document.querySelectorAll("details.track, details.passed").forEach((d, i) => (d.open = wasOpen[i] ?? d.open)); });
 $("printBtn").addEventListener("click", () => window.print());
 
 $("copyBtn").addEventListener("click", async () => {

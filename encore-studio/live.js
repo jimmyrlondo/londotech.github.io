@@ -404,7 +404,8 @@ const SETUP_TEXT = {
 };
 async function setupRouting() {
   const src = state.src, ch = src.channels ?? 1;
-  $("routingPanel").classList.toggle("hidden", ch < 2);
+  $("routingPanel").classList.toggle("hidden", ch < 2); $("tabInputs").classList.toggle("hidden", ch < 2);
+  if (ch < 2 && currentTab === "inputs") showTab("show");
   if (ch < 2) return;
   $("routingInfo").textContent = `${ch} recorded`;
   const info = await inspectChannels(src), sug = routingForSetup(info, state.chosenSetup, state.chNames ?? []);
@@ -1231,7 +1232,7 @@ async function exportAll() {
     status(`Something went wrong: ${err.message}`); return null;
   } finally { $("exportGo").disabled = false; $("encoreGo").disabled = false; }
 }
-$("exportGo").addEventListener("click", exportAll);
+$("exportGo").addEventListener("click", async () => { if (await exportAll()) showTab("release"); });
 
 // Inside encoremusic.studio the site provides window.EncoreStudio.createLiveRelease
 // (see INTEGRATION.md): it uploads the files and opens a new release, ready to price.
@@ -1247,7 +1248,33 @@ $("encoreGo").addEventListener("click", async () => {
   }
 });
 
+// ---------- the Show | Inputs | Sound | Release tabs beside the songs ----------
+let currentTab = "show";
+function showTab(name) {
+  const btn = document.querySelector(`#sidePanel [role=tab][data-tab="${name}"]`);
+  if (!btn || btn.classList.contains("hidden")) name = "show";
+  currentTab = name;
+  for (const b of document.querySelectorAll("#sidePanel [role=tab]")) {
+    const on = b.dataset.tab === name;
+    b.classList.toggle("on", on); b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1;
+  }
+  for (const sec of document.querySelectorAll("#sidePanel .tabBody > section")) sec.classList.toggle("show", sec.dataset.tab === name);
+  document.querySelector("#sidePanel .tabBody").scrollTop = 0;
+  store.set("tab", name);
+}
+for (const b of document.querySelectorAll("#sidePanel [role=tab]")) {
+  b.addEventListener("click", () => showTab(b.dataset.tab));
+  b.addEventListener("keydown", (e) => { // arrow keys move between tabs (the WAI-ARIA tabs pattern)
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    e.preventDefault(); e.stopPropagation();
+    const all = [...document.querySelectorAll("#sidePanel [role=tab]")].filter((x) => !x.classList.contains("hidden")), i = all.indexOf(b);
+    const next = e.key === "Home" ? all[0] : e.key === "End" ? all[all.length - 1] : all[(i + (e.key === "ArrowRight" ? 1 : all.length - 1)) % all.length];
+    showTab(next.dataset.tab); next.focus();
+  });
+}
+
 // ---------- go ----------
+showTab(store.get("tab") || "show");
 setupSound();
 show("start");
 refreshInputs(false);

@@ -56,7 +56,17 @@ function fillSources(segId, blurbId) {
   sync();
   return sync;
 }
-const syncA = fillSources("srcSeg", "srcBlurb"), syncB = fillSources("srcSeg2", "srcBlurb2");
+const syncA = fillSources("srcSeg", "srcBlurb");
+// once a file is open: a compact picker in the file bar, the blurb under What it heard
+const srcSel = $("srcSel");
+for (const s of SOURCES) srcSel.append(new Option(s.name, s.id));
+srcSel.onchange = () => setSource(srcSel.value);
+function syncB() {
+  const s = SOURCES.find((x) => x.id === state.source);
+  srcSel.value = state.source; srcSel.title = s?.blurb ?? "";
+  $("srcBlurb2").textContent = s ? `${s.name}: ${s.blurb}.` : "";
+}
+syncB();
 function setSource(id) {
   state.source = id; store.set("source", id); syncA(); syncB();
   if (!$("nFormat").value || SOURCES.some((s) => s.name === $("nFormat").value)) $("nFormat").value = SOURCES.find((s) => s.id === id)?.name ?? "";
@@ -71,24 +81,32 @@ drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.ad
 drop.addEventListener("dragleave", () => drop.classList.remove("over"));
 drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files[0]; if (f) openFile(f); });
 $("file").addEventListener("change", () => { const f = $("file").files[0]; if (f) openFile(f); $("file").value = ""; });
-$("newFile").onclick = () => { player.stop(); $("work").classList.add("hidden"); $("startView").classList.remove("hidden"); };
+// the work view: on a wide screen it fills the window and only its panels scroll
+function showWork(on) {
+  $("work").classList.toggle("hidden", !on); $("startView").classList.toggle("hidden", on);
+  document.body.classList.toggle("working", on);
+}
+$("newFile").onclick = () => { player.stop(); showWork(false); };
 
 async function openFile(file) {
   player.stop();
   $("startErr").classList.add("hidden");
   state.file = file; state.restored = null; state.preview = null; state.sel = null; state.playhead = 0; state.report = null;
-  $("startView").classList.add("hidden"); $("work").classList.remove("hidden");
-  $("fileName").textContent = file.name;
-  $("fileInfo").textContent = "Opening...";
-  $("findings").innerHTML = ""; $("procSummary").textContent = ""; $("trackRows").innerHTML = "";
+  showWork(true);
+  $("fileName").textContent = file.name; $("fileName").title = file.name;
+  $("fileInfo").textContent = "Opening..."; $("fileInfo").title = "";
+  $("findings").innerHTML = ""; $("procSummary").textContent = ""; $("lastRestore").classList.add("hidden"); $("trackRows").innerHTML = "";
+  state.settings = null; renderModules(); $("songsCount").textContent = ""; $("heardCount").textContent = "";
+  $("procText").textContent = "Nothing is changed in your file: the restored version is made alongside it.";
   try { state.src = await openAudio(file, (ab) => audio().decodeAudioData(ab)); }
   catch (err) {
-    $("work").classList.add("hidden"); $("startView").classList.remove("hidden");
+    showWork(false);
     $("startErr").textContent = "Couldn't read that file. Try WAV, FLAC or MP3."; $("startErr").classList.remove("hidden");
     return;
   }
   const s = state.src, bits = s.kind === "wav" ? `${s.h.bits}-bit${s.h.format === 3 ? " float" : ""}` : "decoded";
   $("fileInfo").textContent = `${fmtTime(s.frames / s.fs)} long, ${(s.fs / 1000).toFixed(1)} kHz, ${bits}, ${s.channels === 1 ? "mono" : s.channels === 2 ? "stereo" : s.channels + " channels (the first two are used)"}. Read in place: your file is never changed.`;
+  $("fileInfo").title = $("fileInfo").textContent;
   loadNotes();
   resize();
   await analyse();
@@ -100,28 +118,38 @@ async function analyse() {
   if (!s) return;
   player.stop();
   setBar("anaBar", 0); $("anaBar").classList.remove("hidden");
+  // the status line under the file bar shows the listening; the result goes under What it heard
+  $("anaLine").classList.remove("hidden"); $("procLine").classList.add("hidden");
   $("anaText").textContent = "Listening through the whole recording...";
+  $("anaSummary").textContent = "Listening...";
   $("findings").innerHTML = "";
   let res;
   try { res = await rpc({ type: "analyse", source: describe(s), sourceType: state.source }, (p) => { setBar("anaBar", p.pct); if (p.text) $("anaText").textContent = p.text; }); }
-  catch (err) { $("anaText").innerHTML = `<span class="err">The analysis stopped: ${esc(err.message)}</span>`; return; }
+  catch (err) { $("anaBar").classList.add("hidden"); $("anaText").innerHTML = `<span class="err">The analysis stopped: ${esc(err.message)}</span>`; $("anaSummary").textContent = "The analysis stopped."; return; }
   const r = state.report = res.report;
   state.suggested = r.settings;
   $("anaBar").classList.add("hidden");
-  $("anaText").textContent = `Listened to ${fmtTime(r.seconds)} in ${(r.ms / 1000).toFixed(1)} s. Each fix below is switched on where it's needed, at a gentle starting point.`;
+  $("anaLine").classList.add("hidden"); $("procLine").classList.remove("hidden");
+  $("anaSummary").textContent = `Listened to ${fmtTime(r.seconds)} in ${(r.ms / 1000).toFixed(1)} s. Each fix is switched on where it's needed, at a gentle starting point.`;
   $("findings").innerHTML = r.findings.map((f) => `<li class="${f.level}"><span class="dot"></span><span>${esc(f.text)}</span></li>`).join("");
+  showHeardCount();
   // settings: the suggestions, unless this file was worked on here before
   const saved = loadSaved();
   state.settings = clone(r.settings);
   if (saved?.settings) {
     mergeSettings(state.settings, saved.settings);
-    $("anaText").textContent += " Your own settings for this file from last time are back; Use these suggestions resets them.";
+    $("anaSummary").textContent += " Your own settings for this file from last time are back; Use these suggestions (under Fixes) resets them.";
   }
   state.tracks = saved?.tracks?.length ? saved.tracks : r.tracks.tracks.map((t, i) => ({ start: t.start, end: t.end, title: `Track ${i + 1}` }));
   if (state.pendingProject) { applyProject(state.pendingProject); state.pendingProject = null; }
   renderModules(); renderTracks(); draw(); drawWow(); updateButtons();
 }
 $("reanalyse").onclick = () => analyse();
+// the tab says how many things want attention (fixes and warnings)
+function showHeardCount() {
+  const n = (state.report?.findings ?? []).filter((f) => f.level === "fix" || f.level === "warn").length;
+  $("heardCount").textContent = n ? `(${n})` : "";
+}
 $("useRec").onclick = () => { if (!state.suggested) return; state.settings = clone(state.suggested); settingsChanged(); renderModules(); };
 
 // settings carry big arrays (noise profile, wow curve); keep them out of saved copies and comparisons
@@ -200,32 +228,60 @@ function retune(s) {
   s.speed.cents = +(-d).toFixed(1);
 }
 
+// One line per fix for its row: what it's set to when on, what was heard when off
+const firstSentence = (t) => (String(t || "").match(/^.*?[.!?](\s|$)/)?.[0] ?? String(t || "")).trim();
+const STATUS = {
+  rumble: (s) => `Cut below ${s.rumble.hz} Hz`,
+  channels: (s) => [{ stereo: "Stereo", sum: "Mono, both channels", left: "Mono, left only", right: "Mono, right only" }[s.channels.mode], s.channels.alignOn && "lined up", s.channels.balanceOn && "balanced", s.channels.flip && "right flipped"].filter(Boolean).join(", "),
+  declick: (s) => `Clicks ${s.declick.clicks || "off"}, crackle ${s.declick.crackle || "off"}` + (state.restored?.clicks && restoredFresh() ? `, ${state.restored.clicks.total} repaired` : ""),
+  dehum: (s) => (s.dehum.harmonics.length ? `${s.dehum.hz.toFixed(1)} Hz, ${s.dehum.harmonics.length} harmonic${s.dehum.harmonics.length === 1 ? "" : "s"}` : `${s.dehum.hz.toFixed(1)} Hz, no harmonics set`),
+  denoise: (s) => `Noise down ${nrAmountToDb(s.denoise.amount).toFixed(0)} dB` + (s.denoise.profile ? "" : ", nothing learned yet"),
+  eq: (s) => [s.eq.curve === "custom" ? `Custom, ${s.eq.turnover} Hz` : CURVES.find((c) => c.id === s.eq.curve)?.name, s.eq.air ? `air +${s.eq.air} dB` : ""].filter(Boolean).join(", "),
+  speed: (s) => { const c = speedCents(s); return `${c > 0 ? "+" : ""}${c.toFixed(1)} cents` + (s.speed.rpm !== "none" ? `, ${RPM_FIXES.find((r) => r.id === s.speed.rpm)?.name}` : ""); },
+  wow: (s) => `Steadied ${s.wow.amount}%`,
+};
+function statusOf(m, s) {
+  if (s[m.id].on) return STATUS[m.id](s);
+  const heard = firstSentence(findingsFor(m.id));
+  return heard ? `Off. ${heard}` : "Off";
+}
+let openMod = null; // the fix whose settings are open (one at a time)
+
 function renderModules() {
   const box = $("modules"), s = state.settings;
+  // a re-render (after a setting changes) keeps the focus where it was
+  const focusKey = box.contains(document.activeElement) ? document.activeElement.dataset.key : null;
   box.innerHTML = "";
-  if (!s) return;
+  if (!s) { box.innerHTML = `<div class="note">Listening to the recording first...</div>`; return; }
   for (const m of MODULES) {
-    const card = document.createElement("section");
+    const card = document.createElement("div");
+    const open = openMod === m.id, id = `m_${m.id}`;
     card.className = "mod" + (s[m.id].on ? " on" : "");
-    const id = `m_${m.id}`;
-    card.innerHTML = `<header><h3>${esc(m.name)}</h3><label class="switch" title="On or off"><input type="checkbox" id="${id}" ${s[m.id].on ? "checked" : ""} aria-label="${esc(m.name)} on"><span></span></label></header>
-      <div class="what">${esc(m.what)}</div><div class="found">${esc(m.found() || "Nothing to fix.")}</div>${m.removable ? `<button class="small listen" data-listen="${m.id}" title="Preview the selection and listen to only what this takes out">Hear what it removes</button>` : ""}<div class="ctl"></div>`;
-    card.querySelector(`#${id}`).onchange = (e) => { s[m.id].on = e.target.checked; card.classList.toggle("on", e.target.checked); settingsChanged(); if (m.id === "wow") drawWow(); };
+    card.dataset.mod = m.id;
+    card.innerHTML = `<div class="modRow"><label class="switch" title="On or off"><input type="checkbox" id="${id}" data-key="${m.id}:on" ${s[m.id].on ? "checked" : ""} aria-label="${esc(m.name)} on"><span></span></label>
+      <button class="modHead" data-key="${m.id}:head" aria-expanded="${open}" aria-controls="md_${m.id}" title="Settings and what it does"><span class="modName">${esc(m.name)}</span><span class="modStat"></span><span class="chev" aria-hidden="true">&#9660;</span></button></div>
+      <div class="modBody" id="md_${m.id}" ${open ? "" : "hidden"}><div class="what">${esc(m.what)}</div><div class="found">${esc(m.found() || "Nothing to fix.")}</div>${m.removable ? `<button class="small listen" data-listen="${m.id}" data-key="${m.id}:listen" title="Preview the selection and listen to only what this takes out">Hear what it removes</button>` : ""}<div class="ctl"></div></div>`;
+    const stat = card.querySelector(".modStat");
+    const showStat = () => { stat.textContent = statusOf(m, s); stat.title = stat.textContent; };
+    showStat();
+    card.querySelector(`#${id}`).onchange = (e) => { s[m.id].on = e.target.checked; card.classList.toggle("on", e.target.checked); showStat(); settingsChanged(); if (m.id === "wow") drawWow(); };
+    card.querySelector(".modHead").onclick = () => { openMod = open ? null : m.id; renderModules(); };
     card.querySelector("[data-listen]")?.addEventListener("click", () => { $("removedBy").value = m.id; setMode("removed"); preview(true); });
     const ctl = card.querySelector(".ctl");
-    for (const c of m.controls) ctl.append(control(c, s));
+    m.controls.forEach((c, i) => { const el = control(c, s, showStat); (el.matches("input, select, button") ? el : el.querySelector("input, select"))?.setAttribute("data-key", `${m.id}:${i}`); ctl.append(el); });
     box.append(card);
   }
+  if (focusKey) box.querySelector(`[data-key="${focusKey}"]`)?.focus();
 }
 
-function control(c, s) {
+function control(c, s, showStat = () => {}) {
   const wrap = document.createElement("label");
   if (c.full) wrap.className = "full";
   if (c.type === "button") { const b = document.createElement("button"); b.className = "small full"; b.textContent = c.label; b.onclick = c.run; return b; }
   if (c.type === "check") {
     wrap.className = "toggle" + (c.full ? " full" : "");
     const i = document.createElement("input"); i.type = "checkbox"; i.checked = !!c.get(s);
-    i.onchange = () => { c.set(s, i.checked); settingsChanged(); };
+    i.onchange = () => { c.set(s, i.checked); showStat(); settingsChanged(); };
     wrap.append(i, document.createTextNode(c.label));
     return wrap;
   }
@@ -247,7 +303,7 @@ function control(c, s) {
     head.append(val);
     input = document.createElement("input"); input.type = "range"; input.min = c.min; input.max = c.max; input.step = c.step; input.value = c.get(s);
     input.oninput = () => { val.textContent = c.fmt ? c.fmt(+input.value) : input.value; };
-    input.onchange = () => { c.set(s, +input.value); settingsChanged(); };
+    input.onchange = () => { c.set(s, +input.value); showStat(); settingsChanged(); };
   }
   wrap.append(input);
   return wrap;
@@ -268,6 +324,8 @@ function resize() {
   draw(); drawWow();
 }
 window.addEventListener("resize", resize);
+// the waveform's size follows the layout (the Listen column, its scrollbar, the spare height), not only the window
+if (window.ResizeObserver) { let last = ""; new ResizeObserver(() => { const k = wave.clientWidth + "x" + wave.clientHeight; if (wave.clientWidth && k !== last) { last = k; resize(); } }).observe(wave); }
 const duration = () => (state.src ? state.src.frames / state.src.fs : 0);
 const cents = () => (state.restored ? state.restored.cents : 0);
 
@@ -524,7 +582,8 @@ $("processBtn").onclick = async () => {
     state.restored = { ...res, key, cents: speedCents(settings) };
     state.preview = null;
     const speedNote = Math.abs(state.restored.cents) > 0.5 ? ` Now ${fmtTime(res.frames / res.fs)} long (speed changed by ${state.restored.cents.toFixed(1)} cents).` : "";
-    $("procText").textContent = "Up to date.";
+    $("procText").textContent = "Up to date. What it did is under What it heard; export the songs under Songs.";
+    $("lastRestore").classList.remove("hidden");
     $("procSummary").textContent = `Restored ${fmtTime(duration())} in ${fmtTime(res.seconds)} (${(duration() / Math.max(0.1, res.seconds)).toFixed(1)}x real time).` +
       (settings.declick.on ? ` ${res.clicks.total} clicks repaired${res.clicks.long ? `, ${res.clicks.long} too long to rebuild (marked)` : ""}.` : "") +
       ` Loudness: original ${res.lufsIn.toFixed(1)} LUFS, restored ${res.lufsOut.toFixed(1)} LUFS (played back matched). Peak ${res.peakDb.toFixed(1)} dBFS.${speedNote}`;
@@ -553,6 +612,7 @@ function renderTracks() {
     tr.querySelector('[data-a="del"]').onclick = () => { if (i === 0) { state.tracks[1].start = t.start; state.tracks.splice(0, 1); } else { state.tracks[i - 1].end = t.end; state.tracks.splice(i, 1); } renderTracks(); draw(); saveLocal(); };
     body.append(tr);
   });
+  $("songsCount").textContent = state.tracks.length ? `(${state.tracks.length})` : "";
 }
 $("splitBtn").onclick = () => {
   const t = state.playhead, i = state.tracks.findIndex((x) => t > x.start + 1 && t < x.end - 1);
@@ -620,7 +680,7 @@ $("exportZip").onclick = () => exportTracks(null, true);
 $("exportSide").onclick = async () => {
   if (!restoredFresh()) return;
   const n = notes(), meta = { title: [n.album, n.side].filter(Boolean).join(", ") || state.file.name.replace(/\.[^.]+$/, "") + " (restored)", artist: n.artist, album: n.album, year: n.year, comment: comment() };
-  await runExport([{ start: 0, end: state.restored.frames / state.restored.fs, meta, fileName: fileName(meta, "wav", "(restored)") }], false);
+  await runExport([{ start: 0, end: state.restored.frames / state.restored.fs, meta, fileName: fileName(meta, "wav", meta.title.endsWith("(restored)") ? "" : "(restored)") }], false);
 };
 
 function updateButtons() {
@@ -677,6 +737,30 @@ function applyProject(p) {
   if (p.notes) for (const [k, id] of Object.entries(NOTE_FIELDS)) if (p.notes[k] != null) $(id).value = p.notes[k];
   settingsChanged();
 }
+
+// ---------- tabs: Fixes | What it heard | Songs | Notes ----------
+const tabs = [...document.querySelectorAll('.tabBar [role="tab"]')];
+function showTab(name, focus = false) {
+  if (!tabs.some((t) => t.dataset.tab === name)) name = "fixes";
+  for (const t of tabs) {
+    const on = t.dataset.tab === name;
+    t.setAttribute("aria-selected", on); t.tabIndex = on ? 0 : -1;
+    $(t.getAttribute("aria-controls")).hidden = !on;
+    if (on && focus) t.focus();
+  }
+  document.querySelector(".tabBody").scrollTop = 0;
+  store.set("tab", name);
+}
+for (const t of tabs) {
+  t.onclick = () => showTab(t.dataset.tab);
+  t.onkeydown = (e) => {
+    const i = tabs.indexOf(t), go = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (go == null) return;
+    e.preventDefault();
+    showTab(tabs[(go + tabs.length) % tabs.length].dataset.tab, true);
+  };
+}
+showTab(store.get("tab", "fixes"));
 
 // for the automated browser check (and the curious): the current state
 window.encoreRestore = { state, keyOf };

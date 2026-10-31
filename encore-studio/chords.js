@@ -2,7 +2,7 @@
 // any chord), then pick a key and build a progression with every move explained, hear it, move it
 // to another key, and save it. All the theory is in chords-core.js, chords-voicing.js and chords-keys.js.
 import { TYPE, TYPE_GROUPS, chord, chordTones, chordSymbol, noteText, parseNote, pcOf, mod12, nameNotes,
-         spellBass, plainNote, soundsAs } from './chords-core.js';
+         spellBass, plainNote, soundsAs, parseChord } from './chords-core.js';
 import { frettable, coursesOf, courseNotes, fretVoicings, shapeText, pianoVoicing, capoOptions, shapeFor } from './chords-voicing.js';
 import { MAJOR_KEYS, MINOR_KEYS, makeKey, keyName, keyPalette, numeralOf, relate, nextMoves, modulations, STYLES, styleChords,
          transposeChord, keyInterval, keyBySemis, chartText, signature, scaleNotes, numeralChord } from './chords-keys.js';
@@ -162,6 +162,7 @@ function drawNeck() {
   const n = courses.length, H = NECK.top + (n - 1) * NECK.row + NECK.bottom, W = fretX(frets) + 18;
   const svg = $('neck');
   svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.style.setProperty('--w', Math.round(W));
   const y = i => NECK.top + (n - 1 - i) * NECK.row;
   const opens = courses.map(c => c.open), lo = Math.min(...opens), hi = Math.max(...opens);
   let s = `<rect x="${fretX(0)}" y="${NECK.top - 12}" width="${fretX(frets) - fretX(0)}" height="${(n - 1) * NECK.row + 24}" fill="#1f1a16" rx="3"/>`;
@@ -260,6 +261,7 @@ function drawPiano(svg, lo, hi, on, small = false) {
   for (let m = lo; m <= hi; m++) if (!BLACK.includes(mod12(m))) whites.push(m);
   const W = whites.length * ww + 2, H = wh + 2;
   svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.style.setProperty('--w', W);
   let s = '';
   const xOf = new Map();
   whites.forEach((m, i) => {
@@ -314,6 +316,21 @@ $('ghost').checked = ghost;
 for (const b of $('labelSeg').children) b.classList.toggle('on', b.dataset.v === labelMode);
 $('labelSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; labelMode = b.dataset.v; store.set('labels', labelMode); for (const x of $('labelSeg').children) x.classList.toggle('on', x === b); renderName(); };
 $('ghost').onchange = () => { ghost = $('ghost').checked; store.set('ghost', ghost ? '1' : '0'); drawNeck(); };
+/** Neck or piano: one input on screen at a time (whatever you played last still gets named) */
+let inputView = store.get('input', 'neck') === 'piano' ? 'piano' : 'neck';
+function setInput(v) {
+  inputView = v;
+  store.set('input', v);
+  for (const b of $('inputSeg').children) { const on = b.dataset.v === v; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  $('neckWrap').classList.toggle('hidden', v !== 'neck');
+  $('pianoWrap').classList.toggle('hidden', v !== 'piano');
+  $('ghostWrap').classList.toggle('hidden', v !== 'neck');
+  $('neckClear').classList.toggle('hidden', v !== 'neck');
+  $('pianoClear').classList.toggle('hidden', v !== 'piano');
+  if (v === 'piano') centerScroll($('pianoBox'));
+}
+const centerScroll = box => { if (box.scrollLeft === 0) box.scrollLeft = Math.max(0, (box.scrollWidth - box.clientWidth) / 2); };
+$('inputSeg').onclick = e => { const b = e.target.closest('button'); if (b) setInput(b.dataset.v); };
 $('neckClear').onclick = () => { fretState = courses.map(() => -1); source = 'fret'; analyse(); };
 $('pianoClear').onclick = () => { pianoNotes.clear(); source = 'piano'; analyse(); };
 
@@ -401,7 +418,7 @@ $('toShapes').onclick = () => {
   const r = names[pick];
   if (!r || !r.chord) return;
   setLookup(r.chord);
-  $('lookupPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTab('shapes');
 };
 
 // ---- Find the shapes for a chord
@@ -444,6 +461,7 @@ function lookupChord() { const root = parseNote($('luRoot').value), b = $('luBas
 function renderLookup() {
   const c = lookupChord(), tones = chordTones(c), t = TYPE[c.type];
   lookupList = voicings(c);
+  $('luPicked').innerHTML = '';
   $('luInfo').innerHTML = `<b>${esc(chordSymbol(c))}</b>: ${esc(t.name)}, ${tones.map(x => esc(noteText(x.note)) + ' <span class="muted">(' + esc(x.d) + ')</span>').join(' ')}`
     + (t.opt.length ? `. The ${t.opt.join(' and ')} can be left out.` : '.')
     + (capo ? ` Shapes are counted from the capo at fret ${capo}.` : '');
@@ -452,7 +470,7 @@ function renderLookup() {
     : '<div class="empty">No comfortable shape for this chord on this instrument and tuning (try fewer notes, another tuning, or more frets).</div>';
   const pv = pianoVoicing(c), on = new Map();
   for (const m of pv.notes) { const x = tones.find(y => y.pc === mod12(m)); on.set(m, { label: noteText(x ? x.note : plainNote(m)), root: mod12(m) === pcOf(c.root) }); }
-  drawPiano($('luPiano'), 36, 84, on, false);
+  drawPiano($('luPiano'), 36, 84, on, true);
 }
 $('luShapes').onclick = e => {
   const b = e.target.closest('.shape');
@@ -462,8 +480,11 @@ $('luShapes').onclick = e => {
   source = 'fret';
   analyse();
   hear(currentNotes(), true);
-  $('neckBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  for (const x of $('luShapes').children) x.classList.toggle('on', x === b);
+  const r = names[pick];
+  $('luPicked').innerHTML = `<span>On the neck now: <b>${esc(shapeText(v.frets))}</b>${r ? ' (' + esc(r.symbol) + ')' : ''}</span><button class="small" id="luEdit">Edit it on the neck</button>`;
 };
+$('luPicked').onclick = e => { if (e.target.closest('#luEdit')) { setTab('name'); setInput('neck'); } };
 
 // ---- Write a progression
 
@@ -520,7 +541,7 @@ $('transDown').onclick = () => setKey(keyBySemis(prog.key, -1), true);
 $('progClear').onclick = () => { stopPlay(); prog.items = []; sel = -1; saveCurrent(); renderWrite(); };
 $('styleSel').onchange = () => {
   const s = STYLES.find(x => x.id === $('styleSel').value);
-  if (!s) { $('styleWhy').textContent = ''; return; }
+  if (!s) { $('styleWhy').textContent = ''; renderDetail(); return; }
   stopPlay();
   const t = noteText(prog.key.tonic), list = s.mode === 'minor' ? MINOR_KEYS : MAJOR_KEYS;
   const k = makeKey(list.includes(t) ? t : noteText(plainNote(pcOf(prog.key.tonic))), s.mode);
@@ -533,9 +554,9 @@ $('styleSel').onchange = () => {
   store.set('rhythm', $('rhythm').value);
   $('progName').value = s.name;
   sel = -1;
+  $('styleWhy').innerHTML = '<b>' + esc(s.name) + ':</b> ' + esc(s.why);
   saveCurrent();
   renderWrite();
-  $('styleWhy').innerHTML = '<b>' + esc(s.name) + ':</b> ' + esc(s.why);
 };
 
 function addChord(c, rn = '') {
@@ -627,6 +648,7 @@ $('timeline').onclick = e => {
   else if (act === 'beats') { const order = [4, 2, 1, 8, 3]; prog.items[i].beats = order[(order.indexOf(prog.items[i].beats) + 1) % order.length]; sel = i; }
   else if (!act) {
     sel = sel === i ? -1 : i;
+    if (sel >= 0 && phone.matches) setProgTab('bar');
     if (sel >= 0) { audio(); sound(voicedNotes()[i], ctx.currentTime + 0.02, { spread: $('tone').value === 'piano' ? 0 : 0.025, dur: 2 }); }
   }
   saveCurrent();
@@ -635,22 +657,28 @@ $('timeline').onclick = e => {
 
 function renderDetail() {
   const box = $('detail');
-  if (sel < 0 || !prog.items[sel]) { box.classList.add('hidden'); return; }
-  box.classList.remove('hidden');
+  const idle = sel < 0 || !prog.items[sel];
+  $('sidePanel').classList.toggle('idle', idle && !$('styleWhy').textContent);
+  if (idle) {
+    box.innerHTML = '<h2>This bar</h2><div class="muted">' + (prog.items.length ? 'Tap a bar in your progression to see it up close: its notes, what it does, why it works after the chord before, and other shapes to play it with.'
+      : 'Build a progression first: start from a style, or tap chords in Next chord or Key map. Then tap a bar to see it up close here.') + '</div>'
+      + '<div class="hint">' + $('keyInfo').innerHTML + '</div>';
+    return;
+  }
   const it = prog.items[sel], c = it.chord, tones = chordTones(c), shapes = autoShapes()[sel];
   const entry = palette.all.find(e => pcOf(e.chord.root) === pcOf(c.root) && e.chord.type === c.type);
   const rel = sel > 0 ? relate(prog.key, prog.items[sel - 1].chord, c, palette) : null;
-  let html = `<div class="two"><div><div class="big" style="font-size:40px">${esc(chordSymbol(c))}</div>
-    <div class="rn" style="font-family:var(--family-mono);color:var(--soft)">${esc(numeralFor(sel))} in ${esc(keyName(prog.key))}</div>
+  let html = `<div><div class="muted">Bar ${sel + 1}</div><div class="big" style="font-size:38px">${esc(chordSymbol(c))}</div>
+    <div class="rn" style="font-family:var(--family-mono);color:var(--soft);font-size:13px">${esc(numeralFor(sel))} in ${esc(keyName(prog.key))}</div>
     <div class="formula">${tones.map(x => `<div class="tone${x.d === '1' ? ' root' : ''}"><b>${esc(noteText(x.note))}</b><span>${esc(x.d)}</span></div>`).join('')}</div>`;
   if (entry) html += `<p class="explain"><b>What it does:</b> ${esc(entry.why)}</p>`;
   if (rel) html += `<p class="explain"><b>Why ${esc(chordSymbol(prog.items[sel - 1].chord))} to ${esc(chordSymbol(c))}?</b> <span class="kind ${rel.kind}">${KIND_WORD[rel.kind]}</span>${esc(rel.why)}</p>`;
   const odd = soundsAs(c.root);
   if (odd) html += `<p class="explain">${esc(noteText(c.root))} is the theory-book spelling here; it sounds the same as ${esc(odd)}.</p>`;
-  html += `<div class="row" style="margin-top:8px"><button class="small primary" data-dact="hear">Hear it</button><button class="small" data-dact="shapes">Open in Name a chord</button></div></div>`;
-  html += `<div><h3>Shapes on ${esc(instrument.name.toLowerCase())}${capo ? ' (capo ' + capo + ')' : ''}</h3><div class="shapes">`
+  html += `<div class="row" style="margin-top:8px"><button class="small primary" data-dact="hear">Hear it</button><button class="small" data-dact="shapes">Open in Name it</button></div></div>`;
+  html += `<div class="sect"><h3>Shapes on ${esc(instrument.name.toLowerCase())}${capo ? ' (capo ' + capo + ')' : ''}</h3><div class="shapes">`
     + (shapes.list.slice(0, 8).map((v, i) => `<button class="shape${shapes.v === v ? ' on' : ''}" data-vi="${i}">${chordBox(v, pcOf(c.root))}<div class="cap">${esc(shapeText(v.frets))}</div></button>`).join('') || '<div class="empty">No comfortable shape here.</div>')
-    + `</div><h3 style="margin-top:10px">On piano</h3><div class="scroller piano"><svg id="detailPiano"></svg></div></div></div>`;
+    + `</div><h3 style="margin-top:10px">On piano</h3><div class="scroller piano"><svg id="detailPiano"></svg></div></div>`;
   box.innerHTML = html;
   let prev = null;
   for (let i = 0; i < sel; i++) prev = pianoVoicing(prog.items[i].chord, prev).rh;
@@ -666,6 +694,7 @@ $('detail').onclick = e => {
   if (b.dataset.dact === 'shapes') {
     const c = prog.items[sel].chord;
     setTab('name');
+    setInput('neck');
     setLookup(c);
     const v = voicings(c)[0];
     if (v) { fretState = v.frets.map(f => f < 0 ? -1 : f === 0 ? 0 : f + capo); source = 'fret'; analyse(); }
@@ -681,22 +710,25 @@ function chip(e, extraTip = '') {
 }
 const GROUP_TERM = { secondary: 'secondary', borrowed: 'borrowed', spice: null, diatonic: 'key', sevenths: 'seventh' };
 function renderMap() {
-  $('groups').innerHTML = palette.groups.map(g => `<div class="group"><h3>${GROUP_TERM[g.id] ? `<span class="term" data-term="${GROUP_TERM[g.id]}">${esc(g.title)}</span>` : esc(g.title)}</h3>
-    <div class="muted">${esc(g.blurb)}${g.id === 'spice' ? ' Read more: <span class="term" data-term="neapolitan">Neapolitan</span>, <span class="term" data-term="secdim">secondary diminished</span>, <span class="term" data-term="tritonesub">tritone substitution</span>.' : ''}</div>
+  $('groups').innerHTML = palette.groups.map(g => `<div class="group"><div><h3>${GROUP_TERM[g.id] ? `<span class="term" data-term="${GROUP_TERM[g.id]}">${esc(g.title)}</span>` : esc(g.title)}</h3>
+    <div class="gb">${esc(g.blurb)}${g.id === 'spice' ? ' Read more: <span class="term" data-term="neapolitan">Neapolitan</span>, <span class="term" data-term="secdim">secondary diminished</span>, <span class="term" data-term="tritonesub">tritone substitution</span>.' : ''}</div></div>
     <div class="chips">${g.items.map(e => chip(e)).join('')}</div></div>`).join('');
 }
 function chipChord(b) {
   const e = palette.all.find(x => x.label === b.dataset.rn && chordSymbol(x.chord) === b.dataset.sym);
   return e ? { c: e.chord, rn: e.label } : null;
 }
+/** The key map's one explanation area: the chord you last pointed at or added */
+function mapInfo(b) { $('mapInfo').innerHTML = '<b>' + esc(b.dataset.tipTitle || '') + '</b> ' + esc(b.dataset.tip || ''); }
+for (const ev of ['pointerover', 'focusin']) $('groups').addEventListener(ev, e => { const b = e.target.closest('.chip'); if (b) mapInfo(b); });
 for (const id of ['groups', 'moves', 'mods']) $(id).addEventListener('click', e => {
   const b = e.target.closest('.chip');
-  if (b) { const x = chipChord(b) || modChord(b); if (x) addChord(x.c, x.rn); return; }
+  if (b) { const x = chipChord(b) || modChord(b); if (x) { addChord(x.c, x.rn); if (id === 'groups') mapInfo(b); } return; }
   const r = e.target.closest('[data-route]');
   if (r) {
     const m = modulations(prog.key)[+r.dataset.route];
     for (const c of m.route) addChord(c, '');
-    toast('Added the way to ' + m.name + '. Change the key above to keep writing there.');
+    toast('Added the way to ' + m.name + '. Change the key at the top to keep writing there.');
   }
 });
 function modChord(b) {
@@ -723,9 +755,9 @@ function renderMoves() {
 
 function renderMods() {
   const mods = modulations(prog.key);
-  $('mods').innerHTML = mods.map((m, i) => `<div class="capoRow"><div style="min-width:0;flex:1 1 300px"><b>To ${esc(m.name)}</b> <span class="muted">(${esc(m.what)})</span>
+  $('mods').innerHTML = mods.map((m, i) => `<div class="capoRow modRow"><div style="min-width:0;flex:1 1 300px"><b>To ${esc(m.name)}</b> <span class="muted">(${esc(m.what)})</span>
       <div class="chips">${m.route.map((c, j) => `<button class="chip fn-${j === 0 ? 'S' : j === 1 ? 'D' : 'T'}" data-mod="${i}:${j}" data-tip="${esc(m.why)}"><span class="rn">${j === 0 ? esc(m.pivot.here + ' = ' + m.pivot.there) : j === 1 ? 'V7 there' : 'new home'}</span><span class="nm">${esc(chordSymbol(c))}</span></button>`).join('')}</div>
-      <div class="muted" style="margin-top:4px">${esc(m.why)}</div></div>
+      <div class="why2">${esc(m.why)}</div></div>
       <button class="small" data-route="${i}">Add all three</button></div>`).join('');
 }
 
@@ -889,18 +921,61 @@ $('quizHear').onclick = () => quiz && hear(pianoVoicing(quiz.chord).notes, false
 
 // ---- tabs, the explanation bubble, toasts
 
+const VIEWS = { name: 'nameView', shapes: 'shapesView', write: 'writeView', quiz: 'quizView' };
 function setTab(t) {
+  if (!VIEWS[t]) t = 'name';
   store.set('tab', t);
-  for (const [id, v] of [['tabName', 'name'], ['tabWrite', 'write'], ['tabQuiz', 'quiz']]) $(id).classList.toggle('on', v === t);
-  $('nameView').classList.toggle('hidden', t !== 'name');
-  $('writeView').classList.toggle('hidden', t !== 'write');
-  $('quizView').classList.toggle('hidden', t !== 'quiz');
+  selectTab($('mainTabs'), t);
+  for (const [v, id] of Object.entries(VIEWS)) $(id).classList.toggle('hidden', v !== t);
   $('instrumentControls').classList.toggle('hidden', t === 'quiz');
   if (t === 'quiz' && !quiz) newQuestion();
+  if (t === 'shapes') centerScroll($('luPiano').parentElement);
+  hidePop();
 }
-$('tabName').onclick = () => setTab('name');
-$('tabWrite').onclick = () => setTab('write');
-$('tabQuiz').onclick = () => setTab('quiz');
+/** Marks one tab of a tablist selected (aria-selected, and only it in the Tab order) */
+function selectTab(list, v) {
+  for (const b of list.querySelectorAll('[role=tab]')) {
+    const on = b.dataset.v === v;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+    b.tabIndex = on ? 0 : -1;
+  }
+}
+/** Click, or arrow keys / Home / End, to move between tabs */
+function tabKeys(list, pick) {
+  list.addEventListener('click', e => { const b = e.target.closest('[role=tab]'); if (b) pick(b.dataset.v); });
+  list.addEventListener('keydown', e => {
+    const tabs = [...list.querySelectorAll('[role=tab]')], i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    const j = e.key === 'ArrowRight' ? (i + 1) % tabs.length : e.key === 'ArrowLeft' ? (i - 1 + tabs.length) % tabs.length : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : -1;
+    if (j < 0) return;
+    e.preventDefault();
+    pick(tabs[j].dataset.v);
+    tabs[j].focus();
+  });
+}
+tabKeys($('mainTabs'), setTab);
+
+const phone = matchMedia('(max-width: 760px)');
+const PROG_TABS = { bar: 'sidePanel', next: 'ptNext', map: 'ptMap', mods: 'ptMods', capo: 'ptCapo', save: 'ptSave' };
+function setProgTab(t) {
+  if (!PROG_TABS[t] || (t === 'bar' && !phone.matches)) t = 'next';
+  store.set('progTab', t);
+  selectTab($('progTabs'), t);
+  for (const [v, id] of Object.entries(PROG_TABS)) $(id).classList.toggle('show', v === t);
+  hidePop();
+}
+tabKeys($('progTabs'), setProgTab);
+
+// the small menus: sound and frets, and About
+function toggleMenu(btn, box, open = box.classList.contains('hidden')) {
+  box.classList.toggle('hidden', !open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+$('moreBtn').onclick = () => toggleMenu($('moreBtn'), $('moreMenu'));
+$('aboutBtn').onclick = () => { toggleMenu($('aboutBtn'), $('about')); store.set('about', $('about').classList.contains('hidden') ? '0' : '1'); };
+document.addEventListener('pointerdown', e => { if (!$('moreMenu').classList.contains('hidden') && !e.target.closest('.popWrap')) toggleMenu($('moreBtn'), $('moreMenu'), false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('moreMenu').classList.contains('hidden')) { toggleMenu($('moreBtn'), $('moreMenu'), false); $('moreBtn').focus(); } });
 
 const pop = $('pop');
 let popFor = null;
@@ -930,7 +1005,8 @@ document.addEventListener('click', e => {
   if (popFor && !(e.pointerType === 'mouse')) hidePop();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
-window.addEventListener('scroll', () => { if (popFor) hidePop(); }, { passive: true });
+// inner panels scroll too, so listen in the capture phase
+document.addEventListener('scroll', () => { if (popFor) hidePop(); }, { passive: true, capture: true });
 
 let toastTimer = 0;
 function toast(text) {
@@ -942,6 +1018,14 @@ function toast(text) {
 
 function everything() { analyse(); renderLookup(); renderWrite(); }
 everything();
+setInput(inputView);
+setProgTab(store.get('progTab', 'next'));
 setTab(store.get('tab', 'name'));
+if (store.get('about', '0') === '1') toggleMenu($('aboutBtn'), $('about'), true);
 // the keyboards open on the octaves around middle C (they scroll sideways on a narrow screen)
-for (const id of ['piano', 'luPiano']) { const box = $(id).parentElement; box.scrollLeft = Math.max(0, (box.scrollWidth - box.clientWidth) / 2); }
+for (const id of ['piano', 'luPiano']) centerScroll($(id).parentElement);
+// a link straight to a chord's shapes: chords.html?chord=Am7 (Scales links its chords here)
+{
+  const q = new URLSearchParams(location.search).get('chord'), c = q && parseChord(q);
+  if (c && TYPE[c.type]) { setLookup(c); setTab('shapes'); }
+}
