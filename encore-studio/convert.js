@@ -77,25 +77,20 @@ function options() {
   const rate = $("optRate").value;
   return {
     rate: rate === "keep" ? -1 : Number(rate), bits: Number($("optBits").value), channels: $("optChannels").value, kbps: Number($("optKbps").value),
-    start: parseTime($("optStart").value), end: parseTime($("optEnd").value),
-    fadeIn: Math.max(0, Number($("optFadeIn").value) || 0), fadeOut: Math.max(0, Number($("optFadeOut").value) || 0), normalize: $("optNorm").value,
-    pattern: $("optName").value === "custom" ? $("optCustom").value || "{name}" : $("optName").value,
+    // Convert just changes the file type: no trimming, fades, level changes or renaming (same name, new extension)
+    start: 0, end: 0, fadeIn: 0, fadeOut: 0, normalize: "off", pattern: "{name}",
   };
 }
 function optionsChanged() {
   const o = options();
-  return !!(o.rate || o.bits || o.channels !== "keep" || o.kbps || o.start || o.end || o.fadeIn || o.fadeOut || o.normalize !== "off" || o.pattern !== "{name}");
+  return !!(o.rate || o.bits || o.channels !== "keep" || o.kbps);
 }
 function setupOptions() {
-  const sel = $("optName");
-  for (const p of NAME_PATTERNS) sel.add(new Option(p.label, p.id));
-  sel.add(new Option("Your own pattern", "custom"));
-  const changed = () => { $("customWrap").classList.toggle("hidden", sel.value !== "custom"); $("optDot").classList.toggle("hidden", !optionsChanged()); renderAll(); };
-  for (const id of ["optRate", "optBits", "optChannels", "optKbps", "optStart", "optEnd", "optFadeIn", "optFadeOut", "optNorm", "optName", "optCustom"]) { $(id).addEventListener("change", changed); $(id).addEventListener("input", changed); }
+  const changed = () => { $("optDot").classList.toggle("hidden", !optionsChanged()); renderAll(); };
+  for (const id of ["optRate", "optBits", "optChannels", "optKbps"]) { $(id).addEventListener("change", changed); $(id).addEventListener("input", changed); }
   $("resetOpts").onclick = () => {
     for (const id of ["optRate", "optBits", "optKbps"]) $(id).value = "0";
-    $("optChannels").value = "keep"; $("optNorm").value = "off"; $("optName").value = "{name}";
-    for (const id of ["optStart", "optEnd", "optFadeIn", "optFadeOut"]) $(id).value = "";
+    $("optChannels").value = "keep";
     changed();
   };
 }
@@ -213,6 +208,7 @@ const setStatus = (s) => { $("status").textContent = s; };
 
 // ---------- tags ----------
 function renderTags() {
+  if (!$("tagsForm")) return;   // tag editing lives in Tag now; tags and cover come along from the original
   const f = state.files.find((x) => x.id === state.sel);
   $("tagsNone").classList.toggle("hidden", !!f); $("tagsForm").classList.toggle("hidden", !f);
   if (!f) return;
@@ -229,6 +225,7 @@ function renderTags() {
   $("coverDel").classList.toggle("hidden", !f.art);
 }
 function setupTags() {
+  if (!$("tagsForm")) return;
   for (const inp of document.querySelectorAll("[data-tag]")) inp.addEventListener("input", () => {
     const f = state.files.find((x) => x.id === state.sel);
     if (!f) return;

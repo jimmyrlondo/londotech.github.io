@@ -123,6 +123,12 @@
   .cover { display: flex; align-items: center; gap: 12px; }
   .cover img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); display: block; }
   .cover .none { width: 64px; height: 64px; border-radius: 6px; border: 1px dashed var(--divider-strong); display: grid; place-items: center; font-size: 11px; color: var(--dim); text-align: center; }
+  details.fine { margin-top: 14px; border-top: 1px solid var(--divider); padding-top: 12px; }
+  details.fine > summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--soft); }
+  details.fine > summary:hover { color: var(--text); }
+  details.fine .grid { margin-top: 10px; }
+  details.fine .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b00; margin-left: 6px; vertical-align: middle; }
+  details.fine .dot.hidden { display: none; }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
 </head>
@@ -162,68 +168,25 @@
 
     <div class="col">
       <section class="panel tabsBox">
-        <div class="tabBar" role="tablist">
-          <button class="on" data-tab="format" role="tab">Format</button>
-          <button data-tab="options" role="tab">More options<span class="dot hidden" id="optDot"></span></button>
-          <button data-tab="tags" role="tab">Tags</button>
-        </div>
         <div class="tabBody">
           <section class="show" data-tab="format">
+            <h3 style="margin-top:0">Convert to</h3>
             <div class="presets" id="presets" role="radiogroup" aria-label="Output format"></div>
             <p class="help" id="presetHelp"></p>
             <p class="help hidden" id="capsHelp"></p>
-          </section>
-
-          <section data-tab="options">
-            <h3>Sound</h3>
-            <div class="grid">
-              <label>Sample rate <select id="optRate">
-                <option value="0">From the preset</option><option value="keep">Keep the original</option>
-                <option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="88200">88.2 kHz</option><option value="96000">96 kHz</option>
-                <option value="32000">32 kHz</option><option value="22050">22.05 kHz</option><option value="16000">16 kHz</option></select></label>
-              <label>Bit depth <select id="optBits"><option value="0">From the preset</option><option value="16">16-bit</option><option value="24">24-bit</option><option value="32">32-bit float (WAV)</option></select></label>
-              <label>Channels <select id="optChannels"><option value="keep">From the preset</option><option value="stereo">Stereo</option><option value="mono">Mono (mix both)</option><option value="left">Left only</option><option value="right">Right only</option></select></label>
-              <label>Bitrate <select id="optKbps"><option value="0">From the preset</option><option>96</option><option>128</option><option>160</option><option>192</option><option>256</option><option>320</option></select></label>
-            </div>
-            <h3>Edit</h3>
-            <div class="grid">
-              <label>Start at <input type="text" id="optStart" placeholder="0:00" inputmode="decimal"></label>
-              <label>End at <input type="text" id="optEnd" placeholder="the end" inputmode="decimal"></label>
-              <label>Fade in (seconds) <input type="number" id="optFadeIn" min="0" step="0.5" placeholder="none"></label>
-              <label>Fade out (seconds) <input type="number" id="optFadeOut" min="0" step="0.5" placeholder="none"></label>
-              <label class="wide">Level <select id="optNorm"><option value="off">Leave it as it is</option><option value="peak">Normalize peaks to -1 dBFS</option><option value="lufs">Loudness to -14 LUFS (streaming level)</option></select></label>
-            </div>
-            <h3>File names</h3>
-            <div class="grid">
-              <label>Name each file <select id="optName"></select></label>
-              <label class="hidden" id="customWrap">Your pattern <input type="text" id="optCustom" value="{artist} - {title}"></label>
-            </div>
-            <p class="help">Patterns can use {name} {artist} {title} {album} {track} {year} {format}. Trim, fades and level apply to every file in the list. <button class="linkish" id="resetOpts" type="button">Reset these</button></p>
-          </section>
-
-          <section data-tab="tags">
-            <p class="help" id="tagsNone" style="margin-top:0">Add a file to see and change its tags. They're copied from the original into the new file.</p>
-            <div id="tagsForm" class="hidden">
-              <p class="help" id="tagsFor" style="margin:0 0 10px"></p>
+            <details class="fine" id="fine">
+              <summary>Fine-tune the format <span class="dot hidden" id="optDot"></span></summary>
               <div class="grid">
-                <label class="wide">Title <input type="text" data-tag="title"></label>
-                <label>Artist <input type="text" data-tag="artist"></label>
-                <label>Album artist <input type="text" data-tag="albumArtist"></label>
-                <label>Album <input type="text" data-tag="album"></label>
-                <label>Year <input type="text" data-tag="year"></label>
-                <label>Track <input type="text" data-tag="track"></label>
-                <label>Genre <input type="text" data-tag="genre"></label>
-                <label>ISRC <input type="text" data-tag="isrc"></label>
-                <label>Composer <input type="text" data-tag="composer"></label>
-                <label class="wide">Comment <input type="text" data-tag="comment"></label>
+                <label>Sample rate <select id="optRate">
+                  <option value="0">From the preset</option><option value="keep">Keep the original</option>
+                  <option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="88200">88.2 kHz</option><option value="96000">96 kHz</option>
+                  <option value="32000">32 kHz</option><option value="22050">22.05 kHz</option><option value="16000">16 kHz</option></select></label>
+                <label>Bit depth <select id="optBits"><option value="0">From the preset</option><option value="16">16-bit</option><option value="24">24-bit</option><option value="32">32-bit float (WAV)</option></select></label>
+                <label>Channels <select id="optChannels"><option value="keep">From the preset</option><option value="stereo">Stereo</option><option value="mono">Mono (mix both)</option><option value="left">Left only</option><option value="right">Right only</option></select></label>
+                <label>Bitrate <select id="optKbps"><option value="0">From the preset</option><option>96</option><option>128</option><option>160</option><option>192</option><option>256</option><option>320</option></select></label>
               </div>
-              <h3>Cover art</h3>
-              <div class="cover"><span id="coverBox"></span>
-                <span><button class="small" id="coverAdd" type="button">Replace</button> <button class="small" id="coverDel" type="button">Remove</button><br><span class="help" id="coverInfo"></span></span>
-                <input type="file" id="coverFile" accept="image/jpeg,image/png" hidden>
-              </div>
-              <p class="help">Changes go into the converted file only; your original isn't touched. Click a file in the list to edit its tags.</p>
-            </div>
+              <p class="help">Most of the time the preset is all you need. Tags and cover art come along from the original automatically (edit them in <a href="tag.html">Tag</a>). <button class="linkish" id="resetOpts" type="button">Back to the preset</button></p>
+            </details>
           </section>
         </div>
       </section>
