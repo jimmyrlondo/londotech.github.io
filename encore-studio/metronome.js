@@ -558,7 +558,7 @@ document.addEventListener('keydown', e => {
     ArrowDown: () => setBpm(Math.round(S.bpm) - (e.shiftKey ? 10 : 1)),
     ArrowRight: () => setBpm(Math.round(S.bpm) + 5),
     ArrowLeft: () => setBpm(Math.round(S.bpm) - 5),
-    t: tap, b: findTap, s: nextSub, f: stageToggle, m: toggleMute,
+    t: tap, b: () => { showTab('bpm'); findTap(); }, s: nextSub, f: stageToggle, m: toggleMute,
     c: () => { P.countIn = !P.countIn; $('countIn').checked = P.countIn; save(); toast('Count-in ' + (P.countIn ? 'on' : 'off')); },
     l: () => { $('tcOn').checked = !$('tcOn').checked; $('tcOn').onchange(); },
     '[': () => $('songPrev').click(), ']': () => $('songNext').click(),
@@ -925,3 +925,29 @@ $('findFileInput').onchange = async () => {
     showFound(null, 'Couldn\'t read that file. Try a WAV or MP3.');
   }
 };
+
+// ---- the tabs beside (or under) the metronome
+function showTab(name) {
+  if (!document.querySelector(`.tabBar [data-tab="${name}"]`) || getComputedStyle(document.querySelector(`.tabBar [data-tab="${name}"]`)).display === 'none') name = 'rhythm';
+  for (const b of document.querySelectorAll('.tabBar button')) {
+    b.classList.toggle('on', b.dataset.tab === name);
+    b.setAttribute('aria-selected', b.dataset.tab === name);
+    // keep the chosen tab in view when the bar scrolls sideways (phones)
+    if (b.dataset.tab === name) { const bar = b.parentElement; bar.scrollLeft = Math.max(0, b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2); }
+  }
+  for (const sec of document.querySelectorAll('.tabBody > section')) sec.classList.toggle('show', sec.dataset.tab === name);
+  store.set('tab', name);
+  // charts drawn while hidden have no size: draw them again now they're showing
+  if (name === 'time' && take) drawTake(take.done);
+}
+for (const b of document.querySelectorAll('.tabBar button')) b.onclick = () => showTab(b.dataset.tab);
+// a dot on Time check while it's listening, so you can see it's on from any tab
+function markListening() {
+  const t = $('tabTime');
+  const on = $('tcOn').checked;
+  if (on && !t.querySelector('.dot')) t.insertAdjacentHTML('beforeend', '<span class="dot" aria-label="listening"></span>');
+  if (!on) t.querySelector('.dot')?.remove();
+}
+{ const prev = $('tcOn').onchange; $('tcOn').onchange = function (e) { const r = prev && prev.call(this, e); markListening(); return r; }; }
+markListening();
+showTab(store.get('tab', 'rhythm'));

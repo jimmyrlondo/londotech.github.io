@@ -277,22 +277,65 @@ function modal(sr, seconds, partials, noise = 0, noiseDecay = 0.002, seed = 3) {
   return x;
 }
 
-/** Metal: a stack of out-of-tune square waves (the classic drum machine hi-hat and cowbell trick), decaying */
-function metal(sr, seconds, freqs, tau, highpass) {
-  const n = Math.floor(sr * seconds), x = new Float32Array(n), k = Math.exp(-1 / (tau * sr));
-  let amp = 1, y1 = 0, x1 = 0, y2 = 0, x2 = 0;
-  const c = Math.exp(-2 * Math.PI * highpass / sr);
-  for (let i = 0; i < n; i++) {
-    let v = 0;
-    for (const f of freqs) v += ((f * i / sr) % 1) < 0.5 ? 1 : -1;
-    v *= amp / freqs.length;
-    amp *= k;
-    // two one-pole high-passes
-    const h1 = c * (y1 + v - x1); x1 = v; y1 = h1;
-    const h2 = c * (y2 + h1 - x2); x2 = h1; y2 = h2;
-    x[i] = h2;
+/** A square wave without aliasing: its odd harmonics, up to just under half the sample rate */
+function square(sr, n, hz) {
+  const x = new Float32Array(n);
+  for (let k = 1; k * hz < sr * 0.45; k += 2) {
+    const w = 2 * Math.PI * k * hz / sr, a = 4 / (Math.PI * k);
+    for (let i = 0; i < n; i++) x[i] += a * Math.sin(w * i);
   }
   return x;
+}
+
+/** A biquad filter (RBJ cookbook), in place: 'hp' high-pass, 'lp' low-pass, 'bp' band-pass */
+function biquad(x, sr, type, hz, q) {
+  const w = 2 * Math.PI * hz / sr, al = Math.sin(w) / (2 * q), c = Math.cos(w), a0 = 1 + al;
+  const [b0, b1, b2] = type === 'hp' ? [(1 + c) / 2, -(1 + c), (1 + c) / 2] : type === 'lp' ? [(1 - c) / 2, 1 - c, (1 - c) / 2] : [al, 0, -al];
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let i = 0; i < x.length; i++) {
+    const v = x[i], y = (b0 * v + b1 * x1 + b2 * x2 - (-2 * c) * y1 - (1 - al) * y2) / a0;
+    x2 = x1; x1 = v; y2 = y1; y1 = y;
+    x[i] = y;
+  }
+  return x;
+}
+
+/** Starts a sound where it first gets loud: filters ease into a hit, and a click has to land right on the beat */
+function onTime(x) {
+  let peak = 0;
+  for (const v of x) peak = Math.max(peak, Math.abs(v));
+  let i = 0;
+  while (i < x.length && Math.abs(x[i]) < 0.3 * peak) i++;
+  return x.slice(Math.max(0, i - 2));
+}
+
+/** The drum machine cowbell: two square waves a not-quite-fifth apart (540 and 800 Hz), band-passed, with a
+ *  sharp drop right after the hit and then a ringing tail. pitch scales both */
+function cowbell(sr, seconds, pitch = 1, tail = 0.12) {
+  const n = Math.floor(sr * seconds), a = square(sr, n, 540 * pitch), b = square(sr, n, 800 * pitch), x = new Float32Array(n);
+  for (let i = 0; i < n; i++) x[i] = a[i] + b[i];
+  biquad(x, sr, 'bp', 2000 * pitch, 0.9);
+  biquad(x, sr, 'hp', 400, 0.7);
+  for (let i = 0; i < n; i++) {
+    const t = i / sr;
+    x[i] *= 0.7 * Math.exp(-t / 0.012) + 0.3 * Math.exp(-t / tail);
+  }
+  return onTime(x);
+}
+
+/** A hi-hat: bright noise plus six clashing square waves (the drum machine metal), high-passed. tau: how long it rings
+ *  (short for closed, long for open) */
+function hihat(sr, seconds, tau, seed = 11) {
+  const n = Math.floor(sr * seconds), r = rng(seed), x = new Float32Array(n);
+  for (const hz of [205.3, 304.4, 369.6, 522.7, 540, 800]) { const sq = square(sr, n, hz); for (let i = 0; i < n; i++) x[i] += sq[i] / 6; }
+  biquad(x, sr, 'bp', 10000, 0.8);
+  for (let i = 0; i < n; i++) x[i] = 0.6 * x[i] + 0.5 * (r() * 2 - 1);
+  biquad(x, sr, 'hp', 6500, 0.7);
+  biquad(x, sr, 'hp', 6500, 0.7);
+  // and gently off at the very top, so it's a hat, not just sizzle
+  biquad(x, sr, 'lp', 12000, 0.6);
+  for (let i = 0; i < n; i++) x[i] *= Math.exp(-i / sr / tau);
+  return onTime(x);
 }
 
 /** A kick: a sine that drops in pitch, with a click on top */
@@ -336,29 +379,27 @@ export function makeSounds(id, sr) {
       sub: modal(sr, 0.08, [[660, 1, 0.015], [1700, 0.3, 0.007]], 0.25, 0.001),
       poly: modal(sr, 0.12, [[1500, 1, 0.025], [3860, 0.3, 0.01]], 0.35, 0.001) }),
     cowbell: () => ({
-      accent: metal(sr, 0.45, [587 * 1.12, 845 * 1.12], 0.09, 300),
-      beat: metal(sr, 0.35, [587, 845], 0.07, 300),
-      sub: metal(sr, 0.12, [587 * 0.85, 845 * 0.85], 0.025, 300),
-      poly: metal(sr, 0.3, [587 * 1.5, 845 * 1.5], 0.05, 300) }),
-    hihat: () => {
-      const f = [205.3, 304.4, 369.6, 522.7, 540, 800].map(v => v * 2.2);
-      return { accent: metal(sr, 0.4, f, 0.11, 6500), beat: metal(sr, 0.15, f, 0.04, 6500), sub: metal(sr, 0.07, f, 0.017, 7500),
-               poly: modal(sr, 0.15, [[5200, 1, 0.03], [7800, 0.4, 0.02]], 0.3) };
-    },
+      accent: cowbell(sr, 0.5, 1, 0.16),
+      beat: cowbell(sr, 0.4, 1, 0.11),
+      sub: cowbell(sr, 0.15, 1, 0.03),
+      poly: cowbell(sr, 0.35, 1.335, 0.09) }),
+    // closed on the beats, open on the accent, a tight tick for subdivisions
+    hihat: () => ({ accent: hihat(sr, 0.45, 0.13), beat: hihat(sr, 0.12, 0.035), sub: hihat(sr, 0.06, 0.016, 12),
+                    poly: modal(sr, 0.15, [[5200, 1, 0.03], [7800, 0.4, 0.02]], 0.3) }),
     rim: () => ({
       accent: modal(sr, 0.06, [[1700, 1, 0.012], [520, 0.6, 0.012], [4100, 0.3, 0.004]], 0.9, 0.0015),
       beat: modal(sr, 0.05, [[1500, 1, 0.009], [470, 0.5, 0.01], [3700, 0.3, 0.004]], 0.8, 0.0012),
       sub: modal(sr, 0.03, [[2100, 1, 0.004]], 0.6, 0.0008),
       poly: modal(sr, 0.05, [[2600, 1, 0.01], [800, 0.4, 0.01]], 0.6, 0.0012) }),
     beep: () => ({ accent: beep(sr, 1760, 0.07), beat: beep(sr, 880, 0.06), sub: beep(sr, 660, 0.03), poly: beep(sr, 1320, 0.05) }),
-    groove: () => {
-      const f = [205.3, 304.4, 369.6, 522.7, 540, 800].map(v => v * 2.2);
-      return { accent: kick(sr, 0.4, 170, 48, 0.18), beat: kick(sr, 0.3, 150, 52, 0.12), sub: metal(sr, 0.07, f, 0.018, 7000),
-               poly: modal(sr, 0.18, [[200, 0.6, 0.05], [330, 0.3, 0.04]], 1.2, 0.03) };
-    },
+    // kick on the odd counts (1 and 3), hat on the even ones (2 and 4): `alt` is the sound for counts 2, 4, 6...
+    groove: () => ({ accent: kick(sr, 0.4, 170, 48, 0.18), beat: kick(sr, 0.3, 150, 52, 0.12), alt: hihat(sr, 0.12, 0.04),
+                     sub: hihat(sr, 0.06, 0.016, 12), poly: modal(sr, 0.18, [[200, 0.6, 0.05], [330, 0.3, 0.04]], 1.2, 0.03) }),
   };
   const set = (S[id] || S.classic)();
-  return { accent: finish(set.accent, 1), beat: finish(set.beat, 0.8), sub: finish(set.sub, 0.55), poly: finish(set.poly, 0.75) };
+  const out = { accent: finish(set.accent, 1), beat: finish(set.beat, 0.8), sub: finish(set.sub, 0.55), poly: finish(set.poly, 0.75) };
+  if (set.alt) out.alt = finish(set.alt, 0.75);
+  return out;
 }
 
 /** Slider (0 to 100) to gain: squared, so the low end isn't all crammed together */
@@ -396,7 +437,9 @@ export class ClickEngine {
         if (!this.sounds || ev.muted) continue;
         const g = this.gains, snd = this.sounds;
         if (ev.level > 0) {
-          this.voice(ev.level === 3 ? snd.accent : snd.beat, Math.round(ev.frame), ev.level === 3 ? g.accent : ev.level === 2 ? g.beat : g.beat * 0.4);
+          // a set with an `alt` sound (kick and hat) plays it on counts 2, 4, 6...
+          const alt = snd.alt && ev.count % 2 === 1;
+          this.voice(alt ? snd.alt : ev.level === 3 ? snd.accent : snd.beat, Math.round(ev.frame), ev.level === 3 ? g.accent : ev.level === 2 ? g.beat : g.beat * 0.4);
           for (let k = 1; k < ev.subs.length; k++) this.voice(snd.sub, Math.round(ev.frame + ev.subs[k] * ev.len), g.sub);
         }
         for (const p of ev.poly) this.voice(snd.poly, Math.round(ev.frame + p.frac * ev.len), g.poly);

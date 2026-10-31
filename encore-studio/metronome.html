@@ -12,7 +12,26 @@
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
-  main { max-width: 980px; margin: 0 auto; padding: 18px 16px 64px; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 40px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(380px, 5fr) minmax(0, 6fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 150px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBar button .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b00; margin-left: 6px; vertical-align: middle; }
+  .tabBar button.on .dot { background: #fff; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; background: none; border: 0; border-radius: 0; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .tabBody > section.show ~ section.show { border-top: 1px solid var(--divider); margin-top: 14px; padding-top: 14px; }
+  .tabBody > section > h2.tabTitle { display: none; }
   .hidden { display: none !important; }
   .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
          background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
@@ -95,6 +114,9 @@
   .bpmCard .found { text-align: center; margin: 12px 0 2px; }
   .bpmCard .found #findBpm { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; }
   .bpmCard .found .unit { font-size: 13px; color: var(--dim); margin-left: 6px; }
+  .bpmCard .row { flex-wrap: wrap; }
+  .bpmCard .row button { flex: 1 1 auto; white-space: nowrap; padding: 8px 12px; }
+  @media (hover: none) { .tapPad small { display: none; } }
   .bpmCard .row button.use { color: #fff; background: #ff3b00; border-color: #ff3b00; }
   .bpmCard .row button.use:disabled { opacity: 0.4; }
   .card h2 { font-size: 16px; margin: 0 0 10px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
@@ -112,7 +134,7 @@
   .sub { color: var(--dim); font-size: 12px; }
 
   /* Time check */
-  .tc { grid-column: 1 / -1; border-color: rgb(255 59 0 / 0.45); }
+  .tc { grid-column: 1 / -1; }
   .tc .lead { color: var(--soft); margin: -4px 0 12px; }
   .tcSteps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
   .tcStep { border: 1px solid var(--divider); border-radius: 10px; padding: 12px; }
@@ -147,7 +169,7 @@
 
   .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
   kbd { font-family: var(--family-mono); font-size: 12px; color: var(--text); border: 1px solid var(--divider-strong); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
-  @media (hover: none) { .keysCard { display: none; } }
+  @media (hover: none) { .keysCard, #tabKeys { display: none !important; } }
 
   /* stage view */
   .stage { position: fixed; inset: 0; z-index: 50; background: #0c0a09; display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none;
@@ -177,6 +199,7 @@
 </div>
 
 <main>
+<div class="layout">
   <section class="panel" id="panel">
     <div class="beats" id="beats" aria-label="Beats of the bar"></div>
     <div class="beatHint">Tap a beat to change it: accent, normal, soft, silent.</div>
@@ -200,9 +223,19 @@
     <div class="err hidden" id="err"></div>
   </section>
 
-  <div class="cards">
-    <section class="card">
-      <h2>Rhythm</h2>
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Metronome settings">
+      <button role="tab" data-tab="rhythm">Rhythm</button>
+      <button role="tab" data-tab="sound">Sound</button>
+      <button role="tab" data-tab="practice">Practice</button>
+      <button role="tab" data-tab="time" id="tabTime">Time check</button>
+      <button role="tab" data-tab="bpm">Find the BPM</button>
+      <button role="tab" data-tab="setlist">Setlist</button>
+      <button role="tab" data-tab="keys" id="tabKeys">Keys</button>
+    </div>
+    <div class="tabBody">
+    <section class="card" data-tab="rhythm">
+      <h2 class="tabTitle">Rhythm</h2>
       <div class="stack">
         <div class="grid2">
           <label>Beats in a bar <select id="top"></select></label>
@@ -225,8 +258,8 @@
       </div>
     </section>
 
-    <section class="card">
-      <h2>Sound</h2>
+    <section class="card" data-tab="sound">
+      <h2 class="tabTitle">Sound</h2>
       <div class="stack">
         <label>Sound <select id="sound"></select></label>
         <div class="vol"><span>Master</span><input type="range" id="volMaster" min="0" max="100"><span id="volMasterV"></span></div>
@@ -240,7 +273,7 @@
       </div>
     </section>
 
-    <section class="card">
+    <section class="card" data-tab="rhythm">
       <h2>Polyrhythm</h2>
       <div class="stack">
         <label class="toggle"><input type="checkbox" id="polyOn"> Play a second rhythm over the bar</label>
@@ -249,8 +282,8 @@
       </div>
     </section>
 
-    <section class="card">
-      <h2>Practice</h2>
+    <section class="card" data-tab="practice">
+      <h2 class="tabTitle">Practice</h2>
       <div class="stack">
         <label class="toggle"><input type="checkbox" id="countIn"> Count in one bar first</label>
         <label>Tempo trainer <select id="trMode"><option value="off">Off</option><option value="steps">Speed up in steps</option><option value="ramp">Smooth ramp over time</option></select></label>
@@ -272,8 +305,8 @@
       </div>
     </section>
 
-    <section class="card tc" id="tcCard">
-      <h2>Time check <span class="chip">LISTENS</span></h2>
+    <section class="card tc" id="tcCard" data-tab="time">
+      <h2 class="tabTitle">Time check</h2>
       <p class="lead">Play along and it listens: are you rushing or dragging, on which beats, how steady, and do you hold the tempo when the click goes quiet?</p>
       <div class="tcSteps">
         <div class="tcStep">
@@ -308,8 +341,8 @@
       </div>
     </section>
 
-    <section class="card bpmCard" id="bpmCard">
-      <h2>Find the BPM</h2>
+    <section class="card bpmCard" id="bpmCard" data-tab="bpm">
+      <h2 class="tabTitle">Find the BPM</h2>
       <button class="tapPad" id="tapPad">Tap along<small>or press B</small></button>
       <div class="found"><span id="findBpm">--</span><span class="unit">BPM</span></div>
       <div class="tip" id="findInfo">Tap along with the song on the beat. After 4 taps you'll see a tempo, and it gets more exact the longer you tap.</div>
@@ -327,8 +360,8 @@
       <div class="tip">Listening works best on music with a clear beat. If the number looks half or double what you feel, use &divide;2 or &times;2. Song files stay on your device.</div>
     </section>
 
-    <section class="card">
-      <h2>Setlist</h2>
+    <section class="card" data-tab="setlist">
+      <h2 class="tabTitle">Setlist</h2>
       <ul class="songs" id="songs"></ul>
       <div class="row">
         <input type="text" id="songName" placeholder="Song name" aria-label="Song name">
@@ -344,8 +377,8 @@
       <div class="tip">A song keeps its tempo, meter, feel, accents, subdivision, sound and practice settings. Your list stays in this browser; Export makes a file to back it up or move it.</div>
     </section>
 
-    <section class="card keysCard">
-      <h2>Keyboard</h2>
+    <section class="card keysCard" data-tab="keys">
+      <h2 class="tabTitle">Keyboard</h2>
       <div class="keys">
         <kbd>Space</kbd><span>Start / stop</span>
         <kbd>&uarr; &darr;</kbd><span>Tempo up / down 1 (with Shift: 10)</span>
@@ -361,7 +394,9 @@
         <kbd>Esc</kbd><span>Leave stage view</span>
       </div>
     </section>
+    </div>
   </div>
+</div>
 </main>
 
 <div class="stage hidden" id="stage">
