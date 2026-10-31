@@ -1,7 +1,7 @@
 /* Encore: Studio, the bar every tool shares: every tool as a tab stretched across the top
    (the one you're on lit), or a drop-down on a phone. Loaded after each page's own styles. */
 .bar .tools { flex: 1 1 auto; display: flex; gap: 2px; min-width: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; padding: 0; }
-.bar .tools .navlink { flex: 1 1 0; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.bar .tools .navlink { flex: 1 1 auto; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
                        font-size: 14px; font-weight: 600; color: var(--soft); padding: 9px 6px; border-radius: 9px; text-decoration: none; }
 .bar .tools .navlink:hover { color: var(--text); background: rgb(255 255 255 / 0.05); }
 .bar .tools .navlink.on { color: #fff; background: #ff3b00; }
@@ -27,3 +27,7 @@
 .bar .spacer { flex: 0 0 0; }
 /* the drop-down shrinks to the room it has instead of to its longest tool name */
 @media (max-width: 900px) { .bar .toolPick { flex: 1 1 0; width: 0; min-width: 104px; } }
+/* the Encore logo and its chip: the way home to Green Room */
+.bar .home { display: flex; align-items: center; gap: 14px; flex: none; color: inherit; text-decoration: none; border-radius: 8px; }
+.bar .home:hover .chip-label { color: var(--text); border-color: var(--soft); }
+.bar .home:focus-visible { outline: 2px solid #ff3b00; outline-offset: 4px; }
