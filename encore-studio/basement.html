@@ -43,7 +43,9 @@
   details.first { margin-top: 10px; font-size: 13px; color: var(--soft); }
   details.first summary { cursor: pointer; color: var(--dim); }
   details.first p { margin: 6px 0 0; }
-  .shots { display: grid; gap: 10px; }
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .shots figure:first-child { grid-column: 1 / -1; }
+  .shots img { cursor: zoom-in; }
   .shots figure { margin: 0; }
   .shots img { width: 100%; display: block; border-radius: 12px; border: 1px solid var(--divider); }
   .shots figcaption { font-size: 12px; color: var(--dim); margin-top: 4px; }
