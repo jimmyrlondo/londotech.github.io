@@ -153,6 +153,7 @@
   table.tracks td, table.tracks th { padding: 5px 4px; border-top: 1px solid var(--divider); text-align: left; }
   table.tracks th { color: var(--dim); font-weight: 500; font-size: 12px; border-top: 0; }
   table.tracks input { width: 100%; }
+  table.tracks input[type=checkbox] { width: auto; }
   table.tracks input.t { width: 76px; font-family: var(--family-mono); font-size: 13px; }
   table.tracks td.acts { white-space: nowrap; }
   table.tracks td.acts button { margin-left: 4px; padding: 5px 10px; }
@@ -160,6 +161,7 @@
   .exportRow .go { padding: 10px 20px; }
   .notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px 12px; }
   .notes .full { grid-column: 1 / -1; }
+  .notes label.toggle { display: flex; justify-content: flex-start; }
   .summary { font-size: 14px; color: var(--soft); }
   .stale { color: var(--warn); font-size: 13px; }
 
@@ -218,7 +220,142 @@
     table.tracks td.acts { grid-column: 2 / 4; white-space: normal; }
     table.tracks td.acts button { margin: 0 4px 0 0; }
     table.tracks input.t { width: 100%; }
-    .notes { grid-template-columns: 1fr 1fr; }
+    .notes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  /* ---------- the start: a new release, or carry on with one ---------- */
+  .startView { padding-top: 6px; }
+  .startGrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .startGrid > .panel { margin: 0; }
+  .newBox h1 { font-size: clamp(26px, 4.2vw, 38px); line-height: 1.1; margin: 2px 0 8px; letter-spacing: -0.02em; }
+  .lead { color: var(--soft); margin: 0 0 12px; font-size: 14px; }
+  .fmtGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .fmtGrid button { text-align: left; background: transparent; border: 1px solid var(--divider-strong); border-radius: 10px; padding: 8px 10px; cursor: pointer; color: var(--text); min-width: 0; }
+  .fmtGrid button b { display: block; font-size: 14px; }
+  .fmtGrid button span { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fmtGrid button.on { border-color: #ff3b00; background: rgb(255 59 0 / 0.1); }
+  .newOpts { display: grid; grid-template-columns: 110px 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .newGo { margin-top: 10px; }
+  .drop, #drop { border: 1px dashed var(--divider-strong); border-radius: 12px; cursor: pointer; padding: 14px 16px; margin: 12px 0 0; transition: border-color .2s, background .2s; text-align: center; }
+  .drop.over, .drop:hover, #drop.over, #drop:hover { border-color: var(--accent, #ff3b00); background: rgb(255 59 0 / 0.06); }
+  .drop b, #drop b { display: block; font-size: 15px; margin-bottom: 2px; }
+  .drop span, #drop span { color: var(--dim); font-size: 13px; }
+  .resumeBox { display: flex; flex-direction: column; min-height: 0; }
+  .resumeBox h2 { margin: 0; }
+  .projList { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; overflow-y: auto; min-height: 0; }
+  .proj { display: flex; gap: 10px; align-items: center; border: 1px solid var(--divider); border-radius: 10px; padding: 8px 10px; }
+  .proj .grow { min-width: 0; }
+  .proj b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .proj .note { font-size: 12px; }
+  .banner { border: 1px solid var(--warn, #e8b04b); border-radius: 10px; padding: 8px 10px; margin-top: 10px; font-size: 13px; color: var(--soft); }
+  .tiny { width: 64px; padding: 4px 6px !important; }
+  button.danger { color: #ef4444; border-color: rgb(239 68 68 / 0.5); }
+
+  /* ---------- parts of the release, in the bar ---------- */
+  .partBar { display: flex; gap: 4px; flex-wrap: wrap; min-width: 0; }
+  .partBar button { font-size: 13px; font-weight: 700; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 5px 11px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .partBar button[aria-selected="true"] { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .partBar button.skip { opacity: .5; text-decoration: line-through; }
+  .partBar .pdot { width: 7px; height: 7px; border-radius: 50%; background: var(--track); flex: none; }
+  .partBar .pdot.audio { background: var(--blue, #60a5fa); }
+  .partBar .pdot.done { background: var(--green, #7bd3a4); }
+  .partBar .pdot.rec { background: #ef4444; }
+  .partBar button[aria-selected="true"] .pdot { box-shadow: 0 0 0 1.5px #fff; }
+
+  /* ---------- recording a side ---------- */
+  .capture .head { margin-bottom: 8px; }
+  .capture .head h2 { margin: 0; }
+  .capRow { margin: 8px 0; }
+  .capRow label.grow { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; }
+  .capRow select { flex: 1; min-width: 0; }
+  .meter { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+  .mrow { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dim); }
+  .mbar { flex: 1; height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; position: relative; }
+  .mbar > div { height: 100%; width: 0; background: linear-gradient(to right, #7bd3a4 0%, #7bd3a4 75%, #e8b04b 88%, #ef4444 97%); background-size: var(--mw, 300px) 100%; transition: width .08s; }
+  .mrow b { font-family: var(--family-mono); font-weight: 400; min-width: 62px; text-align: right; color: var(--soft); }
+  .mrow b.clip { color: #ef4444; }
+  #capWave { width: 100%; height: 120px; display: block; border-radius: 8px; background: #110e0d; }
+  button.go.rec { background: #ef4444; }
+  button.go.rec:hover:not(:disabled) { background: #f87171; }
+  .capture .toggle { margin: 4px 0; }
+
+  /* ---------- tabs' contents ---------- */
+  table.ov { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ov th, table.ov td { padding: 6px 4px; border-top: 1px solid var(--divider); text-align: left; }
+  table.ov th { color: var(--dim); font-weight: 500; font-size: 12px; border-top: 0; }
+  table.ov td.y { color: var(--green, #7bd3a4); }
+  table.ov td.n { color: var(--dim); }
+  table.ov tr.skip td { opacity: .5; }
+  table.ov td.acts { text-align: right; white-space: nowrap; }
+  table.ov td.acts button { padding: 4px 9px; }
+  ul.left { margin: 4px 0 0; padding-left: 18px; color: var(--soft); font-size: 13px; }
+  ul.left li { margin: 2px 0; }
+  ul.left.done { list-style: none; padding-left: 0; color: var(--green, #7bd3a4); }
+  .copyRow { margin: 0 0 6px; }
+  .trackTools { margin-bottom: 8px; gap: 6px 8px; }
+  .pasteBox { margin: 0 0 10px; }
+  .pasteBox textarea { width: 100%; font-family: var(--family-mono); font-size: 12px; }
+  .pasteBox .row { margin-top: 6px; }
+  #trackNote:empty { display: none; }
+  #trackNote { margin-bottom: 6px; }
+  table.tracks td.pos { color: var(--dim); font-family: var(--family-mono); font-size: 12px; white-space: nowrap; }
+  table.tracks td.len { color: var(--dim); font-family: var(--family-mono); font-size: 12px; }
+  table.tracks tr.more td { border-top: 0; padding-top: 0; }
+  .moreGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 10px; padding: 2px 0 8px 0; }
+  .moreGrid .full { grid-column: 1 / -1; }
+  .credits { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+  .credit { display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 6px; }
+  .imgGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+  .img { position: relative; aspect-ratio: 1; border: 1px dashed var(--divider-strong); border-radius: 10px; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #110e0d; }
+  .img.over, .img:hover { border-color: #ff3b00; }
+  .img img { width: 100%; height: 100%; object-fit: cover; }
+  .img .plus { font-size: 26px; color: var(--dim); margin-bottom: 18px; }
+  .img .cap { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; padding: 3px 6px; background: rgb(12 10 9 / 0.78); color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .img .x { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgb(12 10 9 / 0.8); color: #fff; cursor: pointer; font-size: 16px; line-height: 1; }
+  nav.jump { display: flex; gap: 12px; font-size: 13px; margin: 2px 0 0; }
+  nav.jump a { color: var(--dim); text-decoration: none; }
+  nav.jump a:hover { color: var(--text); }
+  #releaseForm .paneSub .note { font-weight: 400; margin-left: 6px; }
+  .fmtChecks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .fmtChecks label { flex-direction: row; align-items: flex-start; gap: 8px; border: 1px solid var(--divider); border-radius: 10px; padding: 8px 10px; cursor: pointer; color: var(--text); font-size: 13px; }
+  .fmtChecks label span { color: var(--dim); font-size: 12px; display: block; }
+  .fmtChecks label:has(input:checked) { border-color: #ff3b00; }
+  .exOpts { display: flex; flex-direction: column; gap: 2px; }
+  ul.files { list-style: none; margin: 6px 0 0; padding: 0; font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
+  ul.files li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 1px 0; }
+  .sideGrid { margin-bottom: 4px; }
+  @media (min-width: 1000px) {
+    body.working .capture { overflow-y: auto; display: flex; flex-direction: column; margin: 0; }
+    body.working .capWave { flex: 1 1 auto; min-height: 90px; max-height: 300px; }
+    body.working #capWave { position: absolute; inset: 0; height: 100%; }
+    .startGrid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; }
+    body:not(.working) main { max-width: 1280px; padding-bottom: 18px; }
+    .projList { max-height: calc(100vh - 230px); max-height: calc(100dvh - 230px); }
+  }
+  @media (max-width: 620px) {
+    .fmtGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .newOpts { grid-template-columns: 1fr 1fr; }
+    .newOpts label:first-child { grid-column: 1 / -1; }
+    .fmtChecks { grid-template-columns: 1fr; }
+    table.ov thead { display: none; }
+    table.ov, table.ov tbody, table.ov tr, table.ov td { display: block; }
+    table.ov tr { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px 8px; padding: 8px 0; border-top: 1px solid var(--divider); }
+    table.ov td { border: 0; padding: 0; font-size: 12px; }
+    table.ov td:first-child { grid-column: 1 / -1; font-size: 14px; }
+    table.ov td.acts { grid-column: 1 / -1; text-align: left; }
+    table.ov td[data-l]::before { content: attr(data-l) ": "; color: var(--dim); }
+    .credit { grid-template-columns: 1fr 1fr; }
+    .credit button { grid-column: 1 / -1; }
+    .partBar { flex: 1 1 100%; }
+    #toProjects { order: 3; }
+  }
+  #drop { max-width: none; }
+  .notes > label { min-width: 0; }
+  .notes input, .notes select, .notes textarea { width: 100%; min-width: 0; }
+  @media (max-width: 620px) {
+    table.tracks td.len { display: none; }
+    table.tracks tr.more { display: block; padding: 0 0 8px; border-top: 0; }
+    table.tracks tr.more td { display: block; color: inherit; padding: 0; }
   }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
@@ -227,42 +364,84 @@
 <div class="bar">
   <svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg>
   <span class="chip-label">STUDIO</span>
-  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink on" href="restore.html" aria-current="page">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a></nav>
+  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="index.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="voice.html">Voice</a><a class="navlink on" href="restore.html" aria-current="page">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a><a class="navlink" href="basement.html">Basement Studio</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><option value="index.html">Master</option><option value="live.html">Live</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="voice.html">Voice</option><option value="restore.html" selected>Restore</option><option value="lastcall.html">Last Call</option><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="tag.html">Tag</option><option value="convert.html">Convert</option><option value="basement.html">Basement Studio</option></select>
   <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><option value="index.html">Master</option><option value="live.html">Live</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="voice.html">Voice</option><option value="restore.html" selected>Restore</option><option value="lastcall.html">Last Call</option><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="tag.html">Tag</option><option value="convert.html">Convert</option></select>
 </div>
 
 <main>
-  <section class="start" id="startView">
-    <h1>Rescue old recordings.</h1>
-    <p>For transfers of LPs and 45s, 78s, cassettes, 8-tracks, reel-to-reel and CDs. Restore listens first and tells you, in plain English, what it hears: clicks, hum, hiss, a deck running fast, wow, dropouts. Then it fixes only that, gently, with before and after a click apart. Your original file is never changed.</p>
-    <div class="seg" id="srcSeg" role="radiogroup" aria-label="What was it transferred from?"></div>
-    <div class="srcblurb" id="srcBlurb"></div>
-    <div id="drop" tabindex="0" role="button" aria-label="Open a recording"><b>Open a recording</b><span>Drop a WAV, FLAC or MP3 here, or click to choose. Long sides open fastest as WAV.</span></div>
-    <input type="file" id="file" accept="audio/*,.wav,.flac,.mp3,.aif,.aiff,.m4a,.ogg" class="hidden">
-    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="openProject">Open a saved project file</button><input type="file" id="projectFile" accept=".json,application/json" class="hidden"></div>
-    <div class="note hidden" id="projectNote" style="margin-top:8px"></div>
-    <div class="err hidden" id="startErr"></div>
+  <section id="startView" class="startView">
+    <div class="startGrid">
+      <div class="panel newBox">
+        <h1>Digitize a record.</h1>
+        <p class="lead">LPs, 45s, 78s, cassettes, 8-tracks, reels and CDs, a side at a time: record it or open the file, find and name the tracks, fill in the release, restore it, and export a tagged archive. It all stays on this device.</p>
+        <div class="fmtGrid" id="fmtGrid" role="radiogroup" aria-label="What are you digitizing?"></div>
+        <div class="newOpts">
+          <label>How many <select id="newDiscs"></select></label>
+          <label>Artist <input type="text" id="newArtist" placeholder="Optional"></label>
+          <label>Title <input type="text" id="newTitle" placeholder="Optional"></label>
+        </div>
+        <div class="row newGo"><button class="go" id="newProject">Start</button></div>
+        <div id="drop" tabindex="0" role="button" aria-label="Restore one file"><b>Or just restore one file</b><span>Drop a WAV, FLAC or MP3 here, or click to choose. It becomes the first part of a new project like the one picked above.</span></div>
+        <input type="file" id="file" accept="audio/*,.wav,.flac,.mp3,.aif,.aiff,.m4a,.ogg" class="hidden">
+        <div class="err hidden" id="startErr"></div>
+      </div>
+      <div class="panel resumeBox">
+        <div class="row"><h2 class="grow">Continue</h2><button class="small" id="importProject">Import a project file</button><input type="file" id="projectFile" accept=".json,application/json" class="hidden"></div>
+        <div class="banner hidden" id="recoverBanner"></div>
+        <div class="projList" id="projectList"><div class="note">Looking for saved projects...</div></div>
+        <div class="note" id="storageNote"></div>
+      </div>
+    </div>
   </section>
 
   <section id="work" class="hidden">
     <div class="panel filebar">
-      <div class="fileId"><h2 id="fileName">Recording</h2><div class="note" id="fileInfo"></div></div>
-      <label class="srcPick">From <select id="srcSel" aria-label="What was it transferred from?"></select></label>
-      <button class="small" id="newFile">Open another</button>
-      <button class="go" id="processBtn" title="Restore the whole recording with these settings">Restore it</button><button class="small hidden" id="cancelBtn">Stop</button>
+      <div class="fileId"><h2 id="projTitle">Untitled</h2><div class="note" id="projInfo"></div></div>
+      <div class="partBar" id="partBar" role="tablist" aria-label="Parts of the release"></div>
+      <button class="small" id="toProjects" title="All projects (this one is saved)">Projects</button>
+      <button class="go" id="processBtn" title="Restore this whole side with these settings">Restore it</button><button class="small hidden" id="cancelBtn">Stop</button>
       <div class="status" aria-live="polite">
         <div id="anaLine"><div class="progress" id="anaBar"><div></div></div><span class="txt" id="anaText">Listening...</span></div>
-        <div id="procLine" class="hidden"><div class="progress hidden" id="procBar"><div></div></div><span class="txt" id="procText">Nothing is changed in your file: the restored version is made alongside it.</span></div>
+        <div id="procLine" class="hidden"><div class="progress hidden" id="procBar"><div></div></div><span class="txt" id="procText"></span></div>
       </div>
     </div>
 
     <div class="layout">
-      <section class="panel listen" aria-label="Listen">
+      <section class="panel capture hidden" id="capturePanel" aria-label="Get this side">
+        <div class="row head"><h2 class="grow" id="capTitle">Get Side A</h2>
+          <div class="seg" id="capSeg"><button data-c="rec" class="on">Record it</button><button data-c="file">Open a file</button></div></div>
+        <div id="capRec">
+          <div class="row capRow">
+            <label class="grow">Input <select id="capInput"><option value="">Looking for inputs...</option></select></label>
+            <button class="small" id="capRefresh" title="Look for inputs again">Refresh</button>
+          </div>
+          <div class="meter" id="capMeter" aria-label="Input level"><div class="mrow"><span>L</span><div class="mbar"><div id="mL"></div></div><b id="mLdb">-</b></div><div class="mrow"><span>R</span><div class="mbar"><div id="mR"></div></div><b id="mRdb">-</b></div></div>
+          <div class="wavebox capWave"><canvas id="capWave" aria-label="The recording so far"></canvas></div>
+          <div class="row capRow">
+            <button class="small" id="capArm">Check the level</button>
+            <button class="go rec" id="capStart">Record</button>
+            <button class="small hidden" id="capStop">Stop</button>
+            <span class="time" id="capTime">0:00</span>
+            <span class="note" id="capInfo"></span>
+          </div>
+          <label class="toggle"><input type="checkbox" id="capAuto" checked> Stop by itself after <input type="number" id="capAutoSec" min="5" max="120" value="15" class="tiny"> s of quiet at the end (the run-out groove)</label>
+          <div class="note" id="capNote">Saved on this device as it records, so nothing is lost if the tab closes. Set the level so the loudest parts peak around -6 dB; clipping can't be undone.</div>
+        </div>
+        <div id="capFile" class="hidden">
+          <div id="capDrop" class="drop" tabindex="0" role="button" aria-label="Open this side's file"><b>Open this side's file</b><span>Drop a WAV, FLAC or MP3 here, or click to choose.</span></div>
+          <input type="file" id="capFileIn" accept="audio/*,.wav,.flac,.mp3,.aif,.aiff,.m4a,.ogg" class="hidden">
+          <label class="toggle"><input type="checkbox" id="keepCopy" checked> Keep a copy on this device, so the project can be picked up later without the file</label>
+          <div class="note" id="capFileNote"></div>
+        </div>
+      </section>
+
+      <section class="panel listen" id="listenPanel" aria-label="Listen">
         <div class="row head"><h2 class="grow">Listen</h2>
           <div class="seg" id="viewSeg" aria-label="Waveform shown"><button data-v="orig" class="on">Original waveform</button><button data-v="rest">Restored waveform</button></div></div>
         <div class="wavebox"><canvas id="wave" aria-label="Waveform: click to move the playhead, drag to select a stretch"></canvas></div>
         <canvas id="wowGraph" class="hidden" aria-label="Wow: pitch wobble over time"></canvas>
-        <div class="legend"><span><i style="background:#ff3b00"></i>clicks</span><span><i style="background:#e8b04b"></i>dropouts</span><span><i style="background:#ef4444"></i>clipping</span><span><i style="background:#22d3ee"></i>song splits</span><span><i style="background:rgb(242 239 232 / .25)"></i>selection</span><span id="wowLegend" class="hidden"><i style="background:#91887d"></i>wow (pitch wobble, in cents)</span></div>
+        <div class="legend"><span><i style="background:#ff3b00"></i>clicks</span><span><i style="background:#e8b04b"></i>dropouts</span><span><i style="background:#ef4444"></i>clipping</span><span><i style="background:#22d3ee"></i>track splits</span><span><i style="background:rgb(242 239 232 / .25)"></i>selection</span><span id="wowLegend" class="hidden"><i style="background:#91887d"></i>wow (pitch wobble, in cents)</span></div>
         <div class="transport">
           <button id="playBtn" aria-label="Play">&#9654;</button>
           <span class="time" id="time">0:00.0</span>
@@ -278,24 +457,63 @@
         </div>
         <div class="note" id="playNote"></div>
         <details class="hint"><summary>Click to move the playhead, drag to select. Space plays, B switches original and restored.</summary>
-          <p>Drag to select a stretch (up to 60 s) to preview, loop or learn the noise from. Drag a song split to move it. Original and restored play at the same loudness, so louder never fools you into hearing better.</p></details>
+          <p>Drag to select a stretch (up to 60 s) to preview, loop or learn the noise from. Drag a track split to move it. Original and restored play at the same loudness, so louder never fools you into hearing better.</p></details>
       </section>
 
       <div class="tabsBox">
         <div class="tabBar" role="tablist" aria-label="Restore">
+          <button role="tab" id="tab-overview" data-tab="overview" aria-controls="pane-overview" aria-selected="false" tabindex="-1">Overview<span class="count" id="ovCount"></span></button>
+          <button role="tab" id="tab-side" data-tab="side" aria-controls="pane-side" aria-selected="false" tabindex="-1">Side</button>
           <button role="tab" id="tab-fixes" data-tab="fixes" aria-controls="pane-fixes" aria-selected="true">Fixes</button>
           <button role="tab" id="tab-heard" data-tab="heard" aria-controls="pane-heard" aria-selected="false" tabindex="-1">What it heard<span class="count" id="heardCount"></span></button>
-          <button role="tab" id="tab-songs" data-tab="songs" aria-controls="pane-songs" aria-selected="false" tabindex="-1">Songs<span class="count" id="songsCount"></span></button>
-          <button role="tab" id="tab-notes" data-tab="notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Notes</button>
+          <button role="tab" id="tab-songs" data-tab="songs" aria-controls="pane-songs" aria-selected="false" tabindex="-1">Tracks<span class="count" id="songsCount"></span></button>
+          <button role="tab" id="tab-release" data-tab="release" aria-controls="pane-release" aria-selected="false" tabindex="-1">Release</button>
+          <button role="tab" id="tab-export" data-tab="export" aria-controls="pane-export" aria-selected="false" tabindex="-1">Export</button>
         </div>
         <div class="tabBody">
+          <div role="tabpanel" id="pane-overview" aria-labelledby="tab-overview" tabindex="0" hidden>
+            <div class="paneHead"><span class="note" id="ovSummary"></span><button class="small" id="addPart">Add a part</button><button class="small" id="saveProject" title="A file with everything but the audio, to keep or move to another device">Save project file</button></div>
+            <table class="ov"><thead><tr><th>Part</th><th>Audio</th><th>Tracks</th><th>Named</th><th>Restored</th><th>In the export</th><th></th></tr></thead><tbody id="ovRows"></tbody></table>
+            <div class="paneSub">What's left</div>
+            <ul class="left" id="ovLeft"></ul>
+            <div class="row" style="margin-top:12px"><button class="small danger" id="deleteProject">Delete this project from the device</button></div>
+          </div>
+
+          <div role="tabpanel" id="pane-side" aria-labelledby="tab-side" tabindex="0" hidden>
+            <div class="notes sideGrid">
+              <label>Name <input type="text" id="sName"></label>
+              <label>Position letter <input type="text" id="sLetter" maxlength="2" placeholder="A, B..." title="Track positions on this part: A1, A2..."></label>
+              <label>Disc <input type="number" id="sDisc" min="1" max="20"></label>
+              <label class="toggle full"><input type="checkbox" id="sInclude"> Part of this release (untick to skip it: "I only want Side A")</label>
+            </div>
+            <div class="paneSub">Audio</div>
+            <div class="note" id="sAudio">Not recorded yet.</div>
+            <div class="row" style="margin-top:6px"><button class="small" id="sRecord">Record it again</button><button class="small" id="sOpen">Open a different file</button><button class="small" id="sRemoveAudio">Remove the audio</button></div>
+            <div id="speedBox">
+              <div class="paneSub">Speed</div>
+              <div class="notes">
+                <label>The record's speed <select id="sRpm"><option value="33">33⅓</option><option value="45">45</option><option value="78">78</option><option value="16">16⅔</option><option value="custom">Other...</option></select></label>
+                <label id="sRpmCustomBox" class="hidden">Cut at (rpm) <input type="number" id="sRpmCustom" step="0.1" min="10" max="120"></label>
+                <label>Played at <select id="sPlayed"><option value="33">33⅓</option><option value="45">45</option><option value="78">78</option><option value="16">16⅔</option></select></label>
+                <label>Fine pitch (cents) <input type="number" id="sCents" step="0.5"></label>
+              </div>
+              <div class="note" id="sSpeedNote"></div>
+            </div>
+            <div class="paneSub">This side's details</div>
+            <div class="notes">
+              <label class="full">Matrix or runout <input type="text" id="sMatrix" placeholder="What's scratched in the run-out groove"></label>
+              <label class="full">Notes for this side <textarea id="sNotes" placeholder="Warps, skips, repairs, anything about this side"></textarea></label>
+            </div>
+          </div>
+
           <div role="tabpanel" id="pane-fixes" aria-labelledby="tab-fixes" tabindex="0">
             <div class="paneHead"><span class="note">Each fix is switched on where it's needed, at a gentle starting point. Open one for its settings.</span><button class="small" id="useRec" title="Put every fix back to what Restore suggested">Use these suggestions</button></div>
+            <div class="row copyRow"><label class="toggle">Same as <select id="copyFrom"></select></label><button class="small" id="copyBtn">Copy the settings</button><button class="small" id="makeDefault" title="New sides start from these choices">Make these the defaults</button><span class="note" id="copyNote"></span></div>
             <div class="modules" id="modules"><div class="note">Listening to the recording first...</div></div>
           </div>
 
           <div role="tabpanel" id="pane-heard" aria-labelledby="tab-heard" tabindex="0" hidden>
-            <div class="paneHead"><span class="note" id="anaSummary">Listening...</span><button class="small" id="reanalyse">Listen again</button></div>
+            <div class="paneHead"><span class="note" id="anaSummary">Nothing to listen to yet.</span><button class="small" id="reanalyse">Listen again</button></div>
             <div id="lastRestore" class="hidden"><div class="paneSub" style="margin-top:4px">Last restore</div><div class="summary" id="procSummary"></div><div class="paneSub">What it heard</div></div>
             <ul class="findings" id="findings"></ul>
             <div class="paneSub">The source</div>
@@ -303,37 +521,61 @@
           </div>
 
           <div role="tabpanel" id="pane-songs" aria-labelledby="tab-songs" tabindex="0" hidden>
-            <div class="paneHead"><span class="note">Check the splits on the waveform, then name the songs.</span><button class="small" id="splitBtn">Split at the playhead</button><button class="small" id="findBtn">Find the songs again</button></div>
-            <table class="tracks"><thead><tr><th>#</th><th>Title</th><th>Start</th><th>End</th><th></th></tr></thead><tbody id="trackRows"></tbody></table>
-            <div class="row exportRow">
-              <button class="go" id="exportZip" disabled>Export all songs (zip)</button>
-              <button class="small" id="exportSide" disabled>Export the side as one WAV</button>
+            <div class="row trackTools">
+              <button class="small" id="findBtn" title="Find the gaps between tracks by ear">Find them</button>
+              <label class="toggle">This side has <input type="number" id="nTracks" min="1" max="60" class="tiny"> tracks</label><button class="small" id="nBtn">Place the splits</button>
+              <button class="small" id="pasteBtn" aria-expanded="false">Paste a tracklist</button>
+              <button class="small" id="splitBtn">Split at the playhead</button>
             </div>
-            <div class="note" id="exportText" style="margin-top:8px">Restore the recording first. Exports are 24-bit WAV, tagged with your archive notes.</div>
+            <div id="pasteBox" class="pasteBox hidden">
+              <textarea id="pasteText" rows="5" placeholder="A1 Beer Barrel Polka 2:45&#10;A2 Clarinet Polka 3:10&#10;B1 Just Because&#10;(copied from Discogs or typed from the sleeve; durations help place the splits)"></textarea>
+              <div class="row"><button class="small" id="pasteApply">Use this tracklist</button><button class="small" id="pasteCancel">Cancel</button><span class="note">Lettered tracks (A1, B1...) go to their sides; a plain list goes to this side.</span></div>
+            </div>
+            <div class="note" id="trackNote"></div>
+            <table class="tracks"><thead><tr><th>#</th><th>Title</th><th>Start</th><th>End</th><th>Length</th><th></th></tr></thead><tbody id="trackRows"></tbody></table>
           </div>
 
-          <div role="tabpanel" id="pane-notes" aria-labelledby="tab-notes" tabindex="0" hidden>
-            <div class="paneHead"><span class="note">Saved on this device with the project, and written into every exported file's comment tag.</span><button class="small" id="saveProject">Save project file</button></div>
-            <div class="notes">
-              <label>Artist <input type="text" id="nArtist"></label>
-              <label>Album or title <input type="text" id="nAlbum"></label>
-              <label>Year <input type="text" id="nYear" inputmode="numeric"></label>
-              <label>Format <input type="text" id="nFormat"></label>
-              <label>Label <input type="text" id="nLabel"></label>
-              <label>Catalog number <input type="text" id="nCatalog"></label>
-              <label>Side or reel <input type="text" id="nSide" placeholder="Side A"></label>
-              <label>Turntable or deck <input type="text" id="nDeck"></label>
-              <label>Cartridge or head <input type="text" id="nCart"></label>
-              <label>Stylus <input type="text" id="nStylus" placeholder="e.g. 3.0 mil truncated elliptical"></label>
-              <label>Transfer date <input type="date" id="nDate"></label>
-              <label>Transferred by <input type="text" id="nWho"></label>
-              <label class="full">Notes <textarea id="nNotes" placeholder="Condition, repairs, anything an archivist should know"></textarea></label>
+          <div role="tabpanel" id="pane-release" aria-labelledby="tab-release" tabindex="0" hidden>
+            <div class="paneHead"><span class="note">The release, its people, pictures and the transfer: written into every file and the catalog.</span><button class="small" id="relPasteBtn" aria-expanded="false">Paste release info</button></div>
+            <div id="relPasteBox" class="pasteBox hidden">
+              <textarea id="relPasteText" rows="6" placeholder="Paste the text of a Discogs release page (or type it the same way):&#10;Artist – Title&#10;Label: Columbia – CL 1234&#10;Format: Vinyl, LP, Mono&#10;Released: 1958&#10;Tracklist ... Credits ... Notes ..."></textarea>
+              <div class="row"><button class="small" id="relPasteApply">Fill in the fields</button><button class="small" id="relPasteCancel">Cancel</button><span class="note">Read on this device. Nothing is looked up online.</span></div>
             </div>
+            <div class="note" id="relPasteNote"></div>
+            <nav class="jump" aria-label="Jump to"><a href="#relBasics">Release</a><a href="#relCredits">Credits</a><a href="#relImages">Pictures</a><a href="#relTransfer">Transfer</a></nav>
+            <div id="releaseForm"></div>
+            <input type="file" id="imgFile" accept="image/jpeg,image/png,image/webp,image/gif,image/*" class="hidden">
+          </div>
+
+          <div role="tabpanel" id="pane-export" aria-labelledby="tab-export" tabindex="0" hidden>
+            <div class="paneSub" style="margin-top:0">Formats</div>
+            <div class="fmtChecks" id="exFormats"></div>
+            <div class="paneSub">Names</div>
+            <div class="exOpts">
+              <label class="toggle"><input type="radio" name="exNum" id="exNum" value="num"> Files as "01 - Title"</label>
+              <label class="toggle"><input type="radio" name="exNum" id="exPos" value="pos"> Files as "A1 - Title"</label>
+              <label class="toggle" id="exRestartBox"><input type="checkbox" id="exRestart"> Number each disc from 1</label>
+              <label class="toggle" id="exDiscFoldersBox"><input type="checkbox" id="exDiscFolders"> A folder for each disc</label>
+            </div>
+            <div class="paneSub">Also in the zip</div>
+            <div class="exOpts">
+              <label class="toggle"><input type="checkbox" id="exRaw"> The raw side transfers, untouched (the archival masters)</label>
+              <label class="toggle"><input type="checkbox" id="exCatalog"> A catalog of the release (JSON and CSV)</label>
+              <label class="toggle"><input type="checkbox" id="exArtwork"> The pictures, full size</label>
+              <label class="toggle"><input type="checkbox" id="exEmbedAll"> Every picture inside every file (the front cover always goes in)</label>
+            </div>
+            <div class="paneSub">What to export</div>
+            <div class="exOpts"><label class="toggle"><input type="radio" name="exScope" id="exScopeAll" value="release"> The whole release</label><label class="toggle"><input type="radio" name="exScope" id="exScopeSide" value="side"> Just <span id="exSideName">this side</span></label></div>
+            <div class="row exportRow"><button class="go" id="exportBtn">Export the release</button><button class="small hidden" id="exportCancel">Stop</button></div>
+            <div class="progress hidden" id="exBar"><div></div></div>
+            <div class="note" id="exportText">Sides that aren't restored yet are restored first, with their current settings.</div>
+            <details class="hint" id="exPreviewBox" open><summary>What's in the zip</summary><ul class="files" id="exPreview"></ul></details>
           </div>
         </div>
       </div>
     </div>
   </section>
+  <div id="datalists"></div>
 </main>
 <script type="module" src="restore.js"></script>
 </body>

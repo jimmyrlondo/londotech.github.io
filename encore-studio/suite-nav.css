@@ -19,8 +19,11 @@
 @media (max-width: 900px) {
   .bar .chip-label { display: none; }
   .bar .toolPick { min-width: 140px; }
-  .bar > button, .bar > a.small { white-space: nowrap; flex: none; }
+  .bar > button, .bar > a.small { flex: 0 1 auto; min-width: 0; line-height: 1.15; padding-left: 10px; padding-right: 10px; }
+  .bar > #newSet { flex: 0 1 auto; white-space: normal; }
 }
 /* whatever a tool shows at the right end of the bar takes only the room it needs, so the tabs fill the rest */
 .bar #songName, .bar #setName { flex: 0 1 auto; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bar .spacer { flex: 0 0 0; }
+/* the drop-down shrinks to the room it has instead of to its longest tool name */
+@media (max-width: 900px) { .bar .toolPick { flex: 1 1 0; width: 0; min-width: 104px; } }
