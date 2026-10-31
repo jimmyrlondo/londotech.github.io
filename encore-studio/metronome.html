@@ -90,6 +90,13 @@
   /* the cards below */
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 14px; }
   .card { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 16px; min-width: 0; }
+  .tapPad { width: 100%; min-height: 120px; font: inherit; font-size: 22px; font-weight: 800; color: var(--text); background: rgb(255 255 255 / 0.04); border: 2px dashed var(--divider-strong); border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  .tapPad small { font-size: 12px; font-weight: 400; color: var(--dim); }
+  .bpmCard .found { text-align: center; margin: 12px 0 2px; }
+  .bpmCard .found #findBpm { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; }
+  .bpmCard .found .unit { font-size: 13px; color: var(--dim); margin-left: 6px; }
+  .bpmCard .row button.use { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .bpmCard .row button.use:disabled { opacity: 0.4; }
   .card h2 { font-size: 16px; margin: 0 0 10px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
   .card h2 .chip { font-size: 10px; letter-spacing: .06em; color: #fff; background: #ff3b00; border-radius: 4px; padding: 3px 6px; font-weight: 700; }
   .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -301,6 +308,25 @@
       </div>
     </section>
 
+    <section class="card bpmCard" id="bpmCard">
+      <h2>Find the BPM</h2>
+      <button class="tapPad" id="tapPad">Tap along<small>or press B</small></button>
+      <div class="found"><span id="findBpm">--</span><span class="unit">BPM</span></div>
+      <div class="tip" id="findInfo">Tap along with the song on the beat. After 4 taps you'll see a tempo, and it gets more exact the longer you tap.</div>
+      <div class="row">
+        <button class="small" id="findHalf" title="Half the tempo">&divide;2</button>
+        <button class="small" id="findDouble" title="Double the tempo">&times;2</button>
+        <button class="small" id="findReset">Start over</button>
+        <button class="small use" id="findUse" disabled>Use this tempo</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="small" id="findListen">Listen through the mic</button>
+        <button class="small" id="findFile">Choose a song file</button>
+      </div>
+      <input type="file" id="findFileInput" accept="audio/*,.wav,.mp3,.flac,.m4a,.ogg" class="hidden">
+      <div class="tip">Listening works best on music with a clear beat. If the number looks half or double what you feel, use &divide;2 or &times;2. Song files stay on your device.</div>
+    </section>
+
     <section class="card">
       <h2>Setlist</h2>
       <ul class="songs" id="songs"></ul>
@@ -325,6 +351,7 @@
         <kbd>&uarr; &darr;</kbd><span>Tempo up / down 1 (with Shift: 10)</span>
         <kbd>&larr; &rarr;</kbd><span>Tempo down / up 5</span>
         <kbd>T</kbd><span>Tap tempo</span>
+        <kbd>B</kbd><span>Find the BPM: tap along</span>
         <kbd>S</kbd><span>Next subdivision</span>
         <kbd>C</kbd><span>Count-in on / off</span>
         <kbd>L</kbd><span>Time check listening on / off</span>

@@ -6,6 +6,7 @@
 import { clampBpm, SUBDIVISIONS, subFractions, groupingOptions, defaultGroups, parseGroups, defaultAccents, groupMap, groupsLabel,
          unitOptions, noteValueName, tempoName, TapTempo, cleanSettings, SOUND_SETS, makeSounds, sliderGain,
          OnsetDetector, measureLatency, TimeCheck, summarize } from './metronome-core.js';
+import { TempoFinder, tapTempo } from './bpm-core.js';
 
 const $ = id => document.getElementById(id);
 const store = {
@@ -109,6 +110,7 @@ function onWorklet(e) {
       if (take && !take.done) addCountToTake(ev);
     }
   } else if (m.type === 'input') {
+    if (finder) finder.push(m.data);
     if (calib) calib.onsets.push(...calib.det.push(m.data, m.frame));
     else if (take && !take.done) { const o = take.det.push(m.data, m.frame); if (o.length) { take.tc.addOnsets(o); take.dirty = true; } }
   }
@@ -556,7 +558,7 @@ document.addEventListener('keydown', e => {
     ArrowDown: () => setBpm(Math.round(S.bpm) - (e.shiftKey ? 10 : 1)),
     ArrowRight: () => setBpm(Math.round(S.bpm) + 5),
     ArrowLeft: () => setBpm(Math.round(S.bpm) - 5),
-    t: tap, s: nextSub, f: stageToggle, m: toggleMute,
+    t: tap, b: findTap, s: nextSub, f: stageToggle, m: toggleMute,
     c: () => { P.countIn = !P.countIn; $('countIn').checked = P.countIn; save(); toast('Count-in ' + (P.countIn ? 'on' : 'off')); },
     l: () => { $('tcOn').checked = !$('tcOn').checked; $('tcOn').onchange(); },
     '[': () => $('songPrev').click(), ']': () => $('songNext').click(),
@@ -664,7 +666,7 @@ async function calibrate(kind) {
   // back to the user's sound
   master.gain.value = muted ? 0 : masterGain();
   sendSounds(); sendSettings();
-  node.port.postMessage({ type: 'listen', on: !!(take && !take.done) });
+  node.port.postMessage({ type: 'listen', on: !!(take && !take.done) || !!finder });
   for (const b of [$('calSpk'), $('calClap'), $('playBtn')]) b.disabled = false;
   const clicks = (clap ? c.clicks.slice(4, 16) : c.clicks.slice(0, 12)).map(e => e.frame);
   const r = measureLatency(clicks, c.onsets, sr, clap ? { minS: -0.1, maxS: 0.45, maxSpreadMs: 25 } : {});
@@ -680,7 +682,7 @@ async function calibrate(kind) {
     $('latText').textContent = (clap ? `Heard ${r.matched} of ${r.total} claps line up. Clap right on each click, steadily, and try again.`
       : `Only heard ${r.matched} of ${r.total} clicks clearly. Turn the speakers up, bring the mic closer, keep the room quiet, and try again.`) + (P.latency !== null ? ` (Still using ${P.latency.toFixed(1)} ms.)` : '');
   }
-  if (!P.tcOn) closeInput();
+  if (!P.tcOn && !finder) closeInput();
   return r;
 }
 $('calSpk').onclick = () => calibrate('speakers');
@@ -708,7 +710,7 @@ function finishTake() {
   if (!take || take.done) return;
   take.tc.resolve(true);
   take.done = true;
-  if (!calib) node.port.postMessage({ type: 'listen', on: false });
+  if (!calib && !finder) node.port.postMessage({ type: 'listen', on: false });
   drawTake(true);
 }
 
@@ -839,3 +841,87 @@ refresh();
 showSens();
 showLatency();
 requestAnimationFrame(draw);
+
+// ---- Find the BPM: tap along, or let it listen (the mic, or a song file)
+let found = null, findTaps = [], finder = null, finderTimer = null;
+function showFound(bpm, info) {
+  found = bpm;
+  $('findBpm').textContent = bpm ? bpm.toFixed(1) : '--';
+  $('findUse').disabled = !bpm;
+  if (info !== undefined) $('findInfo').textContent = info;
+}
+function findTap() {
+  const now = performance.now();
+  // a pause of 3 s starts over
+  if (findTaps.length && now - findTaps[findTaps.length - 1] > 3000) findTaps = [];
+  findTaps.push(now);
+  $('tapPad').animate([{ background: 'rgb(255 59 0 / 0.35)' }, { background: 'rgb(255 255 255 / 0.04)' }], { duration: 180 });
+  const t = tapTempo(findTaps);
+  if (!t || findTaps.length < 4) { showFound(null, findTaps.length < 2 ? 'Keep tapping...' : `${findTaps.length} taps, keep going...`); return; }
+  const steady = t.spreadMs < 12 ? 'very steady' : t.spreadMs < 25 ? 'steady' : 'a bit uneven, keep going';
+  showFound(t.bpm, `${t.taps} taps, ${steady} (within ${Math.round(t.spreadMs)} ms). Stop for 3 seconds to start over.`);
+}
+$('tapPad').addEventListener('pointerdown', e => { e.preventDefault(); findTap(); });
+$('tapPad').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); findTap(); } });
+$('findHalf').onclick = () => { if (found) showFound(found / 2); };
+$('findDouble').onclick = () => { if (found) showFound(found * 2); };
+$('findReset').onclick = () => { findTaps = []; stopListening(); showFound(null, 'Tap along with the song on the beat.'); };
+$('findUse').onclick = () => { if (found) { setBpm(found); toast(`Tempo set to ${(Math.round(found * 10) / 10)} BPM`); } };
+
+function listenResult(r, seconds, done) {
+  if (!r) { showFound(null, `Listening... (${Math.floor(seconds)} s)`); return; }
+  const sure = r.confidence > 0.6 ? 'Sure of it' : r.confidence > 0.25 ? 'Fairly sure' : 'Not sure: the beat isn\'t clear. Try tapping along instead';
+  const alt = r.others.length ? ` Could also be counted as ${r.others.map(b => b.toFixed(1)).join(' or ')}.` : '';
+  showFound(r.bpm, `${sure}.${alt}` + (done ? '' : ` (listening, ${Math.floor(seconds)} s)`));
+}
+async function startListening() {
+  try {
+    await openInput();
+    finder = new TempoFinder(ctx.sampleRate);
+    node.port.postMessage({ type: 'listen', on: true });
+    $('findListen').textContent = 'Stop listening';
+    showFound(null, 'Listening... play the song near the mic.');
+    finderTimer = setInterval(() => {
+      if (!finder) return;
+      listenResult(finder.estimate(), finder.seconds, false);
+      if (finder.seconds >= 30) stopListening();
+    }, 1000);
+  } catch (e) { finder = null; showError(e); }
+}
+function stopListening() {
+  if (!finder) return;
+  const f = finder;
+  finder = null;
+  clearInterval(finderTimer);
+  $('findListen').textContent = 'Listen through the mic';
+  if (!(take && !take.done) && !calib) node.port.postMessage({ type: 'listen', on: false });
+  if (!P.tcOn && !calib) closeInput();
+  listenResult(f.estimate(), f.seconds, true);
+}
+$('findListen').onclick = () => finder ? stopListening() : startListening();
+
+$('findFile').onclick = () => $('findFileInput').click();
+$('findFileInput').onchange = async () => {
+  const file = $('findFileInput').files[0];
+  $('findFileInput').value = '';
+  if (!file) return;
+  try {
+    await audio();
+    showFound(null, `Reading ${file.name}...`);
+    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+    // mono, then through the finder a slice at a time so the page stays responsive
+    const n = buf.length, mono = new Float32Array(n), chans = buf.numberOfChannels;
+    for (let c = 0; c < chans; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) mono[i] += d[i] / chans; }
+    const f = new TempoFinder(buf.sampleRate), step = buf.sampleRate * 10;
+    for (let i = 0; i < n; i += step) {
+      f.push(mono.subarray(i, Math.min(n, i + step)));
+      showFound(null, `Listening to ${file.name}... ${Math.round(Math.min(n, i + step) / n * 100)}%`);
+      await new Promise(r => setTimeout(r, 0));
+    }
+    const r = f.estimate();
+    if (!r) { showFound(null, 'That file is too short to find a tempo (it needs a few seconds).'); return; }
+    listenResult(r, f.seconds, true);
+  } catch (e) {
+    showFound(null, 'Couldn\'t read that file. Try a WAV or MP3.');
+  }
+};
