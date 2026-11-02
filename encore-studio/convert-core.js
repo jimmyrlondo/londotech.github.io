@@ -30,6 +30,7 @@ export const PRESETS = [
   { id: "mp3-128", label: "MP3 128", sub: "Smallest, for demos", kind: "mp3", kbps: 128 },
   { id: "wav-16-44", label: "WAV 16-bit 44.1", sub: "CD quality", kind: "wav", bits: 16, rate: 44100 },
   { id: "wav-24", label: "WAV 24-bit", sub: "Studio, same rate", kind: "wav", bits: 24 },
+  { id: "wav-32f", label: "WAV 32-bit float", sub: "For mixing, nothing lost", kind: "wav", bits: 32 },
   { id: "flac", label: "FLAC", sub: "Lossless, half the size", kind: "flac", bits: 0 },
   { id: "aiff", label: "AIFF", sub: "Lossless, for Apple apps", kind: "aiff", bits: 0 },
   { id: "m4a-256", label: "AAC / M4A 256", sub: "Apple Music, iPhone", kind: "m4a", kbps: 256 },

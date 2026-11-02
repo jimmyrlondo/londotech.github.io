@@ -62,6 +62,7 @@ function presetHelp(p) {
     m4a: "<b>AAC (M4A)</b> is what Apple Music and iPhones use. Made by your browser's own encoder.",
     opus: "<b>Opus</b> sounds better than MP3 at the same size. Plays in browsers, Android, VLC; not in older Apple apps.",
   };
+  if (p.id === "wav-32f") return "<b>WAV 32-bit float</b> keeps every bit of a float mix or stem, with headroom past 0 dB, for passing between DAWs. For CDs and distributors use 16 or 24-bit (many don't take float).";
   return lines[p.kind] + (p.id === "voice" ? " Mono 128 kbps keeps voice memos and rehearsal takes small." : "");
 }
 
