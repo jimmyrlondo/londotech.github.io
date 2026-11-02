@@ -15,12 +15,28 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const KEY = "encore.songbook.v1";
 
 // ---------- the library (this browser) ----------
+// Categories (Albums, Works in progress, Singles, Graveyard, your own) hold folders (an album, a project),
+// folders hold songs in the order you set (track order for an album). Folders have a color.
+const DEFAULT_CATEGORIES = ["Albums", "Works in progress", "Singles", "Graveyard"];
+const COLORS = ["", "#ff3b00", "#f59e0b", "#eab308", "#22c55e", "#14b8a6", "#3b82f6", "#a855f7", "#ec4899", "#94a3b8"];
 function load() {
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d?.songs) return d; } catch {}
-  const folder = { id: newId("f"), name: "My songs", open: true };
-  const s = newSong(folder.id, "[Verse 1]\n[G]Paste or type your [C]lyrics here,\nthe [D]chords go in [G]brackets.\n\n[Chorus]\n[Em]Tap a chord on the [C]right to put it in,\nor [G]switch to Chords to tap a [D]word.");
-  s.title = "Start here"; s.key = "G";
-  return { folders: [folder], songs: [s], openId: s.id, prefs: {} };
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(KEY) || "null"); } catch {}
+  if (!d?.songs) {
+    const folder = { id: newId("f"), name: "My songs", open: true };
+    const s = newSong(folder.id, "[Verse 1]\n[G]Paste or type your [C]lyrics here,\nthe [D]chords go in [G]brackets.\n\n[Chorus]\n[Em]Tap a chord on the [C]right to put it in,\nor [G]switch to Chords to tap a [D]word.");
+    s.title = "Start here"; s.key = "G";
+    d = { folders: [folder], songs: [s], openId: s.id, prefs: {} };
+  }
+  // older songbooks: give them the categories, with their folders under Works in progress
+  if (!d.categories) {
+    d.categories = DEFAULT_CATEGORIES.map((name) => ({ id: newId("c"), name, open: true }));
+    const wip = d.categories[1].id;
+    for (const f of d.folders) f.categoryId ||= wip;
+  }
+  // a track order inside each folder (oldest first, the order they were made)
+  for (const f of d.folders) d.songs.filter((s) => s.folderId === f.id && s.order === undefined).sort((a, b) => (a.created || 0) - (b.created || 0)).forEach((s, i) => { s.order = i; });
+  return d;
 }
 const db = load();
 db.prefs ||= {};
@@ -38,52 +54,158 @@ const state = { view: db.prefs.view || "write", tab: db.prefs.tab || "chords", a
 
 // ---------- library panel ----------
 const lib = $("lib");
+const inFolder = (fid) => db.songs.filter((s) => (s.folderId || "") === fid).sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9) || (a.created || 0) - (b.created || 0));
+const nextOrder = (fid) => Math.max(-1, ...db.songs.filter((s) => s.folderId === fid).map((s) => s.order ?? -1)) + 1;
 function renderLib() {
   const q = state.query.toLowerCase().trim();
   const match = (s) => !q || (titleOf(s) + " " + s.artist + " " + s.body).toLowerCase().includes(q);
-  const sorted = (list) => list.sort((a, b) => b.updated - a.updated);
-  const folders = [...db.folders, { id: "", name: "Not in a folder", open: true, loose: true }];
-  lib.innerHTML = folders.map((f) => {
-    const songs = sorted(db.songs.filter((s) => (s.folderId || "") === f.id && (f.loose ? !db.folders.some((x) => x.id === s.folderId) || !s.folderId : true) && match(s)));
-    if (f.loose && !songs.length) return "";
-    return `<div class="folder${f.open === false && !q ? " collapsed" : ""}" data-f="${f.id}">
-      <div class="fhead" data-f="${f.id}"><span class="nm" data-a="toggle" title="${esc(f.name)}">${f.open === false && !q ? "&#9656;" : "&#9662;"} ${esc(f.name)} <span class="dim">${songs.length}</span></span>
-      ${f.loose ? "" : `<button class="ib" data-a="newIn" title="New song in ${esc(f.name)}" aria-label="New song in ${esc(f.name)}">+</button><button class="ib" data-a="rename" title="Rename" aria-label="Rename ${esc(f.name)}">&#9998;</button><button class="ib" data-a="delFolder" title="Delete folder" aria-label="Delete ${esc(f.name)}">&#10005;</button>`}</div>
-      ${songs.map((s) => `<button class="songrow${s.id === db.openId ? " on" : ""}" draggable="true" data-s="${s.id}">${esc(titleOf(s))}${s.key ? `<span class="k">${esc(s.key)}</span>` : ""}</button>`).join("")}</div>`;
-  }).join("") || `<div class="empty">No songs match.</div>`;
+  const songRows = (list, numbered) => list.filter(match).map((s, i) => `<button class="songrow${s.id === db.openId ? " on" : ""}" draggable="true" data-s="${s.id}">${numbered ? `<span class="tn">${i + 1}</span>` : ""}${esc(titleOf(s))}${s.key ? `<span class="k">${esc(s.key)}</span>` : ""}</button>`).join("");
+  const folderBox = (f) => {
+    const list = inFolder(f.id), shown = list.filter(match);
+    if (q && !shown.length) return "";
+    const closed = f.open === false && !q;
+    return `<div class="folder${closed ? " collapsed" : ""}" data-f="${f.id}" style="--fc:${f.color || "var(--divider-strong)"}">
+      <div class="fhead" data-f="${f.id}" draggable="true"><span class="nm" data-a="toggle" title="${esc(f.name)}">${closed ? "&#9656;" : "&#9662;"} ${esc(f.name)} <span class="dim">${list.length}</span></span>
+      <button class="ib" data-a="newIn" title="New song in ${esc(f.name)}" aria-label="New song in ${esc(f.name)}">+</button><button class="ib" data-a="fmenu" title="Rename, color, move or delete" aria-label="Folder options for ${esc(f.name)}">&#8943;</button></div>
+      ${songRows(list, true)}</div>`;
+  };
+  let html = db.categories.map((c) => {
+    const folders = db.folders.filter((f) => f.categoryId === c.id), inner = folders.map(folderBox).join("");
+    if (q && !inner) return "";
+    const closed = c.open === false && !q;
+    return `<div class="cat${closed ? " collapsed" : ""}" data-c="${c.id}"><div class="chead" data-c="${c.id}"><span class="nm" data-a="ctoggle">${closed ? "&#9656;" : "&#9662;"} ${esc(c.name)}</span>
+      <button class="ib" data-a="newFolderIn" title="New folder in ${esc(c.name)}" aria-label="New folder in ${esc(c.name)}">+</button><button class="ib" data-a="cmenu" title="Rename or delete" aria-label="Category options for ${esc(c.name)}">&#8943;</button></div>
+      <div class="cbody">${inner || (q ? "" : `<div class="cempty">No folders yet. Tap + to make one.</div>`)}</div></div>`;
+  }).join("");
+  // songs not in any folder, and folders whose category is gone
+  const lost = db.folders.filter((f) => !db.categories.some((c) => c.id === f.categoryId));
+  if (lost.length) html += `<div class="cat" data-c=""><div class="chead"><span class="nm">Other folders</span></div><div class="cbody">${lost.map(folderBox).join("")}</div></div>`;
+  const loose = db.songs.filter((s) => !s.folderId || !db.folders.some((f) => f.id === s.folderId));
+  if (loose.some(match)) html += `<div class="folder" data-f=""><div class="fhead" data-f=""><span class="nm">Not in a folder</span></div>${songRows(loose, false)}</div>`;
+  lib.innerHTML = (html || `<div class="empty">No songs match.</div>`) + (q ? "" : `<button class="btn sm addcat" data-a="newCat">+ Category</button>`);
+}
+function menu(anchor, items) {
+  closeMenu();
+  const m = document.createElement("div");
+  m.className = "menu"; m.innerHTML = items;
+  document.body.appendChild(m);
+  const r = anchor.getBoundingClientRect();
+  m.style.left = Math.min(innerWidth - m.offsetWidth - 8, r.left) + "px";
+  m.style.top = Math.min(innerHeight - m.offsetHeight - 8, r.bottom + 4) + "px";
+  setTimeout(() => document.addEventListener("pointerdown", outside), 0);
+  return m;
+}
+function outside(e) { if (!e.target.closest(".menu")) closeMenu(); }
+function closeMenu() { document.querySelector(".menu")?.remove(); document.removeEventListener("pointerdown", outside); }
+function folderMenu(anchor, f) {
+  const m = menu(anchor, `<button data-m="rename">Rename</button>
+    <div class="swatches">${COLORS.map((c) => `<button class="sw${(f.color || "") === c ? " on" : ""}" data-color="${c}" style="background:${c || "transparent"}" title="${c ? "Color" : "No color"}" aria-label="${c ? "Color " + c : "No color"}"></button>`).join("")}</div>
+    <label>Move to <select class="t" data-m="cat">${db.categories.map((c) => `<option value="${c.id}" ${c.id === f.categoryId ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
+    <button data-m="del" class="danger">Delete folder</button>`);
+  m.onclick = (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.color !== undefined) { f.color = b.dataset.color; save(); renderLib(); folderMenu(lib.querySelector(`.fhead[data-f="${f.id}"] [data-a=fmenu]`) || anchor, f); return; }
+    if (b.dataset.m === "rename") { closeMenu(); const n = prompt("Folder name", f.name); if (n && n.trim()) { f.name = n.trim(); save(); renderLib(); } }
+    if (b.dataset.m === "del") {
+      closeMenu();
+      const n = db.songs.filter((s) => s.folderId === f.id).length;
+      if (!confirm(n ? `Delete the folder "${f.name}"? Its ${n} song${n > 1 ? "s" : ""} stay, moved out of the folder.` : `Delete the folder "${f.name}"?`)) return;
+      db.songs.forEach((s) => { if (s.folderId === f.id) s.folderId = ""; });
+      db.folders = db.folders.filter((x) => x !== f); save(); renderLib();
+    }
+  };
+  m.querySelector("select").onchange = (e) => { f.categoryId = e.target.value; save(); closeMenu(); renderLib(); toast(`Moved to ${db.categories.find((c) => c.id === f.categoryId)?.name}.`); };
+}
+function categoryMenu(anchor, c) {
+  const m = menu(anchor, `<button data-m="rename">Rename</button><button data-m="up">Move up</button><button data-m="down">Move down</button><button data-m="del" class="danger">Delete category</button>`);
+  m.onclick = (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    const i = db.categories.indexOf(c);
+    closeMenu();
+    if (b.dataset.m === "rename") { const n = prompt("Category name", c.name); if (n && n.trim()) c.name = n.trim(); }
+    if (b.dataset.m === "up" && i > 0) [db.categories[i - 1], db.categories[i]] = [db.categories[i], db.categories[i - 1]];
+    if (b.dataset.m === "down" && i < db.categories.length - 1) [db.categories[i + 1], db.categories[i]] = [db.categories[i], db.categories[i + 1]];
+    if (b.dataset.m === "del") {
+      const n = db.folders.filter((f) => f.categoryId === c.id).length, to = db.categories.find((x) => x !== c);
+      if (!to) { toast("Keep at least one category."); return; }
+      if (!confirm(n ? `Delete "${c.name}"? Its ${n} folder${n > 1 ? "s" : ""} move to ${to.name}.` : `Delete "${c.name}"?`)) return;
+      db.folders.forEach((f) => { if (f.categoryId === c.id) f.categoryId = to.id; });
+      db.categories = db.categories.filter((x) => x !== c);
+    }
+    save(); renderLib();
+  };
+}
+function newFolder(categoryId) {
+  const c = db.categories.find((x) => x.id === categoryId) || db.categories[0];
+  const n = prompt(`New folder in ${c.name} (an album, a project...)`, c.name === "Albums" ? "New album" : "New folder");
+  if (!n || !n.trim()) return null;
+  const f = { id: newId("f"), name: n.trim(), open: true, categoryId: c.id, color: "" };
+  db.folders.push(f); c.open = true; save(); renderLib();
+  return f;
 }
 lib.addEventListener("click", (e) => {
   const row = e.target.closest(".songrow");
   if (row) { openSong(row.dataset.s); setMobile("song"); return; }
-  const b = e.target.closest("[data-a]"), fid = e.target.closest("[data-f]")?.dataset.f;
-  if (!b) return;
-  const f = db.folders.find((x) => x.id === fid);
+  const b = e.target.closest("[data-a]"); if (!b) return;
+  const fid = e.target.closest("[data-f]")?.dataset.f, cid = e.target.closest("[data-c]")?.dataset.c;
+  const f = db.folders.find((x) => x.id === fid), c = db.categories.find((x) => x.id === cid);
   if (b.dataset.a === "toggle" && f) { f.open = f.open === false; save(); renderLib(); }
+  if (b.dataset.a === "ctoggle" && c) { c.open = c.open === false; save(); renderLib(); }
   if (b.dataset.a === "newIn") addSong(fid);
-  if (b.dataset.a === "rename" && f) { const n = prompt("Folder name", f.name); if (n && n.trim()) { f.name = n.trim(); save(); renderLib(); } }
-  if (b.dataset.a === "delFolder" && f) {
-    const n = db.songs.filter((s) => s.folderId === f.id).length;
-    if (!confirm(n ? `Delete the folder "${f.name}"? Its ${n} song${n > 1 ? "s" : ""} stay, moved out of the folder.` : `Delete the folder "${f.name}"?`)) return;
-    db.songs.forEach((s) => { if (s.folderId === f.id) s.folderId = ""; });
-    db.folders = db.folders.filter((x) => x !== f); save(); renderLib();
+  if (b.dataset.a === "fmenu" && f) folderMenu(b, f);
+  if (b.dataset.a === "cmenu" && c) categoryMenu(b, c);
+  if (b.dataset.a === "newFolderIn") newFolder(cid);
+  if (b.dataset.a === "newCat") { const n = prompt("New category (e.g. EPs, Covers, Side project)"); if (n && n.trim()) { db.categories.push({ id: newId("c"), name: n.trim(), open: true }); save(); renderLib(); } }
+});
+// dragging: a song onto a folder (to the end) or onto another song (to just before it, the track order);
+// a folder onto a category
+const clearDrop = () => lib.querySelectorAll(".drop, .dropBefore").forEach((x) => x.classList.remove("drop", "dropBefore"));
+lib.addEventListener("dragstart", (e) => {
+  const r = e.target.closest(".songrow");
+  if (r) { e.dataTransfer.setData("text/x-song", r.dataset.s); e.dataTransfer.effectAllowed = "move"; return; }
+  const fh = e.target.closest(".fhead[data-f]");
+  if (fh && fh.dataset.f) { e.dataTransfer.setData("text/x-folder", fh.dataset.f); e.dataTransfer.effectAllowed = "move"; }
+});
+lib.addEventListener("dragover", (e) => {
+  const types = e.dataTransfer.types;
+  if (types.includes("text/x-song")) {
+    const row = e.target.closest(".songrow"), fold = e.target.closest(".folder");
+    if (!fold) return;
+    e.preventDefault(); clearDrop();
+    if (row && fold.dataset.f) row.classList.add("dropBefore"); else fold.querySelector(".fhead").classList.add("drop");
+  } else if (types.includes("text/x-folder")) {
+    const cat = e.target.closest(".cat[data-c]");
+    if (!cat || !cat.dataset.c) return;
+    e.preventDefault(); clearDrop(); cat.querySelector(".chead").classList.add("drop");
   }
 });
-lib.addEventListener("dragstart", (e) => { const r = e.target.closest(".songrow"); if (r) { e.dataTransfer.setData("text/x-song", r.dataset.s); e.dataTransfer.effectAllowed = "move"; } });
-lib.addEventListener("dragover", (e) => { const h = e.target.closest(".folder"); if (h && e.dataTransfer.types.includes("text/x-song")) { e.preventDefault(); lib.querySelectorAll(".fhead.drop").forEach((x) => x.classList.remove("drop")); h.querySelector(".fhead").classList.add("drop"); } });
-lib.addEventListener("dragleave", (e) => { if (!lib.contains(e.relatedTarget)) lib.querySelectorAll(".fhead.drop").forEach((x) => x.classList.remove("drop")); });
+lib.addEventListener("dragleave", (e) => { if (!lib.contains(e.relatedTarget)) clearDrop(); });
 lib.addEventListener("drop", (e) => {
-  const h = e.target.closest(".folder"), id = e.dataTransfer.getData("text/x-song");
-  lib.querySelectorAll(".fhead.drop").forEach((x) => x.classList.remove("drop"));
-  if (!h || !id) return;
-  e.preventDefault();
-  const s = db.songs.find((x) => x.id === id);
-  if (s) { s.folderId = h.dataset.f; touch(s); renderLib(); toast(`Moved to ${db.folders.find((f) => f.id === s.folderId)?.name || "no folder"}.`); }
+  clearDrop();
+  const sid = e.dataTransfer.getData("text/x-song"), fid = e.dataTransfer.getData("text/x-folder");
+  if (sid) {
+    const fold = e.target.closest(".folder"), row = e.target.closest(".songrow"), s = db.songs.find((x) => x.id === sid);
+    if (!fold || !s) return;
+    e.preventDefault();
+    const to = fold.dataset.f || "", list = inFolder(to).filter((x) => x !== s);
+    const before = row && to ? list.findIndex((x) => x.id === row.dataset.s) : -1;
+    list.splice(before < 0 ? list.length : before, 0, s);
+    s.folderId = to;
+    list.forEach((x, i) => { x.order = i; });
+    touch(s); renderLib();
+    toast(to ? `${db.folders.find((f) => f.id === to)?.name}: track ${list.indexOf(s) + 1}.` : "Moved out of the folder.");
+  } else if (fid) {
+    const cat = e.target.closest(".cat[data-c]"), f = db.folders.find((x) => x.id === fid);
+    if (!cat || !f || !cat.dataset.c) return;
+    e.preventDefault(); f.categoryId = cat.dataset.c; save(); renderLib();
+  }
 });
 $("search").oninput = (e) => { state.query = e.target.value; renderLib(); };
 $("newSong").onclick = () => addSong(song()?.folderId ?? db.folders[0]?.id ?? "");
-$("newFolder").onclick = () => { const n = prompt("New folder (a project, an album, a set...)", "New project"); if (!n || !n.trim()) return; db.folders.push({ id: newId("f"), name: n.trim(), open: true }); save(); renderLib(); };
+$("newFolder").onclick = () => newFolder(db.folders.find((f) => f.id === song()?.folderId)?.categoryId || db.categories[0]?.id);
 function addSong(folderId, body = "") {
   const s = newSong(folderId || "", body);
+  s.order = nextOrder(s.folderId);
   db.songs.push(s); db.openId = s.id; save(); renderAll(); setMobile("song");
   state.view = "write"; renderSong(); $("title").focus();
   return s;
@@ -585,7 +707,7 @@ function renderShareTab() {
   $("dlCho").onclick = () => download(new Blob([toChordPro({ ...s, title: titleOf(s), key: s.key || keyText(k) })], { type: "text/plain" }), fname("cho"));
   $("dlTxt").onclick = () => download(new Blob([(head.trim() + "\n\n" + toChordsAbove(s.body)).replace(/\n/g, "\r\n")], { type: "text/plain" }), fname("txt"));
   $("print").onclick = () => { const was = state.view; state.view = "sheet"; renderSong(); setTimeout(() => { window.print(); state.view = was; renderSong(); }, 50); };
-  $("backup").onclick = () => download(new Blob([JSON.stringify({ app: "ENCORE. Songbook", version: 1, saved: new Date().toISOString(), folders: db.folders, songs: db.songs }, null, 1)], { type: "application/json" }), `ENCORE Songbook backup ${new Date().toISOString().slice(0, 10)}.json`);
+  $("backup").onclick = () => download(new Blob([JSON.stringify({ app: "ENCORE. Songbook", version: 2, saved: new Date().toISOString(), categories: db.categories, folders: db.folders, songs: db.songs }, null, 1)], { type: "application/json" }), `ENCORE Songbook backup ${new Date().toISOString().slice(0, 10)}.json`);
   $("import").onclick = () => $("importFile").click();
 }
 $("importFile").onchange = async () => {
@@ -598,7 +720,10 @@ $("importFile").onchange = async () => {
         const d = JSON.parse(text);
         if (!Array.isArray(d.songs)) throw new Error();
         const map = new Map();
-        for (const fo of d.folders || []) { const ex = db.folders.find((x) => x.name === fo.name); if (ex) map.set(fo.id, ex.id); else { const nf = { id: newId("f"), name: fo.name, open: true }; db.folders.push(nf); map.set(fo.id, nf.id); } }
+        // categories by name, folders by name (new ones keep their color and category)
+        const cmap = new Map();
+        for (const c of d.categories || []) { const ex = db.categories.find((x) => x.name === c.name); if (ex) cmap.set(c.id, ex.id); else { const nc = { id: newId("c"), name: c.name, open: true }; db.categories.push(nc); cmap.set(c.id, nc.id); } }
+        for (const fo of d.folders || []) { const ex = db.folders.find((x) => x.name === fo.name); if (ex) map.set(fo.id, ex.id); else { const nf = { id: newId("f"), name: fo.name, open: true, color: fo.color || "", categoryId: cmap.get(fo.categoryId) || db.categories[1]?.id || db.categories[0].id }; db.folders.push(nf); map.set(fo.id, nf.id); } }
         for (const s of d.songs) { if (db.songs.some((x) => x.id === s.id)) continue; db.songs.push({ ...newSong(), ...s, folderId: map.get(s.folderId) || "" }); n++; }
       } catch { toast(`${f.name} isn't a Songbook backup.`); }
     } else {
