@@ -43,6 +43,8 @@ export function soundFor(name = "") {
   return "piano";
 }
 const live = new Map();
+// notes scheduled ahead (playback): kept so Stop can silence the ones still to come
+const scheduled = new Set();
 /** Sound a note now (or at time t) until noteOff, or for dur seconds. opts: { sound, gain } */
 export function noteOn(midi, vel = 0.8, t = 0, dur = 0, opts = {}) {
   const a = audio(), at = Math.max(a.currentTime, t || a.currentTime), f = 440 * 2 ** ((midi - 69) / 12);
@@ -60,7 +62,7 @@ export function noteOn(midi, vel = 0.8, t = 0, dur = 0, opts = {}) {
   if (P.decay) g.gain.setTargetAtTime(peak * P.sus, at + P.a, P.decay);
   for (const o of oscs) o.start(at);
   const v = { g, oscs, at, rel: P.rel };
-  if (dur) { release(v, at + dur); return null; }
+  if (dur) { release(v, at + dur); scheduled.add(v); oscs[0].onended = () => scheduled.delete(v); return null; }
   noteOff(midi); live.set(midi, v);
   return v;
 }
@@ -70,7 +72,16 @@ function release(v, t) {
   for (const o of v.oscs) o.stop(when + v.rel * 8 + 0.1);
 }
 export function noteOff(midi, t = 0) { const v = live.get(midi); if (v) { live.delete(midi); release(v, t || audio().currentTime); } }
-export function allOff() { for (const m of [...live.keys()]) noteOff(m); }
+export function allOff() {
+  for (const m of [...live.keys()]) noteOff(m);
+  // everything scheduled: fade out now, and the notes that haven't started yet never will
+  const now = audio().currentTime;
+  for (const v of scheduled) {
+    try { v.g.gain.cancelScheduledValues(now); v.g.gain.setValueAtTime(v.at > now ? 0 : v.g.gain.value, now); v.g.gain.setTargetAtTime(0, now, 0.015); } catch {}
+    for (const o of v.oscs) try { o.stop(now + 0.08); } catch {}
+  }
+  scheduled.clear();
+}
 
 // ---------- the mic: sing or play one note at a time and it becomes notes ----------
 // Voice's pitch tracker, read every 10 ms on the audio clock. Headphones keep the click out of it.
