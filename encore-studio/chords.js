@@ -346,24 +346,29 @@ $('sideSeg').onclick = e => {
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
   const v = +b.dataset.v;
-  side = side === v ? 0 : v;
+  if (side === v) return;
+  side = v;
   store.set('side', String(side));
   const was = names[pick] && names[pick].symbol;
   names = nameNotes(currentNotes(), spellKey(), side);
   renderName();
-  if (was && names[pick] && names[pick].symbol !== was) toast(was + ' is now shown as ' + names[pick].symbol + '. Same notes, same sound.');
+  if (was && names[pick] && names[pick].symbol !== was) toast(was + ' is now ' + names[pick].symbol + '. Same notes, same sound.');
 };
+// the two names side by side (Dbmaj7 | C#maj7), so it's plain what each one does; a chord on a natural root has only one
 function renderSide(r) {
-  const can = hasSide(r);
-  const shown = !r ? 0 : (r.kind === 'chord' ? [r.chord.root, r.chord.bass] : r.notes).find(n => n && n.a)?.a || 0;
-  for (const [id, v] of [['sideFlat', -1], ['sideSharp', 1]]) {
-    const b = $(id), lit = can && (side ? side === v : shown === v);
-    b.disabled = !can;
-    b.classList.toggle('on', lit);
-    b.setAttribute('aria-pressed', String(lit));
+  const can = hasSide(r), seg = $('sideSeg');
+  if (!can) {
+    seg.innerHTML = r && r.kind === 'chord' ? `<span class="sideNote">${esc(noteText(r.chord.root))} has no sharp or flat name</span>` : '';
+    seg.classList.add('none');
+    return;
   }
-  $('sideSeg').title = can ? (side ? 'Tap the lit one again to go back to the usual name' : 'Show this chord with sharps or flats') : 'The root is a natural note, so there is no sharp or flat name to swap';
+  seg.classList.remove('none');
+  const notes = currentNotes(), flat = nameNotes(notes, null, -1)[pick] || nameNotes(notes, null, -1)[0], sharp = nameNotes(notes, null, 1)[pick] || nameNotes(notes, null, 1)[0];
+  const shown = r.symbol;
+  seg.innerHTML = [[-1, flat], [1, sharp]].map(([v, x]) => `<button data-v="${v}" class="${x && x.symbol === shown ? 'on' : ''}" aria-pressed="${!!(x && x.symbol === shown)}" title="${v < 0 ? 'Flat' : 'Sharp'} name">${v < 0 ? '&#9837;' : '&#9839;'} ${esc(x ? x.symbol : '')}</button>`).join('');
+  seg.title = 'Same notes, two names: pick the one that fits your key';
 }
+
 const spellKey = () => { const v = $('spellKey').value; if (!v) return null; const [t, m] = v.split(':'); return makeKey(t, m); };
 
 function currentNotes() {
@@ -514,18 +519,30 @@ $('luPicked').onclick = e => { if (e.target.closest('#luEdit')) { setTab('name')
 
 // ---- Write a progression
 
-let prog = loadProg(store.get('prog', '')) || { key: makeKey('C'), items: [], tempo: 96, name: '' };
-let palette = keyPalette(prog.key), sel = -1, styleBeats = 4;
-const serial = p => JSON.stringify({ k: noteText(p.key.tonic), m: p.key.mode, t: p.tempo, n: p.name,
-  i: p.items.map(it => ({ r: noteText(it.chord.root), y: it.chord.type, b: it.chord.bass ? noteText(it.chord.bass) : '', n: it.rn || '', d: it.beats, v: it.vi ?? null })) });
+// a song is parts (Verse, Chorus, Bridge...), each its own progression with how many times it plays;
+// prog.items is always the part you're editing
+function ensureSections(p) {
+  if (!p.sections || !p.sections.length) p.sections = [{ name: 'Progression', times: 1, items: p.items || [] }];
+  p.at = Math.max(0, Math.min(p.at || 0, p.sections.length - 1));
+  p.items = p.sections[p.at].items;
+  return p;
+}
+function setItems(a) { prog.items = a; prog.sections[prog.at].items = a; }
+const itemOut = it => ({ r: noteText(it.chord.root), y: it.chord.type, b: it.chord.bass ? noteText(it.chord.bass) : '', n: it.rn || '', d: it.beats, v: it.vi ?? null });
+const itemsIn = list => (list || []).filter(x => TYPE[x.y]).map(x => ({ chord: chord(parseNote(x.r), x.y, x.b ? parseNote(x.b) : null), rn: x.n || '', beats: x.d || 4, vi: x.v }));
+const serial = p => JSON.stringify({ k: noteText(p.key.tonic), m: p.key.mode, t: p.tempo, n: p.name, i: p.items.map(itemOut),
+  s: (p.sections || []).map(x => ({ n: x.name, x: x.times, i: x.items.map(itemOut) })), a: p.at || 0 });
 function loadProg(s) {
   try {
     const o = typeof s === 'string' ? JSON.parse(s) : s;
     if (!o || !o.k) return null;
-    return { key: makeKey(o.k, o.m), tempo: o.t || 96, name: o.n || '',
-      items: o.i.filter(x => TYPE[x.y]).map(x => ({ chord: chord(parseNote(x.r), x.y, x.b ? parseNote(x.b) : null), rn: x.n || '', beats: x.d || 4, vi: x.v })) };
+    return ensureSections({ key: makeKey(o.k, o.m), tempo: o.t || 96, name: o.n || '', items: itemsIn(o.i),
+      sections: o.s ? o.s.map(x => ({ name: x.n || 'Part', times: x.x || 1, items: itemsIn(x.i) })) : null, at: o.a || 0 });
   } catch { return null; }
 }
+// read after the helpers above exist (reading earlier threw quietly and lost the parts)
+let prog = ensureSections(loadProg(store.get('prog', '')) || { key: makeKey('C'), items: [], tempo: 96, name: '' });
+let palette = keyPalette(prog.key), sel = -1, styleBeats = 4;
 const saveCurrent = () => store.set('prog', serial(prog));
 
 function fillKeys() {
@@ -549,8 +566,9 @@ $('loop').onchange = () => store.set('loop', $('loop').checked ? '1' : '0');
 function setKey(k, transpose) {
   if (transpose) {
     const iv = keyInterval(prog.key, k);
-    prog.items = prog.items.map(it => ({ ...it, chord: transposeChord(it.chord, iv), vi: null }));
-  } else prog.items = prog.items.map(it => ({ ...it, rn: '' }));
+    for (const x of prog.sections) x.items = x.items.map(it => ({ ...it, chord: transposeChord(it.chord, iv), vi: null }));
+  } else for (const x of prog.sections) x.items = x.items.map(it => ({ ...it, rn: '' }));
+  prog.items = prog.sections[prog.at].items;
   prog.key = k;
   palette = keyPalette(k);
   saveCurrent();
@@ -564,7 +582,7 @@ $('modeSel').onchange = () => {
 };
 $('transUp').onclick = () => setKey(keyBySemis(prog.key, 1), true);
 $('transDown').onclick = () => setKey(keyBySemis(prog.key, -1), true);
-$('progClear').onclick = () => { stopPlay(); prog.items = []; sel = -1; saveCurrent(); renderWrite(); };
+$('progClear').onclick = () => { stopPlay(); setItems([]); sel = -1; saveCurrent(); renderWrite(); };
 $('styleSel').onchange = () => {
   const s = STYLES.find(x => x.id === $('styleSel').value);
   if (!s) { $('styleWhy').textContent = ''; renderDetail(); return; }
@@ -572,7 +590,8 @@ $('styleSel').onchange = () => {
   const t = noteText(prog.key.tonic), list = s.mode === 'minor' ? MINOR_KEYS : MAJOR_KEYS;
   const k = makeKey(list.includes(t) ? t : noteText(plainNote(pcOf(prog.key.tonic))), s.mode);
   const r = styleChords(s, k);
-  prog = { ...prog, key: r.key, items: r.items.map(it => ({ ...it, vi: null })), tempo: s.tempo, name: s.name };
+  prog = { ...prog, key: r.key, tempo: s.tempo, name: s.name };
+  setItems(r.items.map(it => ({ ...it, vi: null })));
   palette = keyPalette(prog.key);
   styleBeats = s.beats || 4;
   $('tempo').value = s.tempo;
@@ -597,9 +616,9 @@ function addChord(c, rn = '') {
 }
 
 /** The shape each bar uses: the one you picked, or one near the bar before so your hand moves least */
-function autoShapes() {
+function autoShapes(items = prog.items) {
   let prevPos = null;
-  return prog.items.map(it => {
+  return items.map(it => {
     const list = voicings(it.chord);
     if (!list.length) return { list, v: null };
     let v = it.vi != null && list[it.vi] ? list[it.vi] : null;
@@ -615,14 +634,14 @@ function autoShapes() {
   });
 }
 /** The notes each bar plays: the shape on the strings, or a smooth piano voicing */
-function voicedNotes() {
+function voicedNotes(items = prog.items) {
   if ($('tone').value === 'piano') {
     let prev = null;
-    return prog.items.map(it => { const p = pianoVoicing(it.chord, prev); prev = p.rh; return p.notes; });
+    return items.map(it => { const p = pianoVoicing(it.chord, prev); prev = p.rh; return p.notes; });
   }
-  const shapes = autoShapes();
+  const shapes = autoShapes(items);
   let prev = null;
-  return prog.items.map((it, i) => {
+  return items.map((it, i) => {
     if (shapes[i].v) return shapes[i].v.notes;
     const p = pianoVoicing(it.chord, prev); prev = p.rh; return p.notes;
   });
@@ -637,6 +656,7 @@ function renderWrite() {
   $('keyInfo').innerHTML = esc(keyName(k)) + ': ' + notes.map(noteText).join(' ') + '. ' + (sg ? Math.abs(sg) + (sg > 0 ? ' sharp' : ' flat') + (Math.abs(sg) > 1 ? 's' : '') : 'No sharps or flats')
     + '. <span class="term" data-term="relative">Relative ' + (k.mode === 'major' ? 'minor' : 'major') + '</span>: ' + esc(noteText(rel.root) + (k.mode === 'major' ? ' minor' : ' major')) + '.';
   $('mapKey').textContent = keyName(k);
+  renderSections();
   renderTimeline();
   renderDetail();
   renderMoves();
@@ -654,7 +674,7 @@ function renderTimeline() {
     const rel = i > 0 ? relate(prog.key, prog.items[i - 1].chord, c, palette) : null;
     const shapeName = capo ? chordSymbol(shapeFor(c, capo)) : '';
     const box = sh.v ? chordBox(sh.v, pcOf(c.root)) : '<div class="muted" style="font-size:11px;padding:16px 0">no shape</div>';
-    return `<div class="bar-card${i === sel ? ' sel' : ''}" data-i="${i}">
+    return `<div class="bar-card${i === sel ? ' sel' : ''}" data-i="${i}" draggable="true" title="Drag to move it">
       <span class="idx">${i + 1}</span><span class="beats" title="Beats in this bar">${it.beats} beat${it.beats > 1 ? 's' : ''}</span>
       <div class="nm">${esc(chordSymbol(c))}</div>
       <div class="rn">${esc(numeralFor(i))}</div>
@@ -849,10 +869,10 @@ $('dlChart').onclick = () => {
 let playing = null;
 $('playBtn').onclick = () => { if (playing) stopPlay(); else startPlay(); };
 /** Every hit in one pass of the progression: times in beats */
-function buildEvents() {
-  const rhythm = $('rhythm').value, notes = voicedNotes(), events = [], starts = [];
+function buildEvents(items = prog.items) {
+  const rhythm = $('rhythm').value, notes = voicedNotes(items), events = [], starts = [];
   let t = 0, bassFlip = 0;
-  prog.items.forEach((it, i) => {
+  items.forEach((it, i) => {
     starts.push(t);
     const n = notes[i] || [], low = n[0], up = n.slice(1);
     const fifth = n.find(m => mod12(m - pcOf(it.chord.bass || it.chord.root)) === 7 && m < (low + 12)) ?? (low != null ? low - 5 : null);
@@ -867,14 +887,16 @@ function buildEvents() {
   });
   return { events, starts, total: t };
 }
-function startPlay() {
-  if (!prog.items.length) return;
+function startPlay(mode = prog.sections.length > 1 ? 'song' : 'section') {
+  const first = mode === 'song' ? prog.sections.findIndex(x => x.items.length) : prog.at;
+  if (first < 0 || !prog.sections[first].items.length) return;
   audio();
   const spb = 60 / prog.tempo;
-  const pass = buildEvents();
+  const pass = buildEvents(prog.sections[first].items);
   // make every note's sound before the first beat, so nothing stutters
   for (const e of pass.events) for (const m of e.notes) if (m != null) noteBuffer($('tone').value, m);
-  playing = { pass, spb, start: ctx.currentTime + 0.12, next: 0, offset: 0 };
+  playing = { pass, spb, start: ctx.currentTime + 0.12, next: 0, offset: 0, mode, sec: first, rep: 0, queue: null };
+  renderSections();
   $('playBtn').textContent = 'Stop';
   playing.timer = setInterval(schedule, 25);
   schedule();
@@ -886,10 +908,13 @@ function schedule() {
   const horizon = ctx.currentTime + 0.15, kind = $('tone').value;
   while (true) {
     if (p.next >= p.pass.events.length) {
-      if (!$('loop').checked) { if (ctx.currentTime > p.start + (p.offset + p.pass.total) * p.spb) stopPlay(); return; }
+      const nx = nextPass(p);
+      if (!nx) { if (ctx.currentTime > p.start + (p.offset + p.pass.total) * p.spb) stopPlay(); return; }
       p.offset += p.pass.total;
-      p.pass = buildEvents();
+      p.sec = nx.sec; p.rep = nx.rep;
+      p.pass = buildEvents(prog.sections[p.sec].items);
       p.next = 0;
+      renderSections();
       if (!p.pass.events.length) { stopPlay(); return; }
     }
     const e = p.pass.events[p.next], when = p.start + (p.offset + e.t) * p.spb;
@@ -905,7 +930,8 @@ function follow() {
   const beat = (ctx.currentTime - p.start) / p.spb - p.offset;
   let idx = -1;
   p.pass.starts.forEach((s, i) => { if (beat >= s) idx = i; });
-  document.querySelectorAll('.bar-card').forEach((el, i) => el.classList.toggle('now', i === idx && beat >= 0));
+  // the bars light up when the part playing is the part on screen
+  document.querySelectorAll('.bar-card').forEach((el, i) => el.classList.toggle('now', p.sec === prog.at && i === idx && beat >= 0));
   p.raf = requestAnimationFrame(follow);
 }
 function stopPlay() {
@@ -915,9 +941,100 @@ function stopPlay() {
   playing = null;
   $('playBtn').textContent = 'Play';
   document.querySelectorAll('.bar-card.now').forEach(el => el.classList.remove('now'));
+  renderSections();
   if (master) { const now = ctx.currentTime; master.gain.cancelScheduledValues(now); master.gain.setValueAtTime(master.gain.value, now); master.gain.setTargetAtTime(0, now, 0.03); master.gain.setTargetAtTime(vol(), now + 0.25, 0.01); }
 }
-function restartPlay() { stopPlay(); startPlay(); }
+function restartPlay() { const m = playing && playing.mode; stopPlay(); startPlay(m || undefined); }
+// after a pass: a part you tapped (jump), the next time through this part, or the next part of the song
+function nextPass(p) {
+  if (p.queue != null) { const q = p.queue; p.queue = null; return { sec: q, rep: 0 }; }
+  if (p.mode === 'section') return { sec: p.sec, rep: p.rep + 1 };
+  if (p.rep + 1 < (prog.sections[p.sec].times || 1)) return { sec: p.sec, rep: p.rep + 1 };
+  for (let i = p.sec + 1; i < prog.sections.length; i++) if (prog.sections[i].items.length) return { sec: i, rep: 0 };
+  if (!$('loop').checked) return null;
+  const first = prog.sections.findIndex(x => x.items.length);
+  return first < 0 ? null : { sec: first, rep: 0 };
+}
+
+// ---- the parts of the song: Verse, Chorus, Bridge... each with its own progression and repeat count
+const PART_NAMES = ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Solo', 'Outro'];
+function renderSections() {
+  const el = $('sections');
+  if (!el) return;
+  el.innerHTML = prog.sections.map((x, i) => `<div class="secChip${i === prog.at ? ' on' : ''}${playing && playing.sec === i ? ' now' : ''}${playing && playing.queue === i ? ' next' : ''}" draggable="true" data-i="${i}">
+      <button class="nm" data-act="go" title="${playing ? 'Jump here when this pass ends' : 'Edit this part'} (double-click to rename)">${esc(x.name)}</button>
+      <span class="times" title="How many times it plays"><button data-act="less" aria-label="Fewer times">&minus;</button>&times;${x.times}<button data-act="more" aria-label="More times">+</button></span>
+      ${prog.sections.length > 1 ? `<button data-act="rm" title="Remove this part" aria-label="Remove ${esc(x.name)}">&times;</button>` : ''}</div>`).join('')
+    + `<select id="addSec" aria-label="Add a part"><option value="">+ Part</option>${PART_NAMES.map(n => `<option>${n}</option>`).join('')}<option value="__copy">Copy of this part</option></select>`
+    + (prog.sections.length > 1 ? `<button class="small" id="loopSec">${playing && playing.mode === 'section' ? 'Play the whole song' : 'Loop just this part'}</button>` : '');
+  $('addSec').onchange = e => {
+    const v = e.target.value; e.target.value = '';
+    if (!v) return;
+    if (prog.sections.length === 1 && prog.sections[0].name === 'Progression') prog.sections[0].name = v === 'Verse' ? 'Verse 1' : 'Verse';
+    let name = v, items = [];
+    if (v === '__copy') { const cur = prog.sections[prog.at]; name = cur.name + ' (copy)'; items = cur.items.map(it => ({ ...it })); }
+    else {
+      const same = prog.sections.filter(x => x.name.replace(/\s*\d+$/, '') === v).length;
+      if (same) { name = v + ' ' + (same + 1); for (const x of prog.sections) if (x.name === v) x.name = v + ' 1'; }
+    }
+    prog.sections.push({ name, times: v === 'Chorus' ? 2 : 1, items });
+    switchSection(prog.sections.length - 1);
+  };
+  const ls = $('loopSec');
+  if (ls) ls.onclick = () => { const was = playing && playing.mode; stopPlay(); startPlay(was === 'section' ? 'song' : 'section'); };
+}
+function switchSection(i) {
+  prog.at = i; prog.items = prog.sections[i].items; sel = -1;
+  saveCurrent(); renderWrite();
+}
+$('sections').onclick = e => {
+  const chip = e.target.closest('.secChip'), b = e.target.closest('button');
+  if (!chip || !b) return;
+  const i = +chip.dataset.i, x = prog.sections[i], act = b.dataset.act;
+  if (act === 'go') {
+    if (playing) { playing.queue = i; toast(x.name + ' plays next.'); }
+    if (i !== prog.at) switchSection(i); else renderSections();
+  }
+  if (act === 'less') { x.times = Math.max(1, x.times - 1); saveCurrent(); renderSections(); }
+  if (act === 'more') { x.times = Math.min(16, x.times + 1); saveCurrent(); renderSections(); }
+  if (act === 'rm') {
+    if (x.items.length && !confirm('Remove ' + x.name + ' and its chords?')) return;
+    prog.sections.splice(i, 1);
+    if (playing && playing.sec >= prog.sections.length) playing.sec = 0;
+    switchSection(Math.min(prog.at >= i ? Math.max(0, prog.at - 1) : prog.at, prog.sections.length - 1));
+  }
+};
+$('sections').ondblclick = e => {
+  const chip = e.target.closest('.secChip'); if (!chip || !e.target.closest('.nm')) return;
+  const x = prog.sections[+chip.dataset.i], n = prompt('Name this part', x.name);
+  if (n && n.trim()) { x.name = n.trim(); saveCurrent(); renderSections(); }
+};
+// drag parts into a new order
+let dragSec = -1;
+$('sections').addEventListener('dragstart', e => { const c = e.target.closest('.secChip'); if (c) { dragSec = +c.dataset.i; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'sec'); } });
+$('sections').addEventListener('dragover', e => { if (dragSec >= 0 && e.target.closest('.secChip')) e.preventDefault(); });
+$('sections').addEventListener('drop', e => {
+  const c = e.target.closest('.secChip'); if (!c || dragSec < 0) return;
+  e.preventDefault();
+  const to = +c.dataset.i, editing = prog.sections[prog.at], [moved] = prog.sections.splice(dragSec, 1);
+  prog.sections.splice(to, 0, moved);
+  prog.at = prog.sections.indexOf(editing); dragSec = -1;
+  saveCurrent(); renderSections();
+});
+// drag chords into a new order
+let dragBar = -1;
+$('timeline').addEventListener('dragstart', e => { const c = e.target.closest('.bar-card'); if (c) { dragBar = +c.dataset.i; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'bar'); c.classList.add('dragging'); } });
+$('timeline').addEventListener('dragend', () => { dragBar = -1; document.querySelectorAll('.bar-card.dragging, .bar-card.dropBefore').forEach(x => x.classList.remove('dragging', 'dropBefore')); });
+$('timeline').addEventListener('dragover', e => { const c = e.target.closest('.bar-card'); if (dragBar >= 0 && c) { e.preventDefault(); document.querySelectorAll('.bar-card.dropBefore').forEach(x => x.classList.remove('dropBefore')); c.classList.add('dropBefore'); } });
+$('timeline').addEventListener('drop', e => {
+  const c = e.target.closest('.bar-card'); if (!c || dragBar < 0) return;
+  e.preventDefault();
+  const to = +c.dataset.i, [moved] = prog.items.splice(dragBar, 1);
+  prog.items.splice(to > dragBar ? to - 1 : to, 0, moved);
+  sel = prog.items.indexOf(moved); dragBar = -1;
+  saveCurrent(); renderTimeline(); renderDetail(); renderMoves();
+  if (playing) toast("Moved. You'll hear it next time round.");
+});
 
 // ---- quiz
 

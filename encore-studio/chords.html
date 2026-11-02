@@ -86,7 +86,8 @@
   .nameGrid { grid-template-columns: minmax(0, 1fr); align-items: start; }
   .big { font-size: clamp(38px, 8vw, 58px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; word-break: break-word; }
   .bigRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .sideSeg button { font-size: 20px; line-height: 1; min-width: 40px; padding: 6px 10px; }
+.sideSeg button { font-size: 15px; font-weight: 800; line-height: 1.1; padding: 6px 12px; white-space: nowrap; }
+  .sideSeg.none { border: 0; padding: 0; } .sideNote { font-size: 12.5px; color: var(--dim); }
   .sideSeg button:disabled { opacity: .35; cursor: default; }
   .bigSub { color: var(--soft); margin-top: 4px; font-size: 14px; }
   .formula { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
@@ -172,7 +173,20 @@
   .bar-card .why { font-size: 11px; min-height: 15px; line-height: 1.3; }
   .bar-card svg { width: 100%; max-width: 56px; height: auto; display: block; margin: 1px auto 0; }
   .bar-card .tools2 { display: flex; justify-content: center; gap: 0; }
-  .bar-card .tools2 button { font: inherit; font-size: 13px; color: var(--dim); background: transparent; border: 0; padding: 1px 6px; cursor: pointer; border-radius: 5px; }
+  .bar-card .tools2 button { font: inherit; font-size: 15px; color: var(--soft); background: transparent; border: 0; padding: 2px 7px; cursor: pointer; border-radius: 6px; }
+  .bar-card .tools2 button:hover { color: #fff; background: rgb(255 59 0 / .25); }
+  .bar-card .tools2 button[data-act="del"] { color: #ff8a8a; }
+  .bar-card { cursor: grab; } .bar-card.dragging { opacity: .4; } .bar-card.dropBefore { box-shadow: -4px 0 0 #ff3b00; }
+  .sections { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px; }
+  .secChip { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 2px 4px 2px 2px; background: var(--bg-subtle-default); cursor: grab; }
+  .secChip button { font: inherit; background: transparent; border: 0; color: var(--soft); cursor: pointer; border-radius: 999px; padding: 3px 7px; }
+  .secChip .nm { font-weight: 800; color: var(--text); padding: 4px 10px; }
+  .secChip .times { display: inline-flex; align-items: center; font: 12px var(--family-mono); color: var(--soft); }
+  .secChip .times button { padding: 2px 6px; font-size: 14px; }
+  .secChip.on { border-color: #ff3b00; } .secChip.on .nm { color: #ff8a5c; }
+  .secChip.now { background: rgb(255 59 0 / .18); box-shadow: 0 0 0 2px #ff3b00 inset; }
+  .secChip.next { border-style: dashed; border-color: #ff8a5c; }
+  #addSec { font: inherit; font-size: 13px; font-weight: 700; color: var(--text); background: transparent; border: 1px dashed var(--divider-strong); border-radius: 999px; padding: 5px 10px; }
   .bar-card .tools2 button:hover { color: var(--text); background: rgb(255 255 255 / .06); }
   .bar-card .beats { position: absolute; top: 3px; right: 6px; font-size: 10px; color: var(--dim); }
   .bar-card .idx { position: absolute; top: 3px; left: 6px; font-size: 10px; color: var(--dim); }
@@ -377,6 +391,7 @@
         <label class="chk"><input type="checkbox" id="loop" checked> Loop</label>
         <button class="small" id="transDown" title="Move everything down a half step" aria-label="Transpose down a half step">-1</button><button class="small" id="transUp" title="Move everything up a half step" aria-label="Transpose up a half step">+1</button><button class="small" id="progClear">Clear</button>
       </div>
+      <div class="sections" id="sections" aria-label="Parts of the song"></div>
       <div class="muted keyLine" id="keyInfo"></div>
       <div class="timeline" id="timeline" aria-label="Your progression, one box per bar"></div>
       <div class="empty" id="timelineEmpty">Empty so far. Start from a style above, or tap chords in Next chord or Key map below. Tap a bar to see it up close.</div>
