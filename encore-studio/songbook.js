@@ -216,7 +216,7 @@ function addPart(base, repeat = false) {
   undoPush(s);
   const r = insertPart(s.body, at, name, repeat);
   s.body = r.text; touch(s);
-  if (state.view === "write") { write.value = s.body; write.focus(); write.setSelectionRange(r.caret, r.caret); lastCaret = r.caret; }
+  if (state.view === "write") { setWriteText(s.body, r.caret); lastCaret = r.caret; }
   renderSong(); renderToolsSoon();
   if (state.view === "sheet") sheet.scrollTop = sheet.scrollHeight;
   toast(repeat ? `${name} again, words and chords included.` : `Added [${name}].`);
@@ -269,6 +269,17 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// new text in the editor without losing your place: replacing a textarea's value jumps it to the end,
+// so the scroll position comes back and the caret goes where the change was
+function setWriteText(text, caret) {
+  const top = write.scrollTop;
+  write.value = text;
+  write.focus({ preventScroll: true });
+  write.setSelectionRange(caret, caret);
+  write.scrollTop = top;
+  requestAnimationFrame(() => { write.scrollTop = top; });
+}
+
 // a chord from the tools: into the text at the cursor (Write), or armed for tapping words (Chords view)
 function useChord(sym) {
   const s = song(); if (!s || !isChord(sym)) return;
@@ -283,9 +294,8 @@ function useChord(sym) {
   const before = s.body;
   s.body = insertChord(s.body, at, sym);
   const moved = s.body.length - before.length;
-  write.value = s.body; touch(s);
-  write.focus();
-  write.setSelectionRange(at + moved, at + moved);
+  touch(s);
+  setWriteText(s.body, at + moved);
   renderToolsSoon();
 }
 
