@@ -47,7 +47,7 @@
     .col { display: contents; }
     .drop { order: 1; padding: 12px 14px; gap: 12px; } .drop .big { font-size: 16px; } .drop svg { width: 28px; height: 28px; }
     .tabsBox { order: 2; } .actions { order: 3; } .listBox { order: 4; }
-    .presets .preset span { display: none; } .presets .preset { min-height: 40px; padding: 8px 10px; }
+    .presets .preset span { display: none; } .presets .preset { min-height: 34px; padding: 6px 10px; }
     .tabBody { padding: 10px 12px 12px; }
     main { padding-top: 12px; } .empty { padding: 10px 14px; font-size: 13px; } .listHead { padding: 7px 14px; } .help { margin-top: 8px; }
     .list { max-height: 40vh; }
@@ -104,7 +104,7 @@
   .tabBody > section.show { display: block; }
 
   .presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-  @media (max-width: 480px) { .presets { grid-template-columns: 1fr 1fr; gap: 6px; } }
+  @media (max-width: 480px) { .presets { grid-template-columns: 1fr 1fr; gap: 5px; } }
   .preset { text-align: left; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 7px 11px; min-height: 50px; min-width: 0; }
   .preset:hover { border-color: var(--soft); }
   .preset b { display: block; font-size: 14.5px; line-height: 1.25; }
@@ -146,10 +146,10 @@
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"/></svg>
         <span>
           <span class="big">Drop tracks here, or choose files</span><br>
-          <span class="hint">WAV, FLAC, AIFF, MP3, M4A, OGG, Opus, WebM. One file, or a whole <button class="linkish" id="folderBtn" type="button">folder</button>.</span>
+          <span class="hint">WAV, FLAC, MP3, Apple Lossless, DSD and more. One file, or a whole <button class="linkish" id="folderBtn" type="button">folder</button>.</span>
         </span>
       </div>
-      <input type="file" id="files" multiple accept="audio/*,.wav,.flac,.aif,.aiff,.aifc,.mp3,.m4a,.mp4,.aac,.ogg,.oga,.opus,.webm,.caf" hidden>
+      <input type="file" id="files" multiple accept="audio/*,.wav,.flac,.aif,.aiff,.aifc,.mp3,.m4a,.mp4,.aac,.ogg,.oga,.opus,.webm,.caf,.au,.snd,.w64,.dsf,.dff" hidden>
       <input type="file" id="folder" webkitdirectory multiple hidden>
 
       <div class="actions">
@@ -180,7 +180,7 @@
                   <option value="0">From the preset</option><option value="keep">Keep the original</option>
                   <option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="88200">88.2 kHz</option><option value="96000">96 kHz</option>
                   <option value="32000">32 kHz</option><option value="22050">22.05 kHz</option><option value="16000">16 kHz</option></select></label>
-                <label>Bit depth <select id="optBits"><option value="0">From the preset</option><option value="16">16-bit</option><option value="24">24-bit</option><option value="32">32-bit float (WAV)</option></select></label>
+                <label>Bit depth <select id="optBits"><option value="0">From the preset</option><option value="16">16-bit</option><option value="24">24-bit</option><option value="32">32-bit float (WAV, AIFF)</option><option value="32i">32-bit integer (WAV, AIFF)</option></select></label>
                 <label>Channels <select id="optChannels"><option value="keep">From the preset</option><option value="stereo">Stereo</option><option value="mono">Mono (mix both)</option><option value="left">Left only</option><option value="right">Right only</option></select></label>
                 <label>Bitrate <select id="optKbps"><option value="0">From the preset</option><option>96</option><option>128</option><option>160</option><option>192</option><option>256</option><option>320</option></select></label>
               </div>

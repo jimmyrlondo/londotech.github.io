@@ -322,6 +322,72 @@ export function readFileInfo(bytes, name = "") {
       }
       return info;
     }
+    // the less common containers Convert reads itself (convert-read.js): just enough here to list them
+    if (head4 === "caff") {
+      Object.assign(info, { container: "caf", label: "CAF" });
+      for (let p = 8; p + 12 <= u8.length;) {
+        const id = str(u8, p, 4), size = be32(u8, p + 4) * 4294967296 + be32(u8, p + 8), a = p + 12;
+        if (id === "desc") {
+          info.sampleRate = Math.round(new DataView(u8.buffer, u8.byteOffset + a, 8).getFloat64(0, false));
+          const fmt = str(u8, a + 8, 4), flags = be32(u8, a + 12);
+          info.channels = be32(u8, a + 24); info.bitDepth = be32(u8, a + 28);
+          info.codec = { lpcm: "PCM", alac: "alac", "aac ": "AAC", ulaw: "mu-law", alaw: "A-law" }[fmt] || fmt.trim();
+          info.float = fmt === "lpcm" && (flags & 1) === 1;
+          info.lossy = !(fmt === "lpcm" || fmt === "alac");
+          if (fmt === "alac") info.label = "Apple Lossless (CAF)";
+          if (fmt === "aac ") Object.assign(info, { label: "AAC (CAF)", bitDepth: 0 });
+          info.caf = { bytesPerPacket: be32(u8, a + 16), framesPerPacket: be32(u8, a + 20) };
+        }
+        if (id === "data" && info.caf?.bytesPerPacket && info.sampleRate) {
+          const len = size > u8.length - a ? u8.length - a - 4 : size - 4; // a size of -1 runs to the end
+          info.duration = len / info.caf.bytesPerPacket * info.caf.framesPerPacket / info.sampleRate;
+        }
+        if (id === "data" || size > u8.length) break;
+        p = a + size;
+      }
+      return info;
+    }
+    if (head4 === ".snd") {
+      const code = be32(u8, 12), bits = { 1: 8, 2: 8, 3: 16, 4: 24, 5: 32, 6: 32, 7: 64, 27: 8 }[code] || 0;
+      Object.assign(info, { container: "au", label: "AU", codec: code === 1 ? "mu-law" : code === 27 ? "A-law" : "PCM", lossy: code === 1 || code === 27,
+        float: code === 6 || code === 7, bitDepth: bits, sampleRate: be32(u8, 16), channels: be32(u8, 20) });
+      const size = be32(u8, 8), len = size === 0xffffffff ? u8.length - be32(u8, 4) : size;
+      if (bits && info.sampleRate && info.channels) info.duration = len / (bits / 8) / info.channels / info.sampleRate;
+      return info;
+    }
+    if (head4 === "riff" && u8[4] === 0x2e && u8[5] === 0x91 && str(u8, 24, 4) === "wave") {
+      Object.assign(info, { container: "w64", label: "Wave64", codec: "PCM", lossy: false });
+      for (let p = 40; p + 24 <= u8.length;) {
+        const id = str(u8, p, 4), size = le32(u8, p + 16) + le32(u8, p + 20) * 4294967296;
+        if (size < 24) break;
+        if (id === "fmt ") {
+          const code = le16(u8, p + 24) === 0xfffe ? le16(u8, p + 48) : le16(u8, p + 24);
+          Object.assign(info, { channels: le16(u8, p + 26), sampleRate: le32(u8, p + 28), bitDepth: le16(u8, p + 38), float: code === 3 });
+        } else if (id === "data" && info.channels && info.bitDepth) info.duration = (size - 24) / (info.bitDepth / 8) / info.channels / info.sampleRate;
+        p += Math.ceil(size / 8) * 8;
+      }
+      return info;
+    }
+    if ((head4 === "DSD " && str(u8, 28, 4) === "fmt ") || (head4 === "FRM8" && str(u8, 12, 4) === "DSD ")) {
+      Object.assign(info, { container: "dsd", codec: "DSD", lossy: false, bitDepth: 1 });
+      if (head4 === "DSD ") {
+        info.label = "DSD (DSF)"; info.channels = le32(u8, 52); info.sampleRate = le32(u8, 56);
+        const count = le32(u8, 64) + le32(u8, 68) * 4294967296;
+        if (info.sampleRate) info.duration = count / info.sampleRate;
+      } else {
+        info.label = "DSD (DFF)";
+        for (let p = 16; p + 12 <= u8.length;) {
+          const id = str(u8, p, 4), size = be32(u8, p + 4) * 4294967296 + be32(u8, p + 8), a = p + 12;
+          if (id === "PROP") { p = a + 4; continue; }
+          if (id === "FS  ") info.sampleRate = be32(u8, a);
+          else if (id === "CHNL") info.channels = be16(u8, a);
+          else if (id === "CMPR" && str(u8, a, 4) === "DST ") info.codec = "DST";
+          else if (id === "DSD ") { if (info.sampleRate && info.channels) info.duration = size * 8 / info.channels / info.sampleRate; break; }
+          p = a + size + (size & 1);
+        }
+      }
+      return info;
+    }
     if (str(u8, 4, 4) === "ftyp") {
       Object.assign(info, { container: "m4a", label: "M4A" });
       readMp4(u8, info);

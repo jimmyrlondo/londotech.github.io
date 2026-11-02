@@ -85,6 +85,9 @@
   /* Name it: the input on the left, the answer on the right */
   .nameGrid { grid-template-columns: minmax(0, 1fr); align-items: start; }
   .big { font-size: clamp(38px, 8vw, 58px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; word-break: break-word; }
+  .bigRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .sideSeg button { font-size: 20px; line-height: 1; min-width: 40px; padding: 6px 10px; }
+  .sideSeg button:disabled { opacity: .35; cursor: default; }
   .bigSub { color: var(--soft); margin-top: 4px; font-size: 14px; }
   .formula { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
   .tone { display: flex; flex-direction: column; align-items: center; min-width: 44px; padding: 5px 8px; border-radius: 9px; border: 1px solid var(--divider-strong); }
@@ -318,7 +321,10 @@
     </section>
 
     <section class="panel" aria-live="polite">
-      <div class="big" id="bigName">--</div>
+      <div class="bigRow">
+        <div class="big" id="bigName">--</div>
+        <div class="seg sideSeg" id="sideSeg" role="group" aria-label="Sharp or flat name"><button data-v="-1" id="sideFlat" aria-pressed="false" title="Flat name (Db instead of C#)">&#9837;</button><button data-v="1" id="sideSharp" aria-pressed="false" title="Sharp name (C# instead of Db)">&#9839;</button></div>
+      </div>
       <div class="bigSub" id="bigText">Tap some notes and the name shows up here.</div>
       <div class="formula" id="formula"></div>
       <div class="explain" id="inversion"></div>

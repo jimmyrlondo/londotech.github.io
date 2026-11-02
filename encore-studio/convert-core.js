@@ -21,7 +21,7 @@ export const concat = (parts) => { const n = parts.reduce((a, p) => a + p.length
 // ======================================================================
 // Presets and the output plan
 // ======================================================================
-// kind: mp3 | wav | flac | aiff | m4a | opus. bits 0 = keep (as close to the
+// kind: mp3 | wav | flac | aiff | alac | m4a | opus. bits 0 = keep (as close to the
 // source as the format allows), rate 0 = keep.
 export const PRESETS = [
   { id: "mp3-320", label: "MP3 320", sub: "Best MP3", kind: "mp3", kbps: 320 },
@@ -32,7 +32,8 @@ export const PRESETS = [
   { id: "wav-24", label: "WAV 24-bit", sub: "Studio, same rate", kind: "wav", bits: 24 },
   { id: "wav-32f", label: "WAV 32-bit float", sub: "For mixing, nothing lost", kind: "wav", bits: 32 },
   { id: "flac", label: "FLAC", sub: "Lossless, half the size", kind: "flac", bits: 0 },
-  { id: "aiff", label: "AIFF", sub: "Lossless, for Apple apps", kind: "aiff", bits: 0 },
+  { id: "aiff", label: "AIFF", sub: "Uncompressed, Apple apps", kind: "aiff", bits: 0 },
+  { id: "alac", label: "Apple Lossless", sub: "Lossless, for iPhone", kind: "alac", bits: 0 },
   { id: "m4a-256", label: "AAC / M4A 256", sub: "Apple Music, iPhone", kind: "m4a", kbps: 256 },
   { id: "opus-160", label: "Opus / OGG 160", sub: "Small and modern", kind: "opus", kbps: 160 },
   { id: "voice", label: "Voice memo", sub: "Mono MP3, 128 kbps", kind: "mp3", kbps: 128, channels: "mono" },
@@ -42,6 +43,7 @@ export const FORMATS = {
   wav: { ext: "wav", mime: "audio/wav", name: "WAV", lossy: false },
   flac: { ext: "flac", mime: "audio/flac", name: "FLAC", lossy: false },
   aiff: { ext: "aiff", mime: "audio/aiff", name: "AIFF", lossy: false },
+  alac: { ext: "m4a", mime: "audio/mp4", name: "Apple Lossless (M4A)", lossy: false },
   m4a: { ext: "m4a", mime: "audio/mp4", name: "AAC (M4A)", lossy: true },
   opus: { ext: "opus", mime: "audio/ogg", name: "Opus (OGG)", lossy: true },
 };
@@ -85,18 +87,21 @@ export function plan(preset, src, opts = {}, caps = {}) {
     out.kbps = pick;
   } else if (kind === "flac" && want > 655350) out.rate = 192000;
   // bit depth (PCM formats)
-  if (kind === "wav" || kind === "flac" || kind === "aiff") {
+  if (kind === "wav" || kind === "flac" || kind === "aiff" || kind === "alac") {
     let bits = opts.bits || preset.bits || 0;
-    if (bits === 32 && kind !== "wav") bits = 24;
+    let int32 = bits === 32 && !!opts.int32;
+    const flac32 = bits === 32 && (kind === "flac" || kind === "alac");
+    if (flac32) { bits = 24; notes.push(`Most players can't open 32-bit ${kind === "flac" ? "FLAC" : "Apple Lossless"}, so this one is 24-bit (with dither). That's still far below anything you can hear.`); }
     if (!bits) { // keep
       if (src.lossy) bits = 16; // a lossy file has no real bit depth; 16-bit holds all of it
-      else if (src.float || src.bitDepth > 24) bits = kind === "wav" ? 32 : 24;
+      else if (src.float || src.bitDepth > 24) { bits = kind === "wav" ? 32 : 24; int32 = !src.float; } // 32-bit integer stays integer
       else bits = src.bitDepth > 16 ? 24 : 16;
     }
     if (bits === 32 && src.bitDepth && src.bitDepth <= 24 && !src.float && !opts.bits && !preset.bits) bits = 24;
     out.bits = bits === 32 ? 32 : bits >= 24 ? 24 : 16;
-    out.float = out.bits === 32;
-    if (kind === "flac" && (src.float || src.bitDepth > 24) && !src.lossy) notes.push("FLAC stores whole numbers, so the 32-bit float audio is stored as 24-bit (with dither). That's still far below anything you can hear.");
+    out.float = out.bits === 32 && !int32;
+    if (kind === "aiff" && out.float) notes.push("32-bit float AIFF is the AIFF-C kind: Logic and most DAWs open it, but Apple Music and some older apps don't. Use 24-bit for those.");
+    if ((kind === "flac" || kind === "alac") && (src.float || src.bitDepth > 24) && !src.lossy && !flac32) notes.push((kind === "flac" ? "FLAC" : "Apple Lossless") + " stores whole numbers, so the 32-bit float audio is stored as 24-bit (with dither). That's still far below anything you can hear.");
   } else out.bits = 16; // encoders take 16-bit (MP3) or float (AAC, Opus) input
   return { ...out, notes };
 }
@@ -117,7 +122,7 @@ export function estimateSize(p, seconds) {
   const ch = p.channels || 2;
   if (p.kind === "mp3" || p.kind === "m4a" || p.kind === "opus") return Math.round(seconds * p.kbps * 125 * (p.kind === "opus" ? 1.02 : 1));
   const pcm = seconds * p.rate * ch * (p.bits === 32 ? 4 : p.bits / 8);
-  return Math.round(p.kind === "flac" ? pcm * 0.58 : pcm);
+  return Math.round(p.kind === "flac" ? pcm * 0.58 : p.kind === "alac" ? pcm * 0.6 : pcm);
 }
 export function fmtBytes(n) {
   if (n < 1024 * 1024) return `${Math.max(1, Math.round(n / 1024))} KB`;
@@ -296,24 +301,25 @@ function infoList(meta) {
   for (const [id, v] of items) if (v !== undefined && v !== null && String(v).trim() !== "") parts.push(...riffChunk(id, enc.encode(String(v).trim() + "\0")));
   return concat(parts);
 }
-// Interleaved little-endian PCM bytes. ints: Int32Array per channel (16/24-bit),
+// Interleaved little-endian PCM bytes. ints: Int32Array per channel (16/24/32-bit),
 // or Float32Array per channel for 32-bit float.
-export function pcmBytes(ints, bits, bigEndian = false) {
+export function pcmBytes(ints, bits, bigEndian = false, float = bits === 32) {
   const ch = ints.length, n = ints[0].length, bps = bits / 8, out = new Uint8Array(n * ch * bps), dv = new DataView(out.buffer);
   let o = 0;
   for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++, o += bps) {
     const v = ints[c][i];
-    if (bits === 32) dv.setFloat32(o, v, !bigEndian);
+    if (float) dv.setFloat32(o, v, !bigEndian);
+    else if (bits === 32) dv.setInt32(o, v, !bigEndian);
     else if (bits === 16) dv.setInt16(o, v, !bigEndian);
     else if (bigEndian) { out[o] = (v >> 16) & 255; out[o + 1] = (v >> 8) & 255; out[o + 2] = v & 255; }
     else { out[o] = v & 255; out[o + 1] = (v >> 8) & 255; out[o + 2] = (v >> 16) & 255; }
   }
   return out;
 }
-// A WAV: 16/24-bit PCM or 32-bit float, any channel count, LIST/INFO and an
+// A WAV: 16/24/32-bit PCM or 32-bit float, any channel count, LIST/INFO and an
 // "id3 " chunk (with the cover) after the audio (where Windows reads them).
-export function writeWav(data, fs, ch, bits, meta = {}, art = null) {
-  const float = bits === 32, bps = bits / 8, ext = ch > 2;
+export function writeWav(data, fs, ch, bits, meta = {}, art = null, float = bits === 32) {
+  const bps = bits / 8, ext = ch > 2;
   const fmt = new Uint8Array(ext ? 40 : 16), fv = new DataView(fmt.buffer);
   fv.setUint16(0, ext ? 0xfffe : float ? 3 : 1, true); fv.setUint16(2, ch, true); fv.setUint32(4, fs, true);
   fv.setUint32(8, fs * ch * bps, true); fv.setUint16(12, ch * bps, true); fv.setUint16(14, bits, true);
@@ -341,13 +347,18 @@ function ext80(x) {
   dv.setUint16(0, e + 16383); dv.setUint32(2, hi); dv.setUint32(6, lo);
   return out;
 }
-// AIFF (big-endian PCM 16/24-bit) with an ID3 chunk (cover included) plus NAME/AUTH
-export function writeAiff(ints, fs, bits, meta = {}, art = null) {
+// AIFF (big-endian PCM 16/24/32-bit) with an ID3 chunk (cover included) plus NAME/AUTH.
+// float: 32-bit float, which needs the AIFF-C flavor ("fl32")
+export function writeAiff(ints, fs, bits, meta = {}, art = null, float = false) {
   const ch = ints.length, n = ints[0].length;
-  const comm = new Uint8Array(18), cv = new DataView(comm.buffer);
+  const name = Uint8Array.of(22, ...enc.encode("32-bit floating point"), 0); // a Pascal string, padded to even
+  const comm = new Uint8Array(float ? 22 + name.length : 18), cv = new DataView(comm.buffer);
   cv.setUint16(0, ch); cv.setUint32(2, n); cv.setUint16(6, bits); comm.set(ext80(fs), 8);
-  const ssnd = concat([new Uint8Array(8), pcmBytes(ints, bits, true)]);
-  const parts = [enc.encode("AIFF"), ...riffChunk("COMM", comm, false), ...riffChunk("SSND", ssnd, false), ...riffChunk("ID3 ", id3(meta, art), false)];
+  if (float) { comm.set(enc.encode("fl32"), 18); comm.set(name, 22); }
+  const ssnd = concat([new Uint8Array(8), pcmBytes(ints, bits, true, float)]);
+  const fver = new Uint8Array(4); new DataView(fver.buffer).setUint32(0, 0xa2805140); // the one AIFF-C version
+  const parts = [enc.encode(float ? "AIFC" : "AIFF"), ...(float ? riffChunk("FVER", fver, false) : []), ...riffChunk("COMM", comm, false),
+    ...riffChunk("SSND", ssnd, false), ...riffChunk("ID3 ", id3(meta, art), false)];
   // NAME and AUTH are plain text chunks (Latin-1) for older apps; ID3 has the full Unicode tags
   const latin = (v) => Uint8Array.from(String(v), (c) => (c.charCodeAt(0) < 256 ? c.charCodeAt(0) : 63));
   if (meta.title) parts.push(...riffChunk("NAME", latin(meta.title), false));

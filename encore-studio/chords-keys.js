@@ -168,6 +168,33 @@ const BORROWED = {
     ['ii', 'S', 'A minor ii borrowed from {tonic} major: smoother than ii°, still leads to V.'],
   ],
 };
+// the relative key's chords, named in that key: a major key's relative minor (on its 6th) and a
+// minor key's relative major (on its b3rd) share every note, so most of these are already here.
+// The ones that aren't (the relative minor's major V and its diminished 7th) are what make it feel like home.
+const RELATIVE = {
+  major: [ // from a major key, its relative minor
+    ['i', 'T', 'Home in the relative minor: the same notes as {home}, with {name} as the place to rest.'],
+    ['iv', 'S', 'The away chord of the relative minor.'],
+    ['V', 'D', 'The major V of the relative minor: it pulls straight to {rel}.'],
+    ['V7', 'D', 'The strongest way into {rel}: its 3rd ({3}) rises to {reltonic}.'],
+    ['vii°7', 'D', 'Diminished 7th of {rel}: every note leans into it. Dramatic.'],
+    ['iiø7', 'S', 'Starts the minor ii, V, i into {rel}.'],
+    ['bVI', 'S', 'Warm and big in {rel} (it is IV here at home).'],
+    ['bVII', 'D', 'A rock-style way back to {rel} (it is V here at home).'],
+    ['i7', 'T', '{rel} as home with a 7th: smooth.'],
+  ],
+  minor: [ // from a minor key, its relative major
+    ['I', 'T', 'Home in the relative major: the same notes as {home}, with {name} as the place to rest. Bright relief.'],
+    ['IV', 'S', 'The away chord of the relative major.'],
+    ['V', 'D', 'The V of the relative major: it pulls to {rel}.'],
+    ['V7', 'D', 'The strongest way into {rel}: its 3rd ({3}) rises to {reltonic}.'],
+    ['ii', 'S', 'The ii of the relative major: it sets up V, then {rel}.'],
+    ['iii', 'T', 'A soft stand-in for {rel}.'],
+    ['Imaj7', 'T', '{rel} as home, dreamy with a major 7th.'],
+    ['IVmaj7', 'S', 'Lush and open in {rel}.'],
+    ['V7/V', 'D', 'The V of the relative major V: it makes {relV} feel like an arrival on the way to {rel}.'],
+  ],
+};
 
 /**
  * Every chord on the map of a key, grouped. Each entry: rn (what we parse), label (what we show), chord,
@@ -200,6 +227,19 @@ export function keyPalette(key) {
   add('borrowed', 'Borrowed chords', minor ? 'Chords borrowed from ' + noteText(key.tonic) + ' major and its cousins (modal interchange): same home, new colors.'
     : 'Chords borrowed from ' + noteText(key.tonic) + ' minor and its cousins (modal interchange): same home, darker or bolder colors.',
     BORROWED[key.mode].map(([rn, fn, why]) => entry('borrowed', rn, fn, why)));
+  const rel = makeKey(numeralChord(key, minor ? 'bIII' : 'vi').root, minor ? 'major' : 'minor');
+  const relHome = numeralChord(rel, minor ? 'I' : 'i'), inKeyPcs = new Set(scaleNotes(key).map(pcOf)), home = chordSymbol(numeralChord(key, minor ? 'i' : 'I'));
+  add('relative', minor ? 'Relative major (' + noteText(rel.tonic) + ' major)' : 'Relative minor (' + noteText(rel.tonic) + ' minor)',
+    (minor ? 'The chords of ' + keyName(rel) + ', which shares every note with ' + keyName(key) + '. Use them to make ' + chordSymbol(relHome) + ' feel like home for a while, then come back.'
+      : 'The chords of ' + keyName(rel) + ', which shares every note with ' + keyName(key) + '. Use them to make ' + chordSymbol(relHome) + ' feel like home for a while, then come back.'),
+    RELATIVE[key.mode].map(([rn, fn, why]) => {
+      const c = numeralChord(rel, rn);
+      const outside = chordTones(c).filter(x => !inKeyPcs.has(x.pc)).map(x => noteText(x.note));
+      let text = fill(why, c, rel, { home, rel: chordSymbol(relHome), reltonic: noteText(rel.tonic), relV: chordSymbol(numeralChord(rel, 'V')) });
+      if (outside.length) text += ' It brings in ' + outside.join(' and ') + ', from outside ' + keyName(key) + '.';
+      // shown with the relative key's numeral; added to a progression it gets this key's own numeral
+      return { group: 'relative', rn: '', label: rn + ' in ' + chordSymbol(relHome), chord: c, alias: null, fn, why: text, target: null };
+    }));
   const spice = [];
   spice.push(entry('spice', 'bII', 'S', 'The Neapolitan: a major chord a half step above home. It usually comes right before V, often with its 3rd ({3}) in the bass. Dark and dramatic.', { label: 'N (bII)', target: 'V' }));
   for (const t of minor ? ['V', 'iv', 'bVI'] : ['ii', 'V', 'vi', 'IV']) {

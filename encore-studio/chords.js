@@ -2,7 +2,7 @@
 // any chord), then pick a key and build a progression with every move explained, hear it, move it
 // to another key, and save it. All the theory is in chords-core.js, chords-voicing.js and chords-keys.js.
 import { TYPE, TYPE_GROUPS, chord, chordTones, chordSymbol, noteText, parseNote, pcOf, mod12, nameNotes,
-         spellBass, plainNote, soundsAs, parseChord } from './chords-core.js';
+         spellBass, plainNote, soundsAs, parseChord, hasSide } from './chords-core.js';
 import { frettable, coursesOf, courseNotes, fretVoicings, shapeText, pianoVoicing, capoOptions, shapeFor } from './chords-voicing.js';
 import { MAJOR_KEYS, MINOR_KEYS, makeKey, keyName, keyPalette, numeralOf, relate, nextMoves, modulations, STYLES, styleChords,
          transposeChord, keyInterval, keyBySemis, chartText, signature, scaleNotes, numeralChord } from './chords-keys.js';
@@ -338,7 +338,32 @@ const KEY_OPTIONS = [...MAJOR_KEYS.map(t => [t, 'major']), ...MINOR_KEYS.map(t =
 $('spellKey').append(new Option('Any key (fewest sharps and flats)', ''));
 for (const [t, m] of KEY_OPTIONS) $('spellKey').append(new Option(t + ' ' + m, t + ':' + m));
 $('spellKey').value = store.get('spellKey', '');
-$('spellKey').onchange = () => { store.set('spellKey', $('spellKey').value); analyse(); };
+$('spellKey').onchange = () => { store.set('spellKey', $('spellKey').value); side = 0; store.set('side', '0'); analyse(); };
+// the sharp/flat buttons by the name: C#maj7 or Dbmaj7, same notes. A choice sticks for the next chords too,
+// tapping the lit one again hands it back to the key (or to whichever name reads easier)
+let side = +store.get('side', '0') || 0;
+$('sideSeg').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  const v = +b.dataset.v;
+  side = side === v ? 0 : v;
+  store.set('side', String(side));
+  const was = names[pick] && names[pick].symbol;
+  names = nameNotes(currentNotes(), spellKey(), side);
+  renderName();
+  if (was && names[pick] && names[pick].symbol !== was) toast(was + ' is now shown as ' + names[pick].symbol + '. Same notes, same sound.');
+};
+function renderSide(r) {
+  const can = hasSide(r);
+  const shown = !r ? 0 : (r.kind === 'chord' ? [r.chord.root, r.chord.bass] : r.notes).find(n => n && n.a)?.a || 0;
+  for (const [id, v] of [['sideFlat', -1], ['sideSharp', 1]]) {
+    const b = $(id), lit = can && (side ? side === v : shown === v);
+    b.disabled = !can;
+    b.classList.toggle('on', lit);
+    b.setAttribute('aria-pressed', String(lit));
+  }
+  $('sideSeg').title = can ? (side ? 'Tap the lit one again to go back to the usual name' : 'Show this chord with sharps or flats') : 'The root is a natural note, so there is no sharp or flat name to swap';
+}
 const spellKey = () => { const v = $('spellKey').value; if (!v) return null; const [t, m] = v.split(':'); return makeKey(t, m); };
 
 function currentNotes() {
@@ -347,7 +372,7 @@ function currentNotes() {
   courses.forEach((c, i) => { const m = soundingOf(i); if (m) out.push(...m); });
   return out.sort((a, b) => a - b);
 }
-function analyse() { names = nameNotes(currentNotes(), spellKey()); pick = 0; renderName(); }
+function analyse() { names = nameNotes(currentNotes(), spellKey(), side); pick = 0; renderName(); }
 
 const TERM_FOR = { power: 'power', sus: 'sus', dim: 'diminished', hdim: 'halfdim', aug: 'augmented' };
 function renderName() {
@@ -358,6 +383,7 @@ function renderName() {
   drawPiano($('piano'), 36, 84, on);
   for (const id of ['strumBtn', 'blockBtn']) $(id).disabled = !notes.length;
   $('toProg').disabled = $('toShapes').disabled = !(r && r.kind === 'chord');
+  renderSide(r);
   if (!r) {
     $('bigName').textContent = '--';
     $('bigText').textContent = 'Tap some notes and the name shows up here.';
@@ -708,7 +734,7 @@ function chip(e, extraTip = '') {
   if (odd) tip += ' (' + noteText(e.chord.root) + ' sounds the same as ' + odd + '.)';
   return `<button class="chip fn-${e.fn || 'x'}" data-rn="${esc(e.label)}" data-sym="${esc(chordSymbol(e.chord))}" data-tip="${esc(tip)}" data-tip-title="${esc(e.label + ': ' + chordSymbol(e.chord))}"><span class="rn">${esc(e.label)}</span><span class="nm">${esc(chordSymbol(e.chord))}</span></button>`;
 }
-const GROUP_TERM = { secondary: 'secondary', borrowed: 'borrowed', spice: null, diatonic: 'key', sevenths: 'seventh' };
+const GROUP_TERM = { secondary: 'secondary', borrowed: 'borrowed', spice: null, diatonic: 'key', sevenths: 'seventh', relative: 'relative' };
 function renderMap() {
   $('groups').innerHTML = palette.groups.map(g => `<div class="group"><div><h3>${GROUP_TERM[g.id] ? `<span class="term" data-term="${GROUP_TERM[g.id]}">${esc(g.title)}</span>` : esc(g.title)}</h3>
     <div class="gb">${esc(g.blurb)}${g.id === 'spice' ? ' Read more: <span class="term" data-term="neapolitan">Neapolitan</span>, <span class="term" data-term="secdim">secondary diminished</span>, <span class="term" data-term="tritonesub">tritone substitution</span>.' : ''}</div></div>
@@ -716,7 +742,7 @@ function renderMap() {
 }
 function chipChord(b) {
   const e = palette.all.find(x => x.label === b.dataset.rn && chordSymbol(x.chord) === b.dataset.sym);
-  return e ? { c: e.chord, rn: e.label } : null;
+  return e ? { c: e.chord, rn: e.group === 'relative' ? '' : e.label } : null;
 }
 /** The key map's one explanation area: the chord you last pointed at or added */
 function mapInfo(b) { $('mapInfo').innerHTML = '<b>' + esc(b.dataset.tipTitle || '') + '</b> ' + esc(b.dataset.tip || ''); }

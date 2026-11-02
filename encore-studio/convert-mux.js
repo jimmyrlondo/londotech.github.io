@@ -4,11 +4,15 @@
 //     AAC frames (raw, 1024 samples each) in an MP4 file: moov first (starts
 //     playing before it's all loaded), an edit list plus iTunSMPB so players
 //     skip the encoder's priming and padding, iTunes tags with the cover.
+//   muxM4aAlac(ints, { rate, bits, meta, art, onProgress })
+//     Apple Lossless (convert-alac.js) in the same kind of M4A: 'alac' sample
+//     entry with its cookie, one packet per 4096 samples, same iTunes tags.
 //   muxOggOpus(packets, { channels, preSkip, inputRate, samples, meta, art })
 //     Opus packets in Ogg pages (CRC, granule positions, pre-skip), with
 //     OpusHead and OpusTags (cover as METADATA_BLOCK_PICTURE).
 import { concat } from "./convert-core.js";
 import { vorbisComment, pictureBlock } from "./convert-flac.js";
+import { encodeAlacPackets, FRAME as ALAC_FRAME } from "./convert-alac.js";
 
 const enc = new TextEncoder();
 const u32 = (v) => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, v); return b; };
@@ -82,6 +86,34 @@ export function muxM4a(frames, { rate, channels, asc, priming = 0, samples, kbps
   const moov = build(ftyp.length + moovLen + 8);
   const mdatHead = concat([u32(dataLen + 8), enc.encode("mdat")]);
   return new Blob([ftyp, moov, mdatHead, ...frames], { type: "audio/mp4" });
+}
+export function muxM4aAlac(ints, { rate, bits, meta = {}, art = null, onProgress } = {}) {
+  const channels = ints.length, { packets, cookie, samples } = encodeAlacPackets(ints, bits, { rate, onProgress });
+  const count = packets.length, sizes = packets.map((p) => p.length), dataLen = sizes.reduce((a, b) => a + b, 0);
+  const last = samples - (count - 1) * ALAC_FRAME;
+  const now = Math.floor(Date.now() / 1000) + 2082844800;
+  // mvhd and tkhd count in a 1000ths timescale when the rate won't fit 32 bits of samples
+  const build = (chunkOffset) => {
+    const entry = box("alac", new Uint8Array(6), u16(1), new Uint8Array(8), u16(channels), u16(bits), u16(0), u16(0), u32(rate > 0xffff ? 0 : (rate * 65536) >>> 0), full("alac", 0, 0, cookie));
+    const stsd = full("stsd", 0, 0, u32(1), entry);
+    const stts = count > 1 && last !== ALAC_FRAME ? full("stts", 0, 0, u32(2), u32(count - 1), u32(ALAC_FRAME), u32(1), u32(last)) : full("stts", 0, 0, u32(1), u32(count), u32(count ? last : 0));
+    const stsc = full("stsc", 0, 0, u32(1), u32(1), u32(count), u32(1));
+    const stsz = full("stsz", 0, 0, u32(0), u32(count), ...sizes.map(u32));
+    const stco = full("stco", 0, 0, u32(1), u32(chunkOffset));
+    const stbl = box("stbl", stsd, stts, stsc, stsz, stco);
+    const minf = box("minf", full("smhd", 0, 0, u32(0)), box("dinf", full("dref", 0, 0, u32(1), full("url ", 0, 1))), stbl);
+    const mdhd = full("mdhd", 0, 0, u32(now), u32(now), u32(rate), u32(samples), u16(0x55c4), u16(0));
+    const hdlr = full("hdlr", 0, 0, u32(0), enc.encode("soun"), new Uint8Array(12), enc.encode("SoundHandler\0"));
+    const mdia = box("mdia", mdhd, hdlr, minf);
+    const tkhd = full("tkhd", 0, 7, u32(now), u32(now), u32(1), u32(0), u32(samples), new Uint8Array(8), u16(0), u16(0), u16(0x0100), u16(0), MATRIX, u32(0), u32(0));
+    const trak = box("trak", tkhd, mdia);
+    const mvhd = full("mvhd", 0, 0, u32(now), u32(now), u32(rate), u32(samples), u32(0x00010000), u16(0x0100), new Uint8Array(10), MATRIX, new Uint8Array(24), u32(2));
+    const metaBox = full("meta", 0, 0, full("hdlr", 0, 0, u32(0), enc.encode("mdirappl"), new Uint8Array(9)), ilst(meta, art));
+    return box("moov", mvhd, trak, box("udta", metaBox));
+  };
+  const ftyp = box("ftyp", enc.encode("M4A "), u32(0), enc.encode("M4A "), enc.encode("mp42"), enc.encode("isom"));
+  const moov = build(ftyp.length + build(0).length + 8);
+  return new Blob([ftyp, moov, concat([u32(dataLen + 8), enc.encode("mdat")]), ...packets], { type: "audio/mp4" });
 }
 // ---------- Ogg / Opus ----------
 let oggTable = null;

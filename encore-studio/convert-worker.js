@@ -6,14 +6,20 @@
 // Cancel = the page terminates the worker.
 import { processAudio, onGrid, quantize, pcmBytes, writeWav, writeAiff, loadLame, mp3Encoder, mp3InfoFrame, concat, peakOf } from "./convert-core.js";
 import { encodeFlac } from "./convert-flac.js";
-import { muxM4a, muxOggOpus } from "./convert-mux.js";
+import { muxM4a, muxOggOpus, muxM4aAlac } from "./convert-mux.js";
 import { id3 } from "./tags.js";
+import { decodeDsd } from "./convert-read.js";
 
 let lame = null;
 const progress = (pct, stage) => self.postMessage({ type: "progress", pct: Math.max(0, Math.min(1, pct)), stage });
 
 self.onmessage = async (e) => {
   try {
+    if (e.data.dsd) { // DSD to PCM for the page (in: { dsd: ArrayBuffer }, out: { type: "dsd", chans, fs })
+      const d = decodeDsd(new Uint8Array(e.data.dsd), (p) => progress(p, "Reading DSD"));
+      self.postMessage({ type: "dsd", chans: d.chans, fs: d.fs }, d.chans.map((c) => c.buffer));
+      return;
+    }
     const { chans, fs, plan, opts, meta, art } = e.data;
     // 1) channels, trim, sample rate, fades, normalize (the first 15%)
     const pre = processAudio(chans, fs, { ...opts, channelMode: plan.channelMode, rate: plan.rate }, (p) => progress(0.15 * p, "Resampling"));
@@ -23,18 +29,19 @@ self.onmessage = async (e) => {
     const report = { samples, rate, channels: x.length, gainDb: pre.norm.gainDb, normNote: pre.norm.note || "", dithered: false, clipped: peakOf(x) > 1 };
     const enc = (p) => progress(0.15 + 0.85 * p, "Encoding");
     let blob;
-    if (plan.kind === "wav" || plan.kind === "aiff" || plan.kind === "flac") {
+    if (plan.kind === "wav" || plan.kind === "aiff" || plan.kind === "flac" || plan.kind === "alac") {
       let ints;
       if (plan.float) ints = x;
       else {
         // dither only when the audio needs rounding (an untouched 16-bit file stays exact)
-        report.dithered = !onGrid(x, plan.bits);
+        report.dithered = plan.bits < 32 && !onGrid(x, plan.bits); // 32-bit integer is finer than float audio, nothing to dither
         ints = quantize(x, plan.bits, report.dithered);
       }
       report.bits = plan.bits;
-      if (plan.kind === "flac") blob = new Blob([encodeFlac(ints, rate, plan.bits, { meta, art, onProgress: enc })], { type: "audio/flac" });
-      else if (plan.kind === "aiff") blob = writeAiff(ints, rate, plan.bits, meta, art);
-      else blob = writeWav(pcmBytes(ints, plan.bits), rate, ints.length, plan.bits, meta, art);
+      if (plan.kind === "alac") blob = muxM4aAlac(ints, { rate, bits: plan.bits, meta, art, onProgress: enc });
+      else if (plan.kind === "flac") blob = new Blob([encodeFlac(ints, rate, plan.bits, { meta, art, onProgress: enc })], { type: "audio/flac" });
+      else if (plan.kind === "aiff") blob = writeAiff(ints, rate, plan.bits, meta, art, plan.float);
+      else blob = writeWav(pcmBytes(ints, plan.bits, false, plan.float), rate, ints.length, plan.bits, meta, art, plan.float);
     } else if (plan.kind === "mp3") blob = await mp3(x, rate, plan, meta, art, report, enc);
     else if (plan.kind === "m4a") blob = await webcodecs("m4a", x, rate, plan, meta, art, report, enc);
     else if (plan.kind === "opus") blob = await webcodecs("opus", x, rate, plan, meta, art, report, enc);

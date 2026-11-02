@@ -176,8 +176,10 @@ export function inKey(pc, key) {
   return onLetter(key.tonic.L + step, pc);
 }
 const accCost = n => Math.abs(n.a) + (Math.abs(n.a) > 1 ? 4 : 0);
-/** How to spell a chord's root: the way its tones need the fewest accidentals (no key), or the key's way */
-export function spellRoot(pc, type, key = null) {
+/** How to spell a chord's root: the way its tones need the fewest accidentals (no key), or the key's way.
+ *  side: 1 or -1 asks for the sharp or flat name of a black key (C# or Db), whatever the key says. */
+export function spellRoot(pc, type, key = null, side = 0) {
+  if (side && PLAIN[pc].a !== 0) return spellings(pc).find(n => n.a === side);
   if (key) {
     const n = inKey(pc, key);
     if (Math.abs(n.a) <= 1) return n;
@@ -193,13 +195,18 @@ export function spellRoot(pc, type, key = null) {
   }
   return best;
 }
-/** A bass note under a chord, spelled to match the root's side (sharps with sharps) */
-export function spellBass(pc, root, key = null) {
+/** A bass note under a chord, spelled to match the root's side (sharps with sharps); side as for spellRoot */
+export function spellBass(pc, root, key = null, side = 0) {
+  if (side && PLAIN[pc].a !== 0) return spellings(pc).find(n => n.a === side);
   if (key) { const n = inKey(pc, key); if (Math.abs(n.a) <= 1) return n; }
   const opts = spellings(pc);
   if (opts[0].a === 0) return opts[0];
   return opts.find(n => n.a === (root.a < 0 ? -1 : root.a > 0 ? 1 : PLAIN[pc].a)) || opts[0];
 }
+/** A black key spelled sharp or flat on request (side 1 or -1), otherwise in the key or plainly */
+const spellNote = (pc, key, side) => side && PLAIN[pc].a !== 0 ? spellings(pc).find(n => n.a === side) : key ? inKey(pc, key) : plainNote(pc);
+/** Whether a chord's name has a sharp/flat choice to make: its root or its bass is a black key */
+export const hasSide = r => !!r && (r.kind === 'chord' ? [r.chord.root, r.chord.bass] : r.notes || []).some(n => n && n.a !== 0 && PLAIN[pcOf(n)].a !== 0);
 
 // ---- naming a set of notes
 
@@ -249,18 +256,19 @@ function matchAll(pcs, bassPc, foreign, out, upperLow) {
 /**
  * Every plausible name for a set of sounding notes, best first.
  * midis: MIDI notes (the lowest is the bass). key: spell for this key (null: fewest accidentals).
+ * side: 1 names black-key roots and basses with sharps (C#maj7), -1 with flats (Dbmaj7), 0 decides.
  * Each result: chord (spelled), symbol, cost, formula (degrees, with missing ones marked),
  * labels (pitch class to its degree label), inversion text, and whether the bass is outside the chord.
  */
-export function nameNotes(midis, key = null) {
+export function nameNotes(midis, key = null, side = 0) {
   const sorted = [...new Set(midis)].sort((a, b) => a - b);
   if (!sorted.length) return [];
   const pcs = [...new Set(sorted.map(mod12))], bassPc = mod12(sorted[0]);
   if (pcs.length === 1) {
-    const n = key ? inKey(bassPc, key) : plainNote(bassPc);
+    const n = spellNote(bassPc, key, side);
     return [{ kind: 'note', symbol: noteText(n), text: 'Just one note (' + noteText(n) + '). Add another to hear a chord.', notes: [n], labels: { [bassPc]: 'R' }, cost: 0 }];
   }
-  if (pcs.length === 2) return nameTwo(pcs, bassPc, key);
+  if (pcs.length === 2) return nameTwo(pcs, bassPc, key, side);
   const found = [];
   matchAll(pcs, bassPc, false, found);
   if (pcs.length >= 4) matchAll(pcs.filter(p => p !== bassPc), bassPc, true, found, mod12(sorted.find(m => mod12(m) !== bassPc)));
@@ -273,7 +281,7 @@ export function nameNotes(midis, key = null) {
   const seen = new Set(), out = [];
   for (const m of list) {
     if (m.cost > list[0].cost + SHOW_WITHIN) break;
-    const r = describe(m, key);
+    const r = describe(m, key, side);
     if (seen.has(r.symbol)) continue;
     seen.add(r.symbol);
     out.push(r);
@@ -281,9 +289,9 @@ export function nameNotes(midis, key = null) {
   return out;
 }
 
-function describe(m, key) {
-  const root = spellRoot(m.rootPc, m.type, key);
-  const bass = m.bassPc !== m.rootPc ? (m.foreign ? spellBass(m.bassPc, root, key) : null) : null;
+function describe(m, key, side) {
+  const root = spellRoot(m.rootPc, m.type, key, side);
+  const bass = m.bassPc !== m.rootPc ? (m.foreign ? spellBass(m.bassPc, root, key, side) : null) : null;
   let c = chord(root, m.type, bass);
   const tones = chordTones(c);
   if (!m.foreign && m.bassPc !== m.rootPc) c = chord(root, m.type, tones.find(t => t.pc === m.bassPc).note);
@@ -306,12 +314,12 @@ function describe(m, key) {
   };
 }
 
-function nameTwo(pcs, bassPc, key) {
+function nameTwo(pcs, bassPc, key, side) {
   const other = pcs.find(p => p !== bassPc), semis = mod12(other - bassPc);
-  const low = key ? inKey(bassPc, key) : plainNote(bassPc);
+  const low = spellNote(bassPc, key, side);
   const out = [];
   const power = (rootPc, bassAbove) => {
-    const root = spellRoot(rootPc, '5', key), fifth = above(root, '5');
+    const root = spellRoot(rootPc, '5', key, side), fifth = above(root, '5');
     const c = chord(root, '5', bassAbove ? fifth : null);
     out.push({ kind: 'chord', chord: c, symbol: chordSymbol(c), type: TYPE['5'], cost: bassAbove ? 1.5 : 0.6,
       notes: [root, fifth], labels: { [rootPc]: 'R', [pcOf(fifth)]: '5' }, formula: ['1', '5'], missing: [],
@@ -321,7 +329,7 @@ function nameTwo(pcs, bassPc, key) {
   if (semis === 5) power(other, true);
   // any other pair is an interval: say what chord it most often stands for
   const hint = { 3: ['min', bassPc], 4: ['maj', bassPc], 8: ['maj', other], 9: ['min', other] }[semis];
-  const up = hint ? spellRoot(hint[1], hint[0], key) : null;
+  const up = hint ? spellRoot(hint[1], hint[0], key, side) : null;
   const top = up ? (hint[1] === bassPc ? above(up, hint[0] === 'min' ? 'b3' : '3') : up) : onLetter(low.L + [0, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6][semis], other);
   const lowN = up && hint[1] === bassPc ? up : up ? above(up, hint[0] === 'min' ? 'b3' : '3') : low;
   let text = 'Two notes a ' + intervalName(semis) + ' apart (' + noteText(lowN) + ' and ' + noteText(top) + ')';

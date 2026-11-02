@@ -2,11 +2,12 @@
 // and decoding happen here (decodeAudioData lives on the main thread); the
 // processing and encoding run in convert-worker.js, one file at a time.
 import { readFileInfo, decodeWav, fmtTime } from "./lastcall-core.js";
+import { decodeCaf, decodeAu, decodeW64, decodeDsd, decodeWavCodec } from "./convert-read.js";
 import { PRESETS, FORMATS, plan, honesty, estimateSize, fmtBytes, outName, uniqueNames, NAME_PATTERNS, readTags, decodeAiff } from "./convert-core.js";
 import { zip } from "./zip.js";
 
 const $ = (id) => document.getElementById(id);
-const AUDIO_EXT = /\.(wav|wave|flac|aif|aiff|aifc|mp3|m4a|mp4|m4b|aac|ogg|oga|opus|webm|caf|weba)$/i;
+const AUDIO_EXT = /\.(wav|wave|flac|aif|aiff|aifc|mp3|m4a|mp4|m4b|aac|ogg|oga|opus|webm|caf|weba|alac|au|snd|w64|dsf|dff)$/i;
 const state = { files: [], sel: null, preset: "mp3-320", running: false, worker: null, cancel: false, caps: { m4a: null, opus: false }, nextId: 1 };
 window.__convert = state; // read by the headless browser check
 
@@ -59,6 +60,7 @@ function presetHelp(p) {
     wav: "<b>WAV</b> is uncompressed, for DAWs, CDs and distributors. Tags and cover art go in too.",
     flac: "<b>FLAC</b> is lossless: the exact same audio as a WAV in about half the space.",
     aiff: "<b>AIFF</b> is Apple's uncompressed format (Logic, GarageBand, iTunes).",
+    alac: "<b>Apple Lossless</b> is Apple's answer to FLAC: the exact same audio as a WAV in a little over half the space, and it plays in Apple Music, iPhones and iTunes. Tags and cover art go in too.",
     m4a: "<b>AAC (M4A)</b> is what Apple Music and iPhones use. Made by your browser's own encoder.",
     opus: "<b>Opus</b> sounds better than MP3 at the same size. Plays in browsers, Android, VLC; not in older Apple apps.",
   };
@@ -77,7 +79,7 @@ const parseTime = (s) => {
 function options() {
   const rate = $("optRate").value;
   return {
-    rate: rate === "keep" ? -1 : Number(rate), bits: Number($("optBits").value), channels: $("optChannels").value, kbps: Number($("optKbps").value),
+    rate: rate === "keep" ? -1 : Number(rate), bits: $("optBits").value === "32i" ? 32 : Number($("optBits").value), int32: $("optBits").value === "32i", channels: $("optChannels").value, kbps: Number($("optKbps").value),
     // Convert just changes the file type: no trimming, fades, level changes or renaming (same name, new extension)
     start: 0, end: 0, fadeIn: 0, fadeOut: 0, normalize: "off", pattern: "{name}",
   };
@@ -99,7 +101,7 @@ function setupOptions() {
 // The plan for one file with the current preset and options
 function planFor(f, srcOverride) {
   const o = options(), preset = PRESETS.find((p) => p.id === state.preset), src = srcOverride || f.src;
-  return plan(preset, src, { rate: o.rate === -1 ? src.fs : o.rate, bits: o.bits, channels: o.channels, kbps: o.kbps }, state.caps);
+  return plan(preset, src, { rate: o.rate === -1 ? src.fs : o.rate, bits: o.bits, int32: o.int32, channels: o.channels, kbps: o.kbps }, state.caps);
 }
 const chName = (n) => (n === 1 ? "mono" : n === 2 ? "stereo" : `${n} channels`);
 function planText(p) {
@@ -133,6 +135,8 @@ async function addFiles(list) {
 }
 function srcFrom(info) {
   const lossy = info.lossy ?? true;
+  // DSD comes out of its filter as 88.2 kHz audio with far more than 16 bits of detail
+  if (info.container === "dsd") return { fs: 88200, channels: info.channels || 2, bitDepth: 24, float: false, lossy: false, label: info.label, duration: info.duration || 0 };
   return { fs: info.sampleRate || 44100, channels: info.channels || 2, bitDepth: info.bitDepth || 0, float: !!info.float, lossy, label: info.container === "unknown" ? "compressed audio" : info.label, duration: info.duration || 0 };
 }
 function srcText(f) {
@@ -250,11 +254,40 @@ function setupTags() {
 
 // ---------- decoding ----------
 // At the file's own sample rate, so nothing is resampled behind our back.
-// WAV and AIFF are read directly (exact samples, any bit depth).
+// WAV, AIFF, Apple Lossless, CAF, AU, Wave64 and DSD are read here (exact
+// samples, any bit depth, the same in every browser); the rest go to the browser.
+let alacMod = null;
+const alac = async () => (alacMod ||= await import("./convert-alac.js"));
 async function decode(f) {
-  const buf = await f.file.arrayBuffer(), info = f.info;
-  if (info.container === "wav") { const d = decodeWav(buf); if (d?.chans.length) return { chans: d.chans, fs: d.fs }; }
+  let buf = await f.file.arrayBuffer();
+  const info = f.info, u8 = new Uint8Array(buf);
+  if (info.container === "wav") {
+    const d = decodeWav(buf) || decodeWavCodec(u8, info);
+    if (d?.chans.length) return { chans: d.chans, fs: d.fs };
+  }
   if (info.container === "aiff") { const d = decodeAiff(buf); if (d?.chans.length) return { chans: d.chans, fs: d.fs }; }
+  if (info.container === "m4a" && info.codec === "alac") {
+    const d = (await alac()).decodeAlac(u8);
+    if (d?.chans.length) return { chans: d.chans, fs: d.fs };
+    throw new Error("Convert couldn't read the Apple Lossless audio in this file.");
+  }
+  if (info.container === "caf") {
+    const d = decodeCaf(u8, info.codec === "alac" ? (await alac()).decodeAlac : null);
+    if (d?.chans) return { chans: d.chans, fs: d.fs };
+    if (d?.adts) buf = d.adts.slice().buffer; // AAC: the browser decodes it as ADTS below
+  }
+  if (info.container === "au") { const d = decodeAu(u8); return { chans: d.chans, fs: d.fs }; }
+  if (info.container === "w64") { const d = decodeW64(u8); return { chans: d.chans, fs: d.fs }; }
+  if (info.container === "dsd") {
+    // a few seconds of filtering per channel, so it runs in the worker
+    setStatus(`Turning ${info.label} into PCM...`);
+    return await new Promise((resolve, reject) => {
+      const w = new Worker(new URL("convert-worker.js", import.meta.url), { type: "module" });
+      w.onmessage = (e) => { const m = e.data; if (m.type === "progress") return setStatus(`Turning ${info.label} into PCM... ${Math.round(m.pct * 100)}%`); w.terminate(); m.type === "dsd" ? resolve({ chans: m.chans, fs: m.fs }) : reject(new Error(m.message)); };
+      w.onerror = (e) => { w.terminate(); reject(new Error(e.message || "The DSD reader stopped unexpectedly.")); };
+      w.postMessage({ dsd: buf }, [buf]);
+    });
+  }
   const rate = info.sampleRate >= 3000 && info.sampleRate <= 768000 ? info.sampleRate : 48000;
   try {
     const ctx = new OfflineAudioContext(1, 1, rate);
