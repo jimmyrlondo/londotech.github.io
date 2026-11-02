@@ -16,33 +16,86 @@ export function audio() {
 }
 export const now = () => audio().currentTime;
 
-// ---------- the voice: two detuned partials with a struck envelope, softer up high ----------
+// ---------- the sounds: one simple voice per instrument family ----------
+// Not samples: small synth patches that read clearly in a mix and load instantly.
+const SOUNDS = {
+  piano: { osc: [["triangle", 1, 1], ["sine", 2.001, 0.18]], a: 0.006, decay: 0.35, sus: 0.35, rel: 0.08, bright: 6 },
+  strings: { osc: [["sawtooth", 1, 0.55], ["sawtooth", 1.004, 0.45]], a: 0.09, decay: 0, sus: 1, rel: 0.25, bright: 3.2, vib: 5.2 },
+  brass: { osc: [["sawtooth", 1, 1]], a: 0.035, decay: 0.3, sus: 0.8, rel: 0.12, bright: 4.5, swell: true },
+  winds: { osc: [["triangle", 1, 1], ["sine", 2, 0.25], ["sine", 3, 0.08]], a: 0.04, decay: 0, sus: 1, rel: 0.1, bright: 5, vib: 4.8 },
+  pluck: { osc: [["sawtooth", 1, 0.7], ["triangle", 1, 0.5]], a: 0.002, decay: 0.22, sus: 0.0, rel: 0.12, bright: 8, pluck: true },
+  bass: { osc: [["triangle", 1, 1], ["sine", 1, 0.6]], a: 0.008, decay: 0.5, sus: 0.45, rel: 0.1, bright: 3 },
+  organ: { osc: [["sine", 1, 1], ["sine", 2, 0.5], ["sine", 3, 0.3], ["sine", 4, 0.15]], a: 0.01, decay: 0, sus: 1, rel: 0.05, bright: 9 },
+  voice: { osc: [["sine", 1, 1], ["triangle", 1, 0.25], ["sine", 2, 0.12]], a: 0.07, decay: 0, sus: 1, rel: 0.18, bright: 2.6, vib: 5.5 },
+  mallets: { osc: [["sine", 1, 1], ["sine", 3.99, 0.25], ["sine", 10.1, 0.06]], a: 0.002, decay: 0.12, sus: 0, rel: 0.4, bright: 12, pluck: true },
+};
+/** The sound for an instrument name (from tunings.js or the page's extras) */
+export function soundFor(name = "") {
+  const n = name.toLowerCase();
+  if (/organ/.test(n)) return "organ";
+  if (/voice|choir|vocal/.test(n)) return "voice";
+  if (/violin|viola|cello|fiddle|double bass|nyckelharpa|gamba|erhu|hurdy/.test(n)) return "strings";
+  if (/trumpet|cornet|flugel|horn|mellophone|trombone|euphonium|tuba/.test(n)) return "brass";
+  if (/flute|piccolo|oboe|clarinet|bassoon|saxophone|english horn/.test(n)) return "winds";
+  if (/bass/.test(n)) return "bass";
+  if (/kalimba|marimba|xylophone|vibra|glock|timpani/.test(n)) return "mallets";
+  if (/guitar|ukulele|banjo|mandol|lute|bouzouki|oud|dulcimer|balalaika|domra|charango|cavaquinho|cuatro|tres|vihuela|tiple|bandurria|laud|pipa|ruan|shamisen|koto|kantele|dobro|steel|guitalele|requinto|bajo|guitarron/.test(n)) return "pluck";
+  return "piano";
+}
 const live = new Map();
-/** Sound a note now (or at time t) until noteOff, or for dur seconds */
-export function noteOn(midi, vel = 0.8, t = 0, dur = 0) {
+/** Sound a note now (or at time t) until noteOff, or for dur seconds. opts: { sound, gain } */
+export function noteOn(midi, vel = 0.8, t = 0, dur = 0, opts = {}) {
   const a = audio(), at = Math.max(a.currentTime, t || a.currentTime), f = 440 * 2 ** ((midi - 69) / 12);
+  const P = SOUNDS[opts.sound] || SOUNDS.piano, gain = opts.gain ?? 1;
   const g = a.createGain(), lp = a.createBiquadFilter();
-  lp.type = "lowpass"; lp.frequency.value = Math.min(9000, 1200 + f * 6 * vel); lp.Q.value = 0.4;
-  const o1 = a.createOscillator(), o2 = a.createOscillator();
-  o1.type = "triangle"; o2.type = "sine"; o1.frequency.value = f; o2.frequency.value = f * 2.001;
-  const g2 = a.createGain(); g2.gain.value = 0.18;
-  o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(out);
-  const peak = 0.32 * vel * Math.min(1, 1.3 - (midi - 60) / 80);
-  g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(peak, at + 0.006);
-  g.gain.setTargetAtTime(peak * 0.35, at + 0.01, 0.35); // the decay of a struck string
-  o1.start(at); o2.start(at);
-  const v = { g, o1, o2, at };
+  lp.type = "lowpass"; lp.Q.value = 0.5;
+  lp.frequency.setValueAtTime(Math.min(12000, 600 + f * P.bright * (0.5 + vel * 0.6)), at);
+  if (P.pluck) lp.frequency.setTargetAtTime(Math.min(12000, 300 + f * 2), at + 0.01, 0.15);
+  if (P.swell) { lp.frequency.setValueAtTime(400 + f, at); lp.frequency.linearRampToValueAtTime(Math.min(12000, 600 + f * P.bright), at + 0.08); }
+  const oscs = P.osc.map(([type, mul, lvl]) => { const o = a.createOscillator(), og = a.createGain(); o.type = type; o.frequency.value = f * mul; og.gain.value = lvl; o.connect(og); og.connect(lp); return o; });
+  if (P.vib) { const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = P.vib; lg.gain.setValueAtTime(0, at); lg.gain.linearRampToValueAtTime(f * 0.004, at + 0.35); lfo.connect(lg); for (const o of oscs) lg.connect(o.frequency); lfo.start(at); oscs.push(lfo); }
+  lp.connect(g); g.connect(out);
+  const peak = 0.3 * vel * gain * Math.min(1, 1.3 - (midi - 60) / 80) / Math.sqrt(P.osc.length * 0.7);
+  g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(peak, at + P.a);
+  if (P.decay) g.gain.setTargetAtTime(peak * P.sus, at + P.a, P.decay);
+  for (const o of oscs) o.start(at);
+  const v = { g, oscs, at, rel: P.rel };
   if (dur) { release(v, at + dur); return null; }
   noteOff(midi); live.set(midi, v);
   return v;
 }
 function release(v, t) {
-  const a = audio(), when = Math.max(t, v.at + 0.02);
-  v.g.gain.cancelScheduledValues(when); v.g.gain.setTargetAtTime(0, when, 0.08);
-  v.o1.stop(when + 0.6); v.o2.stop(when + 0.6);
+  const when = Math.max(t, v.at + 0.02);
+  v.g.gain.cancelScheduledValues(when); v.g.gain.setTargetAtTime(0, when, v.rel);
+  for (const o of v.oscs) o.stop(when + v.rel * 8 + 0.1);
 }
 export function noteOff(midi, t = 0) { const v = live.get(midi); if (v) { live.delete(midi); release(v, t || audio().currentTime); } }
 export function allOff() { for (const m of [...live.keys()]) noteOff(m); }
+
+// ---------- the mic: sing or play one note at a time and it becomes notes ----------
+// Voice's pitch tracker, read every 10 ms on the audio clock. Headphones keep the click out of it.
+let mic = null;
+export async function startMic(onFrame = null) {
+  const { VoiceTracker } = await import("./voice-core.js");
+  const a = audio();
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  const src = a.createMediaStreamSource(stream), an = a.createAnalyser();
+  an.fftSize = 4096; src.connect(an);
+  const buf = new Float32Array(an.fftSize), tracker = new VoiceTracker({ minHz: 55, maxHz: 1400 }), frames = [];
+  const timer = setInterval(() => { an.getFloatTimeDomainData(buf); const fr = tracker.feed(buf, a.sampleRate, a.currentTime); frames.push(fr); onFrame?.(fr); }, 10);
+  mic = { stream, src, timer, frames };
+  return mic;
+}
+/** Stop listening; gives the notes heard as [{ midi, on, off, vel }] in audio-clock seconds */
+export async function stopMic() {
+  if (!mic) return [];
+  clearInterval(mic.timer); mic.stream.getTracks().forEach((t) => t.stop()); mic.src.disconnect();
+  const { segmentNotes } = await import("./voice-core.js");
+  const notes = segmentNotes(mic.frames, 0.08).map((n) => ({ midi: Math.round(n.midi), on: n.start - 0.02, off: n.end + 0.03, vel: 0.8 }));
+  mic = null;
+  return notes;
+}
+export const micOn = () => !!mic;
 
 // ---------- the click ----------
 /** One click at time t: accent on the downbeat */

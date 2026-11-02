@@ -95,6 +95,17 @@
   .note { font-size: 12.5px; color: var(--soft); margin-top: 8px; }
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 999px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); }
   .mtabs { display: none; }
+  .seg { display: inline-flex; padding: 3px; border: 1px solid var(--divider-strong); border-radius: 999px; gap: 2px; flex: none; }
+  .seg button { border: 0; background: transparent; color: var(--soft); font-size: 12.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .seg button.on { background: #ff3b00; color: #fff; }
+  .ib.sm { width: 26px; height: 26px; font-size: 11.5px; font-weight: 800; border-radius: 7px; }
+  .partRow { border: 1px solid var(--divider); border-radius: 10px; padding: 7px; margin-bottom: 6px; display: grid; gap: 5px; cursor: pointer; }
+  .partRow.on { border-color: #ff3b00; }
+  .partRow > select { width: 100%; }
+  .partRow .row { gap: 4px; } .partRow .row select { padding: 3px 5px; font-size: 12px; }
+  .linkish { border: 0; background: transparent; color: inherit; text-decoration: underline; padding: 0; font: inherit; }
+  .printPart { display: none; }
+  @media print { body.printingPart > *:not(.printPart) { display: none !important; } body.printingPart .printPart { display: block; color: #000; } }
 
   @media (max-width: 1150px) { main { grid-template-columns: 170px minmax(0, 1fr) 300px; } }
   @media (max-width: 899px) {
@@ -140,6 +151,7 @@
       <span class="sep"></span>
       <button class="ib" id="transDown" title="Transpose the whole piece down a half step" aria-label="Transpose down">&#8722;</button>
       <button class="ib" id="transUp" title="Transpose the whole piece up a half step" aria-label="Transpose up">+</button>
+      <span class="seg" id="modeSeg" title="Insert pushes later music along; Over writes over what's there, so other parts stay lined up"><button data-v="insert">Insert</button><button data-v="overwrite">Over</button></span>
       <label class="hidden" id="writtenWrap"><input type="checkbox" id="written"> Written pitch</label>
       <span class="pos" id="pos"></span>
     </div>
@@ -151,7 +163,7 @@
   </section>
 
   <section class="panel" id="toolPanel" aria-label="Tools">
-    <div class="ttabs" id="ttabs"><button data-t="write" class="on">Write</button><button data-t="record">Record</button><button data-t="score">Score</button><button data-t="share">Share</button></div>
+    <div class="ttabs" id="ttabs"><button data-t="write" class="on">Write</button><button data-t="bar">Bar</button><button data-t="record">Record</button><button data-t="score">Score</button><button data-t="share">Share</button></div>
     <div class="scroll tbody" id="tbody"></div>
   </section>
 </main>
