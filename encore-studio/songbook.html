@@ -66,6 +66,12 @@
   .tags { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
   .tag { font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 1px 4px 1px 9px; display: inline-flex; align-items: center; gap: 2px; }
   .tag button { border: 0; background: transparent; color: var(--dim); padding: 0 4px; }
+  .parts { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .parts .pl { font-size: 12px; font-weight: 700; color: var(--soft); margin-right: 2px; }
+  .pt { border: 1px solid var(--divider-strong); background: transparent; border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .pt:hover { border-color: #ff6c40; color: #fff; }
+  .pt.rep { border-style: dashed; color: #ff8a5c; }
+  .parts select.t { padding: 2px 6px; font-size: 12.5px; }
   .write { flex: 1 1 auto; min-height: 0; width: 100%; resize: none; border: 0; background: transparent; padding: 14px 16px; font: 16px/1.7 var(--family-primary); color: var(--text); }
   .write:focus { outline: none; }
   .sheet { padding: 14px 18px 40px; font-size: 16px; }
@@ -151,10 +157,11 @@
     main > .panel { display: none; } main[data-m="lib"] #libPanel, main[data-m="song"] #songPanel, main[data-m="tools"] #toolPanel { display: flex; }
     .titleRow { flex-wrap: wrap; } .titleIn { font-size: 19px; flex: 1 1 100%; } .artistIn { flex: 1 1 0; width: auto; min-width: 0; }
     .tools2 { gap: 6px; } #addInst { flex: 1 1 100%; }
+    .parts { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; } .pt { flex: none; }
     .sheet { padding: 12px 12px 30px; } .sheet .ln { padding-right: 26px; }
   }
   @media print {
-    .bar, #libPanel, #toolPanel, .mtabs, .tools2, .hint, .songHead .titleRow .ib, #viewSeg { display: none !important; }
+    .bar, #libPanel, #toolPanel, .mtabs, .tools2, .parts, .hint, .songHead .titleRow .ib, #viewSeg { display: none !important; }
     body { background: #fff; color: #000; } main { display: block; height: auto; padding: 0; } .panel { border: 0; background: #fff; }
     .titleIn, .artistIn { color: #000; border: 0; } .sheet { padding: 0; } .seg2 .ch { color: #c2410c; } .sheet .sec { color: #c2410c; } .sheet .ln .syl { display: none; }
     .scroll { overflow: visible; }
@@ -195,6 +202,7 @@
         <span class="tags" id="instTags"></span>
         <select class="t" id="addInst" aria-label="Tag an instrument"></select>
       </div>
+      <div class="parts" id="parts" aria-label="Add a part of the song"></div>
     </div>
     <textarea class="write scroll" id="write" spellcheck="true" placeholder="Paste or type your lyrics.&#10;&#10;Put a chord in by tapping it on the right, or type it in brackets: [G]Here comes the [C]sun.&#10;Sections go on their own line: [Verse 1], [Chorus].&#10;&#10;Pasted a chord sheet with the chords above the words? Press Quick format."></textarea>
     <div class="sheet scroll hidden" id="sheet"></div>

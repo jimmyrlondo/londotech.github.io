@@ -80,6 +80,46 @@ export function chordsUsed(text) {
   for (const l of parseSong(text)) if (l.type === "lyric") for (const p of l.parts) if (p.chord && !seen.has(p.chord) && parseChord(p.chord)) { seen.add(p.chord); out.push(p.chord); }
   return out;
 }
+/** The parts of a song, the buttons Songbook offers (most used first) */
+export const PARTS = ["Intro", "Verse", "Pre-Chorus", "Chorus", "Post-Chorus", "Bridge", "Refrain", "Hook", "Solo", "Interlude", "Breakdown", "Instrumental", "Tag", "Outro"];
+// the parts that get numbers as they come back (Verse 1, Verse 2); a chorus is the same chorus each time
+const NUMBERED = ["Verse", "Pre-Chorus", "Bridge", "Solo", "Interlude"];
+/** The name for a new part: "Verse 3" after two verses, "Chorus" for a chorus */
+export function nextPartName(text, base) {
+  if (!NUMBERED.includes(base)) return base;
+  const re = new RegExp(`^${base.replace("-", "[- ]?")}\\s*(\\d+)?$`, "i");
+  const had = parseSong(text).filter((l) => l.type === "section" && re.test(l.name));
+  return `${base} ${had.length + 1}`;
+}
+/**
+ * Put a part's [Name] line in at a place in the text: on its own line, a blank line before it,
+ * with the words of an earlier part of that name copied in when repeat is on (a chorus coming back).
+ * Returns { text, caret } with the caret on the line after the name.
+ */
+export function insertPart(text, at, name, repeat = false) {
+  let p = Math.max(0, Math.min(text.length, at));
+  // to the start of the line, or the next line when the caret is mid-line
+  const lineStart = text.lastIndexOf("\n", p - 1) + 1, lineEnd = text.indexOf("\n", p) < 0 ? text.length : text.indexOf("\n", p);
+  if (text.slice(lineStart, lineEnd).trim() !== "") p = lineEnd === text.length ? text.length : lineEnd + 1;
+  else p = lineStart;
+  let body = "";
+  if (repeat) {
+    const secs = sections(text), from = [...secs].reverse().find((s) => s.name.toLowerCase() === name.toLowerCase());
+    if (from) body = text.replace(/\r\n?/g, "\n").split("\n").slice(from.from, from.to).join("\n").replace(/\s+$/, "");
+  }
+  const before = text.slice(0, p), after = text.slice(p);
+  const lead = before === "" ? "" : before.endsWith("\n\n") ? "" : before.endsWith("\n") ? "\n" : "\n\n";
+  const block = `${lead}[${name}]\n${body ? body + "\n" : ""}`;
+  const tail = after && !after.startsWith("\n") && body ? "\n" : "";
+  const out = before + block + tail + after;
+  return { text: out, caret: (before + block).length };
+}
+/** Parts already in the song that usually come back (to offer "repeat") */
+export function repeatableParts(text) {
+  const names = [];
+  for (const s of sections(text)) if (s.to > s.from && /^(chorus|refrain|hook|post-chorus|pre-chorus|tag)$/i.test(s.name) && !names.includes(s.name)) names.push(s.name);
+  return names;
+}
 /** Every chord as it's played, start to end (for guessing the key) */
 export function chordSequence(text) {
   const out = [];

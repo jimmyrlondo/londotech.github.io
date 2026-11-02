@@ -3,7 +3,7 @@
 // Songs live in this browser for now (localStorage), with backup and import.
 // The plain logic is songbook-core.js; the theory and shapes are Chords' own
 // (chords-core, chords-keys, chords-voicing); rhymes and words are words.js.
-import { parseSong, quickFormat, insertChord, removeChordAt, transposeText, respellText, fillSection, sections, chordsUsed, chordSequence, guessKey,
+import { PARTS, nextPartName, insertPart, repeatableParts, parseSong, quickFormat, insertChord, removeChordAt, transposeText, respellText, fillSection, sections, chordsUsed, chordSequence, guessKey,
   likelyChords, nextChords, numeral, toChordsAbove, toLyrics, toInline, toChordPro, toUltimateGuitar, lineSyllables, newSong, newId, titleOf, songMetaFrom, stripMeta, isChord } from "./songbook-core.js";
 import { parseChord, chordSymbol, chordTones, noteText, pcOf, mod12, plainNote } from "./chords-core.js";
 import { makeKey, keyName, keyBySemis, MAJOR_KEYS, MINOR_KEYS } from "./chords-keys.js";
@@ -120,6 +120,7 @@ function renderSong() {
   write.classList.toggle("hidden", state.view !== "write");
   sheet.classList.toggle("hidden", state.view !== "sheet");
   renderTags();
+  renderParts();
   if (state.view === "sheet") renderSheet();
   renderHint();
 }
@@ -136,7 +137,7 @@ $("artist").oninput = (e) => { const s = song(); if (!s) return; s.artist = e.ta
 write.oninput = () => { const s = song(); if (!s) return; s.body = write.value; touch(s); renderLibSoon(); renderToolsSoon(); };
 let libTimer = 0, toolTimer = 0;
 const renderLibSoon = () => { clearTimeout(libTimer); libTimer = setTimeout(renderLib, 500); };
-const renderToolsSoon = () => { clearTimeout(toolTimer); toolTimer = setTimeout(() => { fillKeySelect(); if (state.tab !== "words") renderTools(); }, 450); };
+const renderToolsSoon = () => { clearTimeout(toolTimer); toolTimer = setTimeout(() => { fillKeySelect(); renderParts(); if (state.tab !== "words") renderTools(); }, 450); };
 write.addEventListener("paste", () => setTimeout(() => {
   const s = song(); if (!s) return;
   // a whole sheet pasted into an empty song: offer to tidy it up
@@ -194,6 +195,34 @@ function renderTags() {
   $("instTags").innerHTML = (s?.instruments || []).map((n) => `<span class="tag">${esc(n)}<button data-n="${esc(n)}" aria-label="Remove ${esc(n)}">&#10005;</button></span>`).join("");
 }
 $("instTags").onclick = (e) => { const b = e.target.closest("button"); const s = song(); if (!b || !s) return; s.instruments = s.instruments.filter((n) => n !== b.dataset.n); touch(s); renderTags(); };
+
+// ---------- parts of the song: [Verse 1], [Chorus], ... in one tap ----------
+const MAIN_PARTS = ["Intro", "Verse", "Pre-Chorus", "Chorus", "Bridge", "Refrain", "Hook", "Solo", "Outro"];
+function renderParts() {
+  const s = song();
+  if (!s) { $("parts").innerHTML = ""; return; }
+  const rep = repeatableParts(s.body);
+  $("parts").innerHTML = `<span class="pl">Add</span>` + MAIN_PARTS.map((p) => `<button class="pt" data-p="${p}" title="Put a [${esc(nextPartName(s.body, p))}] line in where you are">${p}</button>`).join("") +
+    `<select class="t" id="moreParts" aria-label="More parts"><option value="">More...</option>${PARTS.filter((p) => !MAIN_PARTS.includes(p)).map((p) => `<option>${p}</option>`).join("")}<option value="*">Your own name...</option></select>` +
+    rep.map((n) => `<button class="pt rep" data-p="${esc(n)}" data-rep="1" title="The ${esc(n)} again, with its words and chords">&#8635; ${esc(n)} again</button>`).join("");
+  $("moreParts").onchange = (e) => { let n = e.target.value; e.target.value = ""; if (n === "*") n = (prompt("Name this part (e.g. Rap verse, Choir, Key change)") || "").trim(); if (n) addPart(n); };
+}
+$("parts").addEventListener("click", (e) => { const b = e.target.closest(".pt"); if (b) addPart(b.dataset.p, !!b.dataset.rep); });
+function addPart(base, repeat = false) {
+  const s = song(); if (!s) return;
+  const name = repeat ? base : nextPartName(s.body, base);
+  // where you're typing in Write; at the end in the Chords view
+  const at = state.view === "write" && document.activeElement === write ? write.selectionStart : state.view === "write" && lastCaret != null ? lastCaret : s.body.length;
+  undoPush(s);
+  const r = insertPart(s.body, at, name, repeat);
+  s.body = r.text; touch(s);
+  if (state.view === "write") { write.value = s.body; write.focus(); write.setSelectionRange(r.caret, r.caret); lastCaret = r.caret; }
+  renderSong(); renderToolsSoon();
+  if (state.view === "sheet") sheet.scrollTop = sheet.scrollHeight;
+  toast(repeat ? `${name} again, words and chords included.` : `Added [${name}].`);
+}
+let lastCaret = null;
+write.addEventListener("blur", () => { lastCaret = write.selectionStart; });
 
 // ---------- the chord sheet: chords over the words, tap to place ----------
 function renderSheet() {
