@@ -9,8 +9,9 @@ import { encodeFlac } from "./convert-flac.js";
 import { muxM4a, muxOggOpus, muxM4aAlac } from "./convert-mux.js";
 import { id3 } from "./tags.js";
 import { decodeDsd } from "./convert-read.js";
+import { loadVorbis } from "./vorbis-enc.js";
 
-let lame = null;
+let lame = null, vorbis = null;
 const progress = (pct, stage) => self.postMessage({ type: "progress", pct: Math.max(0, Math.min(1, pct)), stage });
 
 self.onmessage = async (e) => {
@@ -45,6 +46,12 @@ self.onmessage = async (e) => {
     } else if (plan.kind === "mp3") blob = await mp3(x, rate, plan, meta, art, report, enc);
     else if (plan.kind === "m4a") blob = await webcodecs("m4a", x, rate, plan, meta, art, report, enc);
     else if (plan.kind === "opus") blob = await webcodecs("opus", x, rate, plan, meta, art, report, enc);
+    else if (plan.kind === "vorbis") {
+      vorbis ||= await loadVorbis(await (await fetch(new URL("vorbis.wasm", import.meta.url))).arrayBuffer());
+      const ch = x.slice(0, 2); // stereo at most, like the other lossy formats (the plan already mixed down)
+      blob = new Blob([vorbis.encode(ch, rate, { quality: plan.quality, meta, art, onProgress: enc })], { type: "audio/ogg" });
+      Object.assign(report, { quality: plan.quality, kbps: Math.round(blob.size * 8 / (samples / rate) / 1000) });
+    }
     else throw new Error("Unknown output format.");
     progress(1, "Done");
     self.postMessage({ type: "done", blob, report });

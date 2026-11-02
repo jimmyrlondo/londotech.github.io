@@ -60,12 +60,14 @@ function presetHelp(p) {
     wav: "<b>WAV</b> is uncompressed, for DAWs, CDs and distributors. Tags and cover art go in too.",
     flac: "<b>FLAC</b> is lossless: the exact same audio as a WAV in about half the space.",
     aiff: "<b>AIFF</b> is Apple's uncompressed format (Logic, GarageBand, iTunes).",
-    alac: "<b>Apple Lossless</b> is Apple's answer to FLAC: the exact same audio as a WAV in a little over half the space, and it plays in Apple Music, iPhones and iTunes. Tags and cover art go in too.",
+    alac: "<b>Apple Lossless</b>: WAV quality in about half the space, for Apple Music and iPhone.",
     m4a: "<b>AAC (M4A)</b> is what Apple Music and iPhones use. Made by your browser's own encoder.",
+    vorbis: "<b>Ogg Vorbis</b> for games (Unity, Godot) and older players. Variable bitrate.",
     opus: "<b>Opus</b> sounds better than MP3 at the same size. Plays in browsers, Android, VLC; not in older Apple apps.",
   };
-  if (p.id === "wav-32f") return "<b>WAV 32-bit float</b> keeps every bit of a float mix or stem, with headroom past 0 dB, for passing between DAWs. For CDs and distributors use 16 or 24-bit (many don't take float).";
-  return lines[p.kind] + (p.id === "voice" ? " Mono 128 kbps keeps voice memos and rehearsal takes small." : "");
+  if (p.id === "wav-32f") return "<b>WAV 32-bit float</b> keeps a float mix exactly, peaks past 0 dB included. Not for CDs.";
+  if (p.id === "voice") return "<b>Voice memo</b>: a small mono MP3 for rehearsal takes and notes.";
+  return lines[p.kind];
 }
 
 // ---------- options ----------
@@ -105,7 +107,7 @@ function planFor(f, srcOverride) {
 }
 const chName = (n) => (n === 1 ? "mono" : n === 2 ? "stereo" : `${n} channels`);
 function planText(p) {
-  const what = p.kind === "mp3" || p.kind === "m4a" || p.kind === "opus" ? `${FORMATS[p.kind].name} ${p.kbps} kbps` : `${FORMATS[p.kind].name} ${p.float ? "32-bit float" : p.bits + "-bit"}`;
+  const what = p.kind === "vorbis" ? `Ogg Vorbis quality ${p.quality} (about ${p.kbps} kbps, VBR)` : p.kind === "mp3" || p.kind === "m4a" || p.kind === "opus" ? `${FORMATS[p.kind].name} ${p.kbps} kbps` : `${FORMATS[p.kind].name} ${p.float ? "32-bit float" : p.bits + "-bit"}`;
   return `${what}, ${p.rate / 1000} kHz, ${chName(p.channels)}`;
 }
 

@@ -20,8 +20,8 @@ const TEST = new URLSearchParams(location.search).has('selftest');
 // ---- what the clock plays (S, the same object the worklet gets) and the page's own choices (P)
 let S = cleanSettings(loadJSON('settings', null));
 const VOL = { master: 80, accent: 90, beat: 75, sub: 50, poly: 65 };
-const P = { sound: 'classic', countIn: false, flashOffset: 0, tcOn: false, listen: 'same', sens: 50, inputId: '', latency: null, latencyHow: '', latencyWhen: '', song: -1, view: 'pendulum', ...loadJSON('page', {}) };
-if (!VIEWS.some(v => v.id === P.view)) P.view = 'pendulum';
+const P = { sound: 'classic', countIn: false, flashOffset: 0, tcOn: false, listen: 'same', sens: 50, inputId: '', latency: null, latencyHow: '', latencyWhen: '', song: -1, view: 'count', ...loadJSON('page', {}) };
+if (!VIEWS.some(v => v.id === P.view)) P.view = 'count';
 P.vol = { ...VOL, ...(P.vol || {}) };
 let songs = loadJSON('songs', []);
 if (!Array.isArray(songs)) songs = [];

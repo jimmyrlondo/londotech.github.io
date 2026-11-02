@@ -1,4 +1,4 @@
-/* Encore: Studio, the bar every tool shares: every tool as a tab stretched across the top
+/* ENCORE. Studio, the bar every tool shares: every tool as a tab stretched across the top
    (the one you're on lit), or a drop-down on a phone. Loaded after each page's own styles. */
 .bar .tools { flex: 1 1 auto; display: flex; gap: 2px; min-width: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; padding: 0; }
 .bar .tools .navlink { flex: 1 1 auto; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -9,7 +9,8 @@
 .bar .toolPick { display: none; flex: 1 1 auto; min-width: 0; max-width: 260px; font: inherit; font-size: 15px; font-weight: 700; color: var(--text);
                  background: var(--surface, #171412); border: 1px solid var(--divider-strong); border-radius: 9px; padding: 8px 10px; }
 @media (max-width: 1100px) { .bar .tools .navlink { font-size: 13px; padding: 9px 3px; } }
-@media (max-width: 900px) {
+/* below this the 14 tabs would be cut short, so it's the grouped drop-down instead */
+@media (max-width: 1200px) {
   .bar .tools { display: none; }
   .bar .toolPick { display: block; }
 }
@@ -31,3 +32,7 @@
 .bar .home { display: flex; align-items: center; gap: 14px; flex: none; color: inherit; text-decoration: none; border-radius: 8px; }
 .bar .home:hover .chip-label { color: var(--text); border-color: var(--soft); }
 .bar .home:focus-visible { outline: 2px solid #ff3b00; outline-offset: 4px; }
+/* thin rules between ENCORE. Journey, Tools, Learn and the desktop app */
+.bar .tools .navsep { flex: none; width: 1px; margin: 12px 3px; background: var(--divider-strong); }
+/* on smaller laptops the label next to the logo gives its room to the tabs */
+@media (max-width: 1300px) { .bar .home .chip-label { display: none; } }

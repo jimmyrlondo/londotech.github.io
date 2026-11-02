@@ -21,7 +21,7 @@ export const concat = (parts) => { const n = parts.reduce((a, p) => a + p.length
 // ======================================================================
 // Presets and the output plan
 // ======================================================================
-// kind: mp3 | wav | flac | aiff | alac | m4a | opus. bits 0 = keep (as close to the
+// kind: mp3 | wav | flac | aiff | alac | m4a | opus | vorbis. bits 0 = keep (as close to the
 // source as the format allows), rate 0 = keep.
 export const PRESETS = [
   { id: "mp3-320", label: "MP3 320", sub: "Best MP3", kind: "mp3", kbps: 320 },
@@ -35,7 +35,8 @@ export const PRESETS = [
   { id: "aiff", label: "AIFF", sub: "Uncompressed, Apple apps", kind: "aiff", bits: 0 },
   { id: "alac", label: "Apple Lossless", sub: "Lossless, for iPhone", kind: "alac", bits: 0 },
   { id: "m4a-256", label: "AAC / M4A 256", sub: "Apple Music, iPhone", kind: "m4a", kbps: 256 },
-  { id: "opus-160", label: "Opus / OGG 160", sub: "Small and modern", kind: "opus", kbps: 160 },
+  { id: "opus-160", label: "Opus 160", sub: "Small and modern", kind: "opus", kbps: 160 },
+  { id: "ogg-vorbis", label: "Ogg Vorbis", sub: "Games, older players", kind: "vorbis", kbps: 160 },
   { id: "voice", label: "Voice memo", sub: "Mono MP3, 128 kbps", kind: "mp3", kbps: 128, channels: "mono" },
 ];
 export const FORMATS = {
@@ -46,7 +47,16 @@ export const FORMATS = {
   alac: { ext: "m4a", mime: "audio/mp4", name: "Apple Lossless (M4A)", lossy: false },
   m4a: { ext: "m4a", mime: "audio/mp4", name: "AAC (M4A)", lossy: true },
   opus: { ext: "opus", mime: "audio/ogg", name: "Opus (OGG)", lossy: true },
+  vorbis: { ext: "ogg", mime: "audio/ogg", name: "Ogg Vorbis", lossy: true },
 };
+// Ogg Vorbis is VBR: the bitrate choice becomes the nearest quality (0..10), and each
+// quality's typical average for stereo music stands in for its size
+export const VORBIS_Q = { 96: 2, 128: 4, 160: 5, 192: 6, 256: 8, 320: 9 };
+export const VORBIS_KBPS = [64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 500];
+export function vorbisQuality(kbps) {
+  const k = Object.keys(VORBIS_Q).map(Number).reduce((b, x) => (Math.abs(x - kbps) < Math.abs(b - kbps) ? x : b), 160);
+  return VORBIS_Q[k];
+}
 export const MP3_KBPS = [32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320];
 const MP3_RATES = [32000, 44100, 48000];
 
@@ -74,6 +84,11 @@ export function plan(preset, src, opts = {}, caps = {}) {
     out.rate = 48000; // Opus always runs at 48 kHz inside
     if (want !== 48000) notes.push("Opus always plays back at 48 kHz, so the audio is resampled to 48 kHz first.");
     out.kbps = Math.max(6, Math.min(510, out.kbps || 160));
+  } else if (kind === "vorbis") {
+    out.rate = Math.max(8000, Math.min(192000, want));
+    if (out.rate !== want) notes.push(`Vorbis works from 8 to 192 kHz, so this one is made at ${out.rate / 1000} kHz.`);
+    out.quality = vorbisQuality(out.kbps || 160);
+    out.kbps = VORBIS_KBPS[out.quality]; // what that quality averages; the real rate follows the music
   } else if (kind === "m4a") {
     const rates = caps.m4a?.rates?.length ? caps.m4a.rates : [44100, 48000];
     if (!rates.includes(want)) {
@@ -120,6 +135,7 @@ export function honesty(src, p) {
 // Approximate output size in bytes
 export function estimateSize(p, seconds) {
   const ch = p.channels || 2;
+  if (p.kind === "vorbis") return Math.round(seconds * p.kbps * 125 * Math.min(1, (p.channels || 2) / 2 + 0.25));
   if (p.kind === "mp3" || p.kind === "m4a" || p.kind === "opus") return Math.round(seconds * p.kbps * 125 * (p.kind === "opus" ? 1.02 : 1));
   const pcm = seconds * p.rate * ch * (p.bits === 32 ? 4 : p.bits / 8);
   return Math.round(p.kind === "flac" ? pcm * 0.58 : p.kind === "alac" ? pcm * 0.6 : pcm);
@@ -143,7 +159,7 @@ const clean = (s) => String(s ?? "").replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "").
 export function outName(pattern, sourceName, meta, p) {
   const base = String(sourceName || "").replace(/\.[^.\\/]{1,6}$/, "");
   const track = String(meta.track || "").split("/")[0];
-  const fmt = p.kind === "mp3" ? `MP3 ${p.kbps}` : p.kind === "m4a" ? `AAC ${p.kbps}` : p.kind === "opus" ? `Opus ${p.kbps}` : `${FORMATS[p.kind].name} ${p.float ? "32f" : p.bits}`;
+  const fmt = p.kind === "mp3" ? `MP3 ${p.kbps}` : p.kind === "m4a" ? `AAC ${p.kbps}` : p.kind === "opus" ? `Opus ${p.kbps}` : p.kind === "vorbis" ? `Vorbis q${p.quality}` : `${FORMATS[p.kind].name} ${p.float ? "32f" : p.bits}`;
   let s = String(pattern || "{name}").replace(/\{(\w+)\}/g, (_, k) => clean(k === "name" ? base : k === "format" ? fmt : k === "track" ? (track ? track.padStart(2, "0") : "") : meta[k]));
   s = clean(s).replace(/^[-. ]+|[-. ]+$/g, "").replace(/\s+-\s+-\s+/g, " - ");
   return `${s || clean(base) || "Untitled"}.${p.ext}`;
