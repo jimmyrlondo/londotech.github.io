@@ -55,7 +55,7 @@ export function noteOn(midi, vel = 0.8, t = 0, dur = 0, opts = {}) {
   if (P.pluck) lp.frequency.setTargetAtTime(Math.min(12000, 300 + f * 2), at + 0.01, 0.15);
   if (P.swell) { lp.frequency.setValueAtTime(400 + f, at); lp.frequency.linearRampToValueAtTime(Math.min(12000, 600 + f * P.bright), at + 0.08); }
   const oscs = P.osc.map(([type, mul, lvl]) => { const o = a.createOscillator(), og = a.createGain(); o.type = type; o.frequency.value = f * mul; og.gain.value = lvl; o.connect(og); og.connect(lp); return o; });
-  if (P.vib) { const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = P.vib; lg.gain.setValueAtTime(0, at); lg.gain.linearRampToValueAtTime(f * 0.004, at + 0.35); lfo.connect(lg); for (const o of oscs) lg.connect(o.frequency); lfo.start(at); oscs.push(lfo); }
+  if (P.vib) { const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = P.vib; lg.gain.setValueAtTime(0, at); lg.gain.linearRampToValueAtTime(f * 0.004, at + 0.35); lfo.connect(lg); for (const o of oscs) lg.connect(o.frequency); oscs.push(lfo); } // started with the rest below (starting it twice threw, and the note never ended)
   lp.connect(g); g.connect(out);
   const peak = 0.3 * vel * gain * Math.min(1, 1.3 - (midi - 60) / 80) / Math.sqrt(P.osc.length * 0.7);
   g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(peak, at + P.a);
