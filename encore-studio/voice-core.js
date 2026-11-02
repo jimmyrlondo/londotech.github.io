@@ -660,7 +660,7 @@ export const dayOf = date => { const d = new Date(date); return `${d.getFullYear
 
 /** Checks an imported progress file; gives the cleaned data or throws a readable error */
 export function validateImport(data) {
-  if (!data || typeof data !== 'object' || data.app !== 'encore-voice') throw new Error('That isn\'t an Encore Voice progress file.');
+  if (!data || typeof data !== 'object' || data.app !== 'encore-voice') throw new Error('That isn\'t an ENCORE. Voice progress file.');
   const history = Array.isArray(data.history) ? data.history.filter(h => h && typeof h.kind === 'string' && typeof h.t === 'string') : [];
   const range = data.range && Number.isFinite(data.range.low) && Number.isFinite(data.range.high) ? data.range : null;
   return { app: 'encore-voice', version: 1, range, history };

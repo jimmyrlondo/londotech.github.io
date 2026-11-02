@@ -320,7 +320,7 @@ function flacBlock(type, body, last) {
 function writeFlac(u8, m) {
   const L = flacLayout(u8), keep = L.blocks.filter((b) => b.type !== 1 && b.type !== 4 && b.type !== 6);
   const bodies = keep.map((b) => [b.type, u8.subarray(b.body, b.end)]);
-  bodies.push([4, buildComments(m.vendor ?? "Encore Tag", modelToComments(m, { format: "flac" }))]);
+  bodies.push([4, buildComments(m.vendor ?? "ENCORE. Tag", modelToComments(m, { format: "flac" }))]);
   for (const p of m.pictures) if (p.bytes?.length) bodies.push([6, buildPictureBlock(p)]);
   // padding: keep the file the same size when the new tags fit in the old space, else leave 4 KB for next time
   const oldLen = L.audio - L.prefix - 4, newLen = bodies.reduce((a, [, b]) => a + 4 + b.length, 0);

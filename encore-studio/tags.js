@@ -35,7 +35,7 @@ export function id3(meta, art) {
   t("TIT2", meta.title); t("TPE1", meta.artist); t("TPE2", meta.albumArtist || meta.artist); t("TALB", meta.album);
   t("TYER", meta.year); t("TCON", meta.genre); t("TRCK", meta.track); t("TPOS", meta.disc); t("TSRC", meta.isrc);
   t("TCOM", meta.composer); t("TPUB", meta.publisher); t("TCOP", meta.copyright);
-  t("TSSE", "Encore Music Studio");
+  t("TSSE", "ENCORE. Studio");
   // user-defined text: description, then the value (both UTF-16)
   const txxx = (desc, v) => frames.push(frame("TXXX", concat([new Uint8Array([1]), utf16(desc), new Uint8Array([0, 0]), utf16(String(v))])));
   if (meta.explicit) txxx("ITUNESADVISORY", "1"); // what Apple Music and most players read
@@ -63,7 +63,7 @@ function quantize(x, bits, rng) {
 
 function infoChunk(meta) {
   const items = [["INAM", meta.title], ["IART", meta.artist], ["IPRD", meta.album], ["ICRD", meta.year],
-                 ["IGNR", meta.genre], ["ITRK", meta.track], ["ICOP", meta.copyright], ["ICMT", meta.comment], ["ISFT", "Encore Music Studio"]];
+                 ["IGNR", meta.genre], ["ITRK", meta.track], ["ICOP", meta.copyright], ["ICMT", meta.comment], ["ISFT", "ENCORE. Studio"]];
   const parts = [enc.encode("INFO")];
   for (const [id, v] of items) {
     if (v === undefined || v === null || String(v).trim() === "") continue;

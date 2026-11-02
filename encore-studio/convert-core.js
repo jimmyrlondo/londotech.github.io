@@ -236,7 +236,7 @@ export function normalize(chans, fs, mode) {
     const lufs = loudnessOf(chans, fs);
     if (lufs <= -70) return { gainDb: 0, note: "The audio is too quiet to measure loudness." };
     gainDb = -14 - lufs;
-    if (gainDb > peakRoom) { note = `Reaching -14 LUFS would push the peaks past -1 dBFS, so it stops at ${(lufs + peakRoom).toFixed(1)} LUFS. Use Encore Master to get louder cleanly.`; gainDb = peakRoom; }
+    if (gainDb > peakRoom) { note = `Reaching -14 LUFS would push the peaks past -1 dBFS, so it stops at ${(lufs + peakRoom).toFixed(1)} LUFS. Use ENCORE. Master to get louder cleanly.`; gainDb = peakRoom; }
   }
   const g = Math.pow(10, gainDb / 20);
   if (Math.abs(gainDb) > 1e-6) for (const c of chans) for (let i = 0; i < c.length; i++) c[i] *= g;
@@ -296,7 +296,7 @@ function riffChunk(id, body, le = true) {
 }
 function infoList(meta) {
   const items = [["INAM", meta.title], ["IART", meta.artist], ["IPRD", meta.album], ["ICRD", meta.year], ["IGNR", meta.genre],
-    ["ITRK", meta.track], ["ICOP", meta.copyright], ["ICMT", meta.comment], ["ISFT", "Encore Music Studio"]];
+    ["ITRK", meta.track], ["ICOP", meta.copyright], ["ICMT", meta.comment], ["ISFT", "ENCORE. Studio"]];
   const parts = [enc.encode("INFO")];
   for (const [id, v] of items) if (v !== undefined && v !== null && String(v).trim() !== "") parts.push(...riffChunk(id, enc.encode(String(v).trim() + "\0")));
   return concat(parts);

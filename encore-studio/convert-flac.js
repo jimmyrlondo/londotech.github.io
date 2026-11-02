@@ -243,7 +243,7 @@ function metaBlock(type, body, last) {
   return concat([h, body]);
 }
 // Vorbis comments, the tag format FLAC (and Opus) use
-export function vorbisComment(meta, vendor = "Encore Music Studio") {
+export function vorbisComment(meta, vendor = "ENCORE. Studio") {
   const pairs = [["TITLE", meta.title], ["ARTIST", meta.artist], ["ALBUMARTIST", meta.albumArtist], ["ALBUM", meta.album], ["DATE", meta.year], ["GENRE", meta.genre],
     ["TRACKNUMBER", meta.track], ["DISCNUMBER", meta.disc], ["COMPOSER", meta.composer], ["COPYRIGHT", meta.copyright], ["ISRC", meta.isrc], ["COMMENT", meta.comment]];
   if (meta.explicit) pairs.push(["ITUNESADVISORY", "1"]);

@@ -5,7 +5,7 @@
 /** The built-in kits. Three are synthesized here; Acoustic is real recorded drums, fetched (from kits/acoustic/, a
  *  kit folder in the Beatpad format) only when someone picks it. Each pad: [slot, name, sound id, MIDI note, choke group] */
 export const KITS = [
-  { id: 'encore', name: 'Encore', about: 'A punchy all-round kit, made right here in your browser (works offline).',
+  { id: 'encore', name: 'ENCORE.', about: 'A punchy all-round kit, made right here in your browser (works offline).',
     pads: [[1, 'Kick', 'kick', 36], [2, 'Snare', 'snare', 38], [3, 'Closed hat', 'closedHat', 42, 1], [4, 'Clap', 'clap', 39], [5, 'Rim', 'rim', 37],
            [6, 'Open hat', 'openHat', 46, 1], [7, 'High tom', 'highTom', 48], [8, 'Low tom', 'lowTom', 45], [9, 'Crash', 'crash', 49]] },
   { id: 'boom', name: 'Boom', about: 'In the style of the classic analog drum machine: a deep, long, booming kick, a snappy snare, metallic hats and a cowbell.',

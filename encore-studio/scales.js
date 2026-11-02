@@ -932,7 +932,7 @@ function toast(text) {
 
 function render() {
   const name = nt(root) + ' ' + scale.name;
-  document.title = name + ' · Scales · Encore Music Studio';
+  document.title = name + ' · Scales · ENCORE. Studio';
   $('title').textContent = name;
   $('approxBadge').classList.toggle('hidden', !scale.approx);
   $('headSub').textContent = scale.size + ' notes';

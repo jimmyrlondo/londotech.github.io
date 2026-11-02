@@ -80,7 +80,7 @@ export function tracklistText(album, rows) {
     if (r.composer) lines.push(`    Written by ${clean(r.composer)}`);
   });
   const total = rows.reduce((a, r) => a + r.seconds, 0);
-  lines.push("", `Total time: ${clock(total)}`, "Mastered with Encore Studio", "");
+  lines.push("", `Total time: ${clock(total)}`, "Mastered with ENCORE. Studio", "");
   return lines.join("\r\n");
 }
 

@@ -170,7 +170,7 @@ $("projectFile").onchange = async () => {
   if (!f) return;
   let p;
   try { p = P.fromProjectFile(await f.text()); }
-  catch (err) { $("startErr").textContent = err.message || "That isn't an Encore Restore project file."; $("startErr").classList.remove("hidden"); return; }
+  catch (err) { $("startErr").textContent = err.message || "That isn't an ENCORE. Restore project file."; $("startErr").classList.remove("hidden"); return; }
   if (await S.loadProject(p.id)) p.id = uid() + uid();
   p.images = p.images.map((im) => ({ id: im.id, kind: im.kind, part: im.part, name: im.name, mime: im.mime, blob: new Blob([im.bytes], { type: im.mime }) }));
   await S.saveProject(p);
@@ -442,7 +442,7 @@ async function attachRecording(part, res) {
   part.audio = { name: `${P.cleanName(part.name)} (recorded ${P.localDate()}).wav`, size: file.size, seconds: frames / res.fs, fs: res.fs, bits: 32, float: true, channels: res.channels, recorded: true, device, store: file === res.file ? null : name, at: new Date().toISOString() };
   const x = state.project.transfer;
   if (!x.adc && device) x.adc = device;
-  if (!x.settings) x.settings = `${(res.fs / 1000).toFixed(1)} kHz, 32-bit float, recorded in Encore Restore`;
+  if (!x.settings) x.settings = `${(res.fs / 1000).toFixed(1)} kHz, 32-bit float, recorded in ENCORE. Restore`;
   if (!x.date) x.date = P.localDate();
   S.setMeta("recording", null);
   state.recording = null;

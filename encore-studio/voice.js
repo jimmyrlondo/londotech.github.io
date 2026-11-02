@@ -872,7 +872,7 @@ $('importFile').onchange = async () => {
     drawProgress();
     afterRangeChange();
     alert(`Imported ${got.history.length} sessions.`);
-  } catch (e) { alert(e.message && e.message.includes('Encore Voice') ? e.message : 'That file couldn\'t be read as an Encore Voice progress file.'); }
+  } catch (e) { alert(e.message && e.message.includes('ENCORE. Voice') ? e.message : 'That file couldn\'t be read as an ENCORE. Voice progress file.'); }
 };
 $('clearBtn').onclick = () => {
   if (!confirm('Clear your saved range and all progress on this device? Export first if you want a copy.')) return;

@@ -528,7 +528,7 @@ export function tagsFor(project, item, opts = {}) {
     track: String(item.number), trackTotal: String(item.trackTotal), disc: item.discTotal > 1 || opts.alwaysDisc ? String(item.disc) : "", discTotal: item.discTotal > 1 || opts.alwaysDisc ? String(item.discTotal) : "",
     date: r.date || r.year || "", genre: r.genre || "", composer: t.composer || "", lyricist: t.lyricist || "", isrc: t.isrc || "",
     explicit: t.explicit ? "explicit" : "", label: r.label || "", catalogNumber: r.catalog || "", barcode: r.barcode || "", media: f.media || "",
-    language: r.language || "", copyright: r.copyright || "", encodedBy: x.by || "", encoder: "Encore Restore", grouping: r.collection || "",
+    language: r.language || "", copyright: r.copyright || "", encodedBy: x.by || "", encoder: "ENCORE. Restore", grouping: r.collection || "",
   };
   // credits with a field of their own (producer, engineer...), the rest as performers
   const performers = [];
@@ -541,7 +541,7 @@ export function tagsFor(project, item, opts = {}) {
   const comment = [`Source: ${[r.formatDetails || f.media, r.label && `label ${r.label}`, r.catalog && `catalog ${r.catalog}`, p.name].filter(Boolean).join(", ")}.`];
   const chain = [x.deck, x.cartridge, x.stylus, x.preamp, x.adc].filter(Boolean).join(" / ");
   if (chain || x.date || x.by) comment.push(`Transfer: ${[chain, x.date && `on ${x.date}`, x.by && `by ${x.by}`].filter(Boolean).join(" ")}.`);
-  comment.push(`Restored with Encore Restore: ${describeRestoration(p.settings, p.restored?.clicks)}.`);
+  comment.push(`Restored with ENCORE. Restore: ${describeRestoration(p.settings, p.restored?.clicks)}.`);
   if (t.notes) comment.push(t.notes);
   fields.comment = comment.join(" ");
   const custom = [
@@ -647,7 +647,7 @@ export function toProjectFile(project, images = project.images) {
 }
 export function fromProjectFile(text) {
   const p = typeof text === "string" ? JSON.parse(text) : text;
-  if (p?.app !== "Encore Restore") throw new Error("That isn't an Encore Restore project file.");
+  if (p?.app !== "Encore Restore") throw new Error("That isn't an ENCORE. Restore project file.");
   if (p.kind !== "project") return upgradeV1(p);
   const out = reviveF32({ ...p, images: [] });
   out.images = (p.images || []).map((im) => ({ id: im.id || uid(), kind: im.kind, part: im.part || null, name: im.name || "", mime: im.mime, bytes: fromBase64(im.b64 || "") }));

@@ -1229,7 +1229,7 @@ export function reportText({ tracks, album = [], cover = null, when = new Date()
     if (c.detail) out.push(`${ind}    ${c.detail}`);
     if (c.fix && c.status !== "pass") out.push(`${ind}    How to fix: ${c.fix}`);
   };
-  out.push("Encore: Last Call, release check", `Checked ${when.toLocaleString()}`, "", `Verdict: ${v.label}. ${v.summary}`, "");
+  out.push("ENCORE. Last Call, release check", `Checked ${when.toLocaleString()}`, "", `Verdict: ${v.label}. ${v.summary}`, "");
   if (album.length) { out.push("Album"); album.forEach((c) => line(c)); out.push(""); }
   if (cover) { out.push("Cover art"); line(cover); out.push(""); }
   tracks.forEach((t, i) => {
@@ -1237,6 +1237,6 @@ export function reportText({ tracks, album = [], cover = null, when = new Date()
     t.checks.forEach((c) => line(c));
     out.push("");
   });
-  out.push("Measured on your own device with Encore Music Studio. Streaming figures are estimates: services change their settings from time to time.");
+  out.push("Measured on your own device with ENCORE. Studio. Streaming figures are estimates: services change their settings from time to time.");
   return out.join("\n");
 }

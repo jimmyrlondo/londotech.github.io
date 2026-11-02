@@ -696,7 +696,7 @@ function setupExport() {
 function exportMeta() {
   const v = (id) => $(id).value.trim();
   return { artist: v("expArtist"), title: v("expTitle"), album: v("expAlbum"), year: v("expYear"), genre: v("expGenre"),
-           track: v("expTrack"), isrc: v("expIsrc"), comment: `Mastered with Encore Music Studio (${STYLES[state.style].name})` };
+           track: v("expTrack"), isrc: v("expIsrc"), comment: `Mastered with ENCORE. Studio (${STYLES[state.style].name})` };
 }
 
 function chosenFormats() {

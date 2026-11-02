@@ -7,6 +7,7 @@ import { clampBpm, SUBDIVISIONS, subFractions, groupingOptions, defaultGroups, p
          unitOptions, noteValueName, tempoName, TapTempo, cleanSettings, SOUND_SETS, makeSounds, sliderGain,
          OnsetDetector, measureLatency, TimeCheck, summarize } from './metronome-core.js';
 import { TempoFinder, tapTempo } from './bpm-core.js';
+import { VIEWS, Views, PulseTracker, pulseOf } from './metronome-visuals.js';
 
 const $ = id => document.getElementById(id);
 const store = {
@@ -19,7 +20,8 @@ const TEST = new URLSearchParams(location.search).has('selftest');
 // ---- what the clock plays (S, the same object the worklet gets) and the page's own choices (P)
 let S = cleanSettings(loadJSON('settings', null));
 const VOL = { master: 80, accent: 90, beat: 75, sub: 50, poly: 65 };
-const P = { sound: 'classic', countIn: false, flashOffset: 0, tcOn: false, listen: 'same', sens: 50, inputId: '', latency: null, latencyHow: '', latencyWhen: '', song: -1, ...loadJSON('page', {}) };
+const P = { sound: 'classic', countIn: false, flashOffset: 0, tcOn: false, listen: 'same', sens: 50, inputId: '', latency: null, latencyHow: '', latencyWhen: '', song: -1, view: 'pendulum', ...loadJSON('page', {}) };
+if (!VIEWS.some(v => v.id === P.view)) P.view = 'pendulum';
 P.vol = { ...VOL, ...(P.vol || {}) };
 let songs = loadJSON('songs', []);
 if (!Array.isArray(songs)) songs = [];
@@ -57,7 +59,7 @@ async function start() {
     await audio();
     if (running || calib) return;
     if (P.tcOn) await beginTake();
-    queue = []; firstBar = null; shown = null;
+    queue = []; firstBar = null; shown = null; tracker.reset();
     node.port.postMessage({ type: 'start', countIn: P.countIn, at: testStartAt ?? undefined });
     testStartAt = null;
     running = true;
@@ -170,11 +172,15 @@ let lastSub = -1;
 function draw() {
   requestAnimationFrame(draw);
   if (take && take.dirty) { take.dirty = false; drawTake(false); }
-  if (!ctx || !running && !queue.length) { drawPoly(null, 0); return; }
+  drawView(beatNow());
+}
+/** Lights the beat being heard; returns it (and how far through it we are) for the looks, or null */
+function beatNow() {
+  if (!ctx || !running && !queue.length) { drawPoly(null, 0); return null; }
   const hf = heardFrame();
   while (queue.length > 1 && queue[1].frame <= hf) queue.shift();
   const ev = queue[0];
-  if (!ev || ev.frame > hf || (!running && hf > ev.frame + ev.len)) { if (!running) { queue = []; clearNow(); } drawPoly(null, 0); return; }
+  if (!ev || ev.frame > hf || (!running && hf > ev.frame + ev.len)) { if (!running) { queue = []; clearNow(); } drawPoly(null, 0); return null; }
   const frac = Math.min(0.9999, (hf - ev.frame) / ev.len);
   if (ev !== shown) { showCount(ev, shown); shown = ev; lastSub = -1; }
   // the subdivision dots
@@ -186,6 +192,56 @@ function draw() {
     lastSub = k;
   }
   drawPoly(ev, frac);
+  return { ev, frac, hf };
+}
+
+// ---- the looks (metronome-visuals.js): drawn from the same heard count, so they move with the click
+const inlineViews = new Views($('viewCanvas')), stageViews = new Views($('stageCanvas')), tracker = new PulseTracker();
+const reduceMotion = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+const stageOpen = () => !$('stage').classList.contains('hidden');
+function drawView(cur) {
+  if (P.view === 'count') return;
+  if (!running && !cur) tracker.reset();
+  const n = cur ? tracker.update(pulseOf(cur.ev, cur.frac)) : 0;
+  const v = stageOpen() ? stageViews : inlineViews;
+  v.draw(P.view, { ev: cur ? cur.ev : null, frac: cur ? cur.frac : 0, sr: ctx ? ctx.sampleRate : 48000, running, S, reduced: reduceMotion.matches, n, subsIdle: subFractions(S.sub, S.swing) });
+  if (TEST && cur && P.view === 'pendulum') { const log = window.__viewLog ||= []; if (log.length < 20000) log.push({ hf: cur.hf, frame: cur.ev.frame, len: cur.ev.len, a: v.angle, n }); }
+}
+function setView(id) {
+  P.view = id;
+  save();
+  showView();
+}
+function showView() {
+  for (const box of [$('viewPick'), $('stagePick')]) box.querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.view === P.view); b.setAttribute('aria-checked', b.dataset.view === P.view); });
+  $('panel').classList.toggle('withView', P.view !== 'count');
+  $('panel').classList.toggle('withPoly', !!S.poly.on);
+  $('stage').classList.toggle('canvasMode', P.view !== 'count');
+}
+for (const box of [$('viewPick'), $('stagePick')]) for (const v of VIEWS) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = v.name; b.title = v.title; b.dataset.view = v.id; b.setAttribute('role', 'radio');
+  b.onclick = () => setView(v.id);
+  box.append(b);
+}
+const nextView = () => { const i = VIEWS.findIndex(v => v.id === P.view); setView(VIEWS[(i + 1) % VIEWS.length].id); toast('Look: ' + VIEWS.find(v => v.id === P.view).name); };
+// drag the pendulum's weight up for slower, down for faster, like the real thing
+let weightDrag = false, dragEnd = -1e9;
+for (const [id, views] of [['viewCanvas', inlineViews], ['stageCanvas', stageViews]]) {
+  const c = $(id), xy = e => { const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  c.addEventListener('pointerdown', e => {
+    if (P.view !== 'pendulum' || !views.onWeight(...xy(e))) return;
+    weightDrag = true;
+    try { c.setPointerCapture(e.pointerId); } catch {}
+    c.classList.add('grabbing');
+    e.preventDefault();
+  });
+  c.addEventListener('pointermove', e => {
+    if (!weightDrag) { c.classList.toggle('grab', P.view === 'pendulum' && views.onWeight(...xy(e))); return; }
+    const b = views.bpmAt(xy(e)[1]);
+    if (b) setBpm(Math.round(b));
+  });
+  for (const t of ['pointerup', 'pointercancel']) c.addEventListener(t, () => { if (weightDrag) dragEnd = performance.now(); weightDrag = false; c.classList.remove('grabbing'); });
 }
 
 function showCount(ev, prev) {
@@ -198,7 +254,7 @@ function showCount(ev, prev) {
   const pulse = allOnes(ev.groups) ? ev.count + 1 : ev.group + 1;
   $('stageCount').textContent = ev.muted ? '·' : String(pulse);
   $('stageCount').style.color = ev.countIn ? '#91887d' : ev.level === 3 ? '#ff3b00' : '';
-  if (!ev.muted && ev.level > 0 && !$('stage').classList.contains('hidden')) {
+  if (!ev.muted && ev.level > 0 && P.view === 'count' && !$('stage').classList.contains('hidden')) {
     const f = $('stageFlash');
     f.style.background = ev.level === 3 ? 'rgb(255 59 0 / 0.55)' : ev.level === 2 ? 'rgb(242 239 232 / 0.18)' : 'rgb(242 239 232 / 0.08)';
     f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
@@ -426,6 +482,7 @@ function refresh() {
   showOffset();
   buildBeats();
   drawSongs();
+  showView();
 }
 
 // ---- setlist
@@ -539,7 +596,7 @@ $('stageExit').onclick = closeStage;
 $('stagePlay').onclick = toggle;
 $('stagePrev').onclick = () => $('songPrev').click();
 $('stageNext').onclick = () => $('songNext').click();
-$('stage').addEventListener('click', e => { if (e.target.closest('button')) return; toggle(); });
+$('stage').addEventListener('click', e => { if (e.target.closest('button')) return; if (performance.now() - dragEnd < 400) return; toggle(); });
 // leaving fullscreen (Esc, or the phone's back gesture) also leaves stage view
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && !$('stage').classList.contains('hidden')) closeStage(); });
 
@@ -558,7 +615,7 @@ document.addEventListener('keydown', e => {
     ArrowDown: () => setBpm(Math.round(S.bpm) - (e.shiftKey ? 10 : 1)),
     ArrowRight: () => setBpm(Math.round(S.bpm) + 5),
     ArrowLeft: () => setBpm(Math.round(S.bpm) - 5),
-    t: tap, b: () => { showTab('bpm'); findTap(); }, s: nextSub, f: stageToggle, m: toggleMute,
+    t: tap, b: () => { showTab('bpm'); findTap(); }, s: nextSub, f: stageToggle, m: toggleMute, v: nextView,
     c: () => { P.countIn = !P.countIn; $('countIn').checked = P.countIn; save(); toast('Count-in ' + (P.countIn ? 'on' : 'off')); },
     l: () => { $('tcOn').checked = !$('tcOn').checked; $('tcOn').onchange(); },
     '[': () => $('songPrev').click(), ']': () => $('songNext').click(),
@@ -833,7 +890,7 @@ if (TEST) window.__metro = {
     src.buffer = b; src.connect(node); src.start(at / ctx.sampleRate);
     testInput = src; testStartAt = startAt;
   },
-  calibrate, start, stop, get take() { return take; }, setLatency(ms) { P.latency = ms; save(); showLatency(); },
+  calibrate, start, stop, get take() { return take; }, get views() { return inlineViews; }, setLatency(ms) { P.latency = ms; save(); showLatency(); },
 };
 
 // ---- the page as it was left

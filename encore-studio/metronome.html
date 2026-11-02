@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Metronome · Encore Music Studio</title>
+<title>Metronome · ENCORE. Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -187,20 +187,50 @@
   .stageBtns { position: absolute; bottom: calc(16px + env(safe-area-inset-bottom)); left: 16px; right: 16px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
   .stageBtns button { min-height: 60px; min-width: 110px; font-size: 17px; font-weight: 700; color: var(--text); background: rgb(44 39 35 / 0.85); border: 1px solid var(--divider-strong); border-radius: 999px; }
   .stageBtns button.go { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  /* the looks: pendulum, conductor, bounce, circle (metronome-visuals.js) */
+  .viewPick { display: flex; gap: 2px; margin: -6px 0 8px; overflow-x: auto; scrollbar-width: none; }
+  .viewPick::-webkit-scrollbar { display: none; }
+  .viewPick > :first-child { margin-left: auto; }
+  .viewPick > :last-child { margin-right: auto; }
+  @media (max-width: 420px) { .panel .viewPick button, .stage .stagePick button { padding: 6px 4px; font-size: 12px; } .viewPick { gap: 0; } }
+  .viewPick button { flex: none; font-size: 13px; font-weight: 700; color: var(--dim); background: transparent; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 6px 9px; min-height: 34px; }
+  .viewPick button:hover { color: var(--text); }
+  .viewPick button.on { color: var(--text); border-bottom-color: var(--accent); }
+  .viewBox { display: none; position: relative; height: clamp(150px, calc(100vh - 560px), 360px); margin: 0 0 8px; }
+  .viewBox canvas, .stageView canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+  .panel.withView .viewBox { display: block; }
+  .panel.withView .beat { height: 50px; }
+  .panel.withView .beat .num { top: 3px; }
+  .panel.withView .beatHint { display: none; }
+  .panel.withView.withPoly .viewBox { height: clamp(140px, calc(100vh - 630px), 300px); }
+  @media (max-width: 999px) { .viewBox { height: clamp(150px, calc(100svh - 610px), 300px); } .panel.withView.withPoly .viewBox { height: 150px; } }
+  .stagePick { position: relative; z-index: 1; margin: calc(8px + env(safe-area-inset-top)) 0 0; flex: none; max-width: 100%; }
+  .stagePick button { font-size: 15px; padding: 8px 12px; min-height: 44px; }
+  .stageView { display: none; position: relative; flex: 1 1 auto; min-height: 0; width: 100%; max-width: 1400px; }
+  .stage.canvasMode { justify-content: flex-start; }
+  .stage.canvasMode .stageView { display: block; }
+  .stage.canvasMode .stageCount, .stage.canvasMode .stageDots, .stage.canvasMode .flash { display: none; }
+  .stage.canvasMode .stageInfo { margin: 6px 0 0; font-size: clamp(16px, 2.6vw, 26px); }
+  .stage.canvasMode .stageBtns { position: static; margin: 10px 0 calc(12px + env(safe-area-inset-bottom)); flex: none; }
+  .stage:not(.canvasMode) .stagePick { position: absolute; top: 0; left: 16px; right: 16px; }
+  .grab { cursor: grab; }
+  .grabbing { cursor: grabbing; }
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #2c2723; border: 1px solid var(--divider-strong); color: var(--text); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 60; max-width: calc(100vw - 32px); }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
 </head>
 <body>
 <div class="bar">
-  <a class="home" href="index.html" aria-label="Encore Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="Encore" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
-  <nav class="tools" aria-label="Encore Studio tools"><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink on" href="metronome.html" aria-current="page">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a><a class="navlink" href="basement.html">Basement Studio</a></nav>
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="tune.html">Tune</a><a class="navlink on" href="metronome.html" aria-current="page">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="voice.html">Voice</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="tag.html">Tag</a><a class="navlink" href="convert.html">Convert</a><a class="navlink" href="basement.html">Basement Studio</a></nav>
   <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><option value="master.html">Master</option><option value="live.html">Live</option><option value="tune.html">Tune</option><option value="metronome.html" selected>Metronome</option><option value="beatpad.html">Beatpad</option><option value="voice.html">Voice</option><option value="restore.html">Restore</option><option value="lastcall.html">Last Call</option><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="tag.html">Tag</option><option value="convert.html">Convert</option><option value="basement.html">Basement Studio</option></select>
 </div>
 
 <main>
 <div class="layout">
   <section class="panel" id="panel">
+    <div class="viewPick" id="viewPick" role="radiogroup" aria-label="Look"></div>
+    <div class="viewBox" id="viewBox"><canvas id="viewCanvas" aria-label="Beat display"></canvas></div>
     <div class="beats" id="beats" aria-label="Beats of the bar"></div>
     <div class="beatHint">Tap a beat to change it: accent, normal, soft, silent.</div>
     <canvas id="polyCanvas" class="hidden" aria-label="Polyrhythm"></canvas>
@@ -389,6 +419,7 @@
         <kbd>C</kbd><span>Count-in on / off</span>
         <kbd>L</kbd><span>Time check listening on / off</span>
         <kbd>F</kbd><span>Stage view</span>
+        <kbd>V</kbd><span>Next look: count, pendulum, conductor, bounce, circle</span>
         <kbd>M</kbd><span>Mute / unmute</span>
         <kbd>[ ]</kbd><span>Previous / next song (also Page Up / Page Down, for foot pedals)</span>
         <kbd>Esc</kbd><span>Leave stage view</span>
@@ -401,6 +432,8 @@
 
 <div class="stage hidden" id="stage">
   <div class="flash" id="stageFlash"></div>
+  <div class="viewPick stagePick" id="stagePick" role="radiogroup" aria-label="Look"></div>
+  <div class="stageView" id="stageView"><canvas id="stageCanvas" aria-label="Beat display"></canvas></div>
   <div class="stageCount" id="stageCount">1</div>
   <div class="stageDots" id="stageDots"></div>
   <div class="stageInfo" id="stageInfo"></div>

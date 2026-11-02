@@ -102,7 +102,7 @@ export function gmNoteFor(name, slot) {
 }
 
 /** The built-in kit: every pad on its synthesized sound */
-export function defaultKit(name = 'Encore kit') {
+export function defaultKit(name = 'ENCORE. kit') {
   return { name, author: '', bpm: 90, pads: DEFAULT_PADS.map(d => ({ ...blankPad(d.slot), sample: { builtin: d.sound }, choke: d.choke || 0 })) };
 }
 

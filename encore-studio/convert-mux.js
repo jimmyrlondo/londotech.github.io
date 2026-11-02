@@ -38,7 +38,7 @@ function ilst(meta, art, extra = []) {
   const text = (key, v) => { if (v !== undefined && v !== null && String(v).trim() !== "") items.push(box(key, data(1, enc.encode(String(v).trim())))); };
   text("\xa9nam", meta.title); text("\xa9ART", meta.artist); text("aART", meta.albumArtist); text("\xa9alb", meta.album);
   text("\xa9day", meta.year); text("\xa9gen", meta.genre); text("\xa9wrt", meta.composer); text("cprt", meta.copyright); text("\xa9cmt", meta.comment);
-  text("\xa9too", "Encore Music Studio");
+  text("\xa9too", "ENCORE. Studio");
   const num = (key, v, len) => {
     const [a, b] = String(v ?? "").split("/").map((s) => parseInt(s, 10));
     if (!(a > 0)) return;
@@ -175,7 +175,7 @@ export function muxOggOpus(packets, { channels, preSkip = 312, inputRate = 48000
     let s = ""; for (let i = 0; i < pic.length; i += 0x8000) s += String.fromCharCode(...pic.subarray(i, i + 0x8000));
     extra.push("METADATA_BLOCK_PICTURE=" + btoa(s));
   }
-  w.packets([{ data: concat([enc.encode("OpusTags"), vorbisComment({ ...meta, extraComments: extra }, "Encore Music Studio")]), granule: 0 }]);
+  w.packets([{ data: concat([enc.encode("OpusTags"), vorbisComment({ ...meta, extraComments: extra }, "ENCORE. Studio")]), granule: 0 }]);
   // audio: about a second (50 packets of 20 ms) per page
   let pos = preSkip;
   const total = samples === undefined ? Infinity : preSkip + samples;

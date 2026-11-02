@@ -126,7 +126,7 @@ async function openInput() {
     const perHour = info.fs * info.channels * 4 * 3600;
     state.roomText = est ? `Room on this device for about ${Math.max(0, (est.quota - est.usage) / perHour).toFixed(1)} hours.` : "";
     const chText = info.channels === 1 ? "1 input" : `${info.channels} inputs`;
-    $("inputInfo").textContent = `${chText} at ${(info.fs / 1000).toFixed(1)} kHz. Every input gets recorded; you choose how they combine afterwards (Encore suggests a setup). ${state.roomText}`;
+    $("inputInfo").textContent = `${chText} at ${(info.fs / 1000).toFixed(1)} kHz. Every input gets recorded; you choose how they combine afterwards (ENCORE. suggests a setup). ${state.roomText}`;
     $("recInfo").innerHTML = `${esc(info.device || "Input")}<br>Soundcheck, not recording`;
     $("recGo").disabled = false;
     return true;
@@ -247,7 +247,7 @@ function showLevels({ peaks, pinned, leveledDb, seconds, recording }) {
     else if ((st === "blend" || st === "boardRoom") && nOn < 2) $("recHint").textContent = nOn ? `Only Input ${live[0]} has sound so far. Bring up the others to check them.` : "No sound on any input yet.";
     else $("recHint").textContent = !live.length ? "No sound on any input yet. Check the cable, the input's gain knob, and phantom power (48V) for condenser mics."
       : live.length === 1 ? `Sound on Input ${live[0]} only. That's fine: it'll play in both ears afterwards.`
-      : `Sound on inputs ${live.join(", ")}. After the show Encore suggests how to combine them (stereo, blended, or board + room), and you can change it.`;
+      : `Sound on inputs ${live.join(", ")}. After the show ENCORE. suggests how to combine them (stereo, blended, or board + room), and you can change it.`;
   } else if (now - openedAt > 3000 && heard[0] < -50) $("recHint").textContent = "No sound yet. Check the cable and the gain knob.";
   else if (peaks.length === 1) $("recHint").textContent = "";
   updateMonitor();
@@ -1240,11 +1240,11 @@ $("encoreGo").addEventListener("click", async () => {
   const out = await exportAll(); if (!out) return;
   const hook = window.EncoreStudio?.createLiveRelease;
   if (hook) {
-    $("exportStatus").textContent = "Sending to Encore...";
+    $("exportStatus").textContent = "Sending to ENCORE...";
     try { await hook(out.manifest, out.files.map((f) => ({ name: f.name, blob: f.blob }))); $("exportStatus").textContent = "Sent. Finish the sale details on Encore."; }
-    catch (err) { $("exportStatus").textContent = `Encore didn't take it: ${err.message}. The files below are ready to upload by hand.`; }
+    catch (err) { $("exportStatus").textContent = `ENCORE. didn't take it: ${err.message}. The files below are ready to upload by hand.`; }
   } else {
-    $("exportStatus").textContent = "Running outside the Encore site, so here's the release package instead: the zip has every track, the cover and a manifest.json Encore can read.";
+    $("exportStatus").textContent = "Running outside the ENCORE. site, so here's the release package instead: the zip has every track, the cover and a manifest.json ENCORE. can read.";
   }
 });
 
