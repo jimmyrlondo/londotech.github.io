@@ -12,6 +12,14 @@ import { readFileInfo, decodeWav, buildChecks, albumChecks, coverCheck, verdict,
 import { readTags, plan, FORMATS, PRESETS, fmtBytes } from "./convert-core.js";
 import { fillGenreSelect } from "./genres.js";
 import { zip } from "./zip.js";
+import { toLyrics } from "./songbook-core.js";
+
+// lyrics written in ENCORE. Songbook (same browser) can go into the files
+function songbookSongs() {
+  try { return (JSON.parse(localStorage.getItem("encore.songbook.v1") || "null")?.songs || []).map((x) => ({ id: x.id, title: x.title || "", body: x.body || "" })).filter((x) => x.body.trim()); } catch { return []; }
+}
+// the words alone: no [Verse] lines, at most one blank line in a row
+const plainLyrics = (body) => toLyrics(body).split("\n").filter((l) => !/^\[[^\]]+\]$/.test(l.trim())).join("\n").replace(/\n{3,}/g, "\n\n").trim();
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -298,7 +306,10 @@ function renderBody() {
     return;
   }
   if (state.step === "details") {
-    const r = state.release;
+    const r = state.release, sb = songbookSongs();
+    // a Songbook song with the same title brings its lyrics along
+    for (const s of state.songs) if (s.lyricsFrom === undefined) { const m = sb.find((x) => x.title.trim().toLowerCase() === s.title.trim().toLowerCase()); s.lyricsFrom = m ? m.id : ""; }
+    for (const s of state.songs) { const m = sb.find((x) => x.id === s.lyricsFrom); s.lyrics = m ? plainLyrics(m.body) : ""; }
     body.innerHTML = `<h3>Details</h3>
       <p class="lede">What goes into every file: the release, each song's credits and the cover. Filled in from your files' own tags where they had them.</p>
       <div class="detailsGrid"><div class="grid2">
@@ -313,11 +324,12 @@ function renderBody() {
       <div><div class="cover" id="cover" tabindex="0" role="button" aria-label="Cover art">${state.art ? `<img alt="Cover art" src="${state.art.url}">` : "Drop the cover art here, or tap to choose (JPEG or PNG, 3000 px square is best)"}</div>
         <input type="file" id="coverFile" accept="image/jpeg,image/png" hidden><div class="small dim" style="margin-top:4px">${state.art ? `${state.art.img.width}x${state.art.img.height} ${state.art.img.type.toUpperCase()}${state.art.source ? ", " + esc(state.art.source) : ""}` : ""}</div></div></div>
       <div class="label">Songs</div>
-      <table class="tracks"><thead><tr><th></th><th>Title</th><th class="opt">Featuring</th><th class="opt">Written by</th><th>ISRC</th><th class="x">Explicit</th></tr></thead>
+      <table class="tracks"><thead><tr><th></th><th>Title</th><th class="opt">Featuring</th><th class="opt">Written by</th><th>ISRC</th><th class="opt">Lyrics</th><th class="x">Explicit</th></tr></thead>
       <tbody id="trackRows">${state.songs.map((s, i) => `<tr data-i="${i}"><td class="n">${i + 1}</td><td><input data-k="title" value="${esc(s.title)}" aria-label="Title of song ${i + 1}"></td>
         <td class="opt"><input data-k="featuring" value="${esc(s.featuring)}" aria-label="Featuring"></td><td class="opt"><input data-k="composer" value="${esc(s.composer)}" aria-label="Written by"></td>
-        <td><input data-k="isrc" value="${esc(s.isrc)}" placeholder="US-AB1-26-00001" aria-label="ISRC"></td><td class="x"><input type="checkbox" data-k="explicit" ${s.explicit ? "checked" : ""} aria-label="Explicit"></td></tr>`).join("")}</tbody></table>
-      <p class="note">ISRCs come from your distributor or your country's ISRC agency. Leave them empty if you don't have them yet.</p>`;
+        <td><input data-k="isrc" value="${esc(s.isrc)}" placeholder="US-AB1-26-00001" aria-label="ISRC"></td>
+        <td class="opt"><select data-k="lyricsFrom" aria-label="Lyrics from Songbook" class="lyr"><option value="">${sb.length ? "None" : "None (write them in Songbook)"}</option>${sb.map((x) => `<option value="${x.id}" ${s.lyricsFrom === x.id ? "selected" : ""}>${esc(x.title || "Untitled")}</option>`).join("")}</select></td><td class="x"><input type="checkbox" data-k="explicit" ${s.explicit ? "checked" : ""} aria-label="Explicit"></td></tr>`).join("")}</tbody></table>
+      <p class="note">ISRCs come from your distributor or your country's ISRC agency. Leave them empty if you don't have them yet. Lyrics come from <a href="songbook.html">Songbook</a> and go into the files (players like Apple Music and foobar show them).</p>`;
     $("r_genre").append(new Option("(none)", ""));
     fillGenreSelect($("r_genre"));
     $("r_genre").value = r.genre || "";
@@ -327,6 +339,7 @@ function renderBody() {
     $("trackRows").addEventListener("input", (e) => {
       const inp = e.target, i = +inp.closest("tr").dataset.i, s = state.songs[i];
       s[inp.dataset.k] = inp.type === "checkbox" ? inp.checked : inp.value;
+      if (inp.dataset.k === "lyricsFrom") { const m = songbookSongs().find((x) => x.id === inp.value); s.lyrics = m ? plainLyrics(m.body) : ""; }
       invalidate(); renderSongs(); renderSteps();
     });
     const cover = $("cover");
