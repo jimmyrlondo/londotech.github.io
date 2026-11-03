@@ -5,6 +5,10 @@ The files in words/en/ are built by web/tools/build-words.py from the four
 sources below. They are redistributed under these terms. The pronunciations,
 definitions, synonyms and commonness levels come from these works; the
 rhyme, filter and syllable engine (words-core.js) is ENCORE.'s own.
+phrases.txt (multi-word phrases like "talk show") is made from WordNet's
+multi-word entries and the multi-word items in Moby Thesaurus II, pronounced
+word by word with the CMU dictionary. A handful of extra pronunciations
+(faux, gonna, wanna, gotta) are ENCORE.'s own, listed in build-words.py.
 
 1. CMU Pronouncing Dictionary
    https://raw.githubusercontent.com/cmusphinx/cmudict/master/cmudict.dict

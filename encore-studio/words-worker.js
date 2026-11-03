@@ -1,15 +1,20 @@
 // ENCORE. Songbook's word engine, off the main thread. words.js talks to it.
 //   in:  { id, type: "init", lang }                     out: progress { loaded, total, stage } ... then { id, ok }
+//                                                       then, once phrases.txt is in: { type: "phrases", count }
 //        { id, type: "rhymes", word, opts }              out: { id, ok, result }
+//              opts.offset set: a page of the whole sorted list (see pageOf), the list kept for the next page
 //        { id, type: "filter", list, opts }
 //        { id, type: "thesaurus", word }
 //        { id, type: "syllables", text }
 //        { id, type: "lookup", word }
 //   errors come back as { id, error }
-import { buildLexicon, filterList, syllablesOf, thesaurusOf, relatedSet, lookupOf, shardKey } from "./words-core.js";
+import { buildLexicon, filterList, syllablesOf, thesaurusOf, relatedSet, lookupOf, shardKey, pageOf } from "./words-core.js";
 
-let lex = null, lang = "en";
+let lex = null, lang = "en", phrasesIn = 0;
 const shards = new Map();
+// the last few full rhyme lists, so scrolling for more is just a slice
+const lists = new Map();
+function remember(key, list) { lists.set(key, list); while (lists.size > 8) lists.delete(lists.keys().next().value); }
 
 async function fetchText(url, onBytes) {
   const res = await fetch(url);
@@ -56,16 +61,33 @@ self.onmessage = async (e) => {
       self.postMessage({ type: "progress", loaded: 1, total: 1, stage: "Getting ready" });
       lex = buildLexicon(text);
       reply({ ok: true, result: { words: lex.W.length } });
+      // the phrases (talk show, to and fro) come after, so the first rhymes don't wait for them
+      fetchText(new URL(`words/${lang}/phrases.txt`, import.meta.url))
+        .then((t) => { phrasesIn = lex.addPhrases(t); lists.clear(); self.postMessage({ type: "phrases", count: phrasesIn }); })
+        .catch((err) => self.postMessage({ type: "phrases", count: 0, error: err?.message || String(err) }));
       return;
     }
     if (!lex) throw new Error("The word list isn't loaded yet.");
     const t0 = performance.now();
     let result;
-    if (d.type === "rhymes") {
+    if (d.type === "rhymes" && d.opts && d.opts.offset !== undefined && d.opts.offset !== null) {
+      // paged: the whole sorted list (every filter but the syllables tab), then one page of it
+      const { offset, limit, syllables, ...rest } = d.opts;
+      const key = JSON.stringify([d.word, rest, phrasesIn]);
+      let hit = lists.get(key);
+      if (!hit) {
+        const opts = await withRelated(rest), r = lex.rhymes(d.word, opts);
+        hit = { r, list: filterList(lex, r.results, opts) };
+        remember(key, hit);
+      }
+      const { results: _all, ...head } = hit.r;
+      result = { ...head, ...pageOf(hit.list, { syllables, offset, limit }) };
+    } else if (d.type === "rhymes") {
       const opts = await withRelated(d.opts || {});
       const r = lex.rhymes(d.word, opts);
       const filtered = filterList(lex, r.results, opts);
-      result = { ...r, total: filtered.length, results: trim(filtered, opts) };
+      const { totals, byKind } = pageOf(filtered, { limit: 0 });
+      result = { ...r, total: filtered.length, totals, byKind, results: trim(filtered, opts) };
     } else if (d.type === "filter") {
       result = filterList(lex, d.list || [], await withRelated(d.opts || {}));
     } else if (d.type === "thesaurus") {

@@ -1,11 +1,14 @@
-// ENCORE. Compose: sound and input. The instruments (synth voices now, with a
-// slot for each to be replaced by samples later), a small mixer with a part bus
+// ENCORE. Compose: sound and input. The instruments (recorded samples from
+// compose-samples.js, with a synth voice for each family underneath for any note
+// whose sample hasn't arrived yet, or a browser that can't play them), a small mixer with a part bus
 // each (volume, pan) and a reverb send, a scheduler that streams a performance
 // (compose-play.js) in chunks with loop support, offline rendering to WAV, MP3
 // and the rest, plus MIDI keyboards, the computer keyboard as a piano, the mic
 // and a metronome click. Times are AudioContext seconds, so recorded notes, the
 // click and playback all share one clock.
 import { perform, performanceLength } from "./compose-play.js";
+import { sampledInstrument, CREDITS, creditsText, bytesFetched, samplesSupported } from "./compose-samples.js";
+export { CREDITS, creditsText, bytesFetched, samplesSupported };
 
 let ctx = null, graph = null;
 export function audio() {
@@ -133,13 +136,38 @@ function release(h, t) {
   h.g.gain.cancelScheduledValues(when); h.g.gain.setTargetAtTime(0, when, h.rel);
   for (const o of h.oscs) try { o.stop(when + h.rel * 8 + 0.1); } catch {}
 }
-const custom = new Map(); // a name or family -> an instrument (a sample player, later)
-/** Use another instrument (a sample player) for an instrument name or a whole family */
+const custom = new Map(); // a name or family -> an instrument registered by the page
+const sampled = new Map(); // a name -> its sampled instrument (kept, so what it loaded stays loaded)
+let useSamples = typeof OfflineAudioContext !== "undefined" && typeof fetch !== "undefined";
+/** Use another instrument for an instrument name or a whole family (it wins over the samples) */
 export function registerInstrument(nameOrFamily, instrument) { custom.set(String(nameOrFamily).toLowerCase(), instrument); }
-/** The instrument that plays a part: a registered one for its name or family, or the family's synth voice */
+/** Recorded samples on (the default where the browser can) or off (the synth voices only) */
+export function setSampled(on) { useSamples = !!on && typeof OfflineAudioContext !== "undefined"; }
+export const sampledOn = () => useSamples && samplesSupported();
+/** The instrument that plays a part: a registered one, its sampled instrument, or the family's synth voice */
 export function voiceFor(instrumentName = "") {
-  const fam = soundFor(instrumentName);
-  return custom.get(String(instrumentName).toLowerCase()) || custom.get(fam) || synthVoice(fam);
+  const fam = soundFor(instrumentName), key = String(instrumentName).toLowerCase();
+  const own = custom.get(key) || custom.get(fam);
+  if (own) return own;
+  if (!useSamples || !samplesSupported()) return synthVoice(fam);
+  if (!sampled.has(key)) sampled.set(key, sampledInstrument(instrumentName, synthVoice(fam)));
+  return sampled.get(key);
+}
+// start loading what each part's notes need (doesn't wait)
+function prepareParts(events, voiceOf) {
+  const by = new Map();
+  for (const e of events) { if (!by.has(e.part)) by.set(e.part, []); by.get(e.part).push(e); }
+  return Promise.all([...by].map(([p, list]) => voiceOf(p).prepare?.(list)));
+}
+/**
+ * Load the samples a score plays, before Play (call it when a score opens or its instruments change).
+ * Resolves to { ready: true } when they're in, or { ready: false } if they couldn't load (the synth plays then).
+ */
+export async function prepareScore(score, opts = {}) {
+  if (!useSamples) return { ready: false };
+  const events = perform(score, { ...opts, all: true });
+  await prepareParts(events, (p) => voiceFor(score.parts[p]?.instrument || ""));
+  return { ready: samplesSupported() && score.parts.every((p, i) => { const v = voiceFor(p.instrument); return !v.readyFor || v.readyFor(events.filter((e) => e.part === i)); }) };
 }
 
 // ---------- notes now (the piano, MIDI keyboards, previews) ----------
@@ -182,6 +210,7 @@ export function playEvents(events, opts = {}) {
   const a = audio(), t0 = opts.t0 ?? a.currentTime + 0.1, look = opts.lookahead ?? 1.2, parts = opts.parts || [];
   const voices = new Map(), voiceOf = (p) => { if (!voices.has(p)) voices.set(p, voiceFor(parts[p]?.instrument || "")); return voices.get(p); };
   parts.forEach((p, i) => graph.bus(i, { volume: p.volume ?? 0.8, pan: p.pan ?? defaultPan(i, parts.length) }));
+  prepareParts(events, voiceOf); // samples on their way; the synth covers any note that comes first
   const loop = opts.loop && opts.loop.end > opts.loop.start ? opts.loop : null;
   const list = loop ? events.filter((e) => e.time >= loop.start && e.time < loop.end) : events;
   const len = loop ? loop.end - loop.start : performanceLength(events);
@@ -234,6 +263,8 @@ export async function renderAudio(score, opts = {}) {
   const fs = opts.sampleRate || 48000, secs = Math.max(0.5, performanceLength(keep) + (opts.tail ?? 2.5));
   const oc = new OfflineAudioContext(2, Math.ceil(secs * fs), fs), g = buildGraph(oc);
   const n = score.parts.length, voices = score.parts.map((p) => voiceFor(p.instrument));
+  // offline there's no hurry: every sample is in before the render starts
+  await prepareParts(keep, (p) => voices[p]);
   score.parts.forEach((p, i) => g.bus(i, { volume: p.volume ?? 0.8, pan: p.pan ?? defaultPan(i, n) }));
   for (const e of keep) voices[e.part].play(oc, g.bus(e.part), { ...e, time: e.time + 0.05 });
   const buf = await oc.startRendering();

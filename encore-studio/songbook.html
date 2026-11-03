@@ -161,6 +161,19 @@
   .wd { border: 0; background: transparent; padding: 2px 6px; border-radius: 6px; font-size: 14.5px; color: var(--text); }
   .wd:hover { background: rgb(255 59 0 / .16); }
   .wd.near { color: var(--soft); } .wd.guess { font-style: italic; }
+  /* words: syllable tabs, an endless grid, what each word is */
+  main.wordsWide { grid-template-columns: 240px minmax(0, 1fr) minmax(380px, 46%); }
+  .syltabs { display: flex; gap: 2px; margin-top: 10px; border-bottom: 1px solid var(--divider-strong); position: sticky; top: -12px; background: var(--panel); z-index: 2; padding-top: 4px; }
+  .syltabs button { flex: 1 1 0; border: 0; background: transparent; color: var(--soft); font-weight: 800; font-size: 14px; padding: 6px 4px 7px; border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
+  .syltabs button span { font-size: 11px; font-weight: 600; color: var(--dim); }
+  .syltabs button.on { color: var(--text); border-bottom-color: #ff3b00; } .syltabs button:disabled { opacity: .35; cursor: default; }
+  .wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 0 4px; margin-top: 6px; }
+  .wgrid .wd { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wd sup { font-size: 9.5px; color: var(--dim); margin-left: 2px; }
+  .wd.rare, .legend .rare { color: var(--soft); } .wd.name, .legend .name { font-style: italic; } .wd.phr, .legend .phr { color: #fdba74; }
+  .wd.near.phr { color: #c9a27e; } .hm { font-style: normal; color: #ff6c40; font-size: 11px; margin-left: 3px; font-weight: 800; }
+  .legend { display: inline-flex; gap: 8px; margin-left: 6px; } .wmore { padding: 10px 6px 4px; }
+  @media (max-width: 1100px) { main.wordsWide { grid-template-columns: 210px minmax(0, 1fr) minmax(330px, 46%); } }
   .sense { margin-top: 8px; font-size: 13px; }
   .sense .def { color: var(--soft); margin-bottom: 3px; }
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 999px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); }
@@ -169,7 +182,7 @@
   @media (max-width: 1100px) { main { grid-template-columns: 210px minmax(0, 1fr) 330px; } }
   /* a phone: one panel at a time, picked from the row at the top */
   @media (max-width: 899px) {
-    main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 60px); padding: 8px; gap: 8px; }
+    main, main.wordsWide { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 60px); padding: 8px; gap: 8px; }
     .mtabs { display: flex; gap: 4px; }
     .mtabs button { flex: 1 1 0; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); border-radius: 10px; padding: 7px; font-weight: 800; }
     .mtabs button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
@@ -179,6 +192,33 @@
     .parts { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; } .pt { flex: none; }
     .sheet { padding: 12px 12px 30px; } .sheet .ln { padding-right: 26px; }
   }
+  /* cover and details, print */
+  .coverBtn { width: 40px; height: 40px; flex: none; border-radius: 6px; border: 1px dashed var(--divider-strong); background: transparent; color: var(--dim); padding: 0; overflow: hidden; display: grid; place-items: center; font-size: 15px; }
+  .coverBtn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .coverBtn:hover { border-color: var(--soft); color: var(--text); }
+  .fcov { width: 16px; height: 16px; object-fit: cover; border-radius: 2px; vertical-align: -3px; margin-right: 4px; }
+  dialog.dlg { background: var(--panel); color: var(--text); border: 1px solid var(--divider-strong); border-radius: 14px; padding: 18px 20px; width: min(560px, 94vw); max-height: 92vh; overflow: auto; }
+  dialog.dlg::backdrop { background: rgb(0 0 0 / .6); }
+  dialog.dlg h3 { margin: 0 0 12px; font-size: 17px; }
+  .dlg .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; } .dlg .row.end { justify-content: flex-end; margin-top: 14px; }
+  .cv { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+  .cv img, .cv .none { width: 110px; height: 110px; object-fit: cover; border-radius: 8px; flex: none; }
+  .cv img.inh { opacity: .55; } .cv .none { border: 1px dashed var(--divider-strong); display: grid; place-items: center; color: var(--dim); font-size: 12.5px; }
+  .cvb { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+  .fl { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--soft); } .fl.wide { grid-column: 1 / -1; }
+  .fl .t { width: 100%; font-size: 14px; color: var(--text); } .fl textarea.t { background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 8px; padding: 6px 8px; resize: vertical; }
+  dialog.printDlg { width: min(1240px, 96vw); height: 92vh; max-height: none; padding: 0; display: flex; overflow: hidden; }
+  dialog.printDlg:not([open]) { display: none; }
+  .pside { width: 300px; flex: none; padding: 16px 18px; overflow-y: auto; border-right: 1px solid var(--divider); display: flex; flex-direction: column; gap: 6px; }
+  .pside h3 { margin: 0 0 4px; }
+  .plbl { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin-top: 8px; }
+  .seg.wrap { flex-wrap: wrap; border-radius: 12px; } .seg button:disabled { opacity: .35; cursor: default; }
+  .ck { display: flex; gap: 7px; align-items: center; font-size: 13.5px; }
+  .pside .fl { margin-top: 6px; }
+  .pview { flex: 1 1 auto; min-width: 0; background: #57534e; }
+  .pview iframe { width: 100%; height: 100%; border: 0; display: block; }
+  @media (max-width: 760px) { dialog.printDlg { flex-direction: column; height: 96vh; } .pside { width: auto; max-height: 46%; border-right: 0; border-bottom: 1px solid var(--divider); } .fgrid { grid-template-columns: 1fr; } }
   @media print {
     .bar, #libPanel, #toolPanel, .mtabs, .tools2, .parts, .hint, .songHead .titleRow .ib, #viewSeg { display: none !important; }
     body { background: #fff; color: #000; } main { display: block; height: auto; padding: 0; } .panel { border: 0; background: #fff; }
@@ -208,8 +248,10 @@
   <section class="panel" id="songPanel" aria-label="The song">
     <div class="songHead">
       <div class="titleRow">
+        <button class="coverBtn" id="coverBtn" aria-label="Cover and details"></button>
         <input class="titleIn" id="title" placeholder="Song title" aria-label="Song title" autocomplete="off">
         <input class="artistIn" id="artist" placeholder="Artist" aria-label="Artist" autocomplete="off">
+        <button class="ib" id="printBtn" title="Print or PDF (Ctrl+P): this song, the album, or your whole songbook" aria-label="Print">&#128438;</button>
         <div class="seg" id="viewSeg" aria-label="View"><button data-v="write">Write</button><button data-v="sheet">Chords</button></div>
       </div>
       <div class="tools2">

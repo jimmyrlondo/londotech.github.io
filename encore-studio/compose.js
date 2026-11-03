@@ -10,7 +10,7 @@ import { TPQ, barTicks, newScore, newEvent, newId, newPart, eventStarts, voiceLe
   quantize, playbackEvents, timeline, toMusicXML, fromMusicXML, toMidiFile, readMidiFile, keyName, spell, upgrade, addPart, removePart, movePart, barInfo,
   setBar, copyRange, pasteAt, deleteRange, transposeRange, addSpan, removeSpan, writeAt, fromLeadSheet } from "./compose-core.js";
 import { render } from "./compose-render.js";
-import { audio, noteOn, noteOff, allOff, metronome, startMidi, midiStatus, onNotes, playNote, KEYMAP, soundFor, startMic, stopMic, playScore, playEvents, renderAudio, renderStems, toWav, encodeAudio } from "./compose-io.js";
+import { audio, noteOn, noteOff, allOff, metronome, startMidi, midiStatus, onNotes, playNote, KEYMAP, soundFor, startMic, stopMic, playScore, playEvents, renderAudio, renderStems, toWav, encodeAudio, prepareScore, setSampled, sampledOn, CREDITS } from "./compose-io.js";
 import { perform, performanceLength } from "./compose-play.js";
 import { songbookSongs, leadSheetFrom } from "./compose-songbook.js";
 import { parseCommand, searchCommands } from "./compose-commands.js";
@@ -50,6 +50,7 @@ db.prefs ||= {};
 let saveTimer = 0;
 const save = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { toast("Couldn't save in this browser. Download a backup from Share."); } }, 300); };
 window.addEventListener("beforeunload", () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {} });
+if (db.prefs?.sampled === false) setSampled(false);
 const score = () => db.scores.find((s) => s.id === db.openId) || db.scores[0];
 
 // where you are: the part and voice you're writing in, the caret (insert point), the selected event, a range
@@ -88,7 +89,11 @@ const barAtCaret = () => { const t = caretTick(), info = barInfo(score(), { bars
 // ---------- drawing ----------
 const paper = $("paper");
 let hit = null, drawQueued = false, playTick = null;
+// the recorded instruments a score needs, fetched a moment after it changes (so Play starts on them, not the synth)
+let prepTimer = 0;
+function prepareSoon() { clearTimeout(prepTimer); prepTimer = setTimeout(() => { try { prepareScore(score()).catch(() => {}); } catch {} }, 900); }
 function draw() {
+  prepareSoon();
   if (drawQueued) return;
   drawQueued = true;
   requestAnimationFrame(() => {
@@ -155,7 +160,7 @@ function setDuration(ticks) {
   if (ui.sel >= 0 && ui.picked && !ui.range) changeSelected((e) => { e.dur = curDur(); return e; });
   renderTools();
 }
-function preview(midis) { const snd = soundFor(part().instrument); for (const m of midis) noteOn(m, 0.7, 0, 0.5, { sound: snd }); }
+function preview(midis) { for (const m of midis) noteOn(m, 0.7, 0, 0.5, { instrument: part().instrument }); }
 function deleteSel(back = false) {
   const r = ui.range ? rangeNow() : null;
   if (r) { commit(deleteRange(score(), ui.part, ui.voice, r.from, r.to, ui.mode)); ui.caret = r.from; ui.sel = r.from - 1; ui.range = null; draw(); renderTools(); return; }
@@ -288,7 +293,7 @@ function lightKey(m, on) { pianoEl.querySelector(`[data-m="${m}"]`)?.classList.t
 onNotes((ev) => {
   if (ev.type === "devices") { renderTools(); return; }
   if (ev.type === "on") {
-    noteOn(ev.midi, ev.vel, 0, 0, { sound: soundFor(part().instrument) }); lightKey(ev.midi, true);
+    noteOn(ev.midi, ev.vel, 0, 0, { instrument: part().instrument }); lightKey(ev.midi, true);
     if (ui.recording) { if (ui.recording.source !== "mic") ui.recording.open.set(ev.midi, { midi: ev.midi, on: ev.t - ui.recording.t0, vel: ev.vel }); return; }
     if (ui.playing) return;
     // keys pressed together make a chord
@@ -652,7 +657,10 @@ function renderTools() {
       <div class="lbl"><span>Your scores</span><span class="dim">kept in this browser</span></div>
       <div class="row"><button class="btn sm" id="backup">Download a backup</button><button class="btn sm" id="dup">Make a copy</button><button class="btn sm" id="delScore">Delete this score</button></div>
       <div class="lbl"><span>Page</span></div>
-      <div class="row"><label class="small"><input type="checkbox" id="paperChk" ${db.prefs.paper ? "checked" : ""}> Light paper</label></div>`;
+      <div class="row"><label class="small"><input type="checkbox" id="paperChk" ${db.prefs.paper ? "checked" : ""}> Light paper</label></div>
+      <div class="lbl"><span>Sounds</span></div>
+      <div class="row"><label class="small"><input type="checkbox" id="sampledChk" ${sampledOn() ? "checked" : ""}> Recorded instruments (off: the lighter synth)</label></div>
+      <p class="small dim">${CREDITS.map((c) => `<a href="${c.url}" target="_blank" rel="noopener" style="color:inherit">${esc(c.name)}</a> (${esc(c.license)}): ${esc(c.note)}`).join("<br>")}<br><a href="vendor/SOUNDS-LICENSES.txt" target="_blank" rel="noopener" style="color:inherit">Sound licenses</a></p>`;
     const fname = (ext) => `${(s.title || "score").replace(/[\\/:*?"<>|]+/g, "")}.${ext}`;
     $("dlXml").onclick = () => download(new Blob([toMusicXML(s)], { type: "application/vnd.recordare.musicxml+xml" }), fname("musicxml"));
     $("dlMid").onclick = () => download(new Blob([toMidiFile(s)], { type: "audio/midi" }), fname("mid"));
@@ -661,6 +669,7 @@ function renderTools() {
     $("audFmt").onchange = (ev) => { db.prefs.audioFormat = ev.target.value; save(); };
     $("dlMix").onclick = () => exportAudio(false);
     $("dlStems").onclick = () => exportAudio(true);
+    $("sampledChk").onchange = (ev) => { setSampled(ev.target.checked); db.prefs.sampled = ev.target.checked; save(); if (ev.target.checked) prepareSoon(); };
     $("sbGo") && ($("sbGo").onclick = () => {
       const song = sb.find((x) => x.id === $("sbSong").value); if (!song) return;
       const sc = upgrade(fromLeadSheet(leadSheetFrom(song)));

@@ -3,12 +3,18 @@
 // built by web/tools/build-words.py into words/<lang>/:
 //   lex.txt      word TAB phonemes (one character each, PHONES order) TAB flags
 //                (flags: SCOWL commonness level 0-9 or z, then a character with the
-//                part-of-speech bits n1 v2 a4 r8 and the explicit bit 16, plus 64)
+//                part-of-speech bits n1 v2 a4 r8 and the explicit bit 16, plus 64,
+//                then n for a name or - otherwise)
+//   phrases.txt  the same columns for multi-word phrases (talk show, to and fro),
+//                added with lex.addPhrases() once it loads; a 4th flag says where
+//                it's from: w WordNet, m Moby, b both (a well-known set phrase)
 //   th-xx.json   thesaurus shards by first two letters
 //
 // How rhymes are judged (ARPAbet phonemes from the CMU dictionary):
 //   the rhyme part of a word runs from its last stressed vowel to the end.
-//   perfect    the rhyme parts are the same sounds (desire / fire)
+//   perfect    the rhyme parts are the same sounds (desire / fire). Two more kinds of
+//              perfect rhyme carry a flag: a homophone (know / no) and an end rhyme, where
+//              only the last syllable matches and it isn't the stressed one (know / shadow)
 //   family     same stressed vowel and same shape, the consonants swapped only for
 //              close cousins: m/n/ng, p/b, t/d, k/g, f/v, s/z (time / mine)
 //   near       the stressed vowel matches or nearly matches and the rest is close (fire / mind)
@@ -20,6 +26,8 @@ export const VOWELS = "AA AE AH AO AW AY EH ER EY IH IY OW OY UH UW".split(" ");
 const NC = CONS.length; // 24: phone codes below this are consonants
 // SCOWL sizes for the commonness levels 0-9 (10 = unknown)
 export const LEVEL_SIZES = [10, 20, 35, 40, 50, 55, 60, 70, 80, 95];
+// a word at this level or below is "common" (SCOWL 50: words most people know)
+export const COMMON_LEVEL = 4;
 export const POS = { n: 1, v: 2, a: 4, r: 8 };
 const EXPLICIT = 16;
 
@@ -81,64 +89,116 @@ function seqSim(a, b) {
 // ---------- the lexicon ----------
 /** Parse lex.txt. Returns the engine (everything else hangs off it). */
 export function buildLexicon(text) {
-  const W = [], P = [], LV = [], FL = [];
-  let a = 0;
-  while (a < text.length) {
-    let b = text.indexOf("\n", a); if (b < 0) b = text.length;
-    const t1 = text.indexOf("\t", a), t2 = text.indexOf("\t", t1 + 1);
-    if (t1 > a && t2 > t1 && t2 < b) {
-      W.push(text.slice(a, t1));
-      const code = text.slice(t1 + 1, t2), ph = new Uint8Array(code.length);
-      for (let i = 0; i < code.length; i++) ph[i] = code.charCodeAt(i) - 48;
-      P.push(ph);
-      const lc = text.charCodeAt(t2 + 1);
-      LV.push(lc >= 48 && lc <= 57 ? lc - 48 : 10);
-      FL.push(text.charCodeAt(t2 + 2) - 64);
-    }
-    a = b + 1;
-  }
-  return new Lexicon(W, P, LV, FL);
+  const lex = new Lexicon();
+  lex.add(text, false);
+  return lex;
 }
 
 class Lexicon {
-  constructor(W, P, LV, FL) {
-    this.W = W; this.P = P; this.LV = Uint8Array.from(LV); this.FL = Uint8Array.from(FL);
-    const n = W.length;
+  constructor() {
+    this.W = []; this.P = []; this.LV = []; this.FL = [];
+    this.NM = [];                    // 1: a name (SCOWL lists it only capitalized)
+    this.PH = [];                    // a multi-word phrase from phrases.txt: 1 Moby, 2 WordNet, 3 both (0: a word)
     this.byWord = new Map();
-    this.rs = new Int16Array(n);     // where the rhyme part starts
-    this.syl = new Uint8Array(n);
-    this.sv = new Uint8Array(n);     // the stressed vowel (base)
+    this.rs = [];                    // where the rhyme part starts
+    this.syl = [];
+    this.sv = [];                    // the stressed vowel (base)
     this.perfect = new Map();        // rhyme part (stress removed) -> ids
-    this.byVowel = new Map();        // stressed vowel base -> ids
+    this.byVowel = new Map();        // stressed vowel base -> ids (words)
+    this.byVowelP = new Map();       // the same for phrases (near rhymes on phrases need the very same vowel)
     this.byCoda = new Map();         // final consonants -> ids
-    this.key = new Array(n);         // each word's rhyme part, as a string
-    for (let i = 0; i < n; i++) {
-      const w = W[i];
-      if (!this.byWord.has(w)) this.byWord.set(w, []);
-      this.byWord.get(w).push(i);
-      const ph = P[i];
-      let last1 = -1, last2 = -1, lastV = -1, syl = 0;
-      for (let k = 0; k < ph.length; k++) if (isV(ph[k])) { syl++; lastV = k; const s = stressOf(ph[k]); if (s === 1) last1 = k; else if (s === 2) last2 = k; }
-      const rs = last1 >= 0 ? last1 : last2 >= 0 ? last2 : lastV >= 0 ? lastV : 0;
-      this.rs[i] = rs; this.syl[i] = syl; this.sv[i] = isV(ph[rs]) ? base(ph[rs]) : 0;
-      const key = this.keyOf(ph, rs);
-      this.key[i] = key;
-      push(this.perfect, key, i); push(this.byVowel, this.sv[i], i);
-      let c = ph.length; while (c > 0 && !isV(ph[c - 1])) c--;
-      push(this.byCoda, Array.from(ph.subarray(c), base).join(","), i);
-    }
+    this.byFinal = new Map();        // last syllable (when its vowel is a full one) -> ids
+    this.key = [];                   // each word's rhyme part, as a string
+    this.fin = [];                   // each word's last syllable, or "" when it's a weak "uh"
+    this.phraseCount = 0;
+    this.ST = [];                    // stress strings, worked out when first needed
     this._monos = null; this._suffix = null;
   }
+  /** Add lex.txt-style lines (phrases.txt with phrase = true) and index them */
+  add(text, phrase) {
+    let a = 0, n = 0;
+    while (a < text.length) {
+      let b = text.indexOf("\n", a); if (b < 0) b = text.length;
+      const t1 = text.indexOf("\t", a), t2 = text.indexOf("\t", t1 + 1);
+      if (t1 > a && t2 > t1 && t2 < b) {
+        const i = this.W.length, w = text.slice(a, t1);
+        if (!phrase || !this.byWord.has(w)) {
+          const code = text.slice(t1 + 1, t2), ph = new Uint8Array(code.length);
+          for (let k = 0; k < code.length; k++) ph[k] = code.charCodeAt(k) - 48;
+          const lc = text.charCodeAt(t2 + 1);
+          this.W.push(w); this.P.push(ph);
+          this.LV.push(lc >= 48 && lc <= 57 ? lc - 48 : 10);
+          this.FL.push(text.charCodeAt(t2 + 2) - 64);
+          this.NM.push(t2 + 3 < b && text.charCodeAt(t2 + 3) === 110 ? 1 : 0);
+          this.PH.push(phrase ? 1 + Math.max(0, "mwb".indexOf(text[t2 + 4])) : 0);
+          this.index(i); n++;
+        }
+      }
+      a = b + 1;
+    }
+    if (phrase) this.phraseCount += n;
+    return n;
+  }
+  /** Add phrases.txt (multi-word phrases); returns how many were added */
+  addPhrases(text) { return this.add(text, true); }
+  index(i) {
+    const w = this.W[i], ph = this.P[i];
+    const ids = this.byWord.get(w); if (ids) ids.push(i); else this.byWord.set(w, [i]);
+    const { rs, syl } = rhymeStart(ph);
+    this.rs[i] = rs; this.syl[i] = syl; this.sv[i] = isV(ph[rs]) ? base(ph[rs]) : 0;
+    const key = this.keyOf(ph, rs);
+    this.key[i] = key;
+    push(this.perfect, key, i); push(this.PH[i] ? this.byVowelP : this.byVowel, this.sv[i], i);
+    let c = ph.length; while (c > 0 && !isV(ph[c - 1])) c--;
+    push(this.byCoda, Array.from(ph.subarray(c), base).join(","), i);
+    const f = this.finOf(ph);
+    this.fin[i] = f;
+    if (f) push(this.byFinal, f, i);
+  }
   keyOf(ph, rs) { let k = ""; for (let j = rs; j < ph.length; j++) k += String.fromCharCode(48 + base(ph[j])); return k; }
+  /** The last syllable as a key, when its vowel is a full one (OW in "shadow", not the "uh" in "sofa") */
+  finOf(ph) {
+    let v = ph.length - 1; while (v >= 0 && !isV(ph[v])) v--;
+    if (v < 0 || (stressOf(ph[v]) === 0 && WEAK.has(base(ph[v])))) return "";
+    return this.keyOf(ph, v);
+  }
+  // a phrase the lexicon doesn't list, pronounced word by word ("let it go")
+  compose(w) {
+    const parts = w.split(/[\s-]+/).filter(Boolean);
+    if (parts.length < 2) return null;
+    const out = []; let guess = false;
+    for (let k = 0; k < parts.length; k++) {
+      const ids = this.byWord.get(parts[k]);
+      let ph;
+      if (ids) ph = this.P[ids[0]];
+      else { const g = this.guess(parts[k]); if (!g) return null; ph = g.ph; guess = true; }
+      // little words lose their stress unless they end the phrase
+      if (FUNCTION.has(parts[k]) && k < parts.length - 1) ph = ph.map((p) => (isV(p) && stressOf(p) > 0 ? p - stressOf(p) : p));
+      out.push(...ph);
+    }
+    const ph = Uint8Array.from(out), { rs, syl } = rhymeStart(ph);
+    return { id: -1, ph, rs, syl, key: this.keyOf(ph, rs), fin: this.finOf(ph), guess };
+  }
   /** Everything we know about a word: its pronunciations, or a guess when it isn't in the dictionary */
   entries(word) {
     const w = norm(word);
     const ids = this.byWord.get(w);
-    if (ids) return ids.map((i) => ({ id: i, ph: this.P[i], rs: this.rs[i], syl: this.syl[i], key: this.key[i], guess: false }));
-    const g = this.guess(w);
+    if (ids) return ids.map((i) => ({ id: i, ph: this.P[i], rs: this.rs[i], syl: this.syl[i], key: this.key[i], fin: this.fin[i], guess: false }));
+    const g = /[\s-]/.test(w) ? this.compose(w) : this.guess(w);
+    if (g && g.fin === undefined) g.fin = this.finOf(g.ph);
     return g ? [g] : [];
   }
-  info(i) { return { w: this.W[i], syl: this.syl[i], stress: stressString(this.P[i]), level: this.LV[i], pos: posList(this.FL[i]), explicit: !!(this.FL[i] & EXPLICIT) }; }
+  /** tag: what kind of entry it is, for styling: common, rare (or not in SCOWL), name, phrase */
+  info(i) {
+    const level = this.LV[i], phrase = this.PH[i] > 0, name = this.NM[i] === 1, common = level <= COMMON_LEVEL;
+    const flags = [common ? "common" : "rare"];
+    if (name) flags.push("name");
+    if (phrase) flags.push("phrase");
+    if (this.PH[i] >= 2) flags.push("idiom");   // a set phrase a dictionary lists (talk show, status quo)
+    const stress = this.ST[i] ?? (this.ST[i] = stressString(this.P[i]));
+    return { w: this.W[i], syl: this.syl[i], stress, level, pos: posList(this.FL[i]), explicit: !!(this.FL[i] & EXPLICIT),
+      tag: phrase ? "phrase" : name ? "name" : common ? "common" : "rare", flags };
+  }
 
   // ---------- made-up words: borrow the ending of the closest real word ----------
   guess(w) {
@@ -182,8 +242,12 @@ class Lexicon {
     const ka = a.key ?? (a.key = this.keyOf(a.ph, a.rs)), kb = b.key ?? this.keyOf(b.ph, b.rs);
     let score, kind;
     if (ka === kb) {
-      if (a.ph.length === b.ph.length && this.keyOf(a.ph, 0) === this.keyOf(b.ph, 0)) return null; // the same sound (a homophone)
+      // the same sound all through (know / no): an identical rhyme, flagged
+      if (a.ph.length === b.ph.length && this.keyOf(a.ph, 0) === this.keyOf(b.ph, 0)) return { score: 0.95, kind: "perfect", multi: countV(a.ph), homophone: true };
       score = sameOnset ? 0.9 : 1; kind = "perfect";
+    } else if (endRhyme(a, b, this)) {
+      // only the last syllable matches, a full vowel that one side doesn't stress (know / shadow, rainbow, tomato)
+      return { score: 0.84, kind: "perfect", multi: 1, end: true };
     } else {
       const v = VSIM[base(ra[0]) - NC][base(rb[0]) - NC], rest = seqSim(ra.subarray(1), rb.subarray(1));
       if (v === 1 && ra.length === rb.length && familyOnly(ra, rb)) { score = 0.86 + 0.08 * rest; kind = "family"; }
@@ -218,7 +282,9 @@ class Lexicon {
     const consider = (a, i) => {
       const x = this.W[i];
       if (x === w0 || /[^a-z' .-]/.test(x)) return;
-      const j = this.judge(a, { ph: this.P[i], rs: this.rs[i], key: this.key[i] });
+      // a phrase that ends on the word itself ("in the know") isn't a rhyme
+      if (this.PH[i] && (x.endsWith(" " + w0) || x.endsWith("-" + w0))) return;
+      const j = this.judge(a, { ph: this.P[i], rs: this.rs[i], key: this.key[i], fin: this.fin[i] });
       if (!j || !kinds.has(j.kind) || (j.kind === "near" && j.score < 0.62)) return;
       const cur = best.get(x);
       if (!cur || cur.score < j.score) best.set(x, { w: x, id: i, ...j });
@@ -226,20 +292,28 @@ class Lexicon {
     for (const a of es) {
       const key = this.keyOf(a.ph, a.rs);
       for (const i of this.perfect.get(key) || []) consider(a, i);
+      const fin = a.fin ?? this.finOf(a.ph);
+      if (fin) for (const i of this.byFinal.get(fin) || []) consider(a, i);
       if (kinds.has("family") || kinds.has("near")) {
         const v = base(a.ph[a.rs]) - NC;
         for (let u = 0; u < VOWELS.length; u++) if (VSIM[v][u] >= 0.6) for (const i of this.byVowel.get(NC + u) || []) consider(a, i);
+        for (const i of this.byVowelP.get(NC + v) || []) consider(a, i);
       }
       if (kinds.has("consonant")) {
         const c = coda(a.ph.subarray(a.rs));
         if (c.length) for (const i of this.byCoda.get(Array.from(c, base).join(",")) || []) consider(a, i);
       }
     }
-    let results = [...best.values()].map((r) => ({ ...this.info(r.id), kind: r.kind, score: round(r.score), multi: r.multi }));
+    let results = [...best.values()].map((r) => {
+      const o = { ...this.info(r.id), kind: r.kind, score: round(r.score), multi: r.multi, homophone: !!r.homophone, end: !!r.end };
+      if (r.homophone) o.flags.push("homophone");
+      if (r.end) o.flags.push("end");
+      return o;
+    });
     if (kinds.has("phrase")) results.push(...this.phrases(es[0], w0));
     results.sort(rank);
     const first = es[0];
-    return { word: w0, known: !first.guess, guess: first.guess, like: first.like || "", pron: arpabet(first.ph), syllables: first.syl, stress: stressString(first.ph), results };
+    return { word: w0, known: !first.guess, guess: first.guess, like: first.like || "", pron: arpabet(first.ph), syllables: first.syl, stress: stressString(first.ph), phrases: this.phraseCount > 0, results };
   }
 
   // two common short words that rhyme with the last two syllables: "orange" / "door hinge", "fire" / "buy her"
@@ -284,7 +358,9 @@ class Lexicon {
       const little = FUNCTION.has(this.W[ai]) ? 0.03 : 0;
       const w = this.W[ai] + " " + this.W[b.i];
       if (w === w0) continue;
-      out.push({ w, syl: 2, stress: "11", level: Math.max(this.LV[ai], this.LV[b.i]), pos: [], explicit: false, kind: "phrase", score: round(score * 0.9 - little), multi: 2 });
+      const level = Math.max(this.LV[ai], this.LV[b.i]);
+      out.push({ w, syl: 2, stress: "11", level, pos: [], explicit: false, tag: "phrase", flags: [level <= COMMON_LEVEL ? "common" : "rare", "phrase", "made"],
+        kind: "phrase", score: round(score * 0.9 - little), multi: 2, homophone: false, end: false });
     }
     // a real word before a little one ("fly her" before "i her"), and no one word in every pair
     out.sort((x, y) => y.score - x.score || x.level - y.level);
@@ -353,9 +429,29 @@ export function filterList(lex, list, opts = {}) {
   }
   return out;
 }
+/**
+ * One page of a sorted result list, with counts for syllable tabs.
+ * opts: { syllables: n | [min, max] (the tab), offset (default 0), limit (default 100) }
+ * Returns { total, totals: { all, 1, 2, 3, 4, "5+" }, byKind: { perfect, ... }, offset, limit, more, results }.
+ * totals count the whole list (before the syllables tab); total counts the tab.
+ */
+export function pageOf(list, opts = {}) {
+  const totals = { all: list.length, 1: 0, 2: 0, 3: 0, 4: 0, "5+": 0 }, byKind = {};
+  for (const r of list) { totals[r.syl >= 5 ? "5+" : Math.max(1, r.syl)]++; byKind[r.kind] = (byKind[r.kind] || 0) + 1; }
+  let view = list;
+  if (opts.syllables !== undefined && opts.syllables !== null && opts.syllables !== "") {
+    const [lo, hi] = Array.isArray(opts.syllables) ? opts.syllables : [opts.syllables, opts.syllables];
+    view = list.filter((r) => r.syl >= (lo ?? 0) && r.syl <= (hi ?? 99));
+  }
+  const offset = Math.max(0, opts.offset | 0), limit = opts.limit === undefined || opts.limit === null ? 100 : Math.max(0, opts.limit);
+  const results = view.slice(offset, offset + limit);
+  return { total: view.length, totals, byKind, offset, limit, more: offset + results.length < view.length, results };
+}
 function firstInfo(lex, w) {
   const ids = lex.byWord.get(norm(w));
-  return ids ? { level: lex.LV[ids[0]], pos: posList(lex.FL[ids[0]]), explicit: !!(lex.FL[ids[0]] & EXPLICIT) } : { level: 10, pos: [], explicit: false };
+  if (!ids) return { level: 10, pos: [], explicit: false };
+  const { level, pos, explicit, tag, flags } = lex.info(ids[0]);
+  return { level, pos, explicit, tag, flags };
 }
 
 // ---------- syllables for whole lines (lyric meter) ----------
@@ -418,6 +514,19 @@ const norm = (w) => String(w ?? "").trim().toLowerCase().replace(/[‘’]/g, "'
 const round = (x) => Math.round(x * 1000) / 1000;
 function push(map, k, v) { const a = map.get(k); if (a) a.push(v); else map.set(k, [v]); }
 const countV = (ph) => { let n = 0; for (const p of ph) if (isV(p)) n++; return n; };
+// the rhyme part starts at the last vowel with main stress (or secondary, or any vowel)
+function rhymeStart(ph) {
+  let last1 = -1, last2 = -1, lastV = -1, syl = 0;
+  for (let k = 0; k < ph.length; k++) if (isV(ph[k])) { syl++; lastV = k; const s = stressOf(ph[k]); if (s === 1) last1 = k; else if (s === 2) last2 = k; }
+  return { rs: last1 >= 0 ? last1 : last2 >= 0 ? last2 : lastV >= 0 ? lastV : 0, syl };
+}
+// vowels that are only a quick "uh" when unstressed (no end rhymes on them: fire / butter)
+const WEAK = new Set(["AH", "IH", "UH", "ER"].map((v) => NC + VOWELS.indexOf(v)));
+// an end rhyme: the last syllables match (a full vowel) and on at least one side it isn't the rhyme part
+function endRhyme(a, b, lex) {
+  const fa = a.fin ?? lex.finOf(a.ph), fb = b.fin ?? lex.finOf(b.ph);
+  return !!fa && fa === fb;
+}
 function coda(ph) { let c = ph.length; while (c > 0 && !isV(ph[c - 1])) c--; return Array.from(ph.subarray(c)); }
 function familyOnly(a, b) {
   for (let i = 0; i < a.length; i++) {
@@ -429,12 +538,25 @@ function familyOnly(a, b) {
 export function stressString(ph) { let s = ""; for (const p of ph) if (isV(p)) s += stressOf(p); return s; }
 const PH_NAMES = [...CONS, ...VOWELS.flatMap((v) => [v + "0", v + "1", v + "2"])];
 export function arpabet(ph) { return Array.from(ph, (p) => PH_NAMES[p]).join(" "); }
-function posList(f) { return Object.entries(POS).filter(([, b]) => f & b).map(([k]) => k); }
+const POS_LISTS = Array.from({ length: 16 }, (_, f) => Object.entries(POS).filter(([, b]) => f & b).map(([k]) => k));
+function posList(f) { return POS_LISTS[f & 15].slice(); }
+// who leads a list: common words, then common phrases, rare words, names, rare phrases
+const group = (r) => (r.tag === "phrase" ? (r.level <= COMMON_LEVEL ? 1 : 4) : r.tag === "name" ? 3 : r.level <= COMMON_LEVEL ? 0 : 2);
 function rank(x, y) {
   const tier = (r) => (r.kind === "perfect" ? 0 : r.kind === "family" ? 1 : r.kind === "phrase" ? 3 : r.kind === "consonant" ? 4 : 2);
   // perfect rhymes first, common words before rare ones; near rhymes by how close they are
   if (tier(x) !== tier(y)) return tier(x) - tier(y);
-  if (x.kind === "near" || x.kind === "phrase") { const d = y.score - x.score; if (Math.abs(d) > 0.06) return d; }
+  const gx = group(x), gy = group(y);
+  if (x.kind === "perfect") {
+    if (gx !== gy) return gx - gy;
+    if (gx === 1 || gx === 4) { const ix = x.flags?.includes("idiom") ? 0 : 1, iy = y.flags?.includes("idiom") ? 0 : 1; if (ix !== iy) return ix - iy; }
+    if (x.end !== y.end) return x.end ? 1 : -1;      // the stressed rhymes before the end rhymes
+  } else {
+    // near rhymes: everyday words and phrases first, then by how close they are
+    if ((gx <= 1) !== (gy <= 1)) return gx <= 1 ? -1 : 1;
+    const d = y.score - x.score; if (Math.abs(d) > 0.06) return d;
+    if (gx !== gy) return gx - gy;
+  }
   if (x.level !== y.level) return x.level - y.level;
   if (y.multi !== x.multi) return y.multi - x.multi;
   return y.score - x.score || x.w.length - y.w.length || (x.w < y.w ? -1 : 1);

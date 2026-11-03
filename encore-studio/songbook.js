@@ -9,6 +9,8 @@ import { parseChord, chordSymbol, chordTones, noteText, pcOf, mod12, plainNote }
 import { makeKey, keyName, keyBySemis, MAJOR_KEYS, MINOR_KEYS } from "./chords-keys.js";
 import { frettable, coursesOf, fretVoicings, pianoVoicing, capoOptions, courseNotes, shapeText } from "./chords-voicing.js";
 import { TUNINGS } from "./tunings.js";
+import { getCover, setCover, allCovers, imageToCover } from "./songbook-covers.js";
+import { renderBook, PAPER } from "./songbook-print.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -65,7 +67,7 @@ function renderLib() {
     if (q && !shown.length) return "";
     const closed = f.open === false && !q;
     return `<div class="folder${closed ? " collapsed" : ""}" data-f="${f.id}" style="--fc:${f.color || "var(--divider-strong)"}">
-      <div class="fhead" data-f="${f.id}" draggable="true"><span class="nm" data-a="toggle" title="${esc(f.name)}">${closed ? "&#9656;" : "&#9662;"} ${esc(f.name)} <span class="dim">${list.length}</span></span>
+      <div class="fhead" data-f="${f.id}" draggable="true"><span class="nm" data-a="toggle" title="${esc(f.name)}">${closed ? "&#9656;" : "&#9662;"} ${covers[f.id] ? `<img class="fcov" src="${covers[f.id]}" alt="">` : ""}${esc(f.name)} <span class="dim">${list.length}</span></span>
       <button class="ib" data-a="newIn" title="New song in ${esc(f.name)}" aria-label="New song in ${esc(f.name)}">+</button><button class="ib" data-a="fmenu" title="Rename, color, move or delete" aria-label="Folder options for ${esc(f.name)}">&#8943;</button></div>
       ${songRows(list, true)}</div>`;
   };
@@ -98,13 +100,15 @@ function menu(anchor, items) {
 function outside(e) { if (!e.target.closest(".menu")) closeMenu(); }
 function closeMenu() { document.querySelector(".menu")?.remove(); document.removeEventListener("pointerdown", outside); }
 function folderMenu(anchor, f) {
-  const m = menu(anchor, `<button data-m="rename">Rename</button>
+  const m = menu(anchor, `<button data-m="details">Cover and details</button><button data-m="print">Print this album</button><button data-m="rename">Rename</button>
     <div class="swatches">${COLORS.map((c) => `<button class="sw${(f.color || "") === c ? " on" : ""}" data-color="${c}" style="background:${c || "transparent"}" title="${c ? "Color" : "No color"}" aria-label="${c ? "Color " + c : "No color"}"></button>`).join("")}</div>
     <label>Move to <select class="t" data-m="cat">${db.categories.map((c) => `<option value="${c.id}" ${c.id === f.categoryId ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
     <button data-m="del" class="danger">Delete folder</button>`);
   m.onclick = (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.color !== undefined) { f.color = b.dataset.color; save(); renderLib(); folderMenu(lib.querySelector(`.fhead[data-f="${f.id}"] [data-a=fmenu]`) || anchor, f); return; }
+    if (b.dataset.m === "details") { closeMenu(); folderDetails(f); return; }
+    if (b.dataset.m === "print") { closeMenu(); const first = inFolder(f.id)[0]; if (!first) { toast("No songs in this folder yet."); return; } if (song()?.folderId !== f.id) openSong(first.id); openPrint("folder"); return; }
     if (b.dataset.m === "rename") { closeMenu(); const n = prompt("Folder name", f.name); if (n && n.trim()) { f.name = n.trim(); save(); renderLib(); } }
     if (b.dataset.m === "del") {
       closeMenu();
@@ -230,7 +234,7 @@ $("capo").innerHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i}"
 function renderSong() {
   const s = song();
   const off = !s;
-  for (const id of ["title", "artist", "write", "key", "capo", "quickFormat", "addInst"]) $(id).disabled = off;
+  for (const id of ["title", "artist", "write", "key", "capo", "quickFormat", "addInst", "printBtn"]) $(id).disabled = off;
   if (!s) { write.value = ""; sheet.innerHTML = `<div class="empty">No song open. Make one with + Song.</div>`; $("title").value = ""; $("artist").value = ""; return; }
   if (document.activeElement !== $("title")) $("title").value = s.title;
   if (document.activeElement !== $("artist")) $("artist").value = s.artist;
@@ -243,6 +247,7 @@ function renderSong() {
   sheet.classList.toggle("hidden", state.view !== "sheet");
   renderTags();
   renderParts();
+  renderCoverBtn();
   if (state.view === "sheet") renderSheet();
   renderHint();
 }
@@ -255,6 +260,8 @@ function renderHint() {
   $("disarm") && ($("disarm").onclick = () => { state.armed = null; renderSong(); renderTools(); });
 }
 $("title").oninput = (e) => { const s = song(); if (!s) return; s.title = e.target.value; touch(s); renderLib(); };
+$("coverBtn").onclick = () => songDetails();
+$("printBtn").onclick = () => openPrint("song");
 $("artist").oninput = (e) => { const s = song(); if (!s) return; s.artist = e.target.value; touch(s); };
 write.oninput = () => { const s = song(); if (!s) return; s.body = write.value; touch(s); renderLibSoon(); renderToolsSoon(); };
 let libTimer = 0, toolTimer = 0;
@@ -426,6 +433,7 @@ const tbody = $("tbody");
 $("ttabs").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; state.tab = b.dataset.t; db.prefs.tab = state.tab; save(); renderTools(); };
 function renderTools() {
   for (const b of $("ttabs").children) b.classList.toggle("on", b.dataset.t === state.tab);
+  document.querySelector("main").classList.toggle("wordsWide", state.tab === "words");
   if (state.tab === "chords") renderChordsTab();
   else if (state.tab === "play") renderPlayTab();
   else if (state.tab === "words") renderWordsTab();
@@ -572,45 +580,56 @@ function strum(c, inst, tuning) {
 
 // ---------- Words: rhymes, near rhymes, meanings (words.js, all on this device) ----------
 let W = null, wLoading = null;
-const wstate = { word: "", mode: db.prefs.wmode || "rhymes", syl: "", also: [], like: "", starts: "", common: true, clean: false, data: null, err: "" };
+const wstate = { word: "", mode: db.prefs.wmode || "rhymes", syl: "", also: [], like: "", starts: "", common: false, names: true, phrases: true, clean: false, ...(db.prefs.words || {}), data: null, err: "" };
 async function words() {
   if (W) return W;
-  wLoading ||= import("./words.js").then((m) => m.openWords("en", { ready: (p) => { const el = $("wLoad"); if (el && p?.total) el.textContent = `Loading the dictionary... ${Math.round((p.loaded / p.total) * 100)}%`; } }))
+  wLoading ||= import("./words.js").then((m) => m.openWords("en", { ready: (p) => { const el = $("wLoad"); if (el && p?.total) el.textContent = `Loading the dictionary... ${Math.round((p.loaded / p.total) * 100)}%`; },
+    // the two-word phrases arrive a moment later: ask again so they show up
+    phrases: () => { if (state.tab === "words" && wstate.word && wstate.phrases && wstate.mode !== "define") runWords(true); } }))
     .then((w) => { W = w; if (state.view === "sheet") countSyllables(); return w; });
   return wLoading;
 }
 function lookupWord(word) { wstate.word = word; state.tab = "words"; setMobile("tools"); renderTools(); runWords(); }
-// what each tab looks for: true rhymes (and close family), near rhymes (sound alike), meaning, related, definition
+// what each tab looks for: true rhymes (with two-word ones), near rhymes (sound alike), meaning, related, definition
 const MODES = [["rhymes", "Rhymes", ["perfect", "phrase"]], ["near", "Near rhymes", ["family", "near", "phrase"]], ["similar", "Means like"], ["related", "Related"], ["define", "Definition"]];
+const SYL_TABS = [["", "All"], ["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5+"]];
+const PAGE = 150;
+const fmt = (n) => Number(n || 0).toLocaleString();
 function renderWordsTab() {
   tbody.innerHTML = `<div class="wsearch"><input class="t" id="wq" value="${esc(wstate.word)}" placeholder="A word or phrase" aria-label="Word" autocomplete="off" spellcheck="false"><button class="btn sm go" id="wgo">Find</button></div>
     <div class="wtabs" id="wmodes">${MODES.map(([k, n]) => `<button data-m="${k}" class="${wstate.mode === k ? "on" : ""}">${n}</button>`).join("")}</div>
     <div class="filters">
-      <label>Syllables <select class="t" id="fSyl"><option value="">any</option>${[1, 2, 3, 4, 5].map((n) => `<option ${String(wstate.syl) === String(n) ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label>Also rhymes with <input class="t" id="fAlso" placeholder="word, then Enter"></label>
       <label>Means like <input class="t" id="fLike" value="${esc(wstate.like)}" placeholder="a meaning"></label>
       <label>Starts with <input class="t" id="fStart" value="${esc(wstate.starts)}" style="width:60px"></label>
-      <label><input type="checkbox" id="fCommon" ${wstate.common ? "checked" : ""}> Common words</label>
+      <label title="Only words most people know"><input type="checkbox" id="fCommon" ${wstate.common ? "checked" : ""}> Common only</label>
+      <label title="Hide names of people and places"><input type="checkbox" id="fNames" ${wstate.names ? "checked" : ""}> Names</label>
+      <label title="Two-word rhymes like talk show, let go"><input type="checkbox" id="fPhrases" ${wstate.phrases ? "checked" : ""}> Phrases</label>
       <label><input type="checkbox" id="fClean" ${wstate.clean ? "checked" : ""}> Clean</label>
     </div>
     <div class="chain" id="chain">${wstate.also.map((w, i) => `<span>also rhymes with <b>${esc(w)}</b><button data-i="${i}" aria-label="Remove">&#10005;</button></span>`).join("")}</div>
-    <div class="results" id="wres"><p class="small dim" id="wLoad">${wstate.word ? "" : "Type a word, or tap a word in the Chords view of your song. Then narrow it down: syllables, also rhymes with another word, means something like."}</p></div>
-    <p class="small dim" style="margin-top:14px">Rhymes: CMU Pronouncing Dictionary. Thesaurus: WordNet (Princeton University) and Moby. <a href="words/LICENSES.txt" target="_blank" rel="noopener" style="color:inherit">Licenses</a></p>`;
+    <div class="syltabs" id="syltabs" role="tablist" aria-label="Syllables"></div>
+    <div class="results" id="wres"><p class="small dim" id="wLoad">${wstate.word ? "" : "Type a word, or tap a word in the Chords view of your song. Pick how many syllables with the tabs, then narrow it down: also rhymes with another word, means something like."}</p></div>
+    <p class="small dim" style="margin-top:14px">Rhymes: CMU Pronouncing Dictionary. Thesaurus and phrases: WordNet (Princeton University) and Moby. <a href="words/LICENSES.txt" target="_blank" rel="noopener" style="color:inherit">Licenses</a></p>`;
   const q = $("wq");
   $("wgo").onclick = () => { wstate.word = q.value.trim(); runWords(); };
   q.onkeydown = (e) => { if (e.key === "Enter") $("wgo").click(); };
   $("wmodes").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; wstate.mode = b.dataset.m; db.prefs.wmode = wstate.mode; save(); renderWordsTab(); runWords(); };
-  $("fSyl").onchange = (e) => { wstate.syl = e.target.value; runWords(); };
+  $("syltabs").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; wstate.syl = b.dataset.s; runWords(true); };
   $("fAlso").onkeydown = (e) => { if (e.key === "Enter" && e.target.value.trim()) { wstate.also.push(e.target.value.trim()); e.target.value = ""; renderWordsTab(); runWords(); } };
   $("fLike").onchange = (e) => { wstate.like = e.target.value.trim(); runWords(); };
   $("fStart").onchange = (e) => { wstate.starts = e.target.value.trim(); runWords(); };
-  $("fCommon").onchange = (e) => { wstate.common = e.target.checked; runWords(); };
-  $("fClean").onchange = (e) => { wstate.clean = e.target.checked; runWords(); };
+  for (const [id, k] of [["fCommon", "common"], ["fNames", "names"], ["fPhrases", "phrases"], ["fClean", "clean"]]) $(id).onchange = (e) => { wstate[k] = e.target.checked; db.prefs.words = { common: wstate.common, names: wstate.names, phrases: wstate.phrases, clean: wstate.clean }; save(); runWords(); };
   $("chain").onclick = (e) => { const b = e.target.closest("button"); if (b) { wstate.also.splice(+b.dataset.i, 1); renderWordsTab(); runWords(); } };
   if (wstate.data || wstate.err) showWords();
 }
+const sylOpt = () => (wstate.syl === "5" ? [5, 99] : wstate.syl ? +wstate.syl : undefined);
+// names and phrases off: dropped here, so the counts on the tabs stay true
+const isPhrase = (it) => /\s/.test(it.w) || (it.flags || []).includes("phrase");
+const keep = (it) => (wstate.names || !(it.flags || []).includes("name")) && (wstate.phrases || !isPhrase(it));
 let wSeq = 0;
-async function runWords() {
+// a fresh look-up (or a new syllable tab): the first page; more come as you scroll
+async function runWords(tabOnly = false) {
   const word = wstate.word;
   if (!word) return;
   const my = ++wSeq;
@@ -618,31 +637,73 @@ async function runWords() {
   try {
     const w = await words();
     if (my !== wSeq) return;
-    const f = { syllables: wstate.syl ? +wstate.syl : undefined, rhymesWith: wstate.also.length ? wstate.also.map((x) => ({ word: x, kind: "near" })) : undefined,
+    const f = { rhymesWith: wstate.also.length ? wstate.also.map((x) => ({ word: x, kind: "near" })) : undefined,
       relatedTo: wstate.like || undefined, startsWith: wstate.starts || undefined, common: wstate.common ? 50 : undefined, clean: wstate.clean || undefined };
     const mode = MODES.find((m) => m[0] === wstate.mode);
     if (mode[2]) {
-      const r = await w.rhymes(word, { kinds: mode[2], limit: 200 });
-      const list = await w.filter(r.results, f);
-      wstate.data = { kind: "list", head: r, items: list.results || list };
+      // the rhymes come sorted best first; names and phrases are dropped by asking for the whole list only when they're off
+      const kinds = wstate.phrases ? mode[2] : mode[2].filter((k) => k !== "phrase");
+      let whole = null;
+      const src = async (offset) => {
+        if (wstate.names && wstate.phrases) return w.rhymes(word, { kinds, ...f, offset, limit: PAGE, syllables: sylOpt() });
+        whole ||= await w.rhymes(word, { kinds, ...f, offset: 0, limit: 1e6 }).then((all) => ({ ...all, list: all.results.filter(keep) }));
+        return { ...whole, ...pageList(whole.list, offset) };
+      };
+      const r = await src(0);
+      if (my !== wSeq) return;
+      wstate.data = { kind: "list", head: r, items: r.results, total: r.total, totals: r.totals, more: r.more, next: src };
     } else {
       const t = await w.thesaurus(word);
       if (wstate.mode === "define") wstate.data = { kind: "define", t };
       else {
         const pool = wstate.mode === "similar" ? [...t.senses.flatMap((s) => [...s.synonyms, ...s.similar]), ...(t.more || [])] : [...(t.related || []), ...t.senses.flatMap((s) => [...s.broader, ...s.narrower])];
         const seen = new Set(), uniq = pool.filter((x) => !seen.has(x.w) && seen.add(x.w) && x.w !== word.toLowerCase());
-        const list = await w.filter(uniq.map((x) => x.w), f);
-        wstate.data = { kind: "list", head: { found: t.found }, items: list.results || list };
+        const got = await w.filter(uniq.map((x) => x.w), f), list = got.results || got;
+        const src = async (offset) => pageList(list, offset);
+        const r = await src(0);
+        wstate.data = { kind: "list", head: { found: t.found }, items: r.results, total: r.total, totals: r.totals, more: r.more, next: src };
       }
     }
     wstate.err = "";
   } catch (err) { wstate.data = null; wstate.err = err.message || String(err); }
-  if (my === wSeq && state.tab === "words") showWords();
+  if (my === wSeq && state.tab === "words") showWords(tabOnly);
+}
+// paging a list we already have: the counts for every tab, then this tab's slice
+function pageList(list, offset) {
+  const totals = { all: list.length, 1: 0, 2: 0, 3: 0, 4: 0, "5+": 0 };
+  for (const r of list) totals[r.syl >= 5 ? "5+" : Math.max(1, r.syl || 1)]++;
+  const s = sylOpt(), [lo, hi] = Array.isArray(s) ? s : [s, s];
+  const view = s === undefined ? list : list.filter((r) => r.syl >= lo && r.syl <= hi);
+  const results = view.slice(offset, offset + PAGE);
+  return { total: view.length, totals, results, more: offset + results.length < view.length };
+}
+let moreBusy = false;
+async function loadMore() {
+  const d = wstate.data; if (!d || d.kind !== "list" || !d.more || moreBusy) return;
+  moreBusy = true;
+  const my = wSeq;
+  try {
+    const r = await d.next(d.items.length);
+    if (my !== wSeq || d !== wstate.data) return;
+    d.items.push(...r.results); d.more = r.more;
+    const grid = $("wgrid"); if (grid) grid.insertAdjacentHTML("beforeend", r.results.map(wordBtn).join(""));
+    const st = $("wmore"); if (st) st.textContent = d.more ? "More..." : d.items.length > 40 ? `That's all ${fmt(d.total)}.` : "";
+  } finally { moreBusy = false; }
+  // still room on screen: keep going
+  const st = $("wmore"); if (st && d.more && st.getBoundingClientRect().top < tbody.getBoundingClientRect().bottom + 300) loadMore();
 }
 const KIND = { perfect: "rhyme", family: "close rhyme", near: "near rhyme", consonant: "same end consonants", phrase: "two-word rhyme" };
 const POS = { n: "noun", v: "verb", a: "adjective", s: "adjective", r: "adverb" };
-function showWords() {
+function wordBtn(it) {
+  const fl = it.flags || [];
+  const cls = ["wd", it.kind && it.kind !== "perfect" ? "near" : "", fl.includes("rare") ? "rare" : "", fl.includes("name") ? "name" : "", isPhrase(it) ? "phr" : ""].filter(Boolean).join(" ");
+  const tip = [KIND[it.kind], it.homophone && "sounds the same", it.end && "rhymes on the last syllable", fl.includes("name") && "a name", fl.includes("rare") && "rare word", it.syl && `${it.syl} syllable${it.syl > 1 ? "s" : ""}`].filter(Boolean).join(", ");
+  return `<button class="${cls}" data-w="${esc(it.w)}" title="${esc(tip)}">${esc(it.w)}${it.homophone ? `<i class="hm">=</i>` : ""}${wstate.syl === "" && it.syl ? `<sup>${it.syl}</sup>` : ""}</button>`;
+}
+function showWords(tabOnly = false) {
   const res = $("wres"); if (!res) return;
+  const tabs = $("syltabs");
+  if (tabs) tabs.innerHTML = "";
   if (wstate.err) { res.innerHTML = `<p class="small dim">The word finder couldn't load: ${esc(wstate.err)}</p>`; return; }
   const d = wstate.data; if (!d) return;
   if (d.kind === "define") {
@@ -652,13 +713,19 @@ function showWords() {
       : `<p class="small dim">No definition for that one.</p>`;
     return;
   }
+  // a tab for each syllable count, with how many are in it
+  const T = d.totals || {};
+  if (tabs) tabs.innerHTML = SYL_TABS.map(([v, n]) => { const c = v === "" ? T.all : v === "5" ? T["5+"] : T[v]; return `<button role="tab" data-s="${v}" class="${wstate.syl === v ? "on" : ""}" aria-selected="${wstate.syl === v}"${!c && v !== wstate.syl ? " disabled" : ""}>${n}<span>${fmt(c)}</span></button>`; }).join("");
   const guess = d.head?.guess ? `<p class="small dim">"${esc(d.head.word)}" isn't in the dictionary, so it's rhymed by how it's spelled${d.head.like ? ` (like "${esc(d.head.like)}")` : ""}.</p>` : "";
-  if (!d.items.length) { res.innerHTML = guess + `<p class="small dim">Nothing left with those filters. Loosen one.</p>`; return; }
-  // grouped by syllables, the way a writer counts them
-  const groups = new Map();
-  for (const it of d.items) { const n = it.syl || 0; if (!groups.has(n)) groups.set(n, []); groups.get(n).push(it); }
-  res.innerHTML = guess + `<p class="small dim">${d.items.length} word${d.items.length > 1 ? "s" : ""}. Tap to copy; shift-tap to look that word up.</p>` +
-    [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([n, list]) => `<div class="sylgroup"><div class="lbl"><span>${n ? `${n} syllable${n > 1 ? "s" : ""}` : "Other"}</span></div>${list.map((it) => `<button class="wd${it.kind && it.kind !== "perfect" ? " near" : ""}" data-w="${esc(it.w)}" title="${esc([KIND[it.kind], it.stress && `stress ${it.stress}`].filter(Boolean).join(", "))}">${esc(it.w)}</button>`).join("")}</div>`).join("");
+  if (!d.items.length) { res.innerHTML = guess + `<p class="small dim">${T.all ? "None with that many syllables. Try another tab." : "Nothing left with those filters. Loosen one."}</p>`; return; }
+  const what = wstate.mode === "rhymes" ? "rhyme" : wstate.mode === "near" ? "near rhyme" : "word";
+  res.innerHTML = guess + `<p class="small dim wcount">${fmt(d.total)} ${what}${d.total === 1 ? "" : "s"}${wstate.syl ? ` with ${wstate.syl === "5" ? "5 or more" : wstate.syl} syllable${wstate.syl === "1" ? "" : "s"}` : ""}, best first. Tap to copy, shift-tap to look it up.
+    <span class="legend"><span class="rare">rare</span> <span class="name">name</span> <span class="phr">phrase</span> <i class="hm">=</i> sounds the same</span></p>
+    <div class="wgrid" id="wgrid">${d.items.map(wordBtn).join("")}</div><div class="small dim wmore" id="wmore">${d.more ? "More..." : ""}</div>`;
+  if (tabOnly) tbody.scrollTop = Math.min(tbody.scrollTop, Math.max(0, res.offsetTop - 120));
+  // endless scrolling: the next page when the end comes into view
+  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) loadMore(); }, { root: tbody, rootMargin: "0px 0px 600px 0px" });
+  io.observe($("wmore"));
 }
 tbody.addEventListener("click", (e) => {
   const b = e.target.closest(".wd"); if (!b) return;
@@ -694,7 +761,9 @@ function renderShareTab() {
     <div class="copies">${formats.map(([id, n, d]) => `<button class="copy" data-copy="${id}"><b>${n}</b><span>${d}</span></button>`).join("")}</div>
     <div class="lbl"><span>Preview</span></div><pre class="preview" id="preview">${esc(formats[0][3]())}</pre>
     <div class="lbl"><span>Download</span></div>
-    <div class="row"><button class="btn sm" id="dlCho">ChordPro (.cho)</button><button class="btn sm" id="dlTxt">Text (.txt)</button><button class="btn sm" id="print">Print or PDF</button></div>
+    <div class="row"><button class="btn sm" id="dlCho">ChordPro (.cho)</button><button class="btn sm" id="dlTxt">Text (.txt)</button></div>
+    <div class="lbl"><span>Print or PDF</span><span class="dim">fitted to 1 or 2 pages</span></div>
+    <div class="row"><button class="btn sm go" id="print">This song</button>${folderOf(s) ? `<button class="btn sm" id="printAlbum">Album: ${esc(folderOf(s).name)}</button>` : ""}<button class="btn sm" id="printAll">Whole songbook</button><button class="btn sm" id="details">Cover and details</button></div>
     <div class="lbl"><span>Your whole songbook</span><span class="dim">kept in this browser</span></div>
     <div class="row"><button class="btn sm" id="backup">Download a backup</button><button class="btn sm" id="import">Import songs</button></div>
     <p class="small dim">Import takes a backup, or ChordPro and text files from other apps. Songs are saved in this browser only, so download a backup now and then. Saving to your ENCORE. account is coming.</p>`;
@@ -706,8 +775,11 @@ function renderShareTab() {
   const fname = (ext) => `${[s.artist, titleOf(s)].filter(Boolean).join(" - ").replace(/[\\/:*?"<>|]+/g, "") || "song"}.${ext}`;
   $("dlCho").onclick = () => download(new Blob([toChordPro({ ...s, title: titleOf(s), key: s.key || keyText(k) })], { type: "text/plain" }), fname("cho"));
   $("dlTxt").onclick = () => download(new Blob([(head.trim() + "\n\n" + toChordsAbove(s.body)).replace(/\n/g, "\r\n")], { type: "text/plain" }), fname("txt"));
-  $("print").onclick = () => { const was = state.view; state.view = "sheet"; renderSong(); setTimeout(() => { window.print(); state.view = was; renderSong(); }, 50); };
-  $("backup").onclick = () => download(new Blob([JSON.stringify({ app: "ENCORE. Songbook", version: 2, saved: new Date().toISOString(), categories: db.categories, folders: db.folders, songs: db.songs }, null, 1)], { type: "application/json" }), `ENCORE Songbook backup ${new Date().toISOString().slice(0, 10)}.json`);
+  $("print").onclick = () => openPrint("song");
+  $("printAlbum") && ($("printAlbum").onclick = () => openPrint("folder"));
+  $("printAll").onclick = () => openPrint("all");
+  $("details").onclick = () => songDetails();
+  $("backup").onclick = async () => download(new Blob([JSON.stringify({ app: "ENCORE. Songbook", version: 3, saved: new Date().toISOString(), categories: db.categories, folders: db.folders, songs: db.songs, covers: await allCovers() }, null, 1)], { type: "application/json" }), `ENCORE Songbook backup ${new Date().toISOString().slice(0, 10)}.json`);
   $("import").onclick = () => $("importFile").click();
 }
 $("importFile").onchange = async () => {
@@ -723,8 +795,11 @@ $("importFile").onchange = async () => {
         // categories by name, folders by name (new ones keep their color and category)
         const cmap = new Map();
         for (const c of d.categories || []) { const ex = db.categories.find((x) => x.name === c.name); if (ex) cmap.set(c.id, ex.id); else { const nc = { id: newId("c"), name: c.name, open: true }; db.categories.push(nc); cmap.set(c.id, nc.id); } }
-        for (const fo of d.folders || []) { const ex = db.folders.find((x) => x.name === fo.name); if (ex) map.set(fo.id, ex.id); else { const nf = { id: newId("f"), name: fo.name, open: true, color: fo.color || "", categoryId: cmap.get(fo.categoryId) || db.categories[1]?.id || db.categories[0].id }; db.folders.push(nf); map.set(fo.id, nf.id); } }
-        for (const s of d.songs) { if (db.songs.some((x) => x.id === s.id)) continue; db.songs.push({ ...newSong(), ...s, folderId: map.get(s.folderId) || "" }); n++; }
+        for (const fo of d.folders || []) { const ex = db.folders.find((x) => x.name === fo.name); if (ex) map.set(fo.id, ex.id); else { const nf = { ...fo, id: newId("f"), open: true, color: fo.color || "", categoryId: cmap.get(fo.categoryId) || db.categories[1]?.id || db.categories[0].id }; db.folders.push(nf); map.set(fo.id, nf.id); } }
+        const added = new Set();
+        for (const s of d.songs) { if (db.songs.some((x) => x.id === s.id)) continue; db.songs.push({ ...newSong(), ...s, folderId: map.get(s.folderId) || "" }); added.add(s.id); n++; }
+        // covers come along: a new song's own, and a folder's when this browser's folder has none yet
+        for (const [id, url] of Object.entries(d.covers || {})) { const to = map.get(id) || (added.has(id) ? id : null); if (to && !covers[to]) await putCover(to, url); }
       } catch { toast(`${f.name} isn't a Songbook backup.`); }
     } else {
       const s = newSong(song()?.folderId || db.folders[0]?.id || "", text);
@@ -736,6 +811,161 @@ $("importFile").onchange = async () => {
   save(); renderAll(); if (n) toast(`Imported ${n} song${n > 1 ? "s" : ""}.`);
 };
 function download(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+
+// ---------- covers and details: album art and the facts that print at the top ----------
+const covers = {};
+allCovers().then((all) => { Object.assign(covers, all); renderLib(); renderCoverBtn(); });
+async function putCover(id, url) { if (url) covers[id] = url; else delete covers[id]; await setCover(id, url); renderLib(); renderCoverBtn(); }
+const folderOf = (s) => db.folders.find((f) => f.id === s?.folderId) || null;
+const coverFor = (s) => covers[s?.id] || covers[folderOf(s)?.id] || null;
+function renderCoverBtn() {
+  const s = song(), c = s && coverFor(s), b = $("coverBtn");
+  if (!b) return;
+  b.disabled = !s;
+  b.innerHTML = c ? `<img src="${c}" alt="">` : "&#9998;";
+  b.title = s ? (c ? "Cover and details" : "Add a cover and details (writers, year, notes)") : "";
+}
+function dialog(html, cls = "") {
+  document.querySelector("dialog.dlg")?.remove();
+  const d = document.createElement("dialog");
+  d.className = "dlg " + cls; d.innerHTML = html;
+  document.body.appendChild(d);
+  d.addEventListener("close", () => setTimeout(() => d.remove(), 0));
+  d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+  d.showModal();
+  return d;
+}
+// pick a picture and shrink it to print size
+function pickCover(id, then) {
+  const i = document.createElement("input");
+  i.type = "file"; i.accept = "image/*";
+  i.onchange = async () => {
+    const f = i.files[0]; if (!f) return;
+    try { await putCover(id, await imageToCover(f)); then?.(); } catch (err) { toast(err.message || "Couldn't use that picture."); }
+  };
+  i.click();
+}
+const coverBlock = (id, fallback, fallbackName) => `<div class="cv">${covers[id] ? `<img src="${covers[id]}" alt="Cover">` : fallback ? `<img src="${fallback}" alt="" class="inh">` : `<div class="none">No cover</div>`}
+  <div class="cvb"><button class="btn sm" data-a="pick">${covers[id] ? "Change picture" : "Add a picture"}</button>${covers[id] ? `<button class="btn sm" data-a="rmcover">Remove</button>` : ""}
+  <span class="small dim">${!covers[id] && fallback ? `Using the cover of ${esc(fallbackName)}.` : "A square picture works best. It prints at the top."}</span></div></div>`;
+const field = (k, label, v, ph = "", wide = false) => `<label class="fl${wide ? " wide" : ""}"><span>${label}</span><input class="t" data-k="${k}" value="${esc(v ?? "")}" placeholder="${esc(ph)}"></label>`;
+function songDetails() {
+  const s = song(); if (!s) return;
+  const f = folderOf(s);
+  const draw = () => {
+    const d = dialog(`<form method="dialog"><h3>Song details</h3>${coverBlock(s.id, f && covers[f.id], f?.name)}
+      <div class="fgrid">${field("writers", "Words and music by", s.writers, "Who wrote it", true)}${field("year", "Year", s.year, "2026")}${field("tempo", "Tempo (BPM)", s.tempo || "", "96")}
+      ${field("time", "Time", s.time, "4/4")}${field("copyright", "Copyright or publisher", s.copyright, "© 2026 Your Name", true)}
+      <label class="fl wide"><span>Notes (print at the bottom)</span><textarea class="t" data-k="notes" rows="2" placeholder="Feel, arrangement, who plays what">${esc(s.notes || "")}</textarea></label></div>
+      <div class="row end"><button class="btn go" value="ok">Done</button></div></form>`);
+    d.oninput = (e) => { const k = e.target.dataset.k; if (!k) return; s[k] = k === "tempo" ? +e.target.value || 0 : e.target.value; touch(s); };
+    d.querySelector(".cv").onclick = (e) => {
+      const a = e.target.closest("[data-a]")?.dataset.a;
+      if (a === "pick") pickCover(s.id, () => { d.close(); draw(); });
+      if (a === "rmcover") putCover(s.id, null).then(() => { d.close(); draw(); });
+    };
+  };
+  draw();
+}
+function folderDetails(f) {
+  const draw = () => {
+    const d = dialog(`<form method="dialog"><h3>${esc(f.name)}</h3>${coverBlock(f.id)}
+      <div class="fgrid">${field("name", "Name", f.name, "", true)}${field("artist", "Artist", f.artist, "Who it's by")}${field("year", "Year", f.year, "2026")}
+      ${field("label", "Label or credits", f.label, "Sick & Sad Records", true)}
+      <label class="fl wide"><span>Notes (print on the album page)</span><textarea class="t" data-k="notes" rows="3" placeholder="Liner notes, thank yous, the story">${esc(f.notes || "")}</textarea></label></div>
+      <div class="row end"><button class="btn go" value="ok">Done</button></div></form>`);
+    d.oninput = (e) => { const k = e.target.dataset.k; if (!k) return; if (k === "name" && !e.target.value.trim()) return; f[k] = k === "name" ? e.target.value.trim() : e.target.value; save(); renderLib(); };
+    d.querySelector(".cv").onclick = (e) => {
+      const a = e.target.closest("[data-a]")?.dataset.a;
+      if (a === "pick") pickCover(f.id, () => { d.close(); draw(); });
+      if (a === "rmcover") putCover(f.id, null).then(() => { d.close(); draw(); });
+    };
+  };
+  draw();
+}
+
+// ---------- print: a song, an album, or the whole songbook ----------
+const pp = () => (db.prefs.print ||= { scope: "song", fit: "smart", paper: /^en-(US|CA)|es-(MX|US)/.test(navigator.language) ? "letter" : "a4", chords: true, repeats: true, covers: true, boxes: false, color: true, albumPages: true, contents: true, title: "" });
+// chord boxes print in black on white
+const inkBox = (svg) => svg.replace(/#f2efe8/g, "#111").replace(/#c9bfb3/g, "#555").replace(/#6b625a/g, "#111").replace(/#bdb4a9/g, "#444").replace(/#ff6c40/g, "#c2410c").replace(/#ff3b00/g, "#c2410c");
+function printBoxes(s) {
+  const inst = instrument(), tuning = inst.tunings[Math.min(db.prefs.tuning || 0, Math.max(0, inst.tunings.length - 1))];
+  if (!(inst.part === "string" && frettable(inst) && tuning)) return [];
+  const courses = coursesOf(tuning, inst.name), capo = s.capo || 0;
+  return chordsUsed(s.body).map(parseChord).filter(Boolean).map((c) => {
+    const sh = capo ? shapeOf(c, capo) : c, v = fretVoicings(sh, courses, { capo: 0, maxFret: 12, limit: 1 })[0];
+    return v && { name: chordSymbol(c), svg: inkBox(box(v, courses, pcOf(sh.root))) };
+  }).filter(Boolean);
+}
+function printSong(s, f, track) {
+  const k = songKey(s);
+  const meta = [f && (track ? `${f.name}, track ${track}` : f.name), k && `Key of ${keyName(k)}`, s.capo && `Capo ${s.capo}`, s.tempo && `${s.tempo} BPM`, s.time, s.year || f?.year].filter(Boolean);
+  const credit = [s.writers && `Words and music by ${s.writers}`, s.copyright].filter(Boolean).join(". ");
+  return { id: s.id, title: titleOf(s), artist: s.artist || f?.artist || "", meta, credit, notes: s.notes || "", cover: coverFor(s), body: s.body, boxes: pp().boxes ? printBoxes(s) : [], key: s.key || keyText(k) };
+}
+function printFolder(f, songs, ownCovers = true) {
+  return { id: f.id, name: f.name, color: f.color, artist: f.artist || "", meta: [f.year, f.label].filter(Boolean), notes: f.notes || "", cover: covers[f.id] || null,
+    songs: songs.map((s, i) => { const p = printSong(s, f, i + 1); if (!ownCovers && !covers[s.id]) p.cover = null; return p; }) };
+}
+function bookFor(scope) {
+  const s = song(), f = folderOf(s);
+  if (scope === "song" && s) return { kind: "song", title: titleOf(s), groups: [{ folders: [{ ...printFolder(f || { id: "", name: "" }, []), songs: [printSong(s, f, f ? inFolder(f.id).indexOf(s) + 1 : 0)] }] }] };
+  if (scope === "folder" && f) return { kind: "album", title: f.name, groups: [{ folders: [printFolder(f, inFolder(f.id))] }] };
+  // everything: by category, then folder in its order, then songs not in a folder
+  const groups = db.categories.map((c) => ({ name: c.name, folders: db.folders.filter((x) => x.categoryId === c.id).map((x) => printFolder(x, inFolder(x.id))).filter((x) => x.songs.length) })).filter((g) => g.folders.length);
+  const loose = db.songs.filter((x) => !x.folderId || !db.folders.some((y) => y.id === x.folderId) || !db.categories.some((c) => c.id === db.folders.find((y) => y.id === x.folderId)?.categoryId));
+  if (loose.length) groups.push({ name: "Other songs", folders: [{ id: "loose", name: "", songs: loose.map((x) => printSong(x, folderOf(x), 0)) }] });
+  const artists = db.songs.map((x) => x.artist).filter(Boolean), top = artists.sort((a, b) => artists.filter((x) => x === b).length - artists.filter((x) => x === a).length)[0] || "";
+  return { kind: "all", title: pp().title || "Songbook", artist: top, date: new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }), groups };
+}
+function openPrint(scope) {
+  const o = pp();
+  if (scope) o.scope = scope;
+  if (o.scope === "folder" && !folderOf(song())) o.scope = song() ? "song" : "all";
+  if (o.scope === "song" && !song()) o.scope = "all";
+  const f = folderOf(song());
+  const seg = (k, opts) => `<div class="seg wrap" data-o="${k}">${opts.map(([v, n, dis]) => `<button type="button" data-v="${v}" class="${String(o[k]) === String(v) ? "on" : ""}"${dis ? " disabled" : ""}>${esc(n)}</button>`).join("")}</div>`;
+  const chk = (k, n, tip = "") => `<label class="ck" title="${esc(tip)}"><input type="checkbox" data-c="${k}" ${o[k] ? "checked" : ""}> ${esc(n)}</label>`;
+  const inst = instrument();
+  const d = dialog(`<div class="pside">
+      <h3>Print</h3>
+      <div class="plbl">What</div>${seg("scope", [["song", "This song", !song()], ["folder", f ? `Album: ${f.name}` : "This folder", !f], ["all", "Whole songbook"]])}
+      <div class="plbl">Fit</div>${seg("fit", [["smart", "1 or 2 pages"], ["one", "1 page"], ["natural", "Don't shrink"]])}
+      <div class="plbl">Paper</div>${seg("paper", [["letter", "Letter"], ["a4", "A4"]])}
+      <div class="plbl">On the page</div>
+      ${chk("chords", "Chords over the words")}${chk("repeats", "Repeated parts print once", "A chorus that's the same words and chords prints once, then says Chorus (repeat)")}
+      ${chk("covers", "Covers")}${chk("boxes", `Chord boxes (${inst.name})`, "Uses the instrument picked in the Play tab")}${chk("color", "Chords in color")}
+      <div class="bookonly">${chk("albumPages", "A page for each album")}${chk("contents", "Contents with page numbers")}
+      <label class="fl"><span>Book title</span><input class="t" id="pTitle" value="${esc(o.title)}" placeholder="Songbook"></label></div>
+      <p class="small dim" id="pSum">Laying it out...</p>
+      <div class="row"><button type="button" class="btn go" id="pGo">Print or save as PDF</button><button type="button" class="btn" id="pClose">Close</button></div>
+      <p class="small dim">Save as PDF is in the print window's printer list. Turn off the browser's own headers and footers there for clean pages.</p>
+    </div><div class="pview" id="pView"><iframe id="pFrame" title="Print preview"></iframe></div>`, "printDlg");
+  const frame = d.querySelector("#pFrame");
+  let busy = Promise.resolve(), seq = 0;
+  const draw = () => {
+    d.querySelector(".bookonly").classList.toggle("hidden", o.scope !== "all");
+    const my = ++seq;
+    busy = busy.then(async () => {
+      if (my !== seq) return;
+      const view = d.querySelector("#pView"), P = PAPER[o.paper];
+      const r = await renderBook(frame, bookFor(o.scope), { ...o, zoom: Math.max(0.3, Math.min(1, (view.clientWidth - 40) / P.w)) });
+      const many = r.songs.length > 1, one = r.songs.filter((x) => x.pages === 1).length;
+      const sz = (x) => `${x.fs}pt${x.cols === 2 ? ", two columns" : ""}`;
+      d.querySelector("#pSum").textContent = !r.songs.length ? "No songs to print." : many ? `${r.pages} pages, ${r.songs.length} songs (${one} on one page).` : `${r.pages} page${r.pages > 1 ? "s" : ""}, ${sz(r.songs[0])}.`;
+    }).catch((err) => { d.querySelector("#pSum").textContent = "Couldn't lay it out: " + (err.message || err); });
+  };
+  d.addEventListener("click", (e) => {
+    const b = e.target.closest(".seg[data-o] button");
+    if (b && !b.disabled) { const k = b.parentElement.dataset.o; o[k] = b.dataset.v; b.parentElement.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); save(); draw(); }
+  });
+  d.addEventListener("change", (e) => { const k = e.target.dataset.c; if (k) { o[k] = e.target.checked; save(); draw(); } });
+  d.querySelector("#pTitle").oninput = (e) => { o.title = e.target.value; save(); clearTimeout(d._t); d._t = setTimeout(draw, 400); };
+  d.querySelector("#pClose").onclick = () => d.close();
+  d.querySelector("#pGo").onclick = async () => { await busy; frame.contentWindow.focus(); frame.contentWindow.print(); };
+  draw();
+}
+document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); openPrint(); } });
 
 // ---------- little things ----------
 let toastTimer = 0;
