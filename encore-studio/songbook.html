@@ -98,6 +98,9 @@
   .sheet .sec { font-weight: 800; color: #ff6c40; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; margin: 16px 0 2px; display: flex; gap: 8px; align-items: center; }
   .sheet .sec:first-child { margin-top: 0; }
   .sheet .ln { display: flex; flex-wrap: wrap; align-items: flex-end; min-height: 50px; padding-right: 44px; position: relative; }
+  /* a note for the player: its own colour, so it reads as not part of the song */
+  .sheet .note { color: #22d3ee; font-style: italic; font-size: 14px; margin: 6px 0 2px; padding: 2px 0 2px 10px; border-left: 2px solid rgb(34 211 238 / .5); }
+  .pt.note { color: #22d3ee; border-color: rgb(34 211 238 / .45); }
   .sheet .ln .syl { position: absolute; right: 0; bottom: 4px; font-family: var(--family-mono); font-size: 11px; color: var(--dim); }
   .sheet .gap { height: 14px; }
   .seg2 { display: inline-flex; flex-direction: column; }
@@ -221,7 +224,7 @@
   @media print {
     .bar, #libPanel, #toolPanel, .mtabs, .tools2, .parts, .hint, .songHead .titleRow .ib, #viewSeg { display: none !important; }
     body { background: #fff; color: #000; } main { display: block; height: auto; padding: 0; } .panel { border: 0; background: #fff; }
-    .titleIn, .artistIn { color: #000; border: 0; } .sheet { padding: 0; } .seg2 .ch { color: #c2410c; } .sheet .sec { color: #c2410c; } .sheet .ln .syl { display: none; }
+    .titleIn, .artistIn { color: #000; border: 0; } .sheet { padding: 0; } .seg2 .ch { color: #c2410c; } .sheet .sec { color: #c2410c; } .sheet .note { color: #0e7490; border-color: #0e7490; } .sheet .ln .syl { display: none; }
     .scroll { overflow: visible; }
   }
 </style>
@@ -256,6 +259,7 @@
       <div class="tools2">
         <label>Key <select class="t" id="key" aria-label="Key"></select></label>
         <label>Capo <select class="t" id="capo" aria-label="Capo"></select></label>
+        <label id="writtenWrap" class="hidden" title="With a capo on, are the chords in this song the shapes you finger (the usual way), or the chords as they really sound?">Chords are <select class="t" id="written" aria-label="Chords are written as"><option value="shapes">the shapes I play</option><option value="sounding">how it sounds</option></select></label>
         <span class="seg" aria-label="Transpose"><button id="down" title="Down a half step" aria-label="Transpose down">&#8722;</button><button id="up" title="Up a half step" aria-label="Transpose up">+</button></span>
         <span class="seg" id="sideSeg" aria-label="Sharps or flats"><button data-v="-1" title="Flat names (Db)">&#9837;</button><button data-v="1" title="Sharp names (C#)">&#9839;</button></span>
         <button class="btn sm" id="quickFormat" title="Tidy pasted lyrics: sections, spacing, and chords written above the words moved into place">Quick format</button>

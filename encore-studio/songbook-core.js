@@ -29,6 +29,7 @@ export function sectionName(line) {
 /**
  * A song's text as lines. Each line:
  *   { type: 'section', name, at }         [Verse 1] on its own line
+ *   { type: 'note', text, at, end }       {note: let ring}: for the player, not part of the song
  *   { type: 'lyric', parts: [{ chord, text, at }], at, end }   at: where each part's words start in the text
  *   { type: 'blank' } | { type: 'meta', key, value } ({title: ...} ChordPro directives)
  */
@@ -43,7 +44,12 @@ export function parseSong(text) {
     const dir = /^\s*\{\s*([a-z_]+)\s*(?::\s*(.*?))?\s*\}\s*$/i.exec(line);
     if (dir) {
       const k = dir[1].toLowerCase(), v = dir[2] ?? "";
-      if (/^(c|comment|ci|comment_italic|soc|start_of_chorus|sov|start_of_verse|sob|start_of_bridge)$/.test(k)) {
+      // a note for the player ("let ring", "2x", "palm mute"): {note: ...}, or a ChordPro comment that isn't a part's name
+      if (/^(note|n|ci|comment_italic|cb|comment_box)$/.test(k) || (/^(c|comment)$/.test(k) && v && !sectionName(v))) {
+        if (v) lines.push({ type: "note", text: v, at: start, end: start + raw.length });
+        continue;
+      }
+      if (/^(c|comment|soc|start_of_chorus|sov|start_of_verse|sob|start_of_bridge)$/.test(k)) {
         const name = v || { soc: "Chorus", start_of_chorus: "Chorus", sov: "Verse", start_of_verse: "Verse", sob: "Bridge", start_of_bridge: "Bridge" }[k] || "";
         if (name) lines.push({ type: "section", name, at: start });
       } else if (!/^(eoc|end_of_chorus|eov|end_of_verse|eob|end_of_bridge)$/.test(k)) lines.push({ type: "meta", key: k, value: v, at: start });
@@ -251,6 +257,26 @@ export function fillSection(text, section, progression, perLine = 1) {
 
 // ---------- keys ----------
 
+/** How a song's chords are written: "shapes" (what you finger with the capo on, the usual way
+ *  guitar charts are written, and the default) or "sounding" (the real chords). */
+export const writtenAsShapes = (song) => (song?.written || "shapes") === "shapes";
+/** Half steps from the chords as written to how they sound: the capo, when they're shapes */
+export const soundShift = (song) => (writtenAsShapes(song) ? +song?.capo || 0 : 0);
+
+/** The song's key both ways. `sounding` is the real key (what the Key setting means, and what
+ *  fans and other players need); `written` is the key of the chords on the page. With capo 1 and
+ *  C G Am F written as shapes, it's written in C and sounds in Db. `set`: the key was chosen, not guessed. */
+export function songKeys(song) {
+  const shift = soundShift(song);
+  const m = /^([A-G][#b]?)(m?)$/.exec(song?.key || "");
+  if (m) {
+    const sounding = makeKey(m[1], m[2] ? "minor" : "major");
+    return { sounding, written: shift ? keyBySemis(sounding, -shift) : sounding, shift, set: true };
+  }
+  const written = guessKey(chordSequence(song?.body || ""));
+  return { written, sounding: written && shift ? keyBySemis(written, shift) : written, shift, set: false };
+}
+
 /** The key the chords most likely belong to (null with no chords): symbols as played (chordSequence).
  *  Diatonic fit, plus a pull for home being first, last and often. */
 export function guessKey(symbols) {
@@ -300,6 +326,7 @@ export function toChordsAbove(text) {
     if (l.type === "blank") { out.push(""); continue; }
     if (l.type === "section") { out.push(`[${l.name}]`); continue; }
     if (l.type === "meta") continue;
+    if (l.type === "note") { out.push(`(${l.text})`); continue; }
     let top = "", words = "";
     for (const p of l.parts) {
       if (p.chord) {
@@ -320,12 +347,12 @@ export function toLyrics(text) {
     .filter((x) => x !== null).filter((x, i, a) => !(x === "" && a[i - 1] === "")).join("\n").trim();
 }
 /** Chords in brackets inside the words (the way notes apps and ChordPro do it) */
-export const toInline = (text) => parseSong(text).map((l) => (l.type === "lyric" ? l.parts.map((p) => (p.chord ? `[${p.chord}]` : "") + p.text).join("") : l.type === "section" ? `[${l.name}]` : l.type === "blank" ? "" : null)).filter((x) => x !== null).join("\n").trim();
+export const toInline = (text) => parseSong(text).map((l) => (l.type === "lyric" ? l.parts.map((p) => (p.chord ? `[${p.chord}]` : "") + p.text).join("") : l.type === "section" ? `[${l.name}]` : l.type === "note" ? `(${l.text})` : l.type === "blank" ? "" : null)).filter((x) => x !== null).join("\n").trim();
 /** A ChordPro file (.cho / .chopro): the details as directives, then the song */
 export function toChordPro(song) {
   const d = [["title", song.title], ["artist", song.artist], ["key", song.key], ["capo", song.capo ? String(song.capo) : ""], ["tempo", song.tempo ? String(song.tempo) : ""], ["time", song.time]];
   const head = d.filter(([, v]) => v).map(([k, v]) => `{${k}: ${v}}`);
-  const body = parseSong(song.body).map((l) => (l.type === "section" ? `{comment: ${l.name}}` : l.type === "blank" ? "" : l.type === "meta" ? null : l.parts.map((p) => (p.chord ? `[${p.chord}]` : "") + p.text).join(""))).filter((x) => x !== null);
+  const body = parseSong(song.body).map((l) => (l.type === "section" ? `{comment: ${l.name}}` : l.type === "note" ? `{comment_italic: ${l.text}}` : l.type === "blank" ? "" : l.type === "meta" ? null : l.parts.map((p) => (p.chord ? `[${p.chord}]` : "") + p.text).join(""))).filter((x) => x !== null);
   return [...head, "", ...body].join("\n").replace(/\n{3,}/g, "\n\n").trim() + "\n";
 }
 /** Ultimate Guitar's own markup: [ch]G[/ch] over the words, inside [tab] blocks, sections as [Verse] */

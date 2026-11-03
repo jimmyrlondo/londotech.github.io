@@ -53,6 +53,7 @@ const CSS = (p, o) => `
   .lab i { font-style: italic; font-weight: 500; text-transform: none; letter-spacing: 0; color: #57534e; }
   .ln { line-height: 1.28; white-space: pre-wrap; overflow-wrap: anywhere; }
   .ln.c { white-space: normal; }
+  .ln.note { font-style: italic; color: #0e7490; }
   .sg { display: inline-flex; flex-direction: column; vertical-align: bottom; white-space: pre; }
   .sg b { font-size: .86em; line-height: 1.15; font-weight: 800; color: ${o.color ? "#c2410c" : "#111"}; padding-right: .25em; }
   .note { font-size: .86em; color: #44403c; font-style: italic; line-height: 1.35; padding-top: 2px; }
@@ -95,9 +96,10 @@ function blocksOf(body) {
   }
   return out.filter((b) => b.name || b.lines.length);
 }
-const sig = (b) => b.lines.map((l) => l.parts.map((p) => (p.chord ? `[${p.chord}]` : "") + p.text.trim()).join("")).join("\n");
+const sig = (b) => b.lines.map((l) => l.type === "note" ? `{${l.text}}` : l.parts.map((p) => (p.chord ? `[${p.chord}]` : "") + p.text.trim()).join("")).join("\n");
 const base = (n) => String(n || "").replace(/\s*\d+\s*$/, "").trim().toLowerCase();
 function lineHtml(l, chords) {
+  if (l.type === "note") return `<div class="ln note">${esc(l.text)}</div>`;
   if (!chords || !l.parts.some((p) => p.chord)) return `<div class="ln">${esc(l.parts.map((p) => p.text).join("").replace(/\s+$/, "")) || "&nbsp;"}</div>`;
   let h = "";
   for (const p of l.parts) {

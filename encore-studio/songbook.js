@@ -4,7 +4,7 @@
 // The plain logic is songbook-core.js; the theory and shapes are Chords' own
 // (chords-core, chords-keys, chords-voicing); rhymes and words are words.js.
 import { PARTS, nextPartName, insertPart, repeatableParts, parseSong, quickFormat, insertChord, removeChordAt, transposeText, respellText, fillSection, sections, chordsUsed, chordSequence, guessKey,
-  likelyChords, nextChords, numeral, toChordsAbove, toLyrics, toInline, toChordPro, toUltimateGuitar, lineSyllables, newSong, newId, titleOf, songMetaFrom, stripMeta, isChord } from "./songbook-core.js";
+  likelyChords, nextChords, numeral, toChordsAbove, toLyrics, toInline, toChordPro, toUltimateGuitar, lineSyllables, newSong, newId, titleOf, songMetaFrom, stripMeta, isChord, songKeys, writtenAsShapes, soundShift } from "./songbook-core.js";
 import { parseChord, chordSymbol, chordTones, noteText, pcOf, mod12, plainNote } from "./chords-core.js";
 import { makeKey, keyName, keyBySemis, MAJOR_KEYS, MINOR_KEYS } from "./chords-keys.js";
 import { frettable, coursesOf, fretVoicings, pianoVoicing, capoOptions, courseNotes, shapeText } from "./chords-voicing.js";
@@ -218,15 +218,21 @@ function openSong(id) { db.openId = id; state.armed = null; state.selChord = -1;
 
 // ---------- the song ----------
 const write = $("write"), sheet = $("sheet");
-function songKey(s = song()) {
-  if (!s) return null;
-  if (s.key) { const m = /^([A-G][#b]?)(m?)$/.exec(s.key); if (m) return makeKey(m[1], m[2] ? "minor" : "major"); }
-  return guessKey(chordSequence(s.body));
+/** The song's real key: with the capo on and the chords written as shapes, the shapes' key moved up by the capo */
+function songKey(s = song()) { return s ? songKeys(s).sounding : null; }
+/** The key of the chords as written on the page (the shapes, with a capo): suggestions and spelling use it */
+function writtenKey(s = song()) { return s ? songKeys(s).written : null; }
+/** "Capo 1 (C shapes)" when the chords are shapes, or "Capo 1" */
+function capoText(s) {
+  if (!s?.capo) return "";
+  const w = writtenKey(s);
+  return `Capo ${s.capo}` + (writtenAsShapes(s) && w ? ` (${keyText(w)} shapes)` : "");
 }
 const keyText = (k) => (k ? noteText(k.tonic) + (k.mode === "minor" ? "m" : "") : "");
 function fillKeySelect() {
-  const s = song(), g = s ? guessKey(chordSequence(s.body)) : null;
-  $("key").innerHTML = `<option value="">${g ? `Auto (${esc(keyName(g))})` : "Auto"}</option>` +
+  const s = song(), ks = s ? songKeys({ ...s, key: "" }) : null, g = ks?.sounding;
+  const shapes = ks?.shift ? `, ${keyText(ks.written)} shapes` : "";
+  $("key").innerHTML = `<option value="">${g ? `Auto (${esc(keyName(g))}${esc(shapes)})` : "Auto"}</option>` +
     `<optgroup label="Major">${MAJOR_KEYS.map((t) => `<option value="${t}">${t} major</option>`).join("")}</optgroup><optgroup label="Minor">${MINOR_KEYS.map((t) => `<option value="${t}m">${t} minor</option>`).join("")}</optgroup>`;
   $("key").value = s?.key || "";
 }
@@ -241,6 +247,8 @@ function renderSong() {
   if (document.activeElement !== write && write.value !== s.body) write.value = s.body;
   fillKeySelect();
   $("capo").value = String(s.capo || 0);
+  $("writtenWrap").classList.toggle("hidden", !s.capo);
+  $("written").value = writtenAsShapes(s) ? "shapes" : "sounding";
   for (const b of $("viewSeg").children) b.classList.toggle("on", b.dataset.v === state.view);
   for (const b of $("sideSeg").children) b.classList.toggle("on", +b.dataset.v === state.side);
   write.classList.toggle("hidden", state.view !== "write");
@@ -273,7 +281,9 @@ write.addEventListener("paste", () => setTimeout(() => {
   if (s.body.length > 40 && s.body.split("\n").length > 3 && s.body !== quickFormat(s.body)) toast("Pasted. Press Quick format to tidy it (and move chords into place).", 4000);
 }, 0));
 $("key").onchange = (e) => { const s = song(); if (!s) return; s.key = e.target.value; touch(s); renderLib(); renderTools(); };
-$("capo").onchange = (e) => { const s = song(); if (!s) return; s.capo = +e.target.value; touch(s); renderTools(); };
+$("capo").onchange = (e) => { const s = song(); if (!s) return; s.capo = +e.target.value; touch(s); renderSong(); renderLib(); renderTools(); };
+// the chords on the page: the shapes you finger (the key moves up with the capo) or how it sounds
+$("written").onchange = (e) => { const s = song(); if (!s) return; s.written = e.target.value; touch(s); renderSong(); renderLib(); renderTools(); };
 $("viewSeg").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; state.view = b.dataset.v; db.prefs.view = state.view; save(); renderSong(); };
 $("quickFormat").onclick = () => {
   const s = song(); if (!s) return;
@@ -290,7 +300,7 @@ function transposeBy(semis) {
   const s = song(); if (!s) return;
   const k = songKey(s);
   undoPush(s);
-  s.body = transposeText(s.body, semis, k, state.side);
+  s.body = transposeText(s.body, semis, writtenKey(s), state.side);
   if (s.key && k) s.key = keyText(keyBySemis(k, semis));
   touch(s); renderAll();
 }
@@ -299,7 +309,7 @@ $("down").onclick = () => transposeBy(-1);
 $("sideSeg").onclick = (e) => {
   const b = e.target.closest("button"); const s = song(); if (!b || !s) return;
   const v = +b.dataset.v; state.side = state.side === v ? 0 : v;
-  if (state.side) { undoPush(s); s.body = respellText(s.body, state.side, songKey(s)); touch(s); }
+  if (state.side) { undoPush(s); s.body = respellText(s.body, state.side, writtenKey(s)); touch(s); }
   renderAll();
 };
 
@@ -333,7 +343,9 @@ function renderParts() {
   const rep = repeatableParts(s.body);
   $("parts").innerHTML = `<span class="pl">Add</span>` + MAIN_PARTS.map((p) => `<button class="pt" data-p="${p}" title="Put a [${esc(nextPartName(s.body, p))}] line in where you are">${p}</button>`).join("") +
     `<select class="t" id="moreParts" aria-label="More parts"><option value="">More...</option>${PARTS.filter((p) => !MAIN_PARTS.includes(p)).map((p) => `<option>${p}</option>`).join("")}<option value="*">Your own name...</option></select>` +
-    rep.map((n) => `<button class="pt rep" data-p="${esc(n)}" data-rep="1" title="The ${esc(n)} again, with its words and chords">&#8635; ${esc(n)} again</button>`).join("");
+    rep.map((n) => `<button class="pt rep" data-p="${esc(n)}" data-rep="1" title="The ${esc(n)} again, with its words and chords">&#8635; ${esc(n)} again</button>`).join("") +
+    `<button class="pt note" id="addNote" title="A note for you or the band (let ring, 2x, palm mute): shown in its own colour, left out of the lyrics">+ Note</button>`;
+  $("addNote").onclick = (e) => { e.stopPropagation(); addNote(); };
   $("moreParts").onchange = (e) => { let n = e.target.value; e.target.value = ""; if (n === "*") n = (prompt("Name this part (e.g. Rap verse, Choir, Key change)") || "").trim(); if (n) addPart(n); };
 }
 $("parts").addEventListener("click", (e) => { const b = e.target.closest(".pt"); if (b) addPart(b.dataset.p, !!b.dataset.rep); });
@@ -350,6 +362,24 @@ function addPart(base, repeat = false) {
   if (state.view === "sheet") sheet.scrollTop = sheet.scrollHeight;
   toast(repeat ? `${name} again, words and chords included.` : `Added [${name}].`);
 }
+/** A {note: } line where you are, in Write, with the cursor ready to type it */
+function addNote() {
+  const s = song(); if (!s) return;
+  if (state.view !== "write") { state.view = "write"; renderSong(); }
+  let at = document.activeElement === write ? write.selectionStart : lastCaret != null ? lastCaret : s.body.length;
+  at = Math.min(at, s.body.length);
+  const lineStart = s.body.lastIndexOf("\n", at - 1) + 1, lineEnd = s.body.indexOf("\n", at) < 0 ? s.body.length : s.body.indexOf("\n", at);
+  // on its own line: after the line you're on (or here, on an empty one)
+  const empty = !s.body.slice(lineStart, lineEnd).trim();
+  const pos = empty ? lineStart : lineEnd;
+  const before = empty ? "" : "\n", tag = "{note: ";
+  undoPush(s);
+  s.body = s.body.slice(0, pos) + before + tag + "}" + s.body.slice(empty ? lineEnd : pos);
+  touch(s);
+  setWriteText(s.body, pos + before.length + tag.length);
+  lastCaret = pos + before.length + tag.length;
+  renderToolsSoon();
+}
 let lastCaret = null;
 write.addEventListener("blur", () => { lastCaret = write.selectionStart; });
 
@@ -361,6 +391,7 @@ function renderSheet() {
     if (l.type === "blank") { html += `<div class="gap"></div>`; continue; }
     if (l.type === "meta") continue;
     if (l.type === "section") { html += `<div class="sec">${esc(l.name)}</div>`; continue; }
+    if (l.type === "note") { html += `<div class="note" title="A note for you, not part of the song: change it in Write">${esc(l.text)}</div>`; continue; }
     html += `<div class="ln">` + l.parts.map((p) => {
       // the words as tappable pieces, each knowing where it starts in the text
       const words = []; const re = /\S+\s*|\s+/g; let m;
@@ -401,9 +432,17 @@ document.addEventListener("keydown", (e) => {
 // new text in the editor without losing your place: replacing a textarea's value jumps it to the end,
 // so the scroll position comes back and the caret goes where the change was
 function setWriteText(text, caret) {
-  const top = write.scrollTop;
-  write.value = text;
+  const top = write.scrollTop, old = write.value;
   write.focus({ preventScroll: true });
+  // only the part that changed is replaced, through the browser's own editing, so Ctrl+Z (and
+  // Ctrl+Y) undo and redo it just like typing; older browsers without it get the plain way
+  let a = 0, b = 0;
+  while (a < old.length && a < text.length && old[a] === text[a]) a++;
+  while (b < old.length - a && b < text.length - a && old[old.length - 1 - b] === text[text.length - 1 - b]) b++;
+  write.setSelectionRange(a, old.length - b);
+  let ok = false;
+  try { ok = old !== text && document.execCommand("insertText", false, text.slice(a, text.length - b)); } catch { ok = false; }
+  if (!ok || write.value !== text) write.value = text;
   write.setSelectionRange(caret, caret);
   write.scrollTop = top;
   requestAnimationFrame(() => { write.scrollTop = top; });
@@ -448,11 +487,11 @@ function chordBefore() {
 function renderChordsTab() {
   const s = song();
   if (!s) { tbody.innerHTML = `<div class="empty">Open a song.</div>`; return; }
-  const k = songKey(s), used = chordsUsed(s.body), prev = chordBefore();
+  const k = writtenKey(s), real = songKey(s), used = chordsUsed(s.body), prev = chordBefore();
   const L = k ? likelyChords(k) : null, next = k && prev ? nextChords(k, prev, 6) : [];
   const nm = (sym) => (k ? numeral(k, sym) : "");
   tbody.innerHTML = `
-    <div class="lbl"><span>${state.view === "write" ? "Tap to put it in" : state.armed ? "Now tap the words" : "Pick one, then tap the words"}</span><span class="dim">${k ? (s.key ? keyName(k) : `sounds like ${keyName(k)}`) : "set a key for suggestions"}</span></div>
+    <div class="lbl"><span>${state.view === "write" ? "Tap to put it in" : state.armed ? "Now tap the words" : "Pick one, then tap the words"}</span><span class="dim">${k ? (soundShift(s) ? `${keyText(k)} shapes, sounds in ${keyName(real)}` : s.key ? keyName(k) : `sounds like ${keyName(k)}`) : "set a key for suggestions"}</span></div>
     <div class="row"><input class="t" id="anyChord" placeholder="Any chord: F#m7b5, G/B..." style="flex:1 1 auto" aria-label="Type any chord"><button class="btn sm" id="anyGo">Add</button></div>
     ${next.length ? `<div class="lbl"><span>Likely after ${esc(prev)}</span></div><div class="chips">${next.map((n) => chip(n.symbol, nm(n.symbol), "", n.why)).join("")}</div>` : ""}
     ${used.length ? `<div class="lbl"><span>In this song</span></div><div class="chips">${used.map((u) => chip(u, nm(u))).join("")}</div>` : ""}
@@ -509,31 +548,41 @@ function renderPlayTab() {
   if (!used.length) html += `<p class="small dim">Put some chords in the song and they show up here, ready to play.</p>`;
   else if (inst.part === "string" && frettable(inst) && tuning) {
     const courses = coursesOf(tuning, inst.name);
-    // with a capo, the shapes are the chords moved down; the capo helper suggests easier spots
-    const opts = capoOptions(used, courses, 7).slice(0, 3);
+    // with a capo: written as shapes, the chords are what you finger and sound higher; written as they
+    // sound, the shapes are the chords moved down. The capo helper suggests easier spots for the real chords.
+    const shapes = writtenAsShapes(s), real = used.map((c) => (shapes && capo ? shapeOf(c, -capo, writtenKey(s)) : c));
+    const opts = capoOptions(real, courses, 7).slice(0, 3);
     html += `<p class="small dim" style="margin:8px 0 4px">${capo ? `Capo on fret ${capo}: the shapes below are what you finger.` : ""} Tap a chord to hear it.</p>`;
-    html += `<div class="diagrams">${used.map((c) => { const sh = capo ? shapeOf(c, capo) : c; const vs = fretVoicings(sh, courses, { capo: 0, maxFret: 12, limit: 3 });
-      return `<div class="dg" data-c="${esc(chordSymbol(c))}"><b>${esc(chordSymbol(c))}</b>${capo ? `<span class="alt">shape ${esc(chordSymbol(sh))}</span>` : ""}${vs[0] ? box(vs[0], courses, pcOf(sh.root)) + `<div class="alt">${esc(shapeText(vs[0].frets))}</div>` : `<div class="alt">no easy shape</div>`}</div>`; }).join("")}</div>`;
+    html += `<div class="diagrams">${used.map((c, i) => { const sh = shapes || !capo ? c : shapeOf(c, capo), snd = real[i]; const vs = fretVoicings(sh, courses, { capo: 0, maxFret: 12, limit: 3 });
+      const sub = capo ? (shapes ? `sounds ${esc(chordSymbol(snd))}` : `shape ${esc(chordSymbol(sh))}`) : "";
+      return `<div class="dg" data-c="${esc(chordSymbol(snd))}"><b>${esc(chordSymbol(c))}</b>${sub ? `<span class="alt">${sub}</span>` : ""}${vs[0] ? box(vs[0], courses, pcOf(sh.root)) + `<div class="alt">${esc(shapeText(vs[0].frets))}</div>` : `<div class="alt">no easy shape</div>`}</div>`; }).join("")}</div>`;
     if (opts[0] && opts[0].capo !== capo) html += `<div class="lbl"><span>Easier with a capo?</span></div><div class="small muted">${opts.map((o) => `<button class="btn sm" data-capo="${o.capo}">${o.capo ? `Capo ${o.capo}` : "No capo"}: ${o.shapes.map((x) => esc(chordSymbol(x))).join(" ")}</button>`).join(" ")}</div>`;
   } else if (inst.part === "keys") {
-    html += `<div class="diagrams" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${used.map((c) => `<div class="dg" data-c="${esc(chordSymbol(c))}"><b>${esc(chordSymbol(c))}</b>${keys(pianoVoicing(c).notes)}<div class="notes">${chordTones(c).map((t) => esc(noteText(t.note))).join(" ")}</div></div>`).join("")}</div>`;
+    html += `<div class="diagrams" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${used.map((c) => soundingChord(s, c)).map((c) => `<div class="dg" data-c="${esc(chordSymbol(c))}"><b>${esc(chordSymbol(c))}</b>${keys(pianoVoicing(c).notes)}<div class="notes">${chordTones(c).map((t) => esc(noteText(t.note))).join(" ")}</div></div>`).join("")}</div>`;
   } else if (inst.part === "drums") {
     html += `<p class="small dim">Drums don't play chords. The tempo and feel are in the song details; try Beatpad or Metronome for the groove.</p>`;
   } else {
     // one note at a time (voice, winds, brass, fretless strings): the chord's notes to outline it, written for the instrument
     const tr = inst.transpose || 0;
     html += `<p class="small dim" style="margin:8px 0 4px">${inst.part === "voice" ? "The notes of each chord, to find harmonies." : `One note at a time: play these to outline each chord${tr ? ` (written for ${esc(inst.name)}, ${tr > 0 ? "up" : "down"} ${Math.abs(tr)} half steps from concert pitch)` : ""}.`}</p>`;
-    html += `<div class="diagrams" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${used.map((c) => { const tones = chordTones(c).map((t) => t.note);
+    html += `<div class="diagrams" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${used.map((c) => soundingChord(s, c)).map((c) => { const tones = chordTones(c).map((t) => t.note);
       return `<div class="dg" data-c="${esc(chordSymbol(c))}"><b>${esc(chordSymbol(c))}</b><div class="notes">${tones.map((n) => esc(noteText(tr ? plainNote(pcOf(n) + tr) : n))).join(" ")}</div>${tr ? `<div class="alt">concert ${tones.map((n) => esc(noteText(n))).join(" ")}</div>` : ""}</div>`; }).join("")}</div>`;
   }
   tbody.innerHTML = html;
   $("pInst").value = inst.name;
   $("pInst").onchange = (e) => { db.prefs.inst = e.target.value; db.prefs.tuning = 0; save(); renderPlayTab(); };
   $("pTuning") && ($("pTuning").value = String(ti), $("pTuning").onchange = (e) => { db.prefs.tuning = +e.target.value; save(); renderPlayTab(); });
-  tbody.querySelectorAll("[data-capo]").forEach((b) => (b.onclick = () => { s.capo = +b.dataset.capo; touch(s); $("capo").value = String(s.capo); renderPlayTab(); }));
+  tbody.querySelectorAll("[data-capo]").forEach((b) => (b.onclick = () => {
+    const to = +b.dataset.capo;
+    if (writtenAsShapes(s) && to !== (s.capo || 0)) { undoPush(s); s.body = transposeText(s.body, (s.capo || 0) - to, writtenKey(s), state.side); }
+    s.capo = to; touch(s); renderAll();
+  }));
   tbody.querySelectorAll(".dg[data-c]").forEach((d) => (d.onclick = () => strum(parseChord(d.dataset.c), inst, tuning)));
 }
-function shapeOf(c, capo) { const t = transposeText(`[${chordSymbol(c)}]`, -capo).slice(1, -1); return parseChord(t); }
+/** A chord moved down by the capo (a negative capo moves it up), spelled for the key it starts in */
+function shapeOf(c, capo, key = null) { const t = transposeText(`[${chordSymbol(c)}]`, -capo, key).slice(1, -1); return parseChord(t); }
+/** A chord as written, as it really sounds (up by the capo when the chords are shapes) */
+function soundingChord(s, c) { const n = soundShift(s); return n ? shapeOf(c, -n, writtenKey(s)) : c; }
 function box(v, courses, rootPc) {
   const n = courses.length, gap = n > 8 ? 9 : 12, left = 16, top = 16, rowH = 13;
   const fretted = v.frets.filter((f) => f > 0), maxF = fretted.length ? Math.max(...fretted) : 0;
@@ -751,7 +800,7 @@ function renderShareTab() {
   const s = song();
   if (!s) { tbody.innerHTML = `<div class="empty">Open a song.</div>`; return; }
   const k = songKey(s);
-  const head = [titleOf(s), s.artist && `by ${s.artist}`].filter(Boolean).join(" ") + "\n" + [k && `Key: ${keyName(k)}`, s.capo && `Capo ${s.capo}`, s.tempo && `${s.tempo} BPM`].filter(Boolean).join(" · ");
+  const head = [titleOf(s), s.artist && `by ${s.artist}`].filter(Boolean).join(" ") + "\n" + [k && `Key: ${keyName(k)}`, capoText(s), s.tempo && `${s.tempo} BPM`].filter(Boolean).join(" · ");
   const formats = [
     ["above", "Chords over the words", "Plain text that lines up anywhere with a fixed-width font: forums, texts, most chord sites.", () => head.trim() + "\n\n" + toChordsAbove(s.body)],
     ["ug", "Ultimate Guitar", "Their own markup, so the chords stay over the right words when you paste into their editor.", () => toUltimateGuitar(s.body)],
@@ -894,13 +943,13 @@ function printBoxes(s) {
   if (!(inst.part === "string" && frettable(inst) && tuning)) return [];
   const courses = coursesOf(tuning, inst.name), capo = s.capo || 0;
   return chordsUsed(s.body).map(parseChord).filter(Boolean).map((c) => {
-    const sh = capo ? shapeOf(c, capo) : c, v = fretVoicings(sh, courses, { capo: 0, maxFret: 12, limit: 1 })[0];
+    const sh = capo && ! writtenAsShapes(s) ? shapeOf(c, capo) : c, v = fretVoicings(sh, courses, { capo: 0, maxFret: 12, limit: 1 })[0];
     return v && { name: chordSymbol(c), svg: inkBox(box(v, courses, pcOf(sh.root))) };
   }).filter(Boolean);
 }
 function printSong(s, f, track) {
   const k = songKey(s);
-  const meta = [f && (track ? `${f.name}, track ${track}` : f.name), k && `Key of ${keyName(k)}`, s.capo && `Capo ${s.capo}`, s.tempo && `${s.tempo} BPM`, s.time, s.year || f?.year].filter(Boolean);
+  const meta = [f && (track ? `${f.name}, track ${track}` : f.name), k && `Key of ${keyName(k)}`, capoText(s), s.tempo && `${s.tempo} BPM`, s.time, s.year || f?.year].filter(Boolean);
   const credit = [s.writers && `Words and music by ${s.writers}`, s.copyright].filter(Boolean).join(". ");
   return { id: s.id, title: titleOf(s), artist: s.artist || f?.artist || "", meta, credit, notes: s.notes || "", cover: coverFor(s), body: s.body, boxes: pp().boxes ? printBoxes(s) : [], key: s.key || keyText(k) };
 }
