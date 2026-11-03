@@ -433,7 +433,6 @@ const tbody = $("tbody");
 $("ttabs").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; state.tab = b.dataset.t; db.prefs.tab = state.tab; save(); renderTools(); };
 function renderTools() {
   for (const b of $("ttabs").children) b.classList.toggle("on", b.dataset.t === state.tab);
-  document.querySelector("main").classList.toggle("wordsWide", state.tab === "words");
   if (state.tab === "chords") renderChordsTab();
   else if (state.tab === "play") renderPlayTab();
   else if (state.tab === "words") renderWordsTab();
