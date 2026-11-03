@@ -105,6 +105,26 @@
   .partRow .row { gap: 4px; } .partRow .row select { padding: 3px 5px; font-size: 12px; }
   .linkish { border: 0; background: transparent; color: inherit; text-decoration: underline; padding: 0; font: inherit; }
   .printPart { display: none; }
+  .find { border: 1px solid var(--divider); border-left-width: 3px; border-radius: 9px; padding: 7px 9px; margin-bottom: 5px; font-size: 13px; cursor: pointer; display: grid; gap: 3px; }
+  .find.error { border-left-color: #ff6b6b; } .find.warn { border-left-color: #ffb38a; } .find.tip { border-left-color: var(--divider-strong); }
+  .find:hover { background: rgb(255 255 255 / .03); } .find .btn { justify-self: start; }
+  .harm { display: flex; flex-wrap: wrap; gap: 4px; } .hb { border: 1px solid var(--divider); border-radius: 7px; padding: 2px 7px; font-size: 13px; }
+  .ttabs button { font-size: 12.5px; padding: 7px 2px; }
+  .sr { position: fixed; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .tool kbd, .palItem kbd, .note kbd { font: 10.5px var(--family-mono); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 0 4px; margin-left: 6px; color: var(--soft); }
+  .modalBack { position: fixed; inset: 0; z-index: 80; background: rgb(0 0 0 / .55); display: grid; place-items: start center; padding-top: 10vh; }
+  .modal { width: min(640px, calc(100vw - 24px)); max-height: 80vh; overflow: auto; background: var(--panel); border: 1px solid var(--divider-strong); border-radius: 16px; padding: 16px; box-shadow: 0 20px 60px rgb(0 0 0 / .5); }
+  .modal h2 { margin: 0 0 10px; font-size: 18px; }
+  .palIn { width: 100%; font-size: 17px; padding: 10px 12px; }
+  .palList { margin-top: 8px; display: grid; gap: 2px; }
+  .palItem { padding: 8px 10px; border-radius: 9px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .palItem.on, .palItem:hover { background: rgb(255 59 0 / .15); }
+  .tpls { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+  .tpl { text-align: left; border: 1px solid var(--divider-strong); background: transparent; border-radius: 11px; padding: 8px 10px; }
+  .tpl b { display: block; font-size: 14px; } .tpl span { display: block; font-size: 12px; color: var(--dim); }
+  .tpl.on { border-color: #ff3b00; background: rgb(255 59 0 / .12); box-shadow: inset 0 0 0 1px #ff3b00; }
+  .histRow { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--divider); font-size: 13.5px; }
+  @media (max-width: 899px) { #sayBtn kbd { display: none; } }
   @media print { body.printingPart > *:not(.printPart) { display: none !important; } body.printingPart .printPart { display: block; color: #000; } }
 
   @media (max-width: 1150px) { main { grid-template-columns: 170px minmax(0, 1fr) 300px; } }
@@ -143,6 +163,7 @@
     <div class="tool">
       <button class="ib" id="playBtn" title="Play from the cursor (Space)" aria-label="Play">&#9654;</button>
       <button class="btn sm rec" id="recBtn" title="Record from a MIDI keyboard, the piano below, or your computer keys, with a click">&#9679; Record</button>
+      <button class="ib" id="loopBtn" title="Loop the selected run (L)" aria-label="Loop">&#10227;</button>
       <button class="ib" id="clickBtn" title="Metronome click while playing and recording" aria-label="Metronome">&#9833;</button>
       <label>Tempo <input class="t" id="tempo" type="number" min="20" max="320" style="width:64px" aria-label="Tempo"></label>
       <span class="sep"></span>
@@ -153,6 +174,7 @@
       <button class="ib" id="transUp" title="Transpose the whole piece up a half step" aria-label="Transpose up">+</button>
       <span class="seg" id="modeSeg" title="Insert pushes later music along; Over writes over what's there, so other parts stay lined up"><button data-v="insert">Insert</button><button data-v="overwrite">Over</button></span>
       <label class="hidden" id="writtenWrap"><input type="checkbox" id="written"> Written pitch</label>
+      <button class="btn sm" id="sayBtn" title="Type a mark (pp, cresc., Cmaj7, 3/4, rit.) or find any command">Type it&hellip; <kbd>Ctrl K</kbd></button>
       <span class="pos" id="pos"></span>
     </div>
     <div class="scroll" id="paperScroll"><div class="paper" id="paper" tabindex="0" aria-label="Score. Type notes A to G, numbers for lengths, arrows to move."></div></div>
@@ -163,11 +185,12 @@
   </section>
 
   <section class="panel" id="toolPanel" aria-label="Tools">
-    <div class="ttabs" id="ttabs"><button data-t="write" class="on">Write</button><button data-t="bar">Bar</button><button data-t="record">Record</button><button data-t="score">Score</button><button data-t="share">Share</button></div>
+    <div class="ttabs" id="ttabs"><button data-t="write" class="on">Write</button><button data-t="bar">Bar</button><button data-t="record">Record</button><button data-t="score">Score</button><button data-t="check">Check</button><button data-t="share">Share</button></div>
     <div class="scroll tbody" id="tbody"></div>
   </section>
 </main>
 <input type="file" id="importFile" accept=".musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,.json" hidden>
+<div id="sr" class="sr" aria-live="polite"></div>
 <script type="module" src="compose.js"></script>
 </body>
 </html>

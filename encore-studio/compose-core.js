@@ -75,7 +75,7 @@ export function movePart(score, index, to) {
 
 // ---------- bars: lengths, keys, times and tempos as they change, and the marks on them ----------
 
-const MARKS = ["repeatStart", "repeatEnd", "volta", "voltaBars", "barline", "mark", "nav", "text"];
+const MARKS = ["repeatStart", "repeatEnd", "volta", "voltaBars", "barline", "mark", "nav", "text", "clefs"];
 const sameTime = (a, b) => a.n === b.n && a.d === b.d && String(a.groups || "") === String(b.groups || "");
 /**
  * Every bar of the piece, bar for bar the same for all parts:
@@ -321,35 +321,66 @@ export function layoutScore(score, opts = {}) {
 function layoutVoice(score, partIndex, vi, bars, opts, primary) {
   const part = score.parts[partIndex], voice = part.voices[vi] || [];
   const shift = opts.transposed ? part.transpose || 0 : 0;
-  const measures = bars.map((b) => ({ index: b.index, number: b.number, start: b.start, ticks: b.ticks, pickup: b.pickup, voice: vi, staff: staffOfVoice(part, vi),
-    key: shift ? writtenKey(b.key, shift) : b.key, time: b.time, stem: null, events: [] }));
+  // the clef in each bar: the staff's own, then any change set on a bar (bars[i].clefs["part:staff"])
+  const staffNo = staffOfVoice(part, vi), clefKey = `${partIndex}:${staffNo}`;
+  let clefNow = clefsOf(part)[staffNo] || "treble";
+  const measures = bars.map((b) => {
+    const nc = b.clefs?.[clefKey], change = !!nc && nc !== clefNow && b.index > 0;
+    if (nc) clefNow = nc;
+    return { index: b.index, number: b.number, start: b.start, ticks: b.ticks, pickup: b.pickup, voice: vi, staff: staffNo,
+      key: shift ? writtenKey(b.key, shift) : b.key, time: b.time, clef: clefNow, clefChange: change, stem: null, events: [] };
+  });
   // a pickup is the end of a bar, so its beats are counted from where it would sit
   const offOf = (m) => (m.pickup ? bars[m.index].full - m.ticks : 0);
   const barAt = (t) => barIndexAt(bars, t);
-  // tuplet groups: consecutive events with the same ratio, closed when their written total is n of one plain value
-  const tupletOf = new Map(); let tid = 0;
-  for (let i = 0; i < voice.length; i++) {
-    const tu = voice[i].tuplet; if (!tu) continue;
-    const ids = [i]; let written = voice[i].dur * tu.n / tu.of, minW = written;
-    for (let j = i + 1; ; j++) {
-      const base = written / tu.n;
-      if (TYPE_TICKS[valueOf(base)?.type] === base && written >= tu.n * Math.min(minW, base)) break;
-      const e = voice[j]; if (!e || !e.tuplet || e.tuplet.n !== tu.n || e.tuplet.of !== tu.of) break;
-      ids.push(j); const w = e.dur * tu.n / tu.of; written += w; minW = Math.min(minW, w);
+  // tuplet groups: consecutive events with the same ratio, closed when their written total makes n notes of the unit
+  // (with no unit: n of one plain value). Nested tuplets: the outer groups first, then the inner ones inside each.
+  const tupletOf = new Map(), outerOf = new Map(); let tid = 0;
+  const sig = (t) => (t ? `${t.n}:${t.of}:${t.unit || ""}` : "");
+  const groupRuns = (get, writtenOf, into, sameOuter) => {
+    for (let i = 0; i < voice.length; i++) {
+      const tu = get(voice[i]); if (!tu) continue;
+      const ids = [i]; let written = writtenOf(voice[i]), minW = written;
+      for (let j = i + 1; ; j++) {
+        if (tu.unit) { if (written >= tu.n * tu.unit - 0.5) break; }
+        else { const base = written / tu.n; if (TYPE_TICKS[valueOf(base)?.type] === base && written >= tu.n * Math.min(minW, base)) break; }
+        const e = voice[j], t2 = e && get(e); if (!t2 || sig(t2) !== sig(tu) || (sameOuter && !sameOuter(i, j))) break;
+        ids.push(j); const w = writtenOf(e); written += w; minW = Math.min(minW, w);
+      }
+      const id = ++tid;
+      ids.forEach((k, x) => into.set(k, { id, n: tu.n, of: tu.of, first: x === 0, last: x === ids.length - 1 }));
+      i = ids[ids.length - 1];
     }
+  };
+  // nested: a run of events at one outer ratio (each either nested inside it, or a plain note of it), holding at least one
+  // nested event, is an outer group; its plain notes are the outer level itself
+  const outerLevel = new Set();
+  for (let i = 0; i < voice.length; i++) {
+    const e0 = voice[i], X = e0.tuplet?.outer || e0.tuplet; if (!X) continue;
+    const key = sig(X), at = (e) => (e?.tuplet?.outer && sig(e.tuplet.outer) === key ? "in" : e?.tuplet && !e.tuplet.outer && sig(e.tuplet) === key ? "plain" : null);
+    const ids = []; let written = 0;
+    for (let j = i; j < voice.length && at(voice[j]); j++) {
+      ids.push(j); written += (voice[j].dur * X.n) / X.of;
+      if (X.unit ? written >= X.n * X.unit - 0.5 : false) break;
+    }
+    if (!ids.some((k) => at(voice[k]) === "in")) continue;
     const id = ++tid;
-    ids.forEach((k, x) => tupletOf.set(k, { id, n: tu.n, of: tu.of, first: x === 0, last: x === ids.length - 1 }));
+    ids.forEach((k, x) => { outerOf.set(k, { id, n: X.n, of: X.of, first: x === 0, last: x === ids.length - 1 }); if (at(voice[k]) === "plain") outerLevel.add(k); });
     i = ids[ids.length - 1];
   }
+  groupRuns((e) => e.tuplet, (e) => e.dur * tupletScale(e.tuplet), tupletOf, (a, b) => outerOf.get(a)?.id === outerOf.get(b)?.id && !outerLevel.has(a) === !outerLevel.has(b));
+  // a plain note of an outer group is drawn as that group (its own level), the nested ones carry the outer bracket
+  for (const [k, t] of tupletOf) t.outer = outerLevel.has(k) ? null : outerOf.get(k) || null;
+  for (const k of outerLevel) tupletOf.set(k, { ...outerOf.get(k), outer: null });
   // events cut at barlines and into written values
   let t = 0;
   voice.forEach((e, ref) => {
     const end = t + e.dur;
     if (e.tuplet) {
-      const w = e.dur * e.tuplet.n / e.tuplet.of, parts = valueOf(w) ? [valueOf(w)] : durationParts(w);
+      const sc = tupletScale(e.tuplet), w = Math.round(e.dur * sc), parts = valueOf(w) ? [valueOf(w)] : durationParts(w);
       let s = t;
       parts.forEach((v, k) => {
-        const ticks = v.ticks * e.tuplet.of / e.tuplet.n, m = measures[barAt(s)];
+        const ticks = v.ticks / sc, m = measures[barAt(s)];
         m.events.push(piece(e, ref, s, s - m.start, ticks, v, k > 0, k < parts.length - 1, tupletOf.get(ref)));
         s += ticks;
       });
@@ -396,8 +427,11 @@ function layoutVoice(score, partIndex, vi, bars, opts, primary) {
       const ov = n.spell && shift ? null : n.spell; // an override is for concert pitch; written pitch spells itself
       const m = n.midi + shift, sp = ov || !last.has(m) || (dir && !p.tiedFromPrev && prev !== cur) ? spell(m, key, ov, dir, score.mode) : last.get(m);
       now.set(m, sp);
-      return { midi: m, ...sp, tie: n.tie, showAcc: false };
+      const extra = {}; for (const k of ["finger", "head", "harm"]) if (n[k] !== undefined) extra[k] = n[k];
+      return { midi: m, ...sp, tie: n.tie, showAcc: false, ...extra };
     });
+    // grace notes: spelled in the key, leaning towards the note they lead into
+    if (p.graces) for (const gr of p.graces) gr.notes = gr.notes.map((n) => { const gm = n.midi + shift; return { midi: gm, ...spell(gm, key, null, Math.sign(cur - gm) || 0, score.mode), showAcc: false }; });
     last = now;
   }
   // accidentals by the measure: the key signature, then whatever an earlier note in the bar set (by staff position)
@@ -406,6 +440,12 @@ function layoutVoice(score, partIndex, vi, bars, opts, primary) {
     if (m.key !== prevKey) { prevBar = new Map(); prevKey = m.key; } // a new key signature restates everything
     const now = new Map();
     for (const p of m.events) {
+      // grace notes come first and set accidentals like any other note
+      if (p.graces) for (const gr of p.graces) for (const n of gr.notes) {
+        const k = n.step + n.octave, cur = now.has(k) ? now.get(k) : keyAlter(LETTERS.indexOf(n.step), m.key);
+        if (n.alter !== cur) n.showAcc = true;
+        now.set(k, n.alter);
+      }
       for (const n of p.notes) {
         const k = n.step + n.octave, sig = keyAlter(LETTERS.indexOf(n.step), m.key);
         const cur = now.has(k) ? now.get(k) : sig;
@@ -440,11 +480,28 @@ function layoutVoice(score, partIndex, vi, bars, opts, primary) {
   }
   return measures;
 }
+// written length over sounding length for a tuplet (and its outer tuplet when nested)
+export const tupletScale = (t) => (t ? (t.n / t.of) * (t.outer ? t.outer.n / t.outer.of : 1) : 1);
+// the v3 marks a piece carries: grace notes, ornament, arpeggio and technique on the first piece of an event,
+// tremolo on every piece (it's how each piece is played)
+function v3Fields(e, tiedFromPrev) {
+  const o = {};
+  if (!tiedFromPrev) {
+    if (e.graces?.length) o.graces = e.graces.map((g) => ({ slash: g.slash !== false, notes: (g.notes || []).map((n) => ({ midi: n.midi })) }));
+    if (e.orn) { o.orn = e.orn; if (e.ornAcc !== undefined && e.ornAcc !== null) o.ornAcc = e.ornAcc; }
+    if (e.arp) { o.arp = true; if (e.arpDir) o.arpDir = e.arpDir; }
+    if (e.tech) o.tech = e.tech;
+  }
+  if (e.trem) o.trem = e.trem;
+  return o;
+}
 function piece(e, ref, start, pos, ticks, v, tiedFromPrev, tiedOn, tuplet = null) {
   return { ref, start, pos, ticks, written: v.ticks, type: v.type, dots: v.dots, rest: !!e.rest, full: false, filler: false, slash: !!(e.rest && e.slash),
-    notes: e.rest ? [] : e.notes.map((n) => ({ midi: n.midi, spell: n.spell || null, tie: tiedOn || !!n.tie })),
+    notes: e.rest ? [] : e.notes.map((n) => ({ midi: n.midi, spell: n.spell || null, tie: tiedOn || !!n.tie, ...(n.finger && !tiedFromPrev ? { finger: String(n.finger) } : {}), ...(n.head && n.head !== "normal" ? { head: n.head } : {}), ...(n.harm ? { harm: true } : {}) })),
     chord: tiedFromPrev ? null : e.chord || null, lyric: tiedFromPrev ? null : e.lyric || null, lyricHyphen: !tiedFromPrev && !!e.lyricHyphen,
-    artic: tiedFromPrev ? [] : e.artic || [], dyn: tiedFromPrev ? null : e.dyn || null, tuplet: tuplet && { ...tuplet, first: tuplet.first && !tiedFromPrev, last: tuplet.last && !tiedOn }, tiedFromPrev, beam: null, spans: [] };
+    artic: tiedFromPrev ? [] : e.artic || [], dyn: tiedFromPrev ? null : e.dyn || null,
+    tuplet: tuplet && { ...tuplet, first: tuplet.first && !tiedFromPrev, last: tuplet.last && !tiedOn, outer: tuplet.outer ? { ...tuplet.outer, first: tuplet.outer.first && tuplet.first && !tiedFromPrev, last: tuplet.outer.last && tuplet.last && !tiedOn } : null },
+    tiedFromPrev, beam: null, spans: [], ...v3Fields(e, tiedFromPrev) };
 }
 let beamSeq = 0;
 function beamMeasure(m, time, offset) {
@@ -466,7 +523,7 @@ function beamMeasure(m, time, offset) {
   let run = [], runUnit = null;
   const close = () => { if (run.length >= 2) { const id = ++beamSeq; run.forEach((p) => (p.beam = id)); } run = []; runUnit = null; };
   for (const p of m.events) {
-    const unit = p.tuplet ? `t${p.tuplet.id}` : unitOf(p.pos + offset);
+    const unit = p.tuplet ? `t${p.tuplet.outer?.id ?? p.tuplet.id}` : unitOf(p.pos + offset);
     if (!beamable(p) || unit !== runUnit) close();
     if (beamable(p)) { run.push(p); runUnit = unit; }
   }
@@ -608,16 +665,25 @@ export function normalize(score) {
       const out = [];
       for (const e of v) {
         const prev = out[out.length - 1];
-        const plain = (x) => !x.chord && !x.lyric && !x.tuplet && !(x.artic || []).length && !x.dyn && !x.slash;
+        const plain = (x) => !x.chord && !x.lyric && !x.tuplet && !(x.artic || []).length && !x.dyn && !x.slash && !x.graces?.length && !x.orn && !x.trem && !x.arp && !x.tech
+          && !(x.notes || []).some((n) => n.finger || (n.head && n.head !== "normal") || n.harm);
         if (prev && !prev.rest && !e.rest && !prev.tuplet && plain(e) && prev.notes.every((n) => n.tie) && prev.notes.length === e.notes.length && prev.notes.every((n, i) => n.midi === e.notes[i].midi)) {
           prev.dur += e.dur; prev.notes.forEach((n, i) => (n.tie = e.notes[i].tie)); where.set(e.id, `${pi}:${vi}:${out.length - 1}`); continue;
         }
         if (prev && prev.rest && e.rest && plain(e) && plain(prev)) { prev.dur += e.dur; where.set(e.id, `${pi}:${vi}:${out.length - 1}`); continue; }
-        const c = { dur: e.dur, rest: !!e.rest, notes: e.rest ? [] : e.notes.map((n) => ({ midi: n.midi, tie: !!n.tie, spell: n.spell || null })).sort((a, b) => a.midi - b.midi) };
+        const c = { dur: e.dur, rest: !!e.rest, notes: e.rest ? [] : e.notes.map((n) => {
+          const o = { midi: n.midi, tie: !!n.tie, spell: n.spell || null };
+          if (n.finger) o.finger = String(n.finger); if (n.head && n.head !== "normal") o.head = n.head; if (n.harm) o.harm = true;
+          return o;
+        }).sort((a, b) => a.midi - b.midi) };
+        if (e.graces?.length) c.graces = e.graces.map((g) => ({ slash: g.slash !== false, notes: (g.notes || []).map((n) => ({ midi: n.midi })).sort((a, b) => a.midi - b.midi) }));
+        for (const k of ["orn", "trem", "tech"]) if (e[k]) c[k] = e[k];
+        if (e.orn && e.ornAcc !== undefined && e.ornAcc !== null) c.ornAcc = e.ornAcc;
+        if (e.arp) { c.arp = true; if (e.arpDir && e.arpDir !== "up") c.arpDir = e.arpDir; }
         for (const k of ["chord", "lyric", "dyn"]) if (e[k]) c[k] = e[k];
         if (e.lyricHyphen) c.lyricHyphen = true;
         if (e.rest && e.slash) c.slash = true;
-        if (e.tuplet) c.tuplet = { n: e.tuplet.n, of: e.tuplet.of };
+        if (e.tuplet) { c.tuplet = { n: e.tuplet.n, of: e.tuplet.of }; if (e.tuplet.unit) c.tuplet.unit = e.tuplet.unit; if (e.tuplet.outer) c.tuplet.outer = { n: e.tuplet.outer.n, of: e.tuplet.outer.of, ...(e.tuplet.outer.unit ? { unit: e.tuplet.outer.unit } : {}) }; }
         if ((e.artic || []).length) c.artic = [...e.artic].sort();
         where.set(e.id, `${pi}:${vi}:${out.length}`);
         out.push(c);
@@ -884,17 +950,36 @@ export function playbackEvents(score, opts = {}) {
     if (!opts.all && (p.mute || (anySolo && !p.solo))) return;
     const gain = (p.volume ?? 0.8) / 0.8;
     p.voices.forEach((v, vi) => {
-      let vel = 84, t = 0; const open = new Map(); // midi -> sound being held by a tie
+      let vel = 84, t = 0, dynName = "mf"; const open = new Map(); // midi -> sound being held by a tie
+      // v3 spans on this voice by event index: gliss (from -> the note it slides to), trill lines (every event inside)
+      const idx = new Map(v.map((e, i) => [e.id, i])), glissTo = new Map(), trilled = new Set();
+      for (const sp of score.spans || []) {
+        if ((sp.part ?? 0) !== pi || (sp.voice ?? 0) !== vi) continue;
+        let a = idx.get(sp.from), b = idx.get(sp.to); if (a === undefined || b === undefined) continue; if (a > b) [a, b] = [b, a];
+        if (sp.type === "gliss" && v[b] && !v[b].rest) glissTo.set(a, v[b].notes[0].midi);
+        if (sp.type === "trill") for (let k = a; k <= b; k++) trilled.add(k);
+      }
       v.forEach((e, ref) => {
-        if (e.dyn && DYN_VEL[e.dyn]) vel = DYN_VEL[e.dyn];
-        if (!e.rest) for (const n of e.notes) {
+        if (e.dyn && DYN_VEL[e.dyn]) { vel = DYN_VEL[e.dyn]; dynName = e.dyn; }
+        if (!e.rest) e.notes.forEach((n, ni) => {
           const held = open.get(n.midi);
-          if (held) { held.len += e.dur; held.sound += e.dur; if (!n.tie) open.delete(n.midi); continue; }
+          if (held) { held.len += e.dur; held.sound += e.dur; if (!n.tie) open.delete(n.midi); return; }
           const artic = e.artic || [], f = artic.includes("staccato") ? 0.5 : artic.includes("tenuto") ? 1 : 0.92;
-          const snd = { tick: t, len: e.dur, sound: e.dur * f, midi: n.midi, vel: Math.max(1, Math.min(127, Math.round((vel + (artic.includes("accent") ? 16 : 0)) * gain))), part: pi, voice: vi, ref };
+          const snd = { tick: t, len: e.dur, sound: e.dur * f, midi: n.midi, vel: Math.max(1, Math.min(127, Math.round((vel + (artic.includes("accent") ? 16 : 0)) * gain))), part: pi, voice: vi, ref,
+            artic: [...artic], dyn: dynName };
+          // how it's played (compose-play.js shapes these): graces ride on the chord's first note only
+          if (ni === 0 && e.graces?.length) snd.graces = e.graces.map((g) => ({ slash: g.slash !== false, midis: (g.notes || []).map((x) => x.midi) }));
+          if (e.orn) { snd.orn = e.orn; if (e.ornAcc !== undefined && e.ornAcc !== null) snd.ornAcc = e.ornAcc; }
+          if (e.trem) snd.trem = e.trem;
+          if (e.arp) { snd.arp = e.arpDir || "up"; snd.arpIndex = ni; snd.arpCount = e.notes.length; }
+          if (e.tech) snd.tech = e.tech;
+          if (n.harm) snd.harm = true;
+          if (n.head && n.head !== "normal") snd.head = n.head;
+          if (glissTo.has(ref) && ni === 0) snd.gliss = glissTo.get(ref);
+          if (trilled.has(ref)) snd.trill = true;
           const bi = barIndexAt(bars, t); if (!byBar.has(bi)) byBar.set(bi, []); byBar.get(bi).push(snd);
           if (n.tie) open.set(n.midi, snd);
-        }
+        });
         for (const [m] of open) if (!e.notes?.some((n) => n.midi === m)) open.delete(m);
         t += e.dur;
       });
@@ -911,8 +996,10 @@ export function playbackEvents(score, opts = {}) {
     for (const s of byBar.get(sg.bar) || []) {
       const time = sg.time + (s.tick - sg.start) * spt, dur = s.sound * spt;
       if (time + dur <= t0 + 1e-9) continue;
-      out.push({ time: Math.max(0, time - t0), dur: Math.min(dur, time + dur - t0), midi: s.midi, vel: s.vel, part: s.part, voice: s.voice, ref: s.ref, bar: sg.bar,
-        ptick: sg.ptick + s.tick - sg.start, pticks: Math.max(1, Math.round(s.sound)) });
+      const ev = { time: Math.max(0, time - t0), dur: Math.min(dur, time + dur - t0), midi: s.midi, vel: s.vel, part: s.part, voice: s.voice, ref: s.ref, bar: sg.bar,
+        ptick: sg.ptick + s.tick - sg.start, pticks: Math.max(1, Math.round(s.sound)), artic: s.artic, dyn: s.dyn };
+      for (const k of ["graces", "orn", "ornAcc", "trem", "arp", "arpIndex", "arpCount", "tech", "harm", "head", "gliss", "trill"]) if (s[k] !== undefined) ev[k] = s[k];
+      out.push(ev);
     }
   }
   return out.sort((a, b) => a.time - b.time || a.midi - b.midi);
@@ -964,6 +1051,8 @@ export function toMusicXML(score) {
       } else {
         if (b.keyChange) attrs.push(`        <key><fifths>${writtenKey(b.key, tr)}</fifths><mode>${b.mode === "minor" ? "minor" : "major"}</mode></key>`);
         if (b.timeChange) attrs.push(timeXML(b.time));
+        // a clef change on any of this part's staves
+        P.staves.forEach((st, k) => { const m0 = st.voices[0]?.[i]; if (m0?.clefChange) attrs.push(clefXML(m0.clef, nst > 1 ? k + 1 : 0)); });
       }
       if (attrs.length) x.push("      <attributes>", ...attrs, "      </attributes>");
       // the first part carries the marks that belong to the whole score
@@ -981,6 +1070,7 @@ export function toMusicXML(score) {
       P.staves.forEach((st, si) => st.voices.forEach((ms) => {
         const m = ms[i];
         if (!m.events.length) return;
+        srcVoiceTuplets = p.voices[m.voice] || null;
         if (wrote) x.push(`      <backup><duration>${b.ticks}</duration></backup>`);
         wrote = true;
         const vnum = m.voice + 1, staff = nst > 1 ? `<staff>${si + 1}</staff>` : "";
@@ -992,6 +1082,12 @@ export function toMusicXML(score) {
             if (sp.type === "pedal") x.push(dir('<pedal type="start" line="yes"/>'));
           }
           if (ev.dyn) x.push(dir(`<dynamics><${ev.dyn}/></dynamics>`));
+          if (ev.tech) x.push(dir(`<words>${xesc(ev.tech)}</words>`, "above"));
+          // grace notes before the note they lead into (a single one as an eighth, several as beamed 16ths)
+          if (ev.graces?.length && !ev.rest) ev.graces.forEach((gr, gi) => gr.notes.forEach((gn, ni) => {
+            const many = ev.graces.length > 1, bm = many && ni === 0 ? `<beam number="1">${gi === 0 ? "begin" : gi === ev.graces.length - 1 ? "end" : "continue"}</beam>` : "";
+            x.push(`      <note><grace${gr.slash ? ' slash="yes"' : ""}/>${ni ? "<chord/>" : ""}<pitch><step>${gn.step}</step>${gn.alter ? `<alter>${gn.alter}</alter>` : ""}<octave>${gn.octave}</octave></pitch><voice>${vnum}</voice><type>${many ? "16th" : "eighth"}</type>${gn.showAcc ? `<accidental>${ACC[gn.alter]}</accidental>` : ""}<stem>up</stem>${staff}${bm}</note>`);
+          }));
           if (ev.chord) { const h = harmonyXML(ev.chord, tr); if (h) x.push(h.replace("</harmony>", `${staff}</harmony>`)); }
           if (ev.full) x.push(`      <note><rest measure="yes"/><duration>${m.ticks}</duration><voice>${vnum}</voice>${staff}</note>`);
           else {
@@ -1005,9 +1101,14 @@ export function toMusicXML(score) {
               if (n && n.tie) o.push('<tie type="start"/>');
               o.push(`<voice>${vnum}</voice>`, `<type>${ev.type}</type>`, "<dot/>".repeat(ev.dots));
               if (n && n.showAcc) o.push(`<accidental${n.showAcc === "courtesy" ? ' parentheses="yes"' : ""}>${ACC[n.alter]}</accidental>`);
-              if (ev.tuplet) o.push(`<time-modification><actual-notes>${ev.tuplet.n}</actual-notes><normal-notes>${ev.tuplet.of}</normal-notes></time-modification>`);
+              if (ev.tuplet) {
+                // nested tuplets multiply; the unit, when set, is the normal type
+                const tu = srcTuplet(ev), on = tu?.outer ? tu.outer.n : 1, oo = tu?.outer ? tu.outer.of : 1, unitT = tu?.unit ? valueOf(tu.unit) : null;
+                o.push(`<time-modification><actual-notes>${ev.tuplet.n * on}</actual-notes><normal-notes>${ev.tuplet.of * oo}</normal-notes>${unitT && !tu.outer ? `<normal-type>${unitT.type}</normal-type>${"<normal-dot/>".repeat(unitT.dots)}` : ""}</time-modification>`);
+              }
               if (n && m.stem) o.push(`<stem>${m.stem}</stem>`);
               if (ev.slash) o.push("<notehead>slash</notehead>");
+              else if (n && (n.harm || (n.head && n.head !== "normal"))) o.push(`<notehead>${n.harm ? "diamond" : n.head}</notehead>`);
               o.push(staff);
               if (ev.beam && ni === 0) o.push(`<beam number="1">${beamPos(m, ev)}</beam>`);
               const nots = [];
@@ -1017,8 +1118,35 @@ export function toMusicXML(score) {
                 if (sp.start) { if (!slurNo.has(sp.id)) { slurNo.set(sp.id, nextSlur); nextSlur = (nextSlur % 6) + 1; } nots.push(`<slur type="start" number="${slurNo.get(sp.id)}"/>`); }
                 if (sp.end) nots.push(`<slur type="stop" number="${slurNo.get(sp.id) || 1}"/>`);
               }
-              if (ni === 0 && ev.tuplet?.first) nots.push('<tuplet type="start" bracket="yes"/>');
-              if (ni === 0 && ev.tuplet?.last) nots.push('<tuplet type="stop"/>');
+              if (ni === 0 && ev.tuplet) {
+                const tu = srcTuplet(ev), nested = !!ev.tuplet.outer;
+                const tupEl = (num, t, ref) => `<tuplet type="start" number="${num}" bracket="yes"><tuplet-actual><tuplet-number>${t.n}</tuplet-number>${ref?.unit && valueOf(ref.unit) ? `<tuplet-type>${valueOf(ref.unit).type}</tuplet-type>` : ""}</tuplet-actual><tuplet-normal><tuplet-number>${t.of}</tuplet-number>${ref?.unit && valueOf(ref.unit) ? `<tuplet-type>${valueOf(ref.unit).type}</tuplet-type>` : ""}</tuplet-normal></tuplet>`;
+                if (nested && ev.tuplet.outer.first) nots.push(tupEl(1, ev.tuplet.outer, tu?.outer));
+                if (ev.tuplet.first) nots.push(nested || tu?.unit ? tupEl(nested ? 2 : 1, ev.tuplet, tu) : '<tuplet type="start" bracket="yes"/>');
+                if (ev.tuplet.last) nots.push(`<tuplet type="stop"${nested ? ' number="2"' : ""}/>`);
+                if (nested && ev.tuplet.outer.last) nots.push('<tuplet type="stop" number="1"/>');
+              }
+              // ornaments, tremolo and trill lines; fingering and harmonics; arpeggio; gliss
+              const orn = [];
+              if (ni === 0) {
+                const trillStart = ev.spans.some((q) => q.type === "trill" && q.start), trillEnd = ev.spans.some((q) => q.type === "trill" && q.end);
+                if (ev.orn === "trill" || trillStart) orn.push("<trill-mark/>");
+                if (ev.orn && ev.orn !== "trill") orn.push({ turn: "<turn/>", invturn: "<inverted-turn/>", mordent: "<mordent/>", invmordent: "<inverted-mordent/>" }[ev.orn] || "");
+                if (trillStart) orn.push('<wavy-line type="start" number="1"/>');
+                if (trillEnd) orn.push('<wavy-line type="stop" number="1"/>');
+                if (ev.orn && ev.ornAcc !== undefined && ev.ornAcc !== null) orn.push(`<accidental-mark>${ACC[ev.ornAcc]}</accidental-mark>`);
+                if (ev.trem) orn.push(`<tremolo type="${ev.trem === 3 ? "unmeasured" : "single"}">${ev.trem === 3 ? 0 : ev.trem}</tremolo>`);
+              }
+              if (orn.length) nots.push(`<ornaments>${orn.join("")}</ornaments>`);
+              const tech = [];
+              if (n && n.finger) tech.push(/^[pima]$/.test(n.finger) ? `<pluck>${n.finger}</pluck>` : `<fingering>${xesc(n.finger)}</fingering>`);
+              if (n && n.harm) tech.push("<harmonic><natural/></harmonic>");
+              if (tech.length) nots.push(`<technical>${tech.join("")}</technical>`);
+              if (n && ev.arp) nots.push(`<arpeggiate${ev.arpDir === "down" ? ' direction="down"' : ev.arpDir === "up" ? ' direction="up"' : ""}/>`);
+              if (ni === 0) for (const sp of ev.spans) if (sp.type === "gliss") {
+                if (sp.start) nots.push('<glissando type="start" line-type="solid" number="1">gliss.</glissando>');
+                if (sp.end) nots.push('<glissando type="stop" number="1"/>');
+              }
               const arts = (ev.artic || []).filter((a) => a !== "fermata");
               if (ni === 0 && arts.length) nots.push(`<articulations>${arts.map((a) => `<${a}/>`).join("")}</articulations>`);
               if (ni === 0 && (ev.artic || []).includes("fermata")) nots.push("<fermata/>");
@@ -1055,6 +1183,9 @@ export function toMusicXML(score) {
   x.push("</score-partwise>", "");
   return x.filter((l) => l !== "").join("\n");
 }
+// the voice's own tuplet (with its unit and outer ratio) for a laid-out piece, found through the layout's source map
+let srcVoiceTuplets = null;
+const srcTuplet = (ev) => (srcVoiceTuplets && ev.ref >= 0 ? srcVoiceTuplets[ev.ref]?.tuplet : null) || ev.tuplet;
 function beamPos(m, ev) {
   const same = m.events.filter((p) => p.beam === ev.beam), i = same.indexOf(ev);
   return i === 0 ? "begin" : i === same.length - 1 ? "end" : "continue";
@@ -1099,6 +1230,8 @@ const KIND_BACK = Object.fromEntries(Object.entries(KIND).map(([id, k]) => [k, i
  * D.C. / D.S. / Fine / To Coda, rehearsal marks, slurs, hairpins, octave lines, pedal. Grace and cue notes are skipped.
  */
 const NAVS = ["Fine", "D.C.", "D.C. al Fine", "D.C. al Coda", "D.S.", "D.S. al Fine", "D.S. al Coda", "To Coda"];
+/** Playing techniques written as text over the staff (v3 event.tech) */
+export const TECHS = ["pizz.", "arco", "con sord.", "senza sord.", "mute", "open", "let ring", "palm mute", "harmonic", "sul pont.", "sul tasto", "col legno", "normal"];
 export function fromMusicXML(text) {
   const doc = parseXML(String(text)), sp = kid(doc, "score-partwise");
   if (!sp) throw new Error(kid(doc, "score-timewise") ? "Timewise MusicXML isn't supported yet; save it as partwise." : "This isn't a MusicXML score.");
@@ -1123,6 +1256,7 @@ export function fromMusicXML(text) {
     const clefs = ["treble", "bass"], clefSeen = new Set(), vmap = new Map(), lastOf = new Map();
     const openSlurs = new Map(), openDir = new Map(); // slur number -> { from, voice }; span type -> { from, voice }
     let pendingChord = null, pendingDyn = [], dirStarts = [];
+    const pendingGraces = new Map(), pendingTech = [], tupStack = new Map(), openGliss = new Map(), openTrill = new Map(); // per voice
     // a MusicXML (staff, voice) as one of ours: two a staff on a grand staff (0-1 top, 2-3 bottom), four on one staff
     const ourVoice = (staff, vnum) => {
       const k = `${staff}:${vnum}`;
@@ -1164,7 +1298,8 @@ export function fromMusicXML(text) {
           for (const c of kids(el, "clef")) {
             const s = txt(c, "sign"), l = +txt(c, "line"), o = +txt(c, "clef-octave-change") || 0, num = +(c.attrs.number || 1);
             const name = s === "F" ? "bass" : s === "C" ? (l === 4 ? "tenor" : "alto") : s === "percussion" ? "percussion" : o === -1 ? "treble8vb" : "treble";
-            if (!clefSeen.has(num)) { clefs[num - 1] = name; clefSeen.add(num); } // clef changes mid-piece aren't held (yet)
+            if (!clefSeen.has(num)) { clefs[num - 1] = name; clefSeen.add(num); if (mi > 0) setMark(mi, "clefs", { ...(bars[mi]?.clefs || {}), [`${pi}:${num - 1}`]: name }); }
+            else setMark(mi, "clefs", { ...(bars[mi]?.clefs || {}), [`${pi}:${num - 1}`]: name }); // a clef change from this bar on
           }
           const tp = kid(el, "transpose"); if (tp) { tr = -(+txt(tp, "chromatic") || 0) - 12 * (+txt(tp, "octave-change") || 0); part.transpose = tr; }
         } else if (el.name === "barline") {
@@ -1191,6 +1326,7 @@ export function fromMusicXML(text) {
             if (d.name === "rehearsal" && first) setMark(mi, "mark", d.text.trim());
             if (d.name === "segno" && first) addNav(mi, "Segno");
             if (d.name === "coda" && first) addNav(mi, "Coda");
+            if (d.name === "words" && TECHS.includes(d.text.trim().toLowerCase())) { pendingTech.push({ voice: dv, tech: d.text.trim().toLowerCase() }); continue; }
             if (d.name === "words" && first) {
               const w = d.text.trim(), nav = NAVS.find((n) => n.toLowerCase() === w.toLowerCase());
               if (nav) addNav(mi, nav); else if (w) setMark(mi, "text", bars[mi]?.text ? bars[mi].text + " " + w : w);
@@ -1219,16 +1355,29 @@ export function fromMusicXML(text) {
         } else if (el.name === "backup") pos -= Math.round(+txt(el, "duration") * TPQ / div);
         else if (el.name === "forward") { pos += Math.round(+txt(el, "duration") * TPQ / div); maxPos = Math.max(maxPos, pos); }
         else if (el.name === "note") {
-          if (kid(el, "grace") || kid(el, "cue")) continue;
+          if (kid(el, "cue")) continue;
           const isChord = !!kid(el, "chord"), d = Math.round(+txt(el, "duration") * TPQ / div);
           const v = ourVoice(+(txt(el, "staff") || 1), txt(el, "voice") || "1");
-          const pitch = kid(el, "pitch"), rest = kid(el, "rest");
+          const pitch = kid(el, "pitch"), rest = kid(el, "rest"), nots = kid(el, "notations"), techEl = kid(nots, "technical");
           let n = null;
           if (pitch) {
             const step = txt(pitch, "step"), alter = +txt(pitch, "alter") || 0, oct = +txt(pitch, "octave");
             n = { midi: midiOf(step, alter, oct) - tr, tie: kids(el, "tie").some((t) => t.attrs.type === "start"), spell: { step, alter } };
+            // how this note is played and shown: fingering, notehead, harmonic
+            const fg = txt(techEl, "fingering") || txt(techEl, "pluck"); if (fg) n.finger = fg;
+            const head = txt(el, "notehead");
+            if (kid(techEl, "harmonic")) n.harm = true;
+            else if (["x", "diamond", "slash", "triangle", "circle-x"].includes(head)) n.head = head;
           }
-          if (isChord) { const le = lastOf.get(v); if (le && n && !le.rest) le.notes.push(n); continue; }
+          // grace notes wait for the note they lead into (a chord of graces stacks)
+          if (kid(el, "grace")) {
+            if (!n || v < 0) continue;
+            const list = pendingGraces.get(v) || []; pendingGraces.set(v, list);
+            const gn = { midi: n.midi };
+            if (isChord && list.length) list[list.length - 1].notes.push(gn); else list.push({ slash: kid(el, "grace").attrs.slash === "yes", notes: [gn] });
+            continue;
+          }
+          if (isChord) { const le = lastOf.get(v); if (le && n && !le.rest) { le.notes.push(n); if (kid(nots, "arpeggiate")) le.arp = true; } continue; }
           const at = measureStart + pos;
           pos += d; maxPos = Math.max(maxPos, pos);
           if (v < 0) continue; // a fifth voice: no room for it
@@ -1236,12 +1385,50 @@ export function fromMusicXML(text) {
           if (at < have) continue; // overlapping music in one voice can't be held
           if (at > have) arr.push(newEvent(at - have));
           const ev = rest || !n ? newEvent(rest?.attrs.measure === "yes" && !d ? barTicks(score, mi) : d) : { id: newId(), dur: d, rest: false, notes: [n] };
-          if (txt(el, "notehead") === "slash") { ev.rest = true; ev.notes = []; ev.slash = true; } // rhythm slashes: a lead sheet's beats
+          if (txt(el, "notehead") === "slash" && (rest || !n)) { ev.rest = true; ev.notes = []; ev.slash = true; } // rhythm slashes: a lead sheet's beats
           const tm = kid(el, "time-modification");
-          if (tm) ev.tuplet = { n: +txt(tm, "actual-notes"), of: +txt(tm, "normal-notes") };
+          // tuplets: the open <tuplet> brackets give each level's ratio (nested ones multiply into time-modification)
+          const stack = tupStack.get(v) || []; tupStack.set(v, stack);
+          const tupEls = kids(nots, "tuplet"), typeTicks = (t) => (t ? TYPE_TICKS[t] || null : null);
+          for (const te of tupEls) if (te.attrs.type === "start") {
+            const ta = kid(te, "tuplet-actual"), tn = kid(te, "tuplet-normal");
+            stack.push({ num: te.attrs.number || "1", n: ta ? +txt(ta, "tuplet-number") : null, of: tn ? +txt(tn, "tuplet-number") : null, unit: typeTicks(txt(tn, "tuplet-type")) });
+          }
+          if (tm) {
+            const A = +txt(tm, "actual-notes"), N = +txt(tm, "normal-notes"), nt = typeTicks(txt(tm, "normal-type"));
+            const full = stack.filter((x) => x.n && x.of);
+            if (full.length >= 2) {
+              const [o, inner] = full.slice(-2);
+              ev.tuplet = { n: inner.n, of: inner.of, ...(inner.unit ? { unit: inner.unit } : {}), outer: { n: o.n, of: o.of, ...(o.unit ? { unit: o.unit } : {}) } };
+            } else {
+              ev.tuplet = { n: A, of: N };
+              const u = nt ? nt * (kids(tm, "normal-dot").length ? 1.5 : 1) : full[0]?.unit || null;
+              if (u) ev.tuplet.unit = u;
+            }
+          }
+          for (const te of tupEls) if (te.attrs.type === "stop") { const k = stack.map((x) => x.num).lastIndexOf(te.attrs.number || "1"); if (k >= 0) stack.splice(k, 1); }
+          // ornaments, tremolo, arpeggio, technique, graces
+          const ornEl = kid(nots, "ornaments");
+          if (ornEl) {
+            const names = ornEl.kids.map((k) => k.name), wavy = kids(ornEl, "wavy-line");
+            const o = names.includes("inverted-mordent") ? "invmordent" : names.includes("mordent") ? "mordent" : names.includes("inverted-turn") ? "invturn" : names.includes("turn") ? "turn" : null;
+            const trillLine = wavy.some((w) => w.attrs.type === "start");
+            if (o) ev.orn = o; else if (names.includes("trill-mark") && !trillLine) ev.orn = "trill";
+            const am = txt(ornEl, "accidental-mark"); if (am && ev.orn) { const back = { "flat-flat": -2, flat: -1, natural: 0, sharp: 1, "double-sharp": 2 }; if (back[am] !== undefined) ev.ornAcc = back[am]; }
+            const trem = kid(ornEl, "tremolo"); if (trem) ev.trem = trem.attrs.type === "unmeasured" ? 3 : Math.max(1, Math.min(3, +trem.text.trim() || 1));
+            if (trillLine) openTrill.set(v, ev.id);
+            if (wavy.some((w) => w.attrs.type === "stop")) { const from = openTrill.get(v); if (from) { score.spans.push({ id: newId("s"), type: "trill", part: pi, voice: v, from, to: ev.id }); openTrill.delete(v); } }
+          }
+          const arpEl = kid(nots, "arpeggiate"); if (arpEl) { ev.arp = true; if (arpEl.attrs.direction) ev.arpDir = arpEl.attrs.direction; }
+          for (const gl of [...kids(nots, "glissando"), ...kids(nots, "slide")]) {
+            if (gl.attrs.type === "start") openGliss.set(v, ev.id);
+            else if (gl.attrs.type === "stop") { const from = openGliss.get(v); if (from) { score.spans.push({ id: newId("s"), type: "gliss", part: pi, voice: v, from, to: ev.id }); openGliss.delete(v); } }
+          }
+          const tk = pendingTech.findIndex((x) => x.voice === v || x.voice < 0); if (tk >= 0) { ev.tech = pendingTech[tk].tech; pendingTech.splice(tk, 1); }
+          if (pendingGraces.get(v)?.length) { if (!ev.rest) ev.graces = pendingGraces.get(v); pendingGraces.set(v, []); }
           const lyr = kid(el, "lyric");
           if (lyr && txt(lyr, "text")) { ev.lyric = txt(lyr, "text"); const syl = txt(lyr, "syllabic"); if (syl === "begin" || syl === "middle") ev.lyricHyphen = true; }
-          const nots = kid(el, "notations"), arts = kid(nots, "articulations");
+          const arts = kid(nots, "articulations");
           const artic = [...(arts?.kids || []).map((a) => a.name).filter((a) => ["staccato", "accent", "tenuto"].includes(a)), ...(kid(nots, "fermata") ? ["fermata"] : [])];
           if (artic.length) ev.artic = artic;
           if (pendingChord) { ev.chord = pendingChord; pendingChord = null; }

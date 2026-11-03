@@ -20,6 +20,7 @@ const TENOR_SHARP_POS = [2, 6, 3, 7, 4, 8, 5];
 const SHARP_ORDER = "FCGDAEB";
 const LEVEL = { whole: 0, half: 0, quarter: 0, eighth: 1, "16th": 2, "32nd": 3, "64th": 4 };
 const ORANGE = "#ff3b00", SOFT = "#ff8a5c";
+const GRACE = 0.62; // grace notes are drawn at about two thirds size
 const SERIF = `Georgia, 'Times New Roman', serif`;
 const f2 = (n) => Math.round(n * 100) / 100;
 const escx = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -49,6 +50,47 @@ function notehead(type, x, y, sp, fill = "currentColor") {
   return `<path fill="${fill}" d="${ellipsePts(cx, y, 0.6 * sp, 0.42 * sp, -22)}"/>`;
 }
 const headWidth = (type, sp) => (type === "whole" ? 1.75 : HEAD_W) * sp;
+// other noteheads: x, circle-x, diamond (harmonics are hollow diamonds), triangle, slash; open for halves and wholes
+function headShape(kind, type, x, y, sp, fill = "currentColor", harm = false) {
+  const W = HEAD_W * sp, cx = x + W / 2, X = (v) => f2(x + v * sp), Y = (v) => f2(y + v * sp), open = harm || type === "half" || type === "whole";
+  const paint = (d) => (open ? `<path fill="none" stroke="${fill}" stroke-width="${f2(0.15 * sp)}" stroke-linejoin="round" d="${d}"/>` : `<path fill="${fill}" d="${d}"/>`);
+  if (kind === "x") return `<path fill="none" stroke="${fill}" stroke-width="${f2(0.16 * sp)}" stroke-linecap="round" d="M${X(0.12)},${Y(-0.42)}L${X(1.06)},${Y(0.42)}M${X(0.12)},${Y(0.42)}L${X(1.06)},${Y(-0.42)}"/>`;
+  if (kind === "circle-x") return `<circle cx="${f2(cx)}" cy="${f2(y)}" r="${f2(0.5 * sp)}" fill="none" stroke="${fill}" stroke-width="${f2(0.13 * sp)}"/><path fill="none" stroke="${fill}" stroke-width="${f2(0.13 * sp)}" d="M${f2(cx - 0.35 * sp)},${f2(y - 0.35 * sp)}L${f2(cx + 0.35 * sp)},${f2(y + 0.35 * sp)}M${f2(cx - 0.35 * sp)},${f2(y + 0.35 * sp)}L${f2(cx + 0.35 * sp)},${f2(y - 0.35 * sp)}"/>`;
+  if (kind === "triangle") return paint(`M${X(0.05)},${Y(0.45)}L${f2(cx)},${Y(-0.52)}L${X(1.13)},${Y(0.45)}Z`);
+  if (kind === "slash") return paint(`M${X(-0.05)},${Y(0.85)}L${X(0.4)},${Y(0.85)}L${X(1.23)},${Y(-0.85)}L${X(0.78)},${Y(-0.85)}Z`);
+  return paint(`M${X(0.04)},${f2(y)}L${f2(cx)},${Y(-0.52)}L${X(1.14)},${f2(y)}L${f2(cx)},${Y(0.52)}Z`); // diamond
+}
+// an ornament centered at cx, sitting on yb: the trill, turns and mordents (box w x h)
+const ORN_BOX = { trill: [1.7, 1.45], turn: [2.1, 1.1], invturn: [2.1, 1.5], mordent: [2.2, 1.5], invmordent: [2.2, 0.95] };
+function ornGlyph(o, cx, yb, sp, fill = "currentColor") {
+  const X = (v) => f2(cx + v * sp), Y = (v) => f2(yb - v * sp), st = `fill="none" stroke="${fill}" stroke-linecap="round" stroke-linejoin="round"`;
+  if (o === "trill") return `<text x="${f2(cx)}" y="${f2(yb - 0.08 * sp)}" text-anchor="middle" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.75 * sp)}" fill="${fill}">tr</text>`;
+  if (o === "turn" || o === "invturn") {
+    const d = `M${X(-0.95)},${Y(0.25)}C${X(-1.15)},${Y(0.95)} ${X(-0.3)},${Y(1.2)} ${X(0)},${Y(0.55)}C${X(0.3)},${Y(-0.1)} ${X(1.15)},${Y(0.15)} ${X(0.95)},${Y(0.85)}`;
+    return `<path ${st} stroke-width="${f2(0.22 * sp)}" d="${d}"/>` + (o === "invturn" ? `<path ${st} stroke-width="${f2(0.13 * sp)}" d="M${X(0)},${Y(-0.15)}L${X(0)},${Y(1.35)}"/>` : "");
+  }
+  const z = `M${X(-1.0)},${Y(0.45)}L${X(-0.5)},${Y(0.9)}L${X(-0.1)},${Y(0.45)}L${X(0.4)},${Y(0.9)}L${X(0.8)},${Y(0.45)}`;
+  return `<path ${st} stroke-width="${f2(0.2 * sp)}" d="${z}"/>` + (o === "mordent" ? `<path ${st} stroke-width="${f2(0.13 * sp)}" d="M${X(-0.1)},${Y(0)}L${X(-0.1)},${Y(1.4)}"/>` : "");
+}
+// a wavy line, down the left of a chord (arpeggio) or along a trill
+function wavy(x1, y1, x2, y2, sp, fill = "currentColor") {
+  const len = Math.hypot(x2 - x1, y2 - y1), n = Math.max(1, Math.round(len / (0.5 * sp))), ux = (x2 - x1) / len, uy = (y2 - y1) / len, a = 0.3 * sp;
+  let d = `M${f2(x1)},${f2(y1)}`;
+  for (let i = 0; i < n; i++) {
+    const t0 = (i * len) / n, t1 = ((i + 1) * len) / n, tm = (t0 + t1) / 2, s_ = i % 2 ? -1 : 1;
+    d += `Q${f2(x1 + ux * tm - uy * a * s_)},${f2(y1 + uy * tm + ux * a * s_)} ${f2(x1 + ux * t1)},${f2(y1 + uy * t1)}`;
+  }
+  return `<path fill="none" stroke="${fill}" stroke-width="${f2(0.17 * sp)}" stroke-linecap="round" d="${d}"/>`;
+}
+// tremolo strokes across a stem (n = 1, 2 or 3), centered at cx, yMid
+function tremSvg(n, cx, yMid, sp, fill = "currentColor") {
+  let s = "";
+  for (let i = 0; i < n; i++) {
+    const y = yMid + (i - (n - 1) / 2) * 0.8 * sp;
+    s += `<path fill="${fill}" d="M${f2(cx - 0.65 * sp)},${f2(y + 0.42 * sp)}L${f2(cx + 0.65 * sp)},${f2(y - 0.02 * sp)}L${f2(cx + 0.65 * sp)},${f2(y - 0.4 * sp)}L${f2(cx - 0.65 * sp)},${f2(y + 0.04 * sp)}Z"/>`;
+  }
+  return s;
+}
 
 function accidental(alter, x, y, sp, fill = "currentColor") {
   const S = (v) => f2(v * sp), X = (v) => f2(x + v * sp), Y = (v) => f2(y + v * sp);
@@ -314,6 +356,12 @@ export function engrave(score, opts = {}) {
   }
   const multi = shown.length > 1;
   const anyGrand = staves.some((st) => st.nStaves > 1);
+  // the clef a staff reads in a bar (its own, or a change on an earlier bar)
+  const clefAt = (st, bi) => st.voices[0]?.[bi]?.clef || st.clef;
+  // collision boxes (opts.boxes): everything placed around the notes, so tests can check nothing overlaps
+  const boxes = opts.boxes ? [] : null;
+  const skey = (ss) => `${ss.st.pi}:${ss.st.s}`;
+  const box = (kind, x1, y1, x2, y2, sys, staff) => { if (boxes) boxes.push({ kind, x1, y1, x2, y2, sys, staff }); };
 
   // ---- 1. each piece: noteheads, stems, accidentals, its natural width ----
   for (const st of staves) {
@@ -327,9 +375,19 @@ export function engrave(score, opts = {}) {
         e.hyphen = e.lyricHyphen ?? e.src.lyricHyphen; e.arts = e.artic ?? e.src.artic ?? []; e.dynamic = e.dyn ?? e.src.dyn;
         e.xShift = 0;
         if (e.rest) { e.w = (e.slash ? 1.9 : REST_W[e.type]) * sp; e.left = 0; continue; }
-        e.heads = e.notes.map((n, i) => ({ ...n, i, pos: n.octave * 7 + STEPS.indexOf(n.step) - st.bottom })).sort((a, b) => a.pos - b.pos);
+        // the clef in this bar decides where notes sit (a clef change moves them)
+        e.bottom = CLEF_BOTTOM[m.clef || st.clef] ?? 30;
+        e.heads = e.notes.map((n, i) => ({ ...n, i, pos: n.octave * 7 + STEPS.indexOf(n.step) - e.bottom })).sort((a, b) => a.pos - b.pos);
         e.stemless = e.type === "whole";
         e.hw = headWidth(e.type, sp);
+        // grace notes before the note: small heads (and their accidentals), one little column each
+        if (e.graces && e.graces.length) {
+          e.graceCols = e.graces.map((gr) => {
+            const heads = gr.notes.map((n) => ({ ...n, pos: n.octave * 7 + STEPS.indexOf(n.step) - e.bottom })).sort((a, b) => a.pos - b.pos);
+            return { slash: gr.slash, heads, accW: heads.some((h) => h.showAcc) ? 0.8 * sp * GRACE + 0.15 * sp : 0 };
+          });
+          e.graceW = e.graceCols.reduce((a, c) => a + c.accW + GRACE * HEAD_W * sp + 0.5 * sp, 0) + 0.45 * sp;
+        }
       }
     });
   }
@@ -364,7 +422,7 @@ export function engrave(score, opts = {}) {
     }
     e.accColW = cols.map((col, c) => Math.max(...e.heads.filter((h) => h.showAcc && h.accCol === c).map((h) => ACC_W[h.alter] ?? 1)) * sp * (1));
     const accW = e.accColW.reduce((a, b) => a + b + 0.18 * sp, 0);
-    e.left = accW + (anyLeft ? hw : 0) + (accW ? 0.2 * sp : 0);
+    e.left = accW + (anyLeft ? hw : 0) + (accW ? 0.2 * sp : 0) + (e.arp ? 1.2 * sp : 0) + (e.graceW || 0);
     e.w = hw + (anyRight ? hw : 0) + (e.dots ? 0.5 * sp + e.dots * 0.55 * sp : 0) + (e.level && e.up ? 1.1 * sp : 0);
   }
   // two voices at the same moment: a second (or a unison with different noteheads) puts the down voice to the right
@@ -399,24 +457,44 @@ export function engrave(score, opts = {}) {
       e.col = colOf(e.pos);
       c.left = Math.max(c.left, e.left); c.right = Math.max(c.right, e.w);
       if (e.lyric) c.lyr = Math.max(c.lyr, textWidth(e.lyric, lyricPx) / 2 + 0.4 * sp);
+      // a chord symbol or a dynamic reaches to the right of its note: the next note waits for it
+      if (e.chord) c.txt = Math.max(c.txt || 0, chordSymbolSvg(e.chord, 0, 0, sp).w + 0.9 * sp);
+      if (!e.tiedFromPrev && e.dynamic) c.txt = Math.max(c.txt || 0, textWidth(e.dynamic, 1.75 * sp, 700, SERIF, true) + 0.7 * sp);
     }
     b.cols = cols;
     cols.forEach((c, k) => {
       const next = cols[k + 1], dt = (next ? next.pos : b.ticks) - c.pos;
       c.flex = space(dt);
-      c.dist = next ? Math.max(c.flex, c.right + 0.45 * sp + next.left, c.lyr + next.lyr + 0.3 * sp)
-        : Math.max(c.flex, c.right + 1.3 * sp, c.lyr + 0.6 * sp); // the last note keeps clear of the barline
+      c.dist = next ? Math.max(c.flex, c.right + 0.45 * sp + next.left, c.lyr + next.lyr + 0.3 * sp, c.txt || 0)
+        : Math.max(c.flex, c.right + 1.3 * sp, c.lyr + 0.6 * sp, (c.txt || 0) - 0.4 * sp); // the last note keeps clear of the barline
     });
     b.lead = 1.0 * sp + (cols[0]?.left || 0);
     b.min = b.lead + cols.reduce((a, c) => a + c.dist, 0);
     b.flex = cols.reduce((a, c) => a + c.flex, 0);
     if (evs.every((e) => e.wholeBar)) { b.min = Math.max(b.min, 7 * sp); }
     // what's drawn at the start of a bar inside a line: a key change, a time change, a start repeat
-    b.preMid = (b.keyChange ? Math.max(...staves.map((st) => keySigW(st.keyAt(b), st.keyAt(bars[i - 1] || b), sp)), 0) + 0.4 * sp : 0)
+    b.clefW = Math.max(0, ...staves.map((st) => (st.voices[0]?.[i]?.clefChange ? (CLEF_W[st.voices[0][i].clef] || 2.6) * 0.72 * sp + 0.7 * sp : 0)));
+    b.preMid = b.clefW + (b.keyChange ? Math.max(...staves.map((st) => keySigW(st.keyAt(b), st.keyAt(bars[i - 1] || b), sp)), 0) + 0.4 * sp : 0)
       + (b.timeChange ? timeW(b.time, sp) + 0.8 * sp : 0) + (b.repeatStart ? 1.6 * sp : 0);
     b.preFirst = b.repeatStart ? 1.6 * sp : 0;
     b.endW = b.repeatEnd ? 1.4 * sp : b.barline === "double" || b.barline === "final" || b.keyChange ? 0.8 * sp : 0;
   });
+  if (opts.multirest) {
+    const emptyBar = (i) => {
+      const b = bars[i];
+      if (b.pickup || b.keyChange || b.timeChange || b.tempoChange || b.mark || b.nav || b.text || b.repeatStart || b.repeatEnd || b.volta || b.voltaRun || b.barline || b.clefW) return false;
+      return staves.every((st) => st.voices.every((ms) => !ms[i] || ms[i].events.every((e) => e.rest && !e.slash && !e.chord && !e.lyric && !e.dynamic)));
+    };
+    for (let i = 0; i < bars.length;) {
+      if (!emptyBar(i)) { i++; continue; }
+      let j = i; while (j + 1 < bars.length && emptyBar(j + 1)) j++;
+      if (j > i) {
+        bars[i].mm = j - i + 1; bars[i].min = Math.max(bars[i].min, 11 * sp);
+        for (let k = i + 1; k <= j; k++) { Object.assign(bars[k], { mmHidden: true, min: 0, flex: 0, lead: 0, preMid: 0, preFirst: 0, endW: 0 }); bars[k].cols.forEach((c) => { c.dist = 0; c.flex = 0; }); }
+      }
+      i = j + 1;
+    }
+  }
   // bars of the next one's key change end with a double line
   bars.forEach((b, i) => { const nx = bars[i + 1]; if (nx && nx.keyChange && !b.repeatEnd && !b.barline) b.autoDouble = true; });
 
@@ -427,28 +505,39 @@ export function engrave(score, opts = {}) {
   const startW = (bi, first) => {
     const b = bars[bi];
     const k = Math.max(0, ...staves.map((st) => keySigW(st.keyAt(b), null, sp)));
-    const c = Math.max(...staves.map((st) => CLEF_W[st.clef] || 2.6));
+    const c = Math.max(...staves.map((st) => CLEF_W[clefAt(st, bi)] || 2.6));
     return (c + 1.0) * sp + k + (first || b.timeChange ? timeW(b.time, sp) + 1.0 * sp : 0) + b.preFirst;
   };
-  const courtesyW = (bi) => { const b = bars[bi]; if (!b) return 0; return (b.keyChange ? Math.max(...staves.map((st) => keySigW(st.keyAt(b), st.keyAt(bars[bi - 1]), sp))) + 0.8 * sp : 0) + (b.timeChange ? timeW(b.time, sp) + 0.8 * sp : 0); };
+  const courtesyW = (bi) => { const b = bars[bi]; if (!b) return 0; return (b.clefW || 0) + (b.keyChange ? Math.max(...staves.map((st) => keySigW(st.keyAt(b), st.keyAt(bars[bi - 1]), sp))) + 0.8 * sp : 0) + (b.timeChange ? timeW(b.time, sp) + 0.8 * sp : 0); };
   const systems = [];
-  let cur = null;
   const leftOf = (first) => margin + namesW(first) + decoW;
-  bars.forEach((b, i) => {
-    if (!cur) cur = { bars: [], first: !systems.length, start: startW(i, !systems.length) };
-    cur.left = leftOf(cur.first);
-    const innerW = width - margin - cur.left;
-    const used = cur.start + cur.bars.reduce((a, x) => a + x.min + (x === cur.bars[0] ? 0 : x.preMid) + x.endW, 0);
-    if (cur.bars.length && used + b.min + b.preMid + b.endW + courtesyW(i + 1) > innerW) { systems.push(cur); cur = { bars: [], first: false, start: startW(i, false) }; cur.left = leftOf(false); }
-    cur.bars.push(b);
-  });
-  if (cur) systems.push(cur);
+  {
+    // like breaking a paragraph into even lines: every split of the bars into systems that fit is scored by how
+    // much each system would have to stretch (squared), and the best total wins. The last system is free to be short.
+    const n = bars.length, best = new Array(n + 1).fill(Infinity), from = new Array(n + 1).fill(-1);
+    best[0] = 0;
+    for (let i = 0; i < n; i++) {
+      if (best[i] === Infinity) continue;
+      const first = i === 0, innerW = width - margin - leftOf(first);
+      let used = startW(i, first);
+      for (let j = i; j < n; j++) {
+        used += bars[j].min + (j > i ? bars[j].preMid : 0) + bars[j].endW;
+        const need = used + courtesyW(j + 1);
+        if (need > innerW && j > i) break;
+        const slack = Math.max(0, innerW - need) / innerW, last = j === n - 1;
+        const cost = last ? Math.max(0, 0.55 - (1 - slack)) * 12 : slack * slack * 30 + 2;
+        if (best[i] + cost < best[j + 1]) { best[j + 1] = best[i] + cost; from[j + 1] = i; }
+      }
+    }
+    const cuts = []; for (let j = n; j > 0; j = from[j]) cuts.unshift(from[j]);
+    cuts.forEach((i, k) => { const end = k + 1 < cuts.length ? cuts[k + 1] : n; systems.push({ bars: bars.slice(i, end), first: k === 0, start: startW(i, k === 0), left: leftOf(k === 0) }); });
+  }
   systems.forEach((s, si) => {
     const last = si === systems.length - 1, nextFirst = last ? null : systems[si + 1].bars[0].index;
     s.courtesy = nextFirst !== null ? courtesyW(nextFirst) : 0;
     const innerW = width - margin - s.left;
     const fixed = s.start + s.courtesy + s.bars.reduce((a, b, k) => a + b.min + (k ? b.preMid : 0) + b.endW, 0);
-    const target = last && fixed < innerW * 0.6 ? fixed : innerW;
+    const target = last && fixed < innerW * 0.78 ? fixed : innerW; // a short last system keeps its natural spacing
     const extra = Math.max(0, target - fixed), flexSum = s.bars.reduce((a, b) => a + b.flex, 0) || 1;
     let x = s.left + s.start;
     s.bars.forEach((b, k) => {
@@ -545,7 +634,7 @@ export function engrave(score, opts = {}) {
   let headSvg = "";
   const oneTransposed = shown.length === 1 && staves[0]?.transposed;
   if (header) {
-    if (score.title) { y += 3.2 * sp; headSvg += `<text x="${f2(width / 2)}" y="${f2(y)}" text-anchor="middle" font-size="${f2(2.6 * sp)}" font-weight="800" fill="currentColor">${escx(score.title)}</text>`; }
+    if (score.title) { y += 3.2 * sp; headSvg += `<text x="${f2(width / 2)}" y="${f2(y)}" text-anchor="middle" font-size="${f2(Math.min(2.6 * sp, (2.6 * sp * (width - 2 * margin)) / Math.max(1, textWidth(score.title, 2.6 * sp, 800))))}" font-weight="800" fill="currentColor">${escx(score.title)}</text>`; }
     if (score.subtitle) { y += 1.9 * sp; headSvg += `<text x="${f2(width / 2)}" y="${f2(y)}" text-anchor="middle" font-size="${f2(1.5 * sp)}" fill="currentColor" opacity=".8">${escx(score.subtitle)}</text>`; }
     y += 1.9 * sp;
     if (score.composer) headSvg += `<text x="${f2(width - margin)}" y="${f2(y)}" text-anchor="end" font-size="${f2(1.35 * sp)}" fill="currentColor">${escx(score.composer)}</text>`;
@@ -556,8 +645,13 @@ export function engrave(score, opts = {}) {
   const barMarks = (b) => b.mark || b.nav || b.text || b.tempoChange;
   systems.forEach((s, si) => {
     const idx = new Set(s.bars.map((b) => b.index));
-    s.staves = staves.map((st, k) => {
+    // hide empty staves (opts.hideEmpty): after the first system, an instrument with nothing to play here is left out
+    const hasMusic = (pi) => staves.some((st) => st.pi === pi && st.voices.some((ms) => ms.some((m) => idx.has(m.index) && m.events.some((e) => !e.rest || e.slash))));
+    const keepPart = new Set(shown.filter((pi) => !opts.hideEmpty || si === 0 || hasMusic(pi)));
+    if (!keepPart.size) keepPart.add(shown[0]);
+    s.staves = staves.filter((st) => keepPart.has(st.pi)).map((st, k) => {
       let hi = 8, lo = 0, chords = false, lyricLines = 0, dyn = false, hair = false, ped = false, oct8va = false, oct8vb = false;
+      let stackUp = 0, trill = false, fingDown = 0;
       const lyrVoices = new Set();
       for (const ms of st.voices) for (const m of ms) {
         if (!idx.has(m.index)) continue;
@@ -567,8 +661,15 @@ export function engrave(score, opts = {}) {
           if (!e.tiedFromPrev && e.dynamic) dyn = true;
           if (e.rest) { if (e.forced === "up") hi = Math.max(hi, 11); if (e.forced === "down") lo = Math.min(lo, -3); continue; }
           for (const h of e.heads) { hi = Math.max(hi, h.pos + 1); lo = Math.min(lo, h.pos - 1); }
+          for (const gc of e.graceCols || []) for (const h of gc.heads) { hi = Math.max(hi, h.pos + 5); lo = Math.min(lo, h.pos - 1); }
+          // what stacks over this note: its fingering, ornament (and the accidental over it), technique
+          const nf = e.heads.filter((h) => h.finger).length, up = e.forced !== "down";
+          if (nf && !up) fingDown = Math.max(fingDown, nf);
+          const stack = (up ? nf * 1.3 : 0) + (e.orn ? 1.9 + (e.ornAcc !== undefined && e.ornAcc !== null ? 1.5 : 0) : 0) + (e.tech ? 1.7 : 0);
+          // stacked on this note's own top (not the highest note in the system)
+          if (stack) stackUp = Math.max(stackUp, Math.max(0, -Math.min(yOf(e.heads[e.heads.length - 1].pos) - 0.5 * sp, e.up && !e.stemless ? e.stemEnd : Infinity)) + stack * sp);
           if (e.stemEnd !== undefined) { const p = (4 * sp - e.stemEnd) / (sp / 2); hi = Math.max(hi, p + 1); lo = Math.min(lo, p - 1); }
-          if (e.tuplet) hi = Math.max(hi, (e.up ? (4 * sp - e.stemEnd) / (sp / 2) : 8) + 3);
+          if (e.tuplet) hi = Math.max(hi, (e.up ? (4 * sp - e.stemEnd) / (sp / 2) : 8) + (e.tuplet.outer ? 6.5 : 3));
         }
       }
       lyricLines = lyrVoices.size;
@@ -578,12 +679,15 @@ export function engrave(score, opts = {}) {
         if (sp_.type === "8va") oct8va = spanList.some((q) => q.type === "slur" && q.st === st) ? 2 : 1;
         if (sp_.type === "8vb") oct8vb = true;
         if (sp_.type === "slur") { hi += 2; lo -= 2; }
+        if (sp_.type === "trill") trill = true;
+        if (sp_.type === "gliss") { hi += 1; lo -= 1; }
       }
+      const extraDown = fingDown * 1.3 * sp;
       const isTop = k === 0;
       const marks = isTop && s.bars.some(barMarks), volta = isTop && s.bars.some((b) => b.voltaRun);
-      const above = Math.max(2.5 * sp, ((hi - 8) * sp) / 2 + 1.0 * sp) + (chords ? 2.4 * sp : 0) + (oct8va ? (oct8va === 2 ? 4.2 : 1.8) * sp : 0) + (volta ? 2.4 * sp : 0) + (marks ? 2.6 * sp : 0) + (isTop && si === 0 ? 1.8 * sp : isTop ? 0.6 * sp : 0);
-      const below = Math.max(2.0 * sp, (-lo * sp) / 2 + 1.0 * sp) + (dyn || hair ? 2.2 * sp : 0) + lyricLines * 2.4 * sp + (ped ? 2.2 * sp : 0) + (oct8vb ? 1.8 * sp : 0);
-      return { st, hi, lo, chords, above, below, dyn: dyn || hair, lyricVoices: [...lyrVoices].sort(), ped, volta, marks };
+      const above = Math.max(2.5 * sp, ((hi - 8) * sp) / 2 + 1.0 * sp, stackUp + 1.0 * sp) + (trill ? 1.9 * sp : 0) + (chords ? 2.4 * sp : 0) + (oct8va ? (oct8va === 2 ? 4.2 : 1.8) * sp : 0) + (volta ? 2.4 * sp : 0) + (marks ? 2.6 * sp : 0) + (isTop && si === 0 ? 1.8 * sp : isTop ? 0.6 * sp : 0);
+      const below = Math.max(2.0 * sp, (-lo * sp) / 2 + 1.0 * sp) + extraDown + (dyn || hair ? 2.2 * sp : 0) + lyricLines * 2.4 * sp + (ped ? 2.2 * sp : 0) + (oct8vb ? 1.8 * sp : 0);
+      return { st, hi, lo, chords, above, below, extraDown, dyn: dyn || hair, lyricVoices: [...lyrVoices].sort(), ped, volta, marks };
     });
     s.y = y;
     s.staves.forEach((ss, k) => {
@@ -612,10 +716,11 @@ export function engrave(score, opts = {}) {
       const T = ss.top, st = ss.st, b0 = s.bars[0];
       for (let i = 0; i < 5; i++) g.push(line(leftX, T + i * sp, s.right, T + i * sp, 0.11 * sp));
       let x = leftX + 0.6 * sp;
-      g.push(clefGlyph(st.clef, x, T, sp));
-      x += ((CLEF_W[st.clef] || 2.6) + 0.6) * sp;
+      const clef0 = clefAt(st, b0.index);
+      g.push(clefGlyph(clef0, x, T, sp));
+      x += ((CLEF_W[clef0] || 2.6) + 0.6) * sp;
       const key = st.keyAt(b0);
-      g.push(keySigSvg(key, null, st.clef, x, T, sp));
+      g.push(keySigSvg(key, null, clef0, x, T, sp));
       x += keySigW(key, null, sp);
       if (s.first || b0.timeChange) g.push(timeSig(b0.time, x + 0.3 * sp, T, sp).svg);
       // part names: full on the first system, short after; a grand staff's name sits between its staves
@@ -645,7 +750,10 @@ export function engrave(score, opts = {}) {
       const T = ss.top, st = ss.st;
       const firstOfPart = k === 0 || s.staves[k - 1].st.pi !== st.pi;
       const chordY = T - ss.above + (k === 0 ? (si === 0 ? 1.8 * sp : 0.6 * sp) + (ss.marks ? 2.6 * sp : 0) + (ss.volta ? 2.4 * sp : 0) : 0) + 2.0 * sp;
-      const lowest = T + 4 * sp + Math.max(2.0 * sp, (-ss.lo * sp) / 2 + 1.0 * sp);
+      const lowest = T + 4 * sp + Math.max(2.0 * sp, (-ss.lo * sp) / 2 + 1.0 * sp) + (ss.extraDown || 0);
+      // what's placed around the notes, settled once the staff's notes are drawn: marks above and below (closest first),
+      // chord symbols (one row over everything), dynamics, then hairpins that stop short of them
+      ss.req = { above: [], below: [], chords: [], dyns: [], hairpins: [], sky: [], floor: [] };
       const dynY = lowest + 1.6 * sp;
       const lyricBase = lowest + (ss.dyn ? 2.2 * sp : 0) + 1.6 * sp;
       const pedY = lyricBase + ss.lyricVoices.length * 2.4 * sp + 0.4 * sp;
@@ -669,10 +777,19 @@ export function engrave(score, opts = {}) {
           }
         }
         // key and time changes inside the line
-        if (b.pre && (b.keyChange || b.timeChange)) {
+        const clefCh = st.voices[0]?.[b.index]?.clefChange;
+        if (b.pre && (b.keyChange || b.timeChange || clefCh)) {
           let x = b.x + 0.4 * sp;
-          if (b.keyChange) { const prevB = bars[b.index - 1]; g.push(keySigSvg(st.keyAt(b), st.keyAt(prevB), st.clef, x, T, sp)); x += Math.max(...staves.map((q) => keySigW(q.keyAt(b), q.keyAt(prevB), sp))) + 0.4 * sp; }
+          if (clefCh) g.push(clefGlyph(clefAt(st, b.index), x - 0.1 * sp, T, sp, 0.72));
+          x += b.clefW || 0;
+          if (b.keyChange) { const prevB = bars[b.index - 1]; g.push(keySigSvg(st.keyAt(b), st.keyAt(prevB), clefAt(st, b.index), x, T, sp)); x += Math.max(...staves.map((q) => keySigW(q.keyAt(b), q.keyAt(prevB), sp))) + 0.4 * sp; }
           if (b.timeChange) g.push(timeSig(b.time, x, T, sp).svg);
+        }
+        if (b.mm) {
+          const x1 = b.x + (b.pre || 0) + 1.0 * sp, x2 = b.x + b.w - 1.0 * sp, my = T + 2 * sp;
+          g.push(`<rect x="${f2(x1)}" y="${f2(my - 0.5 * sp)}" width="${f2(x2 - x1)}" height="${f2(sp)}" fill="currentColor"/>`, line(x1, T + sp, x1, T + 3 * sp, 0.18 * sp), line(x2, T + sp, x2, T + 3 * sp, 0.18 * sp));
+          g.push(`<text x="${f2((x1 + x2) / 2)}" y="${f2(T - 0.7 * sp)}" text-anchor="middle" font-family="${SERIF}" font-weight="700" font-size="${f2(2.1 * sp)}" fill="currentColor">${b.mm}</text>`);
+          ss.req.sky.push({ x1: (x1 + x2) / 2 - 1.5 * sp, x2: (x1 + x2) / 2 + 1.5 * sp, y: T - 2.3 * sp });
         }
         if (k === 0 || firstOfPart) hit.measures.push({ index: b.index, x: b.x, w: b.w, system: si, y: s.y, h: s.h, start: b.start, ticks: b.ticks, part: st.pi, staves: s.staves.filter((q) => q.st.pi === st.pi).map((q) => ({ part: q.st.pi, staff: q.st.s, y: q.top, h: 4 * sp })) });
       });
@@ -680,26 +797,31 @@ export function engrave(score, opts = {}) {
       if (s.courtesy) {
         const nb = systems[si + 1].bars[0];
         let x = s.right - s.courtesy + 0.6 * sp;
-        if (nb.keyChange) { g.push(keySigSvg(st.keyAt(nb), st.keyAt(bars[nb.index - 1]), st.clef, x, T, sp)); x += keySigW(st.keyAt(nb), st.keyAt(bars[nb.index - 1]), sp) + 0.4 * sp; }
+        if (st.voices[0]?.[nb.index]?.clefChange) g.push(clefGlyph(clefAt(st, nb.index), x - 0.2 * sp, T, sp, 0.72));
+        x += nb.clefW || 0;
+        if (nb.keyChange) { g.push(keySigSvg(st.keyAt(nb), st.keyAt(bars[nb.index - 1]), clefAt(st, nb.index), x, T, sp)); x += keySigW(st.keyAt(nb), st.keyAt(bars[nb.index - 1]), sp) + 0.4 * sp; }
         if (nb.timeChange) g.push(timeSig(nb.time, x, T, sp).svg);
       }
       // the notes, voice by voice
       const lyricLists = new Map();
       st.voices.forEach((ms) => {
         for (const m of ms) {
-          if (!s.bars.includes(bars[m.index])) continue;
+          if (!s.bars.includes(bars[m.index]) || bars[m.index].mmHidden || bars[m.index].mm) continue;
           for (const e of m.events) drawPiece(e, m, ms, ss, T, si, g, under, lyricLists, dynY, chordY);
           const seen = new Set();
           for (const e of m.events) if (e.beamG && !seen.has(e.beamG)) { seen.add(e.beamG); g.push(drawBeams(e.beamG, T, sp, isSel(e) ? ORANGE : "currentColor")); }
-          drawTuplets(m, T, g);
+          drawTuplets(m, T, g, ss, si);
         }
       });
+      // spans on this staff: slurs, hairpins, octave lines, pedal
+      for (const sp_ of spanList) if (sp_.st === st && sp_.type !== "pedal") drawSpan(sp_, s, si, ss, T, g, dynY, pedY);
+      const lyricY = settle(ss, T, g, si, chordY, dynY, lyricBase);
       // lyrics: one line per voice that has words, centered under the notes; hyphens and extender lines
       ss.lyricVoices.forEach((v, li) => {
-        const list = lyricLists.get(v) || [], ly = lyricBase + li * 2.4 * sp;
+        const list = lyricLists.get(v) || [], ly = lyricY + li * 2.4 * sp;
         list.forEach((l, i) => {
           const w = textWidth(l.text, lyricPx);
-          if (l.text) g.push(`<text x="${f2(l.x)}" y="${f2(ly)}" text-anchor="middle" font-size="${f2(lyricPx)}" fill="currentColor">${escx(l.text)}</text>`);
+          if (l.text) { g.push(`<text x="${f2(l.x)}" y="${f2(ly)}" text-anchor="middle" font-size="${f2(lyricPx)}" fill="currentColor">${escx(l.text)}</text>`); box("lyric", l.x - w / 2, ly - 1.05 * sp, l.x + w / 2, ly + 0.35 * sp, si, skey(ss)); }
           const next = list[i + 1], a = l.x + w / 2, bx = next ? next.x - textWidth(next.text, lyricPx) / 2 : s.right;
           if (l.hyphen) { if (bx - a > 0.8 * sp) g.push(line((a + bx) / 2 - 0.35 * sp, ly - 0.42 * sp, (a + bx) / 2 + 0.35 * sp, ly - 0.42 * sp, 0.12 * sp)); }
           else {
@@ -709,8 +831,7 @@ export function engrave(score, opts = {}) {
           }
         });
       });
-      // spans on this staff: slurs, hairpins, octave lines, pedal
-      for (const sp_ of spanList) if (sp_.st === st) drawSpan(sp_, s, si, ss, T, g, dynY, pedY);
+      for (const sp_ of spanList) if (sp_.st === st && sp_.type === "pedal") drawSpan(sp_, s, si, ss, T, g, dynY, pedY + lyricY - lyricBase);
     });
     // marks over the top staff: endings, rehearsal letters, segno and coda, tempo changes, directions
     const top = s.staves[0], Tt = top.top;
@@ -770,12 +891,14 @@ export function engrave(score, opts = {}) {
       const d = `M${f2(e.x)},${f2(cy + sp)}L${f2(e.x + h)},${f2(cy + sp)}L${f2(e.x + w + h)},${f2(cy - sp)}L${f2(e.x + w)},${f2(cy - sp)}Z`;
       g.push(open ? `<path fill="none" stroke="${ink}" stroke-width="${f2(0.16 * sp)}" d="${d}"/>` : `<path fill="${ink}" d="${d}"/>`);
       if (e.type !== "whole" && e.type !== "quarter") g.push(line(e.x + w + h - 0.06 * sp, cy - sp, e.x + w + h - 0.06 * sp, cy - 3.5 * sp, 0.12 * sp, ink));
+      ss.req.sky.push({ x1: e.x, x2: e.x + w + h, y: e.type !== "whole" && e.type !== "quarter" ? cy - 3.6 * sp : cy - 1.1 * sp });
       hit.events.push({ part: st.pi, staff: st.s, voice: e.voice, event: e.ref, measure: m.index, x: e.x - 0.3 * sp, y: band.y, w: w + h + 0.6 * sp, h: band.h, system: si, start: e.start, ticks: e.ticks, rest: true, slash: true });
     } else if (e.rest) {
       // a second voice's rests move out of the way: up for the first voice, down for the second
       const dy = e.forced === "up" ? -2 * sp : e.forced === "down" ? 2 * sp : 0;
       const type = e.wholeBar ? "whole" : e.type;
       g.push(restGlyph(type, e.x, T + dy, sp, ink));
+      ss.req.sky.push({ x1: e.x, x2: e.x + REST_W[type] * sp, y: T + dy + 0.6 * sp }); ss.req.floor.push({ x1: e.x, x2: e.x + REST_W[type] * sp, y: T + dy + 3.4 * sp });
       if (e.dots && !e.wholeBar) g.push(`<circle cx="${f2(e.x + REST_W[e.type] * sp + 0.45 * sp)}" cy="${f2(T + 1.5 * sp + dy)}" r="${f2(0.2 * sp)}" fill="${ink}"/>`);
       hit.events.push({ part: st.pi, staff: st.s, voice: e.voice, event: e.ref, measure: m.index, x: e.x - 0.3 * sp, y: band.y, w: REST_W[type] * sp + 0.6 * sp, h: band.h, system: si, start: e.start, ticks: e.ticks, rest: true });
     } else {
@@ -789,7 +912,8 @@ export function engrave(score, opts = {}) {
       for (const h of e.heads) {
         const hx = e.x + h.shift * hw, hy = T + yOf(h.pos);
         const noteSel = selected && (sel.note === undefined || sel.note === null || sel.note === h.i);
-        if (!e.shareHead) g.push(notehead(e.type, hx, hy, sp, noteSel ? ORANGE : selected ? SOFT : "currentColor"));
+        const hc = noteSel ? ORANGE : selected ? SOFT : "currentColor";
+        if (!e.shareHead) g.push(h.head || h.harm ? headShape(h.head || "diamond", e.type, hx, hy, sp, hc, !!h.harm) : notehead(e.type, hx, hy, sp, hc));
         if (h.showAcc && !e.shareHead) {
           const acc = accidental(h.alter, colX[h.accCol], hy, sp, ink);
           g.push(h.showAcc === "courtesy" ? `<text x="${f2(colX[h.accCol] - 0.85 * sp)}" y="${f2(hy + 0.55 * sp)}" font-size="${f2(1.6 * sp)}" fill="${ink}">(</text>${acc}<text x="${f2(colX[h.accCol] + 0.5 * sp)}" y="${f2(hy + 0.55 * sp)}" font-size="${f2(1.6 * sp)}" fill="${ink}">)</text>` : acc);
@@ -816,8 +940,58 @@ export function engrave(score, opts = {}) {
         g.push(line(e.stemX, T + yOf(far.pos) + (e.up ? -0.15 * sp : 0.15 * sp), e.stemX, T + e.stemEnd, 0.12 * sp, ink));
         if (e.level && !e.beamG) g.push(flags(e.level, e.up ? e.stemX - 0.06 * sp : e.stemX - 0.06 * sp, T + e.stemEnd, e.up, sp, ink));
       }
+      const topHead = T + yOf(maxP), botHead = T + yOf(minP);
+      // tremolo strokes: across the stem, between the notes and the stem's end (over a whole note)
+      if (e.trem) {
+        const n = Math.min(3, e.trem);
+        if (e.stemless) g.push(tremSvg(n, e.x + hw / 2, topHead - 1.3 * sp - (n - 1) * 0.4 * sp, sp, ink));
+        else {
+          const near = e.up ? topHead : botHead, end = T + e.stemEnd, room = (e.level ? (e.level - 1) * 0.75 * sp + 0.9 * sp : 0);
+          g.push(tremSvg(n, e.stemX, (near + end + (e.up ? room : -room)) / 2 + (e.up ? -0.3 * sp : 0.3 * sp), sp, ink));
+        }
+      }
+      // grace notes: small, stems up, before the accidentals and arpeggio (a slash through the stem of acciaccaturas)
+      let gx = e.x - e.left;
+      if (e.graceCols) {
+        const gsp = GRACE * sp, cols = e.graceCols, gw = HEAD_W * gsp;
+        const stemTop = Math.min(...cols.map((c) => T + yOf(c.heads[c.heads.length - 1].pos))) - 2.4 * sp;
+        const stems = [];
+        let firstHead = null, lowY = -Infinity;
+        for (const c of cols) {
+          gx += c.accW;
+          for (const h of c.heads) {
+            const y = T + yOf(h.pos);
+            for (let p = 10; p <= h.pos; p += 2) g.push(line(gx - 0.25 * sp, T + yOf(p), gx + gw + 0.25 * sp, T + yOf(p), 0.14 * sp));
+            for (let p = -2; p >= h.pos; p -= 2) g.push(line(gx - 0.25 * sp, T + yOf(p), gx + gw + 0.25 * sp, T + yOf(p), 0.14 * sp));
+            g.push(h.head ? headShape(h.head, "quarter", gx, y, gsp, ink) : notehead("quarter", gx, y, gsp, ink));
+            if (h.showAcc) g.push(accidental(h.alter, gx - c.accW / 2, y, gsp, ink));
+            if (!firstHead) firstHead = { x: gx, y };
+            lowY = Math.max(lowY, y);
+          }
+          const sx = gx + gw - 0.05 * sp;
+          g.push(line(sx, T + yOf(c.heads[0].pos) - 0.1 * sp, sx, stemTop, 0.1 * sp, ink));
+          stems.push(sx);
+          gx += gw + 0.5 * sp;
+        }
+        if (stems.length === 1) g.push(flags(1, stems[0] - 0.04 * sp, stemTop, true, gsp, ink));
+        else for (const off of [0, 0.5 * sp]) g.push(`<path fill="${ink}" d="M${f2(stems[0] - 0.05 * sp)},${f2(stemTop + off)}L${f2(stems[stems.length - 1] + 0.05 * sp)},${f2(stemTop + off)}L${f2(stems[stems.length - 1] + 0.05 * sp)},${f2(stemTop + off + 0.3 * sp)}L${f2(stems[0] - 0.05 * sp)},${f2(stemTop + off + 0.3 * sp)}Z"/>`);
+        if (cols[0].slash) g.push(line(stems[0] - 0.75 * sp, stemTop + 1.5 * sp, stems[0] + 0.55 * sp, stemTop + 0.45 * sp, 0.11 * sp, ink));
+        // the little slur to the main note
+        g.push(arc(firstHead.x + 0.2 * sp, lowY + 0.55 * sp, e.x - 0.1 * sp, botHead + 0.65 * sp, false, 0.45 * sp, sp, ink));
+        ss.req.sky.push({ x1: e.x - e.left, x2: gx, y: stemTop - 0.2 * sp });
+        ss.req.floor.push({ x1: e.x - e.left, x2: e.x, y: Math.max(lowY, botHead) + 1.2 * sp });
+        gx += 0.45 * sp - 0.5 * sp;
+      }
+      // the arpeggio: a wavy line down the chord's left side, with an arrow when it rolls down
+      if (e.arp) {
+        const ax = gx + 0.55 * sp, y1 = topHead - 0.6 * sp, y2 = botHead + 0.6 * sp;
+        g.push(wavy(ax, y1, ax, y2, sp, ink));
+        if (e.arpDir === "down") g.push(`<path fill="${ink}" d="M${f2(ax - 0.45 * sp)},${f2(y2 - 0.3 * sp)}L${f2(ax)},${f2(y2 + 0.6 * sp)}L${f2(ax + 0.45 * sp)},${f2(y2 - 0.3 * sp)}Z"/>`);
+      }
       // articulations on the notehead side, fermata above (below for a down voice)
       const art = !e.tiedFromPrev ? e.arts : [];
+      let artTop = Infinity, artBot = -Infinity;
+      const fermY = [Infinity, -Infinity];
       let ay = e.up ? T + yOf(e.heads[0].pos) + 1.1 * sp : T + yOf(e.heads[e.heads.length - 1].pos) - 1.1 * sp;
       const acx = e.x + hw / 2;
       for (const a of art) {
@@ -827,14 +1001,49 @@ export function engrave(score, opts = {}) {
         if (a === "fermata") {
           const below = e.forced === "down", fy = below ? Math.max(T + 5.2 * sp, T + Math.max(yOf(e.heads[0].pos), e.up ? 0 : e.stemEnd) + 1.2 * sp) : Math.min(T - 1.2 * sp, T + Math.min(yOf(e.heads[e.heads.length - 1].pos), e.up ? e.stemEnd : 99) - 1.2 * sp);
           const d = below ? -1 : 1;
+          fermY[0] = Math.min(fermY[0], below ? fy - 0.3 * sp : fy - 1.5 * sp); fermY[1] = Math.max(fermY[1], below ? fy + 1.5 * sp : fy + 0.3 * sp);
+          box("artic", acx - 1.15 * sp, below ? fy - 0.3 * sp : fy - 1.45 * sp, acx + 1.15 * sp, below ? fy + 1.45 * sp : fy + 0.3 * sp, si, skey(ss));
           g.push(`<path fill="${ink}" d="M${f2(acx - 1.1 * sp)},${f2(fy)}C${f2(acx - 1.0 * sp)},${f2(fy - d * 1.4 * sp)} ${f2(acx + 1.0 * sp)},${f2(fy - d * 1.4 * sp)} ${f2(acx + 1.1 * sp)},${f2(fy)}C${f2(acx + 0.9 * sp)},${f2(fy - d * 1.1 * sp)} ${f2(acx - 0.9 * sp)},${f2(fy - d * 1.1 * sp)} ${f2(acx - 1.1 * sp)},${f2(fy)}Z"/><circle cx="${f2(acx)}" cy="${f2(fy - d * 0.3 * sp)}" r="${f2(0.2 * sp)}" fill="${ink}"/>`);
         }
-        if (a === "staccato" || a === "tenuto" || a === "accent") ay += (e.up ? 1 : -1) * 0.9 * sp;
+        if (a === "staccato" || a === "tenuto" || a === "accent") {
+          const ex_ = a === "staccato" ? 0.25 * sp : 0.75 * sp;
+          artTop = Math.min(artTop, ay - 0.45 * sp); artBot = Math.max(artBot, ay + 0.45 * sp);
+          box("artic", acx - ex_, ay - 0.45 * sp, acx + ex_, ay + 0.45 * sp, si, skey(ss));
+          ay += (e.up ? 1 : -1) * 0.9 * sp;
+        }
+      }
+      // the room the note takes above and below (its head, stem, articulations), then fingering stacked on top
+      let top = Math.min(topHead - 0.5 * sp, !e.stemless && e.up ? T + e.stemEnd : Infinity, artTop, fermY[0]);
+      let bot = Math.max(botHead + 0.5 * sp, !e.stemless && !e.up ? T + e.stemEnd : -Infinity, artBot, fermY[1]);
+      if (e.trem && e.stemless) top = Math.min(top, topHead - 2.3 * sp - (e.trem - 1) * 0.8 * sp);
+      const fingered = e.heads.filter((h) => h.finger && !e.tiedFromPrev);
+      if (fingered.length) {
+        const below = e.forced === "down", fx = e.x + hw / 2, fpx = 1.3 * sp;
+        for (const h of below ? [...fingered].reverse() : fingered) {
+          const w = textWidth(String(h.finger), fpx, 700) + 0.1 * sp;
+          if (below) { const yb = bot + 0.25 * sp + 0.95 * sp; g.push(`<text x="${f2(fx)}" y="${f2(yb)}" text-anchor="middle" font-size="${f2(fpx)}" font-weight="700" fill="${ink}">${escx(h.finger)}</text>`); box("finger", fx - w / 2, yb - 0.95 * sp, fx + w / 2, yb + 0.05 * sp, si, skey(ss)); bot = yb + 0.1 * sp; }
+          else { const yb = top - 0.3 * sp; g.push(`<text x="${f2(fx)}" y="${f2(yb)}" text-anchor="middle" font-size="${f2(fpx)}" font-weight="700" fill="${ink}">${escx(h.finger)}</text>`); box("finger", fx - w / 2, yb - 0.95 * sp, fx + w / 2, yb + 0.05 * sp, si, skey(ss)); top = yb - 0.95 * sp; }
+        }
+      }
+      const rx1 = e.x - (e.heads.some((h) => h.shift < 0) ? hw : 0) - 0.1 * sp, rx2 = e.x + hw + (e.heads.some((h) => h.shift > 0) ? hw : 0) + 0.1 * sp;
+      e.topY = top; e.botY = bot;
+      ss.req.sky.push({ x1: rx1, x2: rx2, y: top });
+      ss.req.floor.push({ x1: rx1, x2: rx2, y: bot });
+      // ornaments (and the accidental over them) and playing technique, placed above with everything else there
+      if (e.orn && !e.tiedFromPrev) {
+        const [ow, oh] = ORN_BOX[e.orn] || [2, 1.4], cx = e.x + hw / 2, accH = e.ornAcc !== undefined && e.ornAcc !== null ? 1.5 * sp : 0;
+        ss.req.above.push({ pri: 1, kind: "orn", x1: cx - (ow * sp) / 2, x2: cx + (ow * sp) / 2, h: oh * sp + accH,
+          draw: (yb) => ornGlyph(e.orn, cx, yb, sp, ink) + (accH ? accidental(e.ornAcc, cx, yb - oh * sp - 0.75 * sp, sp * 0.62, ink) : "") });
+      }
+      if (e.tech && !e.tiedFromPrev) {
+        const tpx = 1.4 * sp, tw = textWidth(e.tech, tpx, 400, SERIF, true);
+        ss.req.above.push({ pri: 2, kind: "tech", x1: e.x, x2: e.x + tw, h: 1.25 * sp,
+          draw: (yb) => `<text x="${f2(e.x)}" y="${f2(yb - 0.3 * sp)}" font-family="${SERIF}" font-style="italic" font-size="${f2(tpx)}" fill="${ink}">${escx(e.tech)}</text>` });
       }
       hit.events.push({ part: st.pi, staff: st.s, voice: e.voice, event: e.ref, measure: m.index, x: e.x - e.left, y: band.y, w: e.left + e.w, h: band.h, system: si, start: e.start, ticks: e.ticks,
         notes: e.heads.map((h) => ({ note: h.i, y: T + yOf(h.pos), x: e.x + h.shift * hw })) });
     }
-    if (e.chord) g.push(chordSymbolSvg(e.chord, e.x, chordY, sp).svg);
+    if (e.chord) ss.req.chords.push({ x: e.x, sym: e.chord });
     // lyrics: a syllable held over more notes (a melisma) gets an extender line to its last note
     if (!lyricLists.has(e.voice)) lyricLists.set(e.voice, []);
     const list = lyricLists.get(e.voice), srcV = st.part.voices?.[e.voice] || [];
@@ -850,33 +1059,89 @@ export function engrave(score, opts = {}) {
       if (e.tiedFromPrev && lastL.open) lastL.tied = e.x + e.hw;
       else { lastL.open = false; lastL.melisma = e.x + e.hw; }
     }
-    if (!e.tiedFromPrev && e.dynamic) g.push(`<text x="${f2(e.x)}" y="${f2(dynY)}" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.75 * sp)}" fill="currentColor">${escx(e.dynamic)}</text>`);
+    if (!e.tiedFromPrev && e.dynamic) ss.req.dyns.push({ x: e.x, text: e.dynamic });
   }
-  // tuplet numbers (and brackets when the group isn't one beam)
-  function drawTuplets(m, T, g) {
-    let run = [];
-    const flush = () => {
-      if (!run.length) return;
-      const n = run[0].tuplet.n, notes = run.filter((e) => !e.rest);
+  // everything placed around a staff's notes once they're drawn, so nothing overlaps: marks above (closest first, each on
+  // whatever is under it), chord symbols in one row over all of it, dynamics in one row under the lowest thing below, and
+  // hairpins on that row that stop short of the dynamics. Returns the first lyric line's baseline.
+  function settle(ss, T, g, si, chordY, dynY, lyricBase) {
+    const R = ss.req, pad = 0.35 * sp, key = skey(ss);
+    const skyAt = (x1, x2) => { let y = T - 0.6 * sp; for (const b of R.sky) if (b.x2 > x1 && b.x1 < x2 && b.y < y) y = b.y; return y; };
+    const floorAt = (x1, x2) => { let y = T + 4.6 * sp; for (const b of R.floor) if (b.x2 > x1 && b.x1 < x2 && b.y > y) y = b.y; return y; };
+    R.above.sort((a, b) => a.pri - b.pri || a.x1 - b.x1);
+    for (const r of R.above) {
+      const yb = skyAt(r.x1, r.x2) - pad;
+      g.push(r.draw(yb)); R.sky.push({ x1: r.x1, x2: r.x2, y: yb - r.h }); box(r.kind, r.x1, yb - r.h, r.x2, yb, si, key);
+    }
+    if (R.chords.length) {
+      const items = R.chords.map((c) => ({ ...c, w: chordSymbolSvg(c.sym, 0, 0, sp).w }));
+      let row = Math.max(chordY, T - 1.8 * sp);
+      for (const c of items) row = Math.min(row, skyAt(c.x, c.x + c.w) - pad - 0.4 * sp);
+      for (const c of items) { g.push(chordSymbolSvg(c.sym, c.x, row, sp).svg); box("chord", c.x, row - 1.3 * sp, c.x + c.w, row + 0.4 * sp, si, key); }
+    }
+    const D = R.dyns.map((d) => ({ ...d, w: textWidth(d.text, 1.75 * sp, 700, SERIF, true) }));
+    let row = dynY;
+    for (const d of D) row = Math.max(row, floorAt(d.x, d.x + d.w) + pad + 1.25 * sp);
+    for (const h of R.hairpins) row = Math.max(row, floorAt(h.x1, h.x2) + pad + 1.25 * sp);
+    for (const d of D) {
+      g.push(`<text x="${f2(d.x)}" y="${f2(row)}" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.75 * sp)}" fill="currentColor">${escx(d.text)}</text>`);
+      box("dyn", d.x, row - 1.25 * sp, d.x + d.w, row + 0.35 * sp, si, key); R.floor.push({ x1: d.x, x2: d.x + d.w, y: row + 0.35 * sp });
+    }
+    for (const h of R.hairpins) {
+      let x1 = h.x1, x2 = h.x2;
+      for (const d of D) {
+        if (d.x + d.w < x1 - 0.2 * sp || d.x > x2 + 0.2 * sp) continue;
+        if (d.x + d.w / 2 < (h.x1 + h.x2) / 2) x1 = Math.max(x1, d.x + d.w + 0.45 * sp); else x2 = Math.min(x2, d.x - 0.45 * sp);
+      }
+      if (x2 - x1 < 1.5 * sp) continue; // no room left between the dynamics: the dynamics say it
+      const y = row - 0.55 * sp;
+      g.push(`<path fill="none" stroke="currentColor" stroke-width="${f2(0.13 * sp)}" stroke-linecap="round" d="M${f2(x2)},${f2(y - h.endOpen)}L${f2(x1)},${f2(y - h.startOpen)}M${f2(x1)},${f2(y + h.startOpen)}L${f2(x2)},${f2(y + h.endOpen)}"/>`);
+      box("hairpin", x1, y - 0.75 * sp, x2, y + 0.75 * sp, si, key); R.floor.push({ x1, x2, y: y + 0.75 * sp });
+    }
+    // lyrics go under all of it, in one line across the system
+    let low = -Infinity; for (const b of R.floor) low = Math.max(low, b.y);
+    return Math.max(lyricBase + (ss.dyn ? row - dynY : 0), low + pad + 1.05 * sp);
+  }
+  // tuplet numbers (and brackets when the group isn't one beam); a nested tuplet's outer group gets its own bracket outside
+  function drawTuplets(m, T, g, ss, si) {
+    const outerIds = new Set(m.events.filter((e) => e.tuplet?.outer).map((e) => e.tuplet.outer.id));
+    const innerTy = new Map();
+    const draw = (run, n, forceBracket, past) => {
+      const notes = run.filter((e) => !e.rest);
       const up = run[0].forced ? run[0].forced === "up" : notes.filter((e) => e.up).length >= notes.length / 2;
       const x1 = run[0].x - 0.2 * sp, x2 = run[run.length - 1].x + (run[run.length - 1].hw || sp) + 0.2 * sp, beamed = run.every((e) => e.beamG && e.beamG === run[0].beamG);
       const ends = notes.map((e) => (up ? Math.min(e.stemEnd ?? 0, yOf(e.heads[e.heads.length - 1].pos)) : Math.max(e.stemEnd ?? 4 * sp, yOf(e.heads[0].pos))));
-      const ty = up ? Math.min(0, ...ends) - 1.0 * sp : Math.max(4 * sp, ...ends) + 1.0 * sp;
+      let ty = up ? Math.min(0, ...ends) - 1.0 * sp : Math.max(4 * sp, ...ends) + 1.0 * sp;
+      if (past !== undefined) ty = up ? Math.min(ty, past - 1.8 * sp) : Math.max(ty, past + 1.8 * sp);
       const cx = (x1 + x2) / 2;
-      if (!beamed) {
+      if (!beamed || forceBracket) {
         const d = up ? 0.6 * sp : -0.6 * sp;
         g.push(`<path fill="none" stroke="currentColor" stroke-width="${f2(0.12 * sp)}" d="M${f2(x1)},${f2(T + ty + d)}L${f2(x1)},${f2(T + ty)}L${f2(cx - 0.8 * sp)},${f2(T + ty)}M${f2(cx + 0.8 * sp)},${f2(T + ty)}L${f2(x2)},${f2(T + ty)}L${f2(x2)},${f2(T + ty + d)}"/>`);
       }
       g.push(`<text x="${f2(cx)}" y="${f2(T + ty + 0.5 * sp)}" text-anchor="middle" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.5 * sp)}" fill="currentColor">${n}</text>`);
+      const bx1 = !beamed || forceBracket ? x1 : cx - 0.55 * sp, bx2 = !beamed || forceBracket ? x2 : cx + 0.55 * sp;
+      box("tuplet", bx1, T + ty - 0.65 * sp, bx2, T + ty + 0.65 * sp, si, skey(ss));
+      if (up) ss.req.sky.push({ x1: bx1, x2: bx2, y: T + ty - 0.7 * sp }); else ss.req.floor.push({ x1: bx1, x2: bx2, y: T + ty + 0.7 * sp });
+      return { up, ty };
+    };
+    let run = [];
+    const flush = () => {
+      if (!run.length) return;
+      const r = draw(run, run[0].tuplet.n, false), oid = run[0].tuplet.outer?.id;
+      if (oid !== undefined) { const p = innerTy.get(oid); innerTy.set(oid, p === undefined ? r.ty : r.up ? Math.min(p, r.ty) : Math.max(p, r.ty)); }
       run = [];
     };
     for (const e of m.events) {
-      if (!e.tuplet) { flush(); continue; }
+      if (!e.tuplet || (!e.tuplet.outer && outerIds.has(e.tuplet.id))) { flush(); continue; }
       if (run.length && (e.tuplet.id !== undefined ? run[0].tuplet.id !== e.tuplet.id : run[0].tuplet.n !== e.tuplet.n)) flush();
       run.push(e);
       if (e.tuplet.last) flush();
     }
     flush();
+    for (const oid of outerIds) {
+      const grp = m.events.filter((e) => e.tuplet && (e.tuplet.outer?.id === oid || (!e.tuplet.outer && e.tuplet.id === oid)));
+      draw(grp, grp[0].tuplet.outer ? grp[0].tuplet.outer.n : grp[0].tuplet.n, true, innerTy.get(oid));
+    }
   }
   // a span on one staff: from its first piece to its last, split at system breaks
   function drawSpan(sp_, s, si, ss, T, g, dynY, pedY) {
@@ -891,14 +1156,15 @@ export function engrave(score, opts = {}) {
       const endY = (e, start) => {
         if (e.rest) return T + (above ? -0.5 * sp : 4.5 * sp);
         const hi = yOf(e.heads[e.heads.length - 1].pos), lo = yOf(e.heads[0].pos);
-        if (above) return T + (e.up && !e.stemless ? Math.min(hi - 1.0 * sp, e.stemEnd - 0.4 * sp + (start ? 0 : 0)) : hi - 1.0 * sp);
-        return T + (!e.up && !e.stemless ? Math.max(lo + 1.0 * sp, e.stemEnd + 0.4 * sp) : lo + 1.0 * sp);
+        if (above) return Math.min(T + (e.up && !e.stemless ? Math.min(hi - 1.0 * sp, e.stemEnd - 0.4 * sp + (start ? 0 : 0)) : hi - 1.0 * sp), (e.topY ?? Infinity) - 0.25 * sp);
+        return Math.max(T + (!e.up && !e.stemless ? Math.max(lo + 1.0 * sp, e.stemEnd + 0.4 * sp) : lo + 1.0 * sp), (e.botY ?? -Infinity) + 0.25 * sp);
       };
       const x1 = sx ?? a.x + a.hw * 0.5, x2 = ex ?? b.x + (b.hw || sp) * 0.5;
       let y1 = sx !== null ? null : endY(a, true), y2 = ex !== null ? null : endY(b, false);
       // continuing pieces: at the height of the notes nearby
       const inSys = notes.filter((e) => bars[e.m.index].system === si);
-      const extreme = (e) => (above ? Math.min(yOf(e.heads[e.heads.length - 1].pos), e.up ? e.stemEnd : 99) - 1.0 * sp : Math.max(yOf(e.heads[0].pos), !e.up ? e.stemEnd : -99) + 1.0 * sp);
+      const extreme = (e) => (above ? Math.min(Math.min(yOf(e.heads[e.heads.length - 1].pos), e.up ? e.stemEnd : 99) - 1.0 * sp, (e.topY ?? Infinity) - T - 0.4 * sp)
+        : Math.max(Math.max(yOf(e.heads[0].pos), !e.up ? e.stemEnd : -99) + 1.0 * sp, (e.botY ?? -Infinity) - T + 0.4 * sp));
       if (y1 === null) y1 = T + (inSys.length ? extreme(inSys[0]) : above ? -1 * sp : 5 * sp);
       if (y2 === null) y2 = T + (inSys.length ? extreme(inSys[inSys.length - 1]) : above ? -1 * sp : 5 * sp);
       // lift so the curve clears every note in between
@@ -912,7 +1178,18 @@ export function engrave(score, opts = {}) {
         const gap = above ? base - need : need - base;
         if (gap < 0) lift = Math.max(lift, (-gap + 0.3 * sp) / Math.max(0.3, curve));
       }
-      g.push(arc(x1, y1, x2, y2, above, Math.min(lift, 4 * sp), sp));
+      lift = Math.min(lift, 4 * sp);
+      g.push(arc(x1, y1, x2, y2, above, lift, sp));
+      // the curve's room, in short pieces, so marks placed later sit outside it
+      const dd = above ? -1 : 1, c1y = y1 + (y2 - y1) * 0.25 + dd * lift * 1.33, c2y = y2 - (y2 - y1) * 0.25 + dd * lift * 1.33;
+      const at = (t) => { const u = 1 - t; return [u * u * u * x1 + 3 * u * u * t * (x1 + len * 0.25) + 3 * u * t * t * (x2 - len * 0.25) + t * t * t * x2, u * u * u * y1 + 3 * u * u * t * c1y + 3 * u * t * t * c2y + t * t * t * y2]; };
+      let pv = at(0);
+      for (let i = 1; i <= 8; i++) {
+        const nv = at(i / 8), ya = Math.min(pv[1], nv[1]) - (above ? 0.15 * sp : 0), yb = Math.max(pv[1], nv[1]) + (above ? 0 : 0.15 * sp);
+        box("slur", pv[0], ya, nv[0], yb, si, skey(ss));
+        if (above) ss.req.sky.push({ x1: pv[0], x2: nv[0], y: ya - 0.1 * sp }); else ss.req.floor.push({ x1: pv[0], x2: nv[0], y: yb + 0.1 * sp });
+        pv = nv;
+      }
       return;
     }
     if (sp_.type === "cresc" || sp_.type === "dim") {
@@ -922,7 +1199,8 @@ export function engrave(score, opts = {}) {
       void total;
       const startOpen = sp_.type === "cresc" ? (sx === null ? 0 : open * 0.5) : sx === null ? open : open * 0.5;
       const endOpen = sp_.type === "cresc" ? (ex === null ? open : open * 0.5) : ex === null ? 0 : open * 0.5;
-      g.push(`<path fill="none" stroke="currentColor" stroke-width="${f2(0.13 * sp)}" stroke-linecap="round" d="M${f2(x2)},${f2(y - endOpen)}L${f2(x1)},${f2(y - startOpen)}M${f2(x1)},${f2(y + startOpen)}L${f2(x2)},${f2(y + endOpen)}"/>`);
+      void y;
+      ss.req.hairpins.push({ x1, x2, startOpen, endOpen });
       return;
     }
     if (sp_.type === "8va" || sp_.type === "8vb") {
@@ -938,6 +1216,24 @@ export function engrave(score, opts = {}) {
       g.push(`<text x="${f2(x1)}" y="${f2(yy + 0.45 * sp)}" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.35 * sp)}" fill="currentColor">${shown8}</text>`);
       const lx = x1 + sw + 0.3 * sp;
       g.push(`<path fill="none" stroke="currentColor" stroke-width="${f2(0.12 * sp)}" stroke-dasharray="${f2(0.6 * sp)} ${f2(0.45 * sp)}" d="M${f2(lx)},${f2(yy)}L${f2(x2)},${f2(yy)}${ex === null ? `L${f2(x2)},${f2(yy + (up ? 1 : -1) * 1.0 * sp)}` : ""}"/>`);
+      if (up) ss.req.sky.push({ x1, x2, y: yy - 1.2 * sp }); else ss.req.floor.push({ x1, x2, y: yy + 1.2 * sp });
+      box("octave", x1, up ? yy - 1.0 * sp : yy - 1.0 * sp, x2, up ? yy + 1.0 * sp : yy + 0.6 * sp, si, skey(ss));
+      return;
+    }
+    if (sp_.type === "gliss") {
+      // a straight line from the first note to the next, between the heads (to the line's end when it breaks)
+      if (a.rest || b.rest) return;
+      const ya = T + yOf(a.heads[0].pos), yb = T + yOf(b.heads[0].pos);
+      const x1 = sx ?? a.x + a.hw + (a.dots ? 0.6 * sp + a.dots * 0.55 * sp : 0) + 0.35 * sp, x2 = ex ?? b.x - (b.left || 0) - 0.3 * sp;
+      const y1 = sx === null ? ya : ya + ((yb - ya) * (x1 - a.x)) / Math.max(1, b.x - a.x), y2 = ex === null ? yb : ya + ((yb - ya) * (x2 - a.x)) / Math.max(1, b.x - a.x);
+      if (x2 > x1) g.push(line(x1, y1, x2, y2, 0.14 * sp));
+      return;
+    }
+    if (sp_.type === "trill") {
+      // tr and a wavy line to the end of the last note, above everything near it
+      const x1 = sx ?? a.x, x2 = ex ?? b.x + (b.hw || sp) + 0.8 * sp, startTr = sx === null && a.orn !== "trill";
+      ss.req.above.push({ pri: 3, kind: "trill", x1, x2, h: 1.45 * sp,
+        draw: (yb) => (startTr ? ornGlyph("trill", x1 + 0.8 * sp, yb, sp) : "") + (x2 - x1 - (startTr ? 1.9 * sp : 0) > 0.6 * sp ? wavy(x1 + (startTr ? 1.9 * sp : 0), yb - 0.55 * sp, x2, yb - 0.55 * sp, sp) : "") });
       return;
     }
     if (sp_.type === "pedal") {
@@ -959,7 +1255,7 @@ export function engrave(score, opts = {}) {
     for (const q of s.staves) { const d = Math.abs(yy - (q.top + 2 * sp)); if (d < best) { best = d; ss = q; } }
     const b = xx === null ? s.bars[0] : s.bars.find((x) => xx < x.x + x.w) || s.bars[s.bars.length - 1];
     const key = ss.st.keyAt(b);
-    const pos = Math.round((ss.top + 4 * sp - yy) / (sp / 2)), d = pos + ss.st.bottom, step = ((d % 7) + 7) % 7, oct = Math.floor(d / 7);
+    const pos = Math.round((ss.top + 4 * sp - yy) / (sp / 2)), d = pos + (CLEF_BOTTOM[clefAt(ss.st, b.index)] ?? ss.st.bottom), step = ((d % 7) + 7) % 7, oct = Math.floor(d / 7);
     const midi = (oct + 1) * 12 + PC[step] + keyAlter(STEPS[step], key) - (ss.st.transposed ? ss.st.part.transpose || 0 : 0);
     return { part: ss.st.pi, staff: ss.st.s, midi };
   };
@@ -978,7 +1274,7 @@ export function engrave(score, opts = {}) {
   };
   hit.systems = systems.map((s, i) => ({ index: i, y: s.y, h: s.h, top: s.top, staffHeight: 4 * sp, x: s.left, w: s.right - s.left, measures: s.bars.map((b) => b.index),
     staves: s.staves.map((q) => ({ part: q.st.pi, staff: q.st.s, top: q.top })) }));
-  return { svg, height, ...hit, sp };
+  return { svg, height, ...hit, sp, boxes };
 
   // a tick to an x on a staff (or across all staves): between the moments things start
   function xForTick(s, st, voice, tick, sp) {

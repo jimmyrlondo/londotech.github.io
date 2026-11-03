@@ -10,8 +10,12 @@ import { TPQ, barTicks, newScore, newEvent, newId, newPart, eventStarts, voiceLe
   quantize, playbackEvents, timeline, toMusicXML, fromMusicXML, toMidiFile, readMidiFile, keyName, spell, upgrade, addPart, removePart, movePart, barInfo,
   setBar, copyRange, pasteAt, deleteRange, transposeRange, addSpan, removeSpan, writeAt, fromLeadSheet } from "./compose-core.js";
 import { render } from "./compose-render.js";
-import { audio, noteOn, noteOff, allOff, metronome, startMidi, midiStatus, onNotes, playNote, KEYMAP, soundFor, startMic, stopMic } from "./compose-io.js";
+import { audio, noteOn, noteOff, allOff, metronome, startMidi, midiStatus, onNotes, playNote, KEYMAP, soundFor, startMic, stopMic, playScore, playEvents, renderAudio, renderStems, toWav, encodeAudio } from "./compose-io.js";
+import { perform, performanceLength } from "./compose-play.js";
 import { songbookSongs, leadSheetFrom } from "./compose-songbook.js";
+import { parseCommand, searchCommands } from "./compose-commands.js";
+import { TEMPLATES } from "./compose-templates.js";
+import { proofread, analyze } from "./compose-proof.js";
 import { TUNINGS } from "./tunings.js";
 
 const $ = (id) => document.getElementById(id);
@@ -62,7 +66,7 @@ function commit(next, keepCaret = true) {
   const cur = score(), i = db.scores.indexOf(cur);
   undoStack.push(cur); if (undoStack.length > 200) undoStack.shift(); redoStack.length = 0;
   next.updated = Date.now();
-  db.scores[i] = next; save();
+  db.scores[i] = next; save(); snapshot(next);
   if (!keepCaret) ui.caret = voice().length;
   clamp(); draw(); renderLib();
 }
@@ -101,6 +105,7 @@ function draw() {
 function renderPos() {
   const t = caretTick(), b = barAtCaret(), info = barInfo(score(), { bars: b + 1 })[b], beatT = 1920 / (info?.time?.d || 4);
   const e = ui.sel >= 0 ? voice()[ui.sel] : null, raw = t - (info?.start || 0), past = info && raw >= info.ticks, pos = past ? 0 : raw;
+  queueMicrotask(announce);
   $("pos").textContent = `${part().name || "Part"}${part().voices.length > 1 ? `, voice ${ui.voice + 1}` : ""} · bar ${(info?.number ?? b + 1) + (past ? 1 : 0)}, beat ${(pos / beatT + 1).toFixed(pos % beatT ? 2 : 0)}` + (e && !e.rest ? ` · ${e.notes.map((n) => noteName(n.midi)).join(" ")}` : "");
 }
 function noteName(m) { const sp = spell(m, score().key); return sp.step + (sp.alter > 0 ? "#".repeat(sp.alter) : "b".repeat(-sp.alter)) + sp.octave; }
@@ -180,6 +185,7 @@ function pasteSel() {
 const DUR_KEYS = { 1: 60, 2: 120, 3: 240, 4: 480, 5: 960, 6: 1920 };
 paper.addEventListener("keydown", (e) => {
   if (ui.recording) return; // while recording, the letter keys are the piano
+  if (e.key === "/" && !e.ctrlKey) { e.preventDefault(); openPalette(); return; }
   const k = e.key.toLowerCase();
   if (e.ctrlKey || e.metaKey) {
     if (k === "c") { e.preventDefault(); copySel(); } else if (k === "x") { e.preventDefault(); copySel(true); } else if (k === "v") { e.preventDefault(); pasteSel(); }
@@ -192,6 +198,7 @@ paper.addEventListener("keydown", (e) => {
   if (k === "0" || k === "r") { e.preventDefault(); enterRest(); return; }
   if (k === "t") { e.preventDefault(); changeSelected((ev) => { if (ev.rest) return null; const all = ev.notes.every((x) => x.tie); ev.notes = ev.notes.map((n) => ({ ...n, tie: !all })); return ev; }); return; }
   if (k === "s" && e.altKey) { e.preventDefault(); spanOn("slur"); return; }
+  if (k === "l") { e.preventDefault(); toggleLoop(); return; }
   if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); moveSelected((e.key === "ArrowUp" ? 1 : -1) * (e.altKey ? 12 : 1)); return; }
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault();
@@ -213,6 +220,7 @@ paper.addEventListener("keydown", (e) => {
 });
 document.addEventListener("keydown", (e) => {
   const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName);
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openPalette(); return; }
   if ((e.ctrlKey || e.metaKey) && !typing) {
     if (e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
     else if (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey)) { e.preventDefault(); redo(); }
@@ -294,37 +302,64 @@ onNotes((ev) => {
 });
 
 // ---------- play and record ----------
-// the score's sounds from a tick, each part with its own sound; returns when it ends (seconds)
-function schedule(s, from, t0, parts = null) {
-  const evs = playbackEvents(s, parts ? { from, parts } : { from });
-  for (const e of evs) noteOn(e.midi, e.vel / 127, t0 + e.time, e.dur, { sound: soundFor(s.parts[e.part]?.instrument) });
-  return evs.length ? Math.max(...evs.map((e) => e.time + e.dur)) : 0;
-}
+// the score as performed (dynamics, hairpins, slurs, ornaments, swing...) from a tick, through the mixer
+const perfOpts = (from) => ({ from, swing: db.prefs.swing || undefined, humanize: db.prefs.humanize ?? 0.3 });
 // where a tick first comes in the played timeline (seconds)
 function secondsAt(tl, tick) { const seg = tl.segments.find((g) => tick >= g.start && tick < g.start + g.ticks); return seg ? seg.time + ((tick - seg.start) / seg.ticks) * seg.dur : 0; }
 function play() {
   stopAll();
-  const s = score(), a = audio(), from = ui.caret >= voice().length && !ui.range ? 0 : caretTick(), t0 = a.currentTime + 0.12;
-  const end = schedule(s, from, t0);
+  const s = score(), a = audio(), loop = ui.loop && rangeNow();
+  const from = loop ? eventStarts(voice())[loop.from] : ui.caret >= voice().length && !ui.range ? 0 : caretTick();
+  const t0 = a.currentTime + 0.12;
+  let loopSec = null;
+  if (loop) {
+    // the loop runs from the start of the run to the end of its last note, in performed seconds
+    const evs = perform(s, perfOpts(from)), mine = evs.filter((e) => e.part === ui.part && e.voice === ui.voice && e.ref >= loop.from && e.ref <= loop.to);
+    const end = mine.length ? Math.max(...mine.map((e) => e.time + e.dur)) : 1;
+    loopSec = { start: 0, end };
+  }
+  const r = playScore(s, { ...perfOpts(from), t0, loop: loopSec });
+  const end = loopSec ? Infinity : performanceLength(r.events);
   const tl = timeline(s), startSec = secondsAt(tl, from);
   // the click lines up with the bar the playing starts in
   const b = barInfo(s, { bars: 0 }).filter((x) => x.start <= from).pop() || { start: 0, time: s.time, tempo: s.tempo };
   const beat = (60 / (b.tempo || s.tempo)) * (4 / b.time.d), beatTicks = 1920 / b.time.d, into = (from - b.start) % beatTicks;
-  const met = db.prefs.click ? metronome(t0 + (into ? (beatTicks - into) / TPQ * (60 / (b.tempo || s.tempo)) : 0), beat, b.time.n, {}) : null;
-  ui.playing = { t0, from, met, end };
+  const met = db.prefs.click && !loopSec ? metronome(t0 + (into ? ((beatTicks - into) / TPQ) * (60 / (b.tempo || s.tempo)) : 0), beat, b.time.n, {}) : null;
+  ui.playing = { t0, from, met, end, player: r.player };
   $("playBtn").innerHTML = "&#9632;"; $("playBtn").classList.add("on");
   const step = () => {
     if (!ui.playing) return;
-    const t = audio().currentTime - t0;
+    const t = r.player.timeAt ? r.player.timeAt(audio().currentTime) : audio().currentTime - t0;
     if (t > end + 0.3) { stopAll(); return; }
-    // the playhead follows repeats and jumps through the timeline
+    // the playhead follows repeats, jumps and the loop through the timeline
     playTick = t <= 0 ? from : (tl.at(startSec + t)?.tick ?? from); draw();
     ui.playing.raf = setTimeout(step, 50);
   };
   step();
 }
+function toggleLoop() {
+  if (!ui.loop && !ui.range) { toast("Select a run first (click a note, shift-click another), then loop it."); return; }
+  ui.loop = !ui.loop; $("loopBtn")?.classList.toggle("on", ui.loop);
+  if (ui.loop) play(); else stopAll();
+}
+// the whole mix, or one file per instrument, as audio
+async function exportAudio(stems = false, preset = db.prefs.audioFormat || "wav") {
+  const s = score(), name = (s.title || "score").replace(/[\\/:*?"<>|]+/g, "");
+  toast(stems ? "Rendering each instrument..." : "Rendering the mix...", 8000);
+  try {
+    const meta = { title: s.title, artist: s.composer };
+    const asFile = async (buf, label) => (preset === "wav" ? toWav(buf, 24) : await encodeAudio(buf, preset, { ...meta, title: label }));
+    const ext = preset === "wav" ? "wav" : (await import("./convert-core.js")).FORMATS[(await import("./convert-core.js")).PRESETS.find((p) => p.id === preset)?.kind || "mp3"].ext;
+    if (!stems) { const buf = await renderAudio(s, perfOpts(0)); download(await asFile(buf, s.title), `${name}.${ext}`); toast("Your mix is downloading."); return; }
+    const list = await renderStems(s, perfOpts(0)), entries = [];
+    for (const st of list) entries.push({ name: `${name} stems/${String(st.part + 1).padStart(2, "0")} ${st.name.replace(/[\\/:*?"<>|]+/g, "")}.${ext}`, blob: await asFile(st.buffer, st.name) });
+    const { zip } = await import("./zip.js");
+    download(await zip(entries), `${name} stems.zip`); toast(`${entries.length} stems are downloading.`);
+  } catch (err) { toast(`Couldn't render it: ${err.message || err}`, 4000); }
+}
 function stopAll() {
-  if (ui.playing) { ui.playing.met?.stop(); clearTimeout(ui.playing.raf); ui.playing = null; }
+  if (ui.playing) { ui.playing.met?.stop(); ui.playing.player?.stop?.(); clearTimeout(ui.playing.raf); ui.playing = null; }
+  if (ui.backing) { ui.backing.stop?.(); ui.backing = null; }
   allOff(); playTick = null;
   $("playBtn").innerHTML = "&#9654;"; $("playBtn").classList.remove("on");
   if (ui.recording) finishRecording();
@@ -342,7 +377,7 @@ async function record() {
   const overlay = document.createElement("div"); overlay.className = "count"; paper.appendChild(overlay);
   const met = metronome(t0 - bar * count, beat, s.time.n, { on: true, onBeat: (i) => { const left = count * s.time.n - i; overlay.textContent = left > 0 ? String((i % s.time.n) + 1) : ""; if (left <= 0) overlay.remove(); } });
   // hear the rest of the score from the caret while you play (the part you're recording stays quiet)
-  if (db.prefs.hearScore !== false) { const others = s.parts.map((_, i) => i).filter((i) => i !== ui.part); if (others.length) schedule(s, caretTick(), t0, others); }
+  if (db.prefs.hearScore !== false) { const others = s.parts.map((_, i) => i).filter((i) => i !== ui.part); if (others.length) { const parts = s.parts.map((p) => ({ instrument: p.instrument, volume: p.volume ?? 0.8, pan: p.pan })); ui.backing = playEvents(perform(s, { ...perfOpts(caretTick()), parts: others }), { t0, parts }); } }
   ui.recording = { t0, met, notes: [], open: new Map(), at: ui.caret, atTick: caretTick(), overlay, source };
   $("recBtn").classList.add("on"); $("recBtn").innerHTML = "&#9632; Stop";
   renderTools();
@@ -365,6 +400,7 @@ async function finishRecording() {
   toast(`Wrote ${q.events.filter((e) => !e.rest).length} notes. Undo with Ctrl+Z for another take.`, 3500);
 }
 $("recBtn").onclick = record;
+$("loopBtn").onclick = () => toggleLoop();
 $("clickBtn").onclick = () => { db.prefs.click = !db.prefs.click; save(); $("clickBtn").classList.toggle("on", !!db.prefs.click); };
 $("tempo").onchange = (e) => { const v = Math.max(20, Math.min(320, +e.target.value || 100)); commit({ ...score(), tempo: v }); };
 $("undoBtn").onclick = undo; $("redoBtn").onclick = redo;
@@ -538,12 +574,16 @@ function renderTools() {
         <label>Pickup<select class="t" id="fPickup"><option value="0">None</option>${[1, 2, 3].map((n) => `<option value="${n * (1920 / s.time.d)}">${n} beat${n > 1 ? "s" : ""}</option>`).join("")}</select></label>
         <label class="wide">Change key<select class="t" id="fMove"><option value="">Keep the notes (re-spell)</option><option value="1">Move the notes too (transpose)</option></select></label>
       </div>
+      <div class="lbl"><span>How it plays</span></div>
+      <div class="form"><label>Feel<select class="t" id="fSwing"><option value="">Straight</option><option value="0.6">Light swing</option><option value="0.667">Swing</option><option value="0.72">Hard swing</option></select></label>
+        <label>Human touch<input type="range" id="fHuman" min="0" max="1" step="0.1" value="${db.prefs.humanize ?? 0.3}"></label></div>
       <div class="lbl"><span>Instruments</span><span class="dim">top to bottom</span></div>
       <div id="parts">${s.parts.map((x, i) => `<div class="partRow${i === ui.part ? " on" : ""}" data-i="${i}">
         <select class="t" data-k="inst" aria-label="Instrument">${INSTRUMENTS.map((n) => `<option ${n.name === x.instrument ? "selected" : ""}>${esc(n.name)}</option>`).join("")}</select>
         <div class="row">
           <button class="ib sm${x.mute ? " on" : ""}" data-k="mute" title="Mute">M</button><button class="ib sm${x.solo ? " on" : ""}" data-k="solo" title="Solo">S</button>
-          <input type="range" data-k="vol" min="0" max="1" step="0.05" value="${x.volume ?? 0.8}" aria-label="Volume" style="width:64px">
+          <input type="range" data-k="vol" min="0" max="1" step="0.05" value="${x.volume ?? 0.8}" aria-label="Volume" title="Volume" style="width:56px">
+          <input type="range" data-k="pan" min="-1" max="1" step="0.1" value="${x.pan ?? 0}" aria-label="Pan" title="Pan (left to right)" style="width:44px">
           <select class="t" data-k="clef" aria-label="Clef">${[["treble", "Treble"], ["bass", "Bass"], ["alto", "Alto"], ["tenor", "Tenor"], ["treble8vb", "Treble 8vb"]].map(([v, n]) => `<option value="${v}" ${x.clef === v ? "selected" : ""}>${n}</option>`).join("")}</select>
           <label class="small"><input type="checkbox" data-k="grand" ${x.staves === 2 ? "checked" : ""}> 2 staves</label>
           <button class="ib sm" data-k="up" ${i ? "" : "disabled"} title="Move up">&#9650;</button><button class="ib sm" data-k="down" ${i < s.parts.length - 1 ? "" : "disabled"} title="Move down">&#9660;</button>
@@ -560,13 +600,15 @@ function renderTools() {
     bind("fMode", (v) => commit({ ...score(), mode: v }));
     bind("fTime", (v) => { const [n, d] = v.split("/").map(Number); commit({ ...score(), time: { n, d } }); renderTools(); });
     bind("fPickup", (v) => commit({ ...score(), pickup: +v }));
+    $("fSwing").value = String(db.prefs.swing || ""); $("fSwing").onchange = (ev) => { db.prefs.swing = ev.target.value ? +ev.target.value : 0; save(); };
+    $("fHuman").onchange = (ev) => { db.prefs.humanize = +ev.target.value; save(); };
     $("parts").addEventListener("input", (ev) => {
-      if (ev.target.dataset.k !== "vol") return;
+      const k = ev.target.dataset.k; if (k !== "vol" && k !== "pan") return;
       const row = ev.target.closest(".partRow"), sc = structuredClone(score());
-      sc.parts[+row.dataset.i].volume = +ev.target.value; db.scores[db.scores.indexOf(score())] = sc; save();
+      sc.parts[+row.dataset.i][k === "vol" ? "volume" : "pan"] = +ev.target.value; db.scores[db.scores.indexOf(score())] = sc; save();
     });
     $("parts").addEventListener("change", (ev) => {
-      const row = ev.target.closest(".partRow"), k = ev.target.dataset.k; if (!row || k === "vol") return;
+      const row = ev.target.closest(".partRow"), k = ev.target.dataset.k; if (!row || k === "vol" || k === "pan") return;
       const i = +row.dataset.i, sc = structuredClone(score()), x = sc.parts[i];
       if (k === "inst") {
         const n = INSTRUMENTS.find((y) => y.name === ev.target.value), fresh = partFor(n.name);
@@ -591,12 +633,18 @@ function renderTools() {
       clamp(); renderTools(); draw();
     };
     $("addInst").onchange = (ev) => { const n = ev.target.value; if (!n) return; commit(addPart(score(), partFor(n))); ui.part = score().parts.length - 1; ui.voice = 0; ui.caret = 0; ui.sel = -1; renderTools(); draw(); };
+  } else if (ui.tab === "check") {
+    renderCheck(s);
   } else {
     const sb = songbookSongs();
     tbody.innerHTML = `<div class="lbl"><span>Download</span></div>
       <div class="row"><button class="btn sm" id="dlXml">MusicXML</button><button class="btn sm" id="dlMid">MIDI</button><button class="btn sm" id="dlPdf">Print or PDF</button></div>
       ${s.parts.length > 1 ? `<div class="row" style="margin-top:6px"><select class="t" id="partPrint" style="flex:1 1 auto">${s.parts.map((x, i) => `<option value="${i}">${esc(x.name)}</option>`).join("")}</select><button class="btn sm" id="printPart">Print this part</button></div>` : ""}
       <p class="note">MusicXML opens in MuseScore, Sibelius, Finale, Dorico and Guitar Pro. MIDI opens in any DAW, including Basement Studio. A part prints the way that player reads it.</p>
+      <div class="lbl"><span>Audio</span><span class="dim">played the way it's written</span></div>
+      <div class="row"><select class="t" id="audFmt">${[["wav", "WAV 24-bit"], ["mp3-320", "MP3 320"], ["flac", "FLAC"], ["alac", "Apple Lossless"], ["m4a-256", "AAC 256"], ["opus-160", "Opus"], ["ogg-vorbis", "Ogg Vorbis"]].map(([v, n]) => `<option value="${v}" ${(db.prefs.audioFormat || "wav") === v ? "selected" : ""}>${n}</option>`).join("")}</select>
+        <button class="btn sm" id="dlMix">The mix</button><button class="btn sm" id="dlStems">Stems (one per instrument)</button></div>
+      <p class="note">Ready for <a href="master.html" style="color:inherit">Master</a> or <a href="journey.html" style="color:inherit">Journey</a>, or a DAW like Basement Studio.</p>
       <div class="lbl"><span>From Songbook</span><span class="dim">a lead sheet: chords, sections, the words</span></div>
       ${sb.length ? `<div class="row"><select class="t" id="sbSong" style="flex:1 1 auto">${sb.map((x) => `<option value="${x.id}">${esc(x.title || "Untitled song")}</option>`).join("")}</select><button class="btn sm" id="sbGo">Make the lead sheet</button></div>` : `<p class="note" style="margin-top:0">Songs you write in <a href="songbook.html" style="color:inherit">Songbook</a> show up here.</p>`}
       <div class="lbl"><span>Open</span></div>
@@ -610,6 +658,9 @@ function renderTools() {
     $("dlMid").onclick = () => download(new Blob([toMidiFile(s)], { type: "audio/midi" }), fname("mid"));
     $("dlPdf").onclick = () => window.print();
     $("printPart") && ($("printPart").onclick = () => printPart(+$("partPrint").value));
+    $("audFmt").onchange = (ev) => { db.prefs.audioFormat = ev.target.value; save(); };
+    $("dlMix").onclick = () => exportAudio(false);
+    $("dlStems").onclick = () => exportAudio(true);
     $("sbGo") && ($("sbGo").onclick = () => {
       const song = sb.find((x) => x.id === $("sbSong").value); if (!song) return;
       const sc = upgrade(fromLeadSheet(leadSheetFrom(song)));
@@ -671,8 +722,209 @@ function renderLib() {
   $("lib").innerHTML = [...db.scores].sort((a, b) => (b.updated || 0) - (a.updated || 0)).map((s) => `<button class="scoreRow${s.id === db.openId ? " on" : ""}" data-id="${s.id}">${esc(s.title || "Untitled")}<span class="d">${s.parts.length > 1 ? `${s.parts.length} instruments, ` : ""}${esc(keyName(s.key, s.mode))}, ${s.time.n}/${s.time.d}</span></button>`).join("");
 }
 $("lib").onclick = (e) => { const b = e.target.closest(".scoreRow"); if (b) { openScore(b.dataset.id); setMobile("score"); } };
-$("newScore").onclick = () => { const s = newScore({ title: "Untitled", bars: 0, tempo: 100 }); db.scores.push(s); openScore(s.id); ui.tab = "score"; renderTools(); };
+$("newScore").onclick = () => openWizard();
+$("sayBtn").onclick = () => openPalette();
 function openScore(id) { stopAll(); db.openId = id; undoStack.length = 0; redoStack.length = 0; ui.part = 0; ui.voice = 0; ui.range = null; ui.caret = voice().length; ui.sel = ui.caret - 1; save(); renderLib(); renderTools(); draw(); }
+
+// ---------- say it: the command box (Ctrl+K, or / on the score) ----------
+// Type a mark the way it's written on paper (pp, cresc., Cmaj7, 3/4, q = 120, rit., pizz., 1. ending, D.S. al Coda)
+// or the name of anything the page does. Enter does the first result.
+function openPalette(prefill = "") {
+  closeModal();
+  const m = modal(`<input class="t palIn" id="palIn" placeholder="pp, cresc., Cmaj7, 3/4, q = 120, rit., pizz., or a command" autocomplete="off" spellcheck="false" value="${esc(prefill)}"><div class="palList" id="palList" role="listbox"></div>
+    <p class="note">Marks go on the selected note or run, bar things on the caret's bar. <kbd>Enter</kbd> does the top one, <kbd>&#8593;</kbd><kbd>&#8595;</kbd> to choose, <kbd>Esc</kbd> to close.</p>`, "palette");
+  const inp = $("palIn"), list = $("palList");
+  let items = [], at = 0;
+  const show = () => {
+    items = searchCommands(inp.value, { hasSelection: ui.sel >= 0, hasRange: !!ui.range }).slice(0, 9);
+    if (!items.length && inp.value.trim()) { const p = parseCommand(inp.value); items = [p]; }
+    at = Math.min(at, Math.max(0, items.length - 1));
+    list.innerHTML = items.map((it, i) => `<div class="palItem${i === at ? " on" : ""}" role="option" data-i="${i}">${it.kind === "error" ? `<span class="dim">${esc(it.message)}</span>` : `${it.typed ? "<b>Put in:</b> " : ""}${esc(it.label)}${it.keys ? `<kbd>${esc(it.keys)}</kbd>` : ""}`}</div>`).join("");
+  };
+  inp.oninput = () => { at = 0; show(); };
+  inp.onkeydown = (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); at = Math.min(items.length - 1, at + 1); show(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); at = Math.max(0, at - 1); show(); }
+    else if (e.key === "Enter") { e.preventDefault(); const it = items[at]; if (it && it.kind !== "error") { closeModal(); runAction(it); } }
+    else if (e.key === "Escape") { closeModal(); paper.focus(); }
+  };
+  list.onclick = (e) => { const r = e.target.closest(".palItem"); if (r) { const it = items[+r.dataset.i]; if (it && it.kind !== "error") { closeModal(); runAction(it); } } };
+  show(); inp.focus(); inp.select();
+  void m;
+}
+// carry out an action from the command box (or anywhere else)
+function runAction(a) {
+  const r = rangeNow();
+  if (a.kind === "event") {
+    if (!r) { toast("Select a note first (click it), then type the mark."); return; }
+    let sc = score();
+    for (let i = r.from; i <= r.to; i++) {
+      const e = structuredClone(voice()[i]);
+      if (e.rest && !("dyn" in a.patch)) continue;
+      // an articulation adds to what's there, or comes off if it was already on (checked before changing anything)
+      const had = e.artic || [], art = a.patch.artic?.[0];
+      Object.assign(e, a.patch);
+      if (art) e.artic = had.includes(art) ? had.filter((x) => x !== art) : [...had, art];
+      sc = replaceAt(sc, ui.part, i, e, ui.voice);
+      if ("dyn" in a.patch) break; // a dynamic goes on the first note of a run
+    }
+    commit(sc); toast(`${a.label}.`);
+  } else if (a.kind === "note") {
+    if (!r) { toast("Select a note first (click it), then type it."); return; }
+    let sc = score();
+    for (let i = r.from; i <= r.to; i++) {
+      const e = structuredClone(voice()[i]); if (e.rest) continue;
+      // one note of a chord when you picked it out, otherwise every note
+      e.notes = e.notes.map((n, j) => (ui.range || e.notes.length === 1 || j === ui.selNote ? { ...n, ...a.patch } : n));
+      sc = replaceAt(sc, ui.part, i, e, ui.voice);
+    }
+    commit(sc); toast(`${a.label}.`);
+  } else if (a.kind === "span") spanOn(a.type);
+  else if (a.kind === "bar") {
+    const b = barAtCaret();
+    let patch = a.patch;
+    if (patch.clef) { const cur = score().bars?.[b]?.clefs || {}; patch = { clefs: { ...cur, [`${ui.part}:${staffOfVoice(ui.voice)}`]: patch.clef } }; }
+    if (patch.nav) { const cur = [].concat(score().bars?.[b]?.nav || []); patch = { nav: cur.includes(patch.nav) ? cur : [...cur, patch.nav] }; }
+    commit(setBar(score(), b, patch)); toast(`${a.label} at bar ${b + 1}.`);
+  } else if (a.kind === "chord" || a.kind === "lyric") {
+    if (ui.sel < 0) { toast("Select a note first (click it), then type it."); return; }
+    changeSelected((e) => { if (a.kind === "chord") e.chord = a.chord; else { const v = a.text.trim(); e.lyric = v.replace(/-$/, ""); e.lyricHyphen = v.endsWith("-"); } return e; });
+    toast(`${a.label}.`);
+  } else if (a.kind === "command") runCommand(a.id, a.arg);
+  draw(); renderTools();
+  // back to the score, so the next key goes to the music
+  if (!$("modalBack") && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName || "")) paper.focus({ preventScroll: true });
+}
+function runCommand(id, arg) {
+  const r = rangeNow();
+  const go = {
+    play: () => (ui.playing || ui.recording ? stopAll() : play()), record: () => record(), loop: () => toggleLoop(),
+    undo, redo, copy: () => copySel(), paste: () => pasteSel(),
+    "select-all": () => { if (voice().length) ui.range = { from: 0, to: voice().length - 1 }; },
+    "transpose-up": () => $("transUp").click(), "transpose-down": () => $("transDown").click(),
+    "transpose-octave-up": () => moveSelected(12), "transpose-octave-down": () => moveSelected(-12),
+    "insert-mode": () => setMode("insert"), "over-mode": () => setMode("overwrite"),
+    "new-score": () => openWizard(), "add-instrument": () => { ui.tab = "score"; renderTools(); $("addInst")?.focus(); },
+    check: () => { ui.tab = "check"; db.prefs.tab = "check"; renderTools(); }, analysis: () => { ui.analysis = !ui.analysis; ui.tab = "check"; renderTools(); draw(); },
+    written: () => { ui.transposed = !ui.transposed; $("written").checked = ui.transposed; },
+    "export-musicxml": () => download(new Blob([toMusicXML(score())], { type: "application/vnd.recordare.musicxml+xml" }), fileName("musicxml")),
+    "export-midi": () => download(new Blob([toMidiFile(score())], { type: "audio/midi" }), fileName("mid")),
+    "export-wav": () => exportAudio(false), "export-stems": () => exportAudio(true),
+    print: () => window.print(), "print-part": () => { ui.tab = "share"; renderTools(); },
+    history: () => openHistory(), paper: () => { db.prefs.paper = !db.prefs.paper; save(); document.body.classList.toggle("light", db.prefs.paper); },
+    shortcuts: () => { ui.tab = "write"; renderTools(); $("tbody").querySelector(".keys")?.scrollIntoView({ block: "center" }); },
+    grace: () => addGrace(arg !== false),
+  }[id];
+  if (go) go(); else toast("That one isn't ready yet.");
+  void r;
+}
+const fileName = (ext) => `${(score().title || "score").replace(/[\\/:*?"<>|]+/g, "")}.${ext}`;
+// a grace note before the selected note: a step above it, slashed (acciaccatura) unless asked otherwise
+function addGrace(slash) {
+  if (ui.sel < 0 || voice()[ui.sel].rest) { toast("Select the note the grace note leads into."); return; }
+  changeSelected((e) => { const top = Math.max(...e.notes.map((n) => n.midi)); e.graces = [...(e.graces || []), { notes: [{ midi: top + 2 }], slash }]; return e; });
+}
+
+// ---------- the score checker: proofreading and harmony ----------
+const FIXOPS = { transposeRange, replaceAt };
+const SEV = { error: "Must fix", warn: "Worth a look", tip: "Tips" };
+function renderCheck(s) {
+  const level = db.prefs.checkLevel || "beginner", style = db.prefs.analysis || "roman";
+  let found = [];
+  try { found = proofread(s, { level }); } catch (err) { found = []; console.error(err); }
+  const counts = { error: 0, warn: 0, tip: 0 }; for (const f of found) counts[f.severity]++;
+  const shown = found.filter((f) => !db.prefs.hideTips || f.severity !== "tip").slice(0, 200);
+  let harm = [];
+  try { harm = analyze(s, { style }); } catch {}
+  tbody.innerHTML = `<div class="row"><span class="seg" id="lvlSeg"><button data-v="beginner" class="${level === "beginner" ? "on" : ""}">Learning</button><button data-v="pro" class="${level === "pro" ? "on" : ""}">Pro</button></span>
+      <label class="small"><input type="checkbox" id="hideTips" ${db.prefs.hideTips ? "checked" : ""}> Hide tips</label></div>
+    <p class="note">${found.length ? `<b>${counts.error}</b> to fix, <b>${counts.warn}</b> worth a look, <b>${counts.tip}</b> tips.` : "Nothing to flag. Nice."} Click one to go there.</p>
+    <div id="finds">${["error", "warn", "tip"].map((sv) => { const list = shown.filter((f) => f.severity === sv); return list.length ? `<div class="lbl"><span>${SEV[sv]}</span><span class="dim">${list.length}</span></div>` + list.map((f) => `<div class="find ${sv}" data-k="${found.indexOf(f)}"><div><b>Bar ${f.bar}${s.parts.length > 1 ? `, ${esc(s.parts[f.part]?.name || "")}` : ""}:</b> ${esc(f.message)}</div><div class="dim small">${esc(f.why)}</div>${f.fix ? `<button class="btn sm" data-fix="${found.indexOf(f)}">${esc(f.fix.label)}</button>` : ""}</div>`).join("") : ""; }).join("")}</div>
+    <div class="lbl"><span>Harmony</span><span class="seg" id="anaSeg"><button data-v="roman" class="${style === "roman" ? "on" : ""}">I IV V</button><button data-v="nashville" class="${style === "nashville" ? "on" : ""}">1 4 5</button></span></div>
+    <div class="harm">${harm.length ? harm.slice(0, 120).map((h) => `<span class="hb"><span class="dim small">${h.bar}</span> ${esc(h.chord || "")} <b>${esc(h.label || "")}</b></span>`).join("") : `<p class="dim small">Chord symbols or notes in a few bars show the harmony here.</p>`}</div>`;
+  $("lvlSeg").onclick = (e) => { const b = e.target.closest("button"); if (b) { db.prefs.checkLevel = b.dataset.v; save(); renderTools(); } };
+  $("anaSeg").onclick = (e) => { const b = e.target.closest("button"); if (b) { db.prefs.analysis = b.dataset.v; save(); renderTools(); } };
+  $("hideTips").onchange = (e) => { db.prefs.hideTips = e.target.checked; save(); renderTools(); };
+  $("finds").onclick = (e) => {
+    const fx = e.target.closest("[data-fix]");
+    if (fx) { const f = found[+fx.dataset.fix], op = FIXOPS[f.fix.op]; if (op) { commit(op(score(), ...f.fix.args)); toast(`${f.fix.label}.`); renderTools(); } return; }
+    const row = e.target.closest(".find"); if (!row) return;
+    const f = found[+row.dataset.k];
+    if (f.event != null && f.event >= 0) { ui.part = f.part ?? 0; ui.voice = f.voice ?? 0; ui.sel = f.event; ui.caret = f.event + 1; ui.range = null; ui.picked = true; }
+    draw(); renderPos();
+    requestAnimationFrame(() => paper.querySelector(".sel, [class*=selected]")?.scrollIntoView({ block: "center", behavior: "smooth" }));
+  };
+}
+
+// ---------- a modal ----------
+function modal(html, cls = "") {
+  closeModal();
+  const back = document.createElement("div"); back.className = "modalBack"; back.id = "modalBack";
+  back.innerHTML = `<div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div>`;
+  back.addEventListener("pointerdown", (e) => { if (e.target === back) closeModal(); });
+  document.body.appendChild(back);
+  return back.firstChild;
+}
+function closeModal() { const was = !!$("modalBack"); $("modalBack")?.remove(); if (was && document.activeElement === document.body) paper.focus({ preventScroll: true }); }
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("modalBack")) closeModal(); });
+
+// ---------- a new score from a template ----------
+function openWizard() {
+  const m = modal(`<h2>New score</h2>
+    <div class="tpls" id="tpls">${TEMPLATES.map((t, i) => `<button class="tpl${i === 0 ? " on" : ""}" data-id="${t.id}"><b>${esc(t.name)}</b><span>${esc(t.blurb)}</span></button>`).join("")}</div>
+    <div class="form" style="margin-top:10px">
+      <label class="wide">Title<input class="t" id="wTitle" placeholder="Untitled"></label>
+      <label class="hidden wide" id="wSoloWrap">Instrument<select class="t" id="wSolo">${INSTRUMENTS.map((n) => `<option ${n.name === "Flute" ? "selected" : ""}>${esc(n.name)}</option>`).join("")}</select></label>
+      <label>Key<select class="t" id="wKey">${Array.from({ length: 15 }, (_, i) => i - 7).map((k) => `<option value="${k}" ${k === 0 ? "selected" : ""}>${esc(keyName(k, "major"))}</option>`).join("")}</select></label>
+      <label>Time<select class="t" id="wTime">${TIMES.map((t) => `<option>${t}</option>`).join("")}</select></label>
+      <label>Tempo<input class="t" id="wTempo" type="number" min="20" max="320" value="100"></label>
+      <label>Pickup<select class="t" id="wPick"><option value="0">None</option><option value="1">1 beat</option><option value="2">2 beats</option><option value="3">3 beats</option></select></label>
+    </div>
+    <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn" id="wCancel">Cancel</button><button class="btn go" id="wGo">Make it</button></div>`, "wizard");
+  let pick = TEMPLATES[0];
+  $("tpls").onclick = (e) => { const b = e.target.closest(".tpl"); if (!b) return; pick = TEMPLATES.find((t) => t.id === b.dataset.id); for (const x of $("tpls").children) x.classList.toggle("on", x === b); $("wSoloWrap").classList.toggle("hidden", !pick.pick); };
+  $("wCancel").onclick = closeModal;
+  $("wGo").onclick = () => {
+    const [n, d] = $("wTime").value.split("/").map(Number), names = pick.pick ? [$("wSolo").value] : pick.parts;
+    let s = newScore({ title: $("wTitle").value.trim() || "Untitled", bars: 0, tempo: Math.max(20, Math.min(320, +$("wTempo").value || 100)), key: +$("wKey").value, time: { n, d } });
+    s.pickup = (+$("wPick").value) * (1920 / d);
+    names.forEach((name, i) => { const p = partFor(name); if (pick.names?.[i]) p.name = pick.names[i]; if (pick.single) { p.staves = 1; p.clefs = [p.clef]; p.voiceStaff = [0, 0]; p.voices = [[]]; } s = i === 0 ? { ...s, parts: [p] } : addPart(s, p); });
+    s = upgrade(s); db.scores.push(s); closeModal(); openScore(s.id); toast(`${pick.name}: ready. Click the staff, type note names, or press Record.`, 3000);
+  };
+  void m; $("wTitle").focus();
+}
+
+// ---------- version history: a snapshot every couple of minutes of work, kept in this browser ----------
+const HIST = "encore.compose.history";
+function loadHist() { try { return JSON.parse(localStorage.getItem(HIST) || "{}"); } catch { return {}; } }
+function snapshot(s, force = false) {
+  const h = loadHist(), list = h[s.id] || [], last = list[list.length - 1];
+  if (!force && last && Date.now() - last.t < 120000) return;
+  list.push({ t: Date.now(), score: s }); while (list.length > 25) list.shift();
+  h[s.id] = list;
+  try { localStorage.setItem(HIST, JSON.stringify(h)); } catch { list.splice(0, Math.ceil(list.length / 2)); try { localStorage.setItem(HIST, JSON.stringify(h)); } catch {} }
+}
+function openHistory() {
+  const list = (loadHist()[score().id] || []).slice().reverse();
+  modal(`<h2>Version history</h2><p class="note" style="margin-top:0">A snapshot is kept every couple of minutes while you work (the last 25). Opening one makes it a copy, so nothing is lost.</p>
+    <div class="histList">${list.length ? list.map((v, i) => `<div class="histRow"><span>${new Date(v.t).toLocaleString()}</span><span class="dim">${v.score.parts.reduce((a, p) => a + p.voices.reduce((b, x) => b + x.filter((e) => !e.rest).length, 0), 0)} notes</span><button class="btn sm" data-i="${i}">Open a copy</button></div>`).join("") : `<p class="dim">No snapshots yet. They start as you write.</p>`}</div>
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" id="hClose">Close</button></div>`, "history");
+  $("hClose").onclick = closeModal;
+  document.querySelector(".histList").onclick = (e) => {
+    const b = e.target.closest("[data-i]"); if (!b) return;
+    const v = list[+b.dataset.i], c = { ...structuredClone(v.score), id: newId("sc"), title: `${v.score.title || "Untitled"} (${new Date(v.t).toLocaleTimeString()})`, updated: Date.now() };
+    db.scores.push(upgrade(c)); closeModal(); openScore(c.id); toast("Opened the earlier version as a copy.");
+  };
+}
+
+// ---------- spoken position for screen readers ----------
+const TYPE_NAME = { 1920: "whole", 960: "half", 480: "quarter", 240: "eighth", 120: "sixteenth", 60: "thirty-second" };
+function announce() {
+  const el = $("sr"); if (!el) return;
+  const e = ui.sel >= 0 ? voice()[ui.sel] : null;
+  const len = e ? (TYPE_NAME[e.dur] || (TYPE_NAME[e.dur / 1.5] ? "dotted " + TYPE_NAME[e.dur / 1.5] : `${e.dur} ticks`)) : "";
+  el.textContent = e ? `${e.rest ? `${len} rest` : `${e.notes.map((n) => noteName(n.midi)).join(" ")} ${len}`}${e.chord ? `, chord ${e.chord}` : ""}${e.lyric ? `, lyric ${e.lyric}` : ""}. ${$("pos").textContent}` : $("pos").textContent;
+}
 
 // ---------- little things ----------
 let toastTimer = 0;
