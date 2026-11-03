@@ -162,7 +162,8 @@
   .wd:hover { background: rgb(255 59 0 / .16); }
   .wd.near { color: var(--soft); } .wd.guess { font-style: italic; }
   /* words: syllable tabs, an endless grid, what each word is */
-  main.wordsWide { grid-template-columns: 240px minmax(0, 1fr) minmax(380px, 46%); }
+  /* the song column never shrinks for Words: the side panels take whatever room the screen has past 1600px, split evenly, and scroll otherwise */
+  main.wordsWide { --e: max(0px, (100vw - 1600px) / 2); max-width: none; grid-template-columns: calc(240px + var(--e)) minmax(0, 1fr) calc(380px + var(--e)); }
   .syltabs { display: flex; gap: 2px; margin-top: 10px; border-bottom: 1px solid var(--divider-strong); position: sticky; top: -12px; background: var(--panel); z-index: 2; padding-top: 4px; }
   .syltabs button { flex: 1 1 0; border: 0; background: transparent; color: var(--soft); font-weight: 800; font-size: 14px; padding: 6px 4px 7px; border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
   .syltabs button span { font-size: 11px; font-weight: 600; color: var(--dim); }
@@ -173,7 +174,7 @@
   .wd.rare, .legend .rare { color: var(--soft); } .wd.name, .legend .name { font-style: italic; } .wd.phr, .legend .phr { color: #fdba74; }
   .wd.near.phr { color: #c9a27e; } .hm { font-style: normal; color: #ff6c40; font-size: 11px; margin-left: 3px; font-weight: 800; }
   .legend { display: inline-flex; gap: 8px; margin-left: 6px; } .wmore { padding: 10px 6px 4px; }
-  @media (max-width: 1100px) { main.wordsWide { grid-template-columns: 210px minmax(0, 1fr) minmax(330px, 46%); } }
+  @media (max-width: 1100px) { main.wordsWide { grid-template-columns: 210px minmax(0, 1fr) 330px; } }
   .sense { margin-top: 8px; font-size: 13px; }
   .sense .def { color: var(--soft); margin-bottom: 3px; }
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 999px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); }
