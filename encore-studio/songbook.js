@@ -609,7 +609,7 @@ function renderWordsTab() {
     <div class="chain" id="chain">${wstate.also.map((w, i) => `<span>also rhymes with <b>${esc(w)}</b><button data-i="${i}" aria-label="Remove">&#10005;</button></span>`).join("")}</div>
     <div class="syltabs" id="syltabs" role="tablist" aria-label="Syllables"></div>
     <div class="results" id="wres"><p class="small dim" id="wLoad">${wstate.word ? "" : "Type a word, or tap a word in the Chords view of your song. Pick how many syllables with the tabs, then narrow it down: also rhymes with another word, means something like."}</p></div>
-    <p class="small dim" style="margin-top:14px">Rhymes: CMU Pronouncing Dictionary. Thesaurus and phrases: WordNet (Princeton University) and Moby. <a href="words/LICENSES.txt" target="_blank" rel="noopener" style="color:inherit">Licenses</a></p>`;
+    <p class="small dim" style="margin-top:14px">Rhymes: CMU Pronouncing Dictionary. Thesaurus and phrases: WordNet (Princeton University) and Moby. Most used words first: FrequencyWords (OpenSubtitles). <a href="words/LICENSES.txt" target="_blank" rel="noopener" style="color:inherit">Licenses</a></p>`;
   const q = $("wq");
   $("wgo").onclick = () => { wstate.word = q.value.trim(); runWords(); };
   q.onkeydown = (e) => { if (e.key === "Enter") $("wgo").click(); };
@@ -657,7 +657,9 @@ async function runWords(tabOnly = false) {
       else {
         const pool = wstate.mode === "similar" ? [...t.senses.flatMap((s) => [...s.synonyms, ...s.similar]), ...(t.more || [])] : [...(t.related || []), ...t.senses.flatMap((s) => [...s.broader, ...s.narrower])];
         const seen = new Set(), uniq = pool.filter((x) => !seen.has(x.w) && seen.add(x.w) && x.w !== word.toLowerCase());
-        const got = await w.filter(uniq.map((x) => x.w), f), list = got.results || got;
+        // the most used words first; the close synonyms of the word's three main meanings get a head start
+        const close = t.senses.map((s) => [...s.synonyms, ...s.similar]).filter((l) => l.length).slice(0, 3).flat().map((x) => x.w);
+        const got = await w.filter(uniq.map((x) => x.w), { ...f, byUse: true, close }), list = got.results || got;
         const src = async (offset) => pageList(list, offset);
         const r = await src(0);
         wstate.data = { kind: "list", head: { found: t.found }, items: r.results, total: r.total, totals: r.totals, more: r.more, next: src };

@@ -1,7 +1,7 @@
 ENCORE. Songbook word data: sources and licenses
 ==================================================
 
-The files in words/en/ are built by web/tools/build-words.py from the four
+The files in words/en/ are built by web/tools/build-words.py from the five
 sources below. They are redistributed under these terms. The pronunciations,
 definitions, synonyms and commonness levels come from these works; the
 rhyme, filter and syllable engine (words-core.js) is ENCORE.'s own.
@@ -351,3 +351,15 @@ and Australian word list.  It is under the following copyright:
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
   OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
   SUCH DAMAGE.
+
+
+5. FrequencyWords (Hermit Dave), English, 2018
+   https://github.com/hermitdave/FrequencyWords/blob/master/content/2018/en/en_50k.txt
+   622,749 bytes, SHA-256 5351ff405b1126ef555791dd4d9798a48e3e9a501a9fc481a9da957752cfb458
+   Word counts from the OpenSubtitles 2018 corpus (http://opus.nlpl.eu/OpenSubtitles2018.php).
+   Used only to order lists, most used words first: lex.txt's 4th flag is each word's
+   frequency on the Zipf scale, derived from these counts.
+   License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0),
+   https://creativecommons.org/licenses/by-sa/4.0/
+   The frequency flags in lex.txt are an adaptation of this work and are shared under
+   the same license.

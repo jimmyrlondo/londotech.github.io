@@ -4,7 +4,8 @@
 //   lex.txt      word TAB phonemes (one character each, PHONES order) TAB flags
 //                (flags: SCOWL commonness level 0-9 or z, then a character with the
 //                part-of-speech bits n1 v2 a4 r8 and the explicit bit 16, plus 64,
-//                then n for a name or - otherwise)
+//                then n for a name or - otherwise, then how often it's said: 48 + Zipf x 10,
+//                "0" when unknown; FrequencyWords, OpenSubtitles 2018)
 //   phrases.txt  the same columns for multi-word phrases (talk show, to and fro),
 //                added with lex.addPhrases() once it loads; a 4th flag says where
 //                it's from: w WordNet, m Moby, b both (a well-known set phrase)
@@ -98,6 +99,7 @@ class Lexicon {
   constructor() {
     this.W = []; this.P = []; this.LV = []; this.FL = [];
     this.NM = [];                    // 1: a name (SCOWL lists it only capitalized)
+    this.FQ = [];                    // how often it's said, Zipf x 10 (0: not in the list); lists put the most used first
     this.PH = [];                    // a multi-word phrase from phrases.txt: 1 Moby, 2 WordNet, 3 both (0: a word)
     this.byWord = new Map();
     this.rs = [];                    // where the rhyme part starts
@@ -131,6 +133,8 @@ class Lexicon {
           this.FL.push(text.charCodeAt(t2 + 2) - 64);
           this.NM.push(t2 + 3 < b && text.charCodeAt(t2 + 3) === 110 ? 1 : 0);
           this.PH.push(phrase ? 1 + Math.max(0, "mwb".indexOf(text[t2 + 4])) : 0);
+          // a phrase is said less often than its rarest word
+          this.FQ.push(phrase ? this.phraseUse(w) : t2 + 4 < b ? Math.max(0, text.charCodeAt(t2 + 4) - 48) : 0);
           this.index(i); n++;
         }
       }
@@ -138,6 +142,11 @@ class Lexicon {
     }
     if (phrase) this.phraseCount += n;
     return n;
+  }
+  phraseUse(w) {
+    let f = 99;
+    for (const p of w.split(/[\s-]+/)) { const ids = this.byWord.get(p); f = Math.min(f, ids ? this.FQ[ids[0]] : 0); }
+    return f === 99 ? 0 : Math.max(0, f - 15);
   }
   /** Add phrases.txt (multi-word phrases); returns how many were added */
   addPhrases(text) { return this.add(text, true); }
@@ -196,7 +205,7 @@ class Lexicon {
     if (phrase) flags.push("phrase");
     if (this.PH[i] >= 2) flags.push("idiom");   // a set phrase a dictionary lists (talk show, status quo)
     const stress = this.ST[i] ?? (this.ST[i] = stressString(this.P[i]));
-    return { w: this.W[i], syl: this.syl[i], stress, level, pos: posList(this.FL[i]), explicit: !!(this.FL[i] & EXPLICIT),
+    return { w: this.W[i], syl: this.syl[i], stress, level, fq: this.FQ[i], pos: posList(this.FL[i]), explicit: !!(this.FL[i] & EXPLICIT),
       tag: phrase ? "phrase" : name ? "name" : common ? "common" : "rare", flags };
   }
 
@@ -359,7 +368,7 @@ class Lexicon {
       const w = this.W[ai] + " " + this.W[b.i];
       if (w === w0) continue;
       const level = Math.max(this.LV[ai], this.LV[b.i]);
-      out.push({ w, syl: 2, stress: "11", level, pos: [], explicit: false, tag: "phrase", flags: [level <= COMMON_LEVEL ? "common" : "rare", "phrase", "made"],
+      out.push({ w, syl: 2, stress: "11", level, fq: Math.max(0, Math.min(this.FQ[ai], this.FQ[b.i]) - 15), pos: [], explicit: false, tag: "phrase", flags: [level <= COMMON_LEVEL ? "common" : "rare", "phrase", "made"],
         kind: "phrase", score: round(score * 0.9 - little), multi: 2, homophone: false, end: false });
     }
     // a real word before a little one ("fly her" before "i her"), and no one word in every pair
@@ -427,6 +436,13 @@ export function filterList(lex, list, opts = {}) {
     const { word, kind } = typeof rw === "string" ? { word: rw, kind: "near" } : rw;
     out = out.filter((r) => { const j = lex.rhymesWith(r.w, word, kind); if (j) r.also = { word, kind: j.kind, score: round(j.score) }; return !!j; });
   }
+  if (o.byUse) {
+    // the most used first, every word kept; words a dictionary gives as close synonyms (o.close) get a head start,
+    // crude words go last
+    const close = new Set(o.close || []);
+    const key = (r) => (r.explicit ? -100 : 0) + (r.fq ?? (r.w.includes(" ") ? lex.phraseUse(norm(r.w)) : 0)) + (close.has(r.w) ? 15 : 0);
+    out = out.map((r, n) => ({ r, n, k: key(r) })).sort((a, b) => b.k - a.k || a.n - b.n).map((x) => x.r);
+  }
   return out;
 }
 /**
@@ -449,9 +465,9 @@ export function pageOf(list, opts = {}) {
 }
 function firstInfo(lex, w) {
   const ids = lex.byWord.get(norm(w));
-  if (!ids) return { level: 10, pos: [], explicit: false };
-  const { level, pos, explicit, tag, flags } = lex.info(ids[0]);
-  return { level, pos, explicit, tag, flags };
+  if (!ids) return { level: 10, fq: 0, pos: [], explicit: false };
+  const { level, fq, pos, explicit, tag, flags } = lex.info(ids[0]);
+  return { level, fq, pos, explicit, tag, flags };
 }
 
 // ---------- syllables for whole lines (lyric meter) ----------
@@ -482,11 +498,11 @@ export function thesaurusOf(lex, word, entry) {
   const senses = (entry.s || []).map(([pos, def, ex, syn, ant, up, down, sim]) => ({
     pos: POSNAME[pos] || pos, def, example: ex, synonyms: tag(syn), antonyms: tag(ant), broader: tag(up), narrower: tag(down), similar: tag(sim) }));
   const more = tag(entry.m || []);
-  // close synonyms first (everyday ones leading), then the broad list in its own order, then broader and narrower words
+  // close synonyms first (the most used leading), then the broad list in its own order, then broader and narrower words
   const seen = new Set([w]), related = [];
   const add = (list) => { for (const x of list) { const k = x.w.toLowerCase(); if (!seen.has(k)) { seen.add(k); related.push(x); } } };
-  const lv = (x) => (x.w.includes(" ") ? 11 : firstInfo(lex, x.w).level);
-  add(senses.flatMap((s) => [...s.synonyms, ...s.similar]).sort((x, y) => lv(x) - lv(y)));
+  const use = (x) => (x.w.includes(" ") ? lex.phraseUse(norm(x.w)) : firstInfo(lex, x.w).fq);
+  add(senses.flatMap((s) => [...s.synonyms, ...s.similar]).sort((x, y) => use(y) - use(x)));
   add(more);
   add(senses.flatMap((s) => [...s.broader, ...s.narrower]));
   return { word: w, found: true, senses, more, related };
@@ -557,6 +573,8 @@ function rank(x, y) {
     const d = y.score - x.score; if (Math.abs(d) > 0.06) return d;
     if (gx !== gy) return gx - gy;
   }
+  // then the most used words first
+  if ((x.fq || 0) !== (y.fq || 0)) return (y.fq || 0) - (x.fq || 0);
   if (x.level !== y.level) return x.level - y.level;
   if (y.multi !== x.multi) return y.multi - x.multi;
   return y.score - x.score || x.w.length - y.w.length || (x.w < y.w ? -1 : 1);
