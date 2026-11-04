@@ -88,7 +88,14 @@ async function webcodecs(kind, x, rate, plan, meta, art, report, onProgress) {
   const config = { codec: kind === "m4a" ? "mp4a.40.2" : "opus", sampleRate: rate, numberOfChannels: ch, bitrate: plan.kbps * 1000 };
   if (kind === "opus") config.opus = { complexity: 10, frameDuration: 20000 };
   const sup = await AudioEncoder.isConfigSupported(config).catch(() => ({ supported: false }));
-  if (!sup.supported) { delete config.opus; if (!(await AudioEncoder.isConfigSupported(config)).supported) throw new Error(`This browser can't encode ${kind === "m4a" ? "AAC" : "Opus"} at ${rate / 1000} kHz, ${plan.kbps} kbps.`); }
+  if (!sup.supported) delete config.opus;
+  // Windows' AAC encoder (Chrome and Edge there) stops at 192 kbps: step down to the best it takes
+  const ok = async () => (await AudioEncoder.isConfigSupported(config).catch(() => ({ supported: false }))).supported;
+  if (!sup.supported && !(await ok())) {
+    const asked = plan.kbps;
+    for (const k of [256, 224, 192, 160, 128, 96].filter((k) => k < asked)) { config.bitrate = k * 1000; if (await ok()) { plan = { ...plan, kbps: k }; break; } }
+    if (plan.kbps === asked) throw new Error(`This browser can't encode ${kind === "m4a" ? "AAC" : "Opus"} at ${rate / 1000} kHz, ${asked} kbps.`);
+  }
   const chunks = [];
   let desc = null, failed = null, firstTs = null;
   const encoder = new AudioEncoder({
