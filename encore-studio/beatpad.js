@@ -678,7 +678,7 @@ function renderEditor() {
 
 function drawWave() {
   const cv = $('wave'), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
-  if (!w || !h) return;
+  if (!w || !h || !kit) return;   // a resize can land before the kit has loaded
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   const g = cv.getContext('2d'), p = pad(), b = bufs[p.slot];
   g.setTransform(dpr, 0, 0, dpr, 0, 0);

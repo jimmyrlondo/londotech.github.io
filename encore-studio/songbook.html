@@ -216,7 +216,7 @@
     #songPanel[data-l="info"] .hint, #songPanel[data-l="info"] .chordStrip, #songPanel[data-l="info"] #viewSeg { display: none !important; }
     #songPanel[data-l="info"] .songHead { overflow-y: auto; flex: 1 1 auto; display: block; }
     #songPanel[data-l="info"] .titleRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; align-content: start; }
-    #songPanel[data-l="info"] #printBtn { font-size: 0; width: auto; padding: 0 12px; } #songPanel[data-l="info"] #printBtn::after { content: "Print"; font-size: 14px; font-weight: 700; }
+    #songPanel[data-l="info"] #printBtn { font-size: 0; width: auto; padding: 0 12px; grid-row: 1; grid-column: 3; } #songPanel[data-l="info"] #printBtn::after { content: "Print"; font-size: 14px; font-weight: 700; }
     #songPanel[data-l="info"] .titleRow .artistIn { grid-column: 1 / -1; font-size: 16px; }
     #songPanel[data-l="info"] .tools2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
     #songPanel[data-l="info"] .tools2 > label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }

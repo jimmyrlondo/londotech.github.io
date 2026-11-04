@@ -234,7 +234,8 @@
   .fmtGrid button b { display: block; font-size: 14px; }
   .fmtGrid button span { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fmtGrid button.on { border-color: #ff3b00; background: rgb(255 59 0 / 0.1); }
-  .newOpts { display: grid; grid-template-columns: 110px 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .newOpts { display: grid; grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 10px; }
+  .newOpts input, .newOpts select { width: 100%; min-width: 0; box-sizing: border-box; } /* a box's own default width pushed the row past the card on phones */
   .newGo { margin-top: 10px; }
   .drop, #drop { border: 1px dashed var(--divider-strong); border-radius: 12px; cursor: pointer; padding: 14px 16px; margin: 12px 0 0; transition: border-color .2s, background .2s; text-align: center; }
   .drop.over, .drop:hover, #drop.over, #drop:hover { border-color: var(--accent, #ff3b00); background: rgb(255 59 0 / 0.06); }
@@ -334,7 +335,7 @@
   }
   @media (max-width: 620px) {
     .fmtGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .newOpts { grid-template-columns: 1fr 1fr; }
+    .newOpts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .newOpts label:first-child { grid-column: 1 / -1; }
     .fmtChecks { grid-template-columns: 1fr; }
     table.ov thead { display: none; }

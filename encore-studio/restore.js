@@ -21,6 +21,8 @@ import { renderRelease, renderImages, datalists } from "./restore-meta.js";
 import { GENRES } from "./genres.js";
 
 const $ = (id) => document.getElementById(id);
+// status text for spots the page may not show (the one-screen layout dropped some of them)
+const setText = (id, t) => { const el = $(id); if (el) el.textContent = t; };
 const store = {
   get: (k, d) => { try { const v = localStorage.getItem("encoreRestore." + k); return v === null ? d : v; } catch { return d; } },
   set: (k, v) => { try { localStorage.setItem("encoreRestore." + k, v); } catch {} },
@@ -102,7 +104,7 @@ function renderStart() {
   sel.innerHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1} ${word[i ? 1 : 0]}</option>`).join("");
   sel.value = String(keep);
   const parts = P.partsFor(newFormat, +sel.value);
-  $("newSummary").textContent = `${parts.map((p) => p.name).join(", ")}. Skip or add parts any time.`;
+  setText("newSummary", `${parts.map((p) => p.name).join(", ")}. Skip or add parts any time.`);
 }
 $("newDiscs").onchange = renderStart;
 $("newProject").onclick = async () => {
@@ -399,7 +401,7 @@ async function armRecorder() {
     capFs = info.fs;
     delete $("capInput").dataset.filled; fillInputs(true);
     rec.onRms = (db, sec, recording) => { if (recording && quiet && $("capAuto").checked && quiet.push(db, sec)) stopRecording("auto"); };
-    $("capInfo").textContent = `${info.device}: ${(info.fs / 1000).toFixed(1)} kHz, ${info.channels} channel${info.channels === 1 ? "" : "s"}`;
+    setText("capInfo", `${info.device}: ${(info.fs / 1000).toFixed(1)} kHz, ${info.channels} channel${info.channels === 1 ? "" : "s"}`);
     $("capArm").textContent = "Stop checking";
     return rec;
   } catch (err) { rec = null; $("capNote").innerHTML = `<span class="err">The input couldn't be opened: ${esc(err.message)}. Check the browser's microphone permission.</span>`; return null; }
@@ -438,7 +440,7 @@ async function attachRecording(part, res) {
   try { file = await S.storeAudio(name, res.file, (p) => showStatus("Keeping the recording with the project...", 100 * p)); await deleteRecording(res.name); }
   catch { file = res.file; } // stays in Live's folder; still usable
   if (part.audio?.store && part.audio.store !== name) await S.removeAudio(part.audio.store);
-  const device = res.device || $("capInfo").textContent.split(":")[0];
+  const device = res.device || ($("capInfo")?.textContent ?? "").split(":")[0];
   part.audio = { name: `${P.cleanName(part.name)} (recorded ${P.localDate()}).wav`, size: file.size, seconds: frames / res.fs, fs: res.fs, bits: 32, float: true, channels: res.channels, recorded: true, device, store: file === res.file ? null : name, at: new Date().toISOString() };
   const x = state.project.transfer;
   if (!x.adc && device) x.adc = device;
@@ -834,7 +836,7 @@ wave.addEventListener("pointerup", (e) => {
   if (Math.abs(e.clientX - d.x0) <= 4) seek(d.t0);
   else { state.preview = null; seek(state.sel.a); }
 });
-function showSel() { $("selInfo").textContent = state.sel ? `Selected ${fmt(state.sel.a)} to ${fmt(state.sel.b)} (${(state.sel.b - state.sel.a).toFixed(1)} s)` : ""; }
+function showSel() { setText("selInfo", state.sel ? `Selected ${fmt(state.sel.a)} to ${fmt(state.sel.b)} (${(state.sel.b - state.sel.a).toFixed(1)} s)` : ""); }
 function seek(t) {
   state.playhead = Math.max(0, Math.min(duration(), t));
   if (player.playing) player.play(state.playhead); else { draw(); $("time").textContent = fmt(state.playhead); }
@@ -1268,7 +1270,7 @@ function renderOverview() {
   $("ovLeft").className = g.left.length ? "left" : "left done";
   $("ovLeft").innerHTML = g.left.length ? g.left.map((t) => `<li>${esc(t)}</li>`).join("") : "<li>Nothing left. Every part is in, named, restored and exported.</li>";
   const inc = g.rows.filter((r) => r.include), tracks = inc.reduce((a, r) => a + r.tracks, 0);
-  $("ovSummary").textContent = `${P.formatOf(state.project.format).name}: ${inc.filter((r) => r.audio).length} of ${inc.length} part${inc.length === 1 ? "" : "s"} in, ${tracks} track${tracks === 1 ? "" : "s"}, ${g.done} of ${g.of} steps done.`;
+  setText("ovSummary", `${P.formatOf(state.project.format).name}: ${inc.filter((r) => r.audio).length} of ${inc.length} part${inc.length === 1 ? "" : "s"} in, ${tracks} track${tracks === 1 ? "" : "s"}, ${g.done} of ${g.of} steps done.`);
   $("ovCount").textContent = g.left.length ? `(${g.left.length})` : "";
 }
 $("addPart").onclick = () => addPartNow();

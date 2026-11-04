@@ -313,7 +313,8 @@ function showTempo() {
 {
   const el = $('bpm');
   let drag = null;
-  el.addEventListener('pointerdown', e => { drag = { y: e.clientY, from: S.bpm, moved: false }; el.setPointerCapture(e.pointerId); });
+  // a finger tap: no compatibility mousedown afterwards, or it would land beside the new box and blur it shut
+  el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') e.preventDefault(); drag = { y: e.clientY, from: S.bpm, moved: false }; el.setPointerCapture(e.pointerId); });
   el.addEventListener('pointermove', e => {
     if (!drag) return;
     const dy = drag.y - e.clientY;
@@ -332,7 +333,7 @@ function editBpm() {
   el.replaceWith(input);
   input.focus(); input.select();
   let done = false;
-  const finish = ok => { if (done) return; done = true; if (ok && input.value !== '') setBpm(+input.value); input.replaceWith(el); showTempo(); };
+  const finish = ok => { if (done) return; done = true; input.replaceWith(el); if (ok && input.value !== '') setBpm(+input.value); showTempo(); };
   input.onkeydown = e => { if (e.key === 'Enter') finish(true); if (e.key === 'Escape') finish(false); e.stopPropagation(); };
   input.onblur = () => finish(true);
 }

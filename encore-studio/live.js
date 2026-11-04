@@ -1005,13 +1005,16 @@ function settings() {
 function loudestSong() {
   const withLevel = state.songs.filter((s) => s.level !== null);
   if (withLevel.length) return withLevel.reduce((a, b) => (b.level > a.level ? b : a));
+  if (!state.songs.length) return null; // a set with no songs found (yet)
   return state.songs.reduce((a, b) => (b.end - b.start > a.end - a.start ? b : a));
 }
 
 // learning doesn't depend on "song to song" (that's applied per song), so leave it out of the key
 const learnKey = () => JSON.stringify([settings(), state.rumble, state.src?.routing ?? null, state.inputDb, state.leveler]);
 async function prepare(onText) {
-  const key = learnKey(), loud = loudestSong(), lk = key + loud.start + loud.end;
+  const key = learnKey(), loud = loudestSong();
+  if (!loud) throw new Error("There are no songs to master yet.");
+  const lk = key + loud.start + loud.end;
   if (state.prepared?.key === lk) return state.prepared;
   if (state.preparing?.key === lk) return state.preparing.promise;
   await ready;
@@ -1077,7 +1080,7 @@ let lastLearnedKey = "";
 function applyLearnedForSong(song, force) {
   if (!mnode || !state.live) return;
   const learned = state.live.learned.slice(), loud = loudestSong();
-  const lift = song && song.level !== null && loud?.level !== null ? Math.max(0, loud.level - song.level) * state.even : 0;
+  const lift = song && song.level !== null && loud && loud.level !== null ? Math.max(0, loud.level - song.level) * state.even : 0;
   learned[2] = Math.max(-6, Math.min(24, learned[2] + lift));
   const key = learned.join();
   if (!force && key === lastLearnedKey) return;
