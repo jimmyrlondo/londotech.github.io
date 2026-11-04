@@ -6,6 +6,7 @@ Disallow: /Quote/
 Disallow: /watson/
 Disallow: /clients/
 Disallow: /policy-builder/
+Disallow: /encore-studio-preview/
 Disallow: /encore-studio/
 Disallow: /encore/
 

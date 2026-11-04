@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ENCORE. VST · free plugins for any DAW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 860px; margin: 0 auto; padding: 18px 16px 48px; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .product { font-weight: 700; letter-spacing: -0.01em; }
+  .product .sep { color: var(--dim); margin: 0 8px; font-weight: 400; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
+  main { max-width: 1240px; padding: 28px 20px 40px; }
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: center; }
+  .hero:has(.shots), .hero:has(.setupShot) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+  @media (max-width: 900px) { .hero:has(.shots), .hero:has(.setupShot) { grid-template-columns: minmax(0, 1fr); } }
+  .kicker { font-size: 12px; letter-spacing: .1em; color: var(--soft); font-weight: 700; }
+  .hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.03em; margin: 8px 0 14px; }
+  .lede { font-size: 18px; color: var(--soft); max-width: 640px; margin: 0 0 22px; }
+  .dl { display: flex; gap: 10px; flex-wrap: wrap; }
+  .dl a { font-weight: 700; text-decoration: none; border-radius: 999px; padding: 13px 24px; font-size: 16px; }
+  .dl .go { color: #fff; background: #ff3b00; }
+  .dl .go:hover { background: #ff5520; }
+  .dl .ghost { color: var(--text); border: 1px solid var(--divider-strong); }
+  .dl .ghost:hover { border-color: var(--soft); }
+  .ver { color: var(--dim); font-size: 13px; margin-top: 12px; }
+  details.first { margin-top: 10px; font-size: 13px; color: var(--soft); }
+  details.first summary { cursor: pointer; color: var(--dim); }
+  details.first p { margin: 6px 0 0; }
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .shots figure:first-child { grid-column: 1 / -1; }
+  .shots img { cursor: zoom-in; }
+  .shots figure { margin: 0; }
+  .shots img { width: 100%; display: block; border-radius: 12px; border: 1px solid var(--divider); }
+  .shots figcaption { font-size: 12px; color: var(--dim); margin-top: 4px; }
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 34px; }
+  .feat { background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 16px 18px; }
+  .feat h3 { margin: 0 0 6px; font-size: 16px; }
+  .feat p { margin: 0; color: var(--soft); font-size: 14px; }
+  .foot { margin-top: 26px; display: grid; gap: 6px; color: var(--soft); font-size: 14px; }
+  .foot a { color: var(--text); }
+  .setupShot { margin: 0; }
+  .setupShot img { width: 100%; display: block; filter: drop-shadow(0 18px 40px rgb(0 0 0 / .55)); }
+  .setupShot figcaption { font-size: 12px; color: var(--dim); margin-top: 6px; text-align: center; }
+  .plugins { display: grid; gap: 14px; margin-top: 40px; }
+  .plugins h2 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .plug { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: center; background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 16px; }
+  @media (max-width: 760px) { .plug { grid-template-columns: minmax(0, 1fr); } }
+  .plug img { width: 100%; display: block; border-radius: 10px; border: 1px solid var(--divider); }
+  .plug h3 { margin: 0 0 6px; font-size: 20px; letter-spacing: .02em; }
+  .plug h3 .tag { font: 700 11px/1 'Space Mono', monospace; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; margin-left: 8px; vertical-align: 3px; }
+  .plug p { margin: 0 0 8px; color: var(--soft); }
+  .plug ul { margin: 0; padding-left: 18px; color: var(--soft); font-size: 14px; }
+  .plug li { margin: 3px 0; }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink on" href="vst.html" aria-current="page">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html" selected>VST plugins</option></optgroup></select>
+</div>
+
+<main>
+  <section class="hero">
+    <div class="heroText">
+      <div class="kicker">ENCORE. PLUGINS</div>
+      <h1>ENCORE. VST</h1>
+      <p class="lede">Five free plugins for any DAW that runs VST3: a whole vocal chain, reverb, EQ, one-click mastering and an acoustic guitar fixer. One installer, and you tick the ones you want.</p>
+      <div class="dl" id="dl">
+        <a class="go" id="dlWin" href="https://github.com/jimmyrlondo/encore-vst/releases">Download for Windows</a>
+        <a class="ghost" href="#plugins">See the plugins</a>
+      </div>
+      <div class="ver" id="ver">Free. No account needed. Windows 10 and 11, 64-bit, VST3. Mac is coming.</div>
+      <details class="first">
+        <summary>Installing, updating and removing</summary>
+        <p><b>First run:</b> the installer isn't code-signed yet, so SmartScreen may warn you. Click <b>More info</b>, then <b>Run anyway</b>.<br>
+           <b>Then:</b> open your DAW and scan for new plugins. In Cubase: Studio &gt; VST Plug-in Manager, then Rescan.<br>
+           <b>Change your mind:</b> run the installer again, or use <b>Modify</b> on ENCORE. VST in Windows Settings &gt; Apps, to add or remove any plugin. <b>Uninstall</b> there removes them all. Your presets in Documents\Encore are never touched.</p>
+      </details>
+    </div>
+    <figure class="setupShot"><img src="shots/vst-setup.png" alt="The ENCORE. VST installer: a card for each plugin with a checkbox" width="1000" height="680"><figcaption>The installer: tick the plugins you want</figcaption></figure>
+  </section>
+
+  <section class="plugins" id="plugins">
+    <h2>What's inside</h2>
+    <div class="plug"><img src="shots/vst-vox.png" alt="ENCORE. Vox" loading="lazy"><div><h3>VOX <span class="tag">VOCALS</span></h3><p>Your whole vocal chain in one plugin, in the order you'd build it by hand.</p><ul><li>Clean up: low cut, gate and de-ess</li><li>Tune and harmony</li><li>A rider that evens out the level, then tone, dynamics and space</li></ul></div></div>
+    <div class="plug"><img src="shots/vst-verb.png" alt="ENCORE. Verb" loading="lazy"><div><h3>VERB <span class="tag">REVERB</span></h3><p>Spaces from a small room to something enormous.</p><ul><li>Room, Chamber, Plate, Hall, Huge (with shimmer) and Spring</li><li>Ducking, so the reverb steps back while you sing or play</li><li>Movement and width</li></ul></div></div>
+    <div class="plug"><img src="shots/vst-eq.png" alt="ENCORE. Equalize" loading="lazy"><div><h3>EQUALIZE <span class="tag">EQ</span></h3><p>An 8-band EQ you shape by dragging, over a live spectrum.</p><ul><li>Bells, shelves and cuts up to 48 dB per octave</li><li>Smart: Carve ducks one track's EQ when another plays, for a kick and bass or a vocal and guitars</li><li>Smart bands find resonances and only cut when they ring</li></ul></div></div>
+    <div class="plug"><img src="shots/vst-master.png" alt="ENCORE. Master" loading="lazy"><div><h3>MASTER <span class="tag">MASTERING</span></h3><p>The same mastering engine as ENCORE. Master on the web, on your mix bus.</p><ul><li>8 styles; Listen learns your song's level and tone</li><li>A true-peak limiter and loudness targets for streaming</li><li>A loudness-matched A/B, so louder never fools you</li></ul></div></div>
+    <div class="plug"><img src="shots/vst-strum.png" alt="ENCORE. Strum" loading="lazy"><div><h3>STRUM <span class="tag">ACOUSTIC GUITAR</span></h3><p>The usual acoustic guitar problems, each with its own fix.</p><ul><li>Body: make a pickup sound miked, learned from your own mic or a general curve</li><li>Boom, Squeak and Pick tame what close mics and strings add</li><li>Double for a wide strummed part, and a loudness-matched A/B</li></ul></div></div>
+  </section>
+
+  <section class="foot">
+    <div><b>Free.</b> The same plugins are built into <a href="basement.html">ENCORE. Basement Studio</a>. <a href="https://github.com/jimmyrlondo/encore-vst/releases" rel="noopener">Every release</a>.</div>
+    <div>Presets: each plugin has factory presets, and saves yours in Documents\Encore\&lt;Plugin&gt;\Presets.</div>
+  </section>
+</main>
+<script type="module" src="vst.js"></script>
+</body>
+</html>

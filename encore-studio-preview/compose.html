@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compose · ENCORE. Studio</title>
+<meta name="description" content="Write sheet music: click, type or play notes on a MIDI keyboard, record with a click and see it written out, add chords and lyrics, hear it back, and export MusicXML, MIDI or PDF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; flex: none; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .muted { color: var(--soft); } .dim { color: var(--dim); } .small { font-size: 12.5px; }
+
+  main { max-width: 1680px; margin: 0 auto; padding: 12px 14px 14px; display: grid; grid-template-columns: 210px minmax(0, 1fr) 330px; gap: 12px; height: calc(100vh - 60px); height: calc(100dvh - 60px); }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--divider); }
+  .head h2 { margin: 0; font-size: 15px; font-weight: 800; flex: 1 1 auto; }
+  .scroll { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+  .btn { border: 1px solid var(--divider-strong); background: transparent; border-radius: 999px; padding: 6px 13px; font-weight: 700; font-size: 13px; min-height: 34px; white-space: nowrap; }
+  .btn:hover { border-color: var(--soft); }
+  .btn.go { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .btn.sm { min-height: 28px; padding: 3px 10px; font-size: 12.5px; }
+  .btn.rec { color: #ff6b6b; border-color: rgb(255 107 107 / .5); }
+  .btn.rec.on { background: #e5383b; border-color: #e5383b; color: #fff; }
+  .btn.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .ib { width: 34px; height: 34px; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); border-radius: 9px; display: inline-grid; place-items: center; font-size: 15px; flex: none; }
+  .ib:hover { border-color: #ff6c40; }
+  .ib.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .ib:disabled { opacity: .35; cursor: default; }
+  input.t, select.t { background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 8px; padding: 5px 8px; font-size: 13.5px; min-width: 0; }
+  input.t:focus, select.t:focus { outline: 2px solid #ff3b00; outline-offset: -1px; }
+
+  /* library */
+  .scoreRow { display: block; width: 100%; text-align: left; border: 0; background: transparent; padding: 7px 10px; border-radius: 9px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .scoreRow:hover { background: rgb(255 255 255 / .05); }
+  .scoreRow.on { background: rgb(255 59 0 / .14); box-shadow: inset 2px 0 0 #ff3b00; }
+  .scoreRow .d { display: block; font-size: 11.5px; color: var(--dim); }
+  .lib { padding: 6px; }
+
+  /* the score */
+  .tool { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--divider); }
+  .tool .sep { width: 1px; height: 24px; background: var(--divider-strong); margin: 0 2px; }
+  .tool label { display: inline-flex; gap: 5px; align-items: center; font-size: 12px; font-weight: 700; color: var(--soft); }
+  .tool .pos { margin-left: auto; font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
+  .paper { padding: 10px 14px 30px; color: #f2efe8; position: relative; outline: none; }
+  .paper:focus-visible { box-shadow: inset 0 0 0 2px rgb(255 59 0 / .4); border-radius: 8px; }
+  .paper svg { display: block; }
+  .light .paper { background: #f6f3ec; color: #14110f; border-radius: 10px; }
+  .count { position: absolute; inset: 0; display: grid; place-items: center; font-size: 120px; font-weight: 800; color: #ff3b00; pointer-events: none; text-shadow: 0 4px 30px rgb(0 0 0 / .5); }
+  /* the on-screen piano */
+  .pianoWrap { border-top: 1px solid var(--divider); padding: 6px 10px 8px; display: flex; gap: 8px; align-items: center; }
+  .piano { flex: 1 1 auto; height: 74px; position: relative; user-select: none; touch-action: none; }
+  .piano .wk, .piano .bk { position: absolute; top: 0; border-radius: 0 0 5px 5px; cursor: pointer; }
+  .piano .wk { height: 100%; background: #f2efe8; border: 1px solid #0c0a09; }
+  .piano .bk { height: 60%; background: #1b1714; z-index: 2; border: 1px solid #0c0a09; }
+  .piano .wk.on { background: #ff8a5c; } .piano .bk.on { background: #ff3b00; }
+  .piano .wk span { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 10px; color: #6b625a; }
+  .oct { display: flex; flex-direction: column; gap: 4px; }
+  .oct .ib { width: 28px; height: 28px; font-size: 12px; }
+
+  /* side tabs */
+  .ttabs { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); }
+  .ttabs button { flex: 1 1 0; border: 0; background: transparent; color: var(--soft); font-weight: 800; font-size: 13.5px; padding: 7px 4px; border-radius: 9px; }
+  .ttabs button.on { background: #ff3b00; color: #fff; }
+  .tbody { padding: 10px 12px 16px; }
+  .lbl { font-size: 11.5px; font-weight: 800; color: var(--soft); letter-spacing: .04em; text-transform: uppercase; margin: 12px 0 6px; display: flex; justify-content: space-between; gap: 6px; }
+  .lbl:first-child { margin-top: 2px; }
+  .lbl .dim { text-transform: none; letter-spacing: 0; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 5px; }
+  .pal { height: 46px; border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); border-radius: 9px; display: grid; place-items: center; font-size: 13px; font-weight: 800; position: relative; }
+  .pal svg { width: 26px; height: 32px; color: var(--text); }
+  .pal kbd { position: absolute; right: 3px; bottom: 1px; font: 9.5px var(--family-mono); color: var(--dim); }
+  .pal.on { background: #ff3b00; border-color: #ff3b00; color: #fff; } .pal.on svg { color: #fff; } .pal.on kbd { color: #ffe1d6; }
+  .pal:hover { border-color: #ff6c40; }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 700; color: var(--soft); }
+  .form label.wide { grid-column: span 2; }
+  .form > label { min-width: 0; } .form input.t, .form select.t { width: 100%; }
+  .keys { font-size: 12.5px; color: var(--soft); line-height: 1.7; }
+  .keys kbd { font: 11px var(--family-mono); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 0 4px; color: var(--text); }
+  .meter { height: 6px; border-radius: 3px; background: var(--bg-surface-strong); overflow: hidden; } .meter i { display: block; height: 100%; width: 0; background: #ff3b00; }
+  .note { font-size: 12.5px; color: var(--soft); margin-top: 8px; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 999px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); }
+  .mtabs { display: none; }
+  .seg { display: inline-flex; padding: 3px; border: 1px solid var(--divider-strong); border-radius: 999px; gap: 2px; flex: none; }
+  .seg button { border: 0; background: transparent; color: var(--soft); font-size: 12.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .seg button.on { background: #ff3b00; color: #fff; }
+  .ib.sm { width: 26px; height: 26px; font-size: 11.5px; font-weight: 800; border-radius: 7px; }
+  .partRow { border: 1px solid var(--divider); border-radius: 10px; padding: 7px; margin-bottom: 6px; display: grid; gap: 5px; cursor: pointer; }
+  .partRow.on { border-color: #ff3b00; }
+  .partRow > select { width: 100%; }
+  .partRow .row { gap: 4px; } .partRow .row select { padding: 3px 5px; font-size: 12px; }
+  .linkish { border: 0; background: transparent; color: inherit; text-decoration: underline; padding: 0; font: inherit; }
+  .printPart { display: none; }
+  .find { border: 1px solid var(--divider); border-left-width: 3px; border-radius: 9px; padding: 7px 9px; margin-bottom: 5px; font-size: 13px; cursor: pointer; display: grid; gap: 3px; }
+  .find.error { border-left-color: #ff6b6b; } .find.warn { border-left-color: #ffb38a; } .find.tip { border-left-color: var(--divider-strong); }
+  .find:hover { background: rgb(255 255 255 / .03); } .find .btn { justify-self: start; }
+  .harm { display: flex; flex-wrap: wrap; gap: 4px; } .hb { border: 1px solid var(--divider); border-radius: 7px; padding: 2px 7px; font-size: 13px; }
+  .ttabs button { font-size: 12.5px; padding: 7px 2px; }
+  .sr { position: fixed; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .tool kbd, .palItem kbd, .note kbd { font: 10.5px var(--family-mono); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 0 4px; margin-left: 6px; color: var(--soft); }
+  .modalBack { position: fixed; inset: 0; z-index: 80; background: rgb(0 0 0 / .55); display: grid; place-items: start center; padding-top: 10vh; }
+  .modal { width: min(640px, calc(100vw - 24px)); max-height: 80vh; overflow: auto; background: var(--panel); border: 1px solid var(--divider-strong); border-radius: 16px; padding: 16px; box-shadow: 0 20px 60px rgb(0 0 0 / .5); }
+  .modal h2 { margin: 0 0 10px; font-size: 18px; }
+  .palIn { width: 100%; font-size: 17px; padding: 10px 12px; }
+  .palList { margin-top: 8px; display: grid; gap: 2px; }
+  .palItem { padding: 8px 10px; border-radius: 9px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .palItem.on, .palItem:hover { background: rgb(255 59 0 / .15); }
+  .tpls { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+  .tpl { text-align: left; border: 1px solid var(--divider-strong); background: transparent; border-radius: 11px; padding: 8px 10px; }
+  .tpl b { display: block; font-size: 14px; } .tpl span { display: block; font-size: 12px; color: var(--dim); }
+  .tpl.on { border-color: #ff3b00; background: rgb(255 59 0 / .12); box-shadow: inset 0 0 0 1px #ff3b00; }
+  .histRow { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--divider); font-size: 13.5px; }
+  @media (max-width: 899px) { #sayBtn kbd { display: none; } }
+  @media print { body.printingPart > *:not(.printPart) { display: none !important; } body.printingPart .printPart { display: block; color: #000; } }
+
+  @media (max-width: 1150px) { main { grid-template-columns: 170px minmax(0, 1fr) 300px; } }
+  @media (max-width: 899px) {
+    main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 60px); padding: 8px; gap: 8px; }
+    .mtabs { display: flex; gap: 4px; }
+    .mtabs button { flex: 1 1 0; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); border-radius: 10px; padding: 7px; font-weight: 800; }
+    .mtabs button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+    main > .panel { display: none; } main[data-m="lib"] #libPanel, main[data-m="score"] #scorePanel, main[data-m="tools"] #toolPanel { display: flex; }
+    .tool .pos { display: none; } .piano { height: 60px; }
+  }
+  @media print {
+    .bar, #libPanel, #toolPanel, .mtabs, .tool, .pianoWrap { display: none !important; }
+    body { background: #fff; } main { display: block; height: auto; padding: 0; } .panel { border: 0; background: #fff; }
+    .paper { color: #000 !important; background: #fff !important; padding: 0; } .scroll { overflow: visible; }
+  }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink on" href="compose.html" aria-current="page">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html" selected>Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main data-m="score">
+  <div class="mtabs" id="mtabs"><button data-m="lib">Scores</button><button data-m="score" class="on">Score</button><button data-m="tools">Tools</button></div>
+
+  <section class="panel" id="libPanel" aria-label="Your scores">
+    <div class="head"><h2>Compose</h2><button class="btn sm go" id="newScore">+ New</button></div>
+    <div class="scroll lib" id="lib"></div>
+  </section>
+
+  <section class="panel" id="scorePanel" aria-label="The score">
+    <div class="tool">
+      <button class="ib" id="playBtn" title="Play from the cursor (Space)" aria-label="Play">&#9654;</button>
+      <button class="btn sm rec" id="recBtn" title="Record from a MIDI keyboard, the piano below, or your computer keys, with a click">&#9679; Record</button>
+      <button class="ib" id="loopBtn" title="Loop the selected run (L)" aria-label="Loop">&#10227;</button>
+      <button class="ib" id="clickBtn" title="Metronome click while playing and recording" aria-label="Metronome">&#9833;</button>
+      <label>Tempo <input class="t" id="tempo" type="number" min="20" max="320" style="width:64px" aria-label="Tempo"></label>
+      <span class="sep"></span>
+      <button class="ib" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo">&#8630;</button>
+      <button class="ib" id="redoBtn" title="Redo (Ctrl+Y)" aria-label="Redo">&#8631;</button>
+      <span class="sep"></span>
+      <button class="ib" id="transDown" title="Transpose the whole piece down a half step" aria-label="Transpose down">&#8722;</button>
+      <button class="ib" id="transUp" title="Transpose the whole piece up a half step" aria-label="Transpose up">+</button>
+      <span class="seg" id="modeSeg" title="Insert pushes later music along; Over writes over what's there, so other parts stay lined up"><button data-v="insert">Insert</button><button data-v="overwrite">Over</button></span>
+      <label class="hidden" id="writtenWrap"><input type="checkbox" id="written"> Written pitch</label>
+      <button class="btn sm" id="sayBtn" title="Type a mark (pp, cresc., Cmaj7, 3/4, rit.) or find any command">Type it&hellip; <kbd>Ctrl K</kbd></button>
+      <span class="pos" id="pos"></span>
+    </div>
+    <div class="scroll" id="paperScroll"><div class="paper" id="paper" tabindex="0" aria-label="Score. Type notes A to G, numbers for lengths, arrows to move."></div></div>
+    <div class="pianoWrap">
+      <div class="oct"><button class="ib" id="octUp" title="Higher" aria-label="Piano up an octave">&#9650;</button><button class="ib" id="octDown" title="Lower" aria-label="Piano down an octave">&#9660;</button></div>
+      <div class="piano" id="piano" aria-label="Piano: tap to put a note in"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="toolPanel" aria-label="Tools">
+    <div class="ttabs" id="ttabs"><button data-t="write" class="on">Write</button><button data-t="bar">Bar</button><button data-t="record">Record</button><button data-t="score">Score</button><button data-t="check">Check</button><button data-t="share">Share</button></div>
+    <div class="scroll tbody" id="tbody"></div>
+  </section>
+</main>
+<input type="file" id="importFile" accept=".musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,.json" hidden>
+<div id="sr" class="sr" aria-live="polite"></div>
+<script type="module" src="compose.js"></script>
+</body>
+</html>

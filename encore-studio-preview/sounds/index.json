@@ -1,0 +1,747 @@
+{
+ "v": 1,
+ "gm": {
+  "0:0": {
+   "file": "gm/0-0.json",
+   "name": "Grand Piano",
+   "bytes": 15049565
+  },
+  "0:1": {
+   "file": "gm/0-1.json",
+   "name": "Bright Grand Piano",
+   "bytes": 15049565
+  },
+  "0:2": {
+   "file": "gm/0-2.json",
+   "name": "Electric Grand",
+   "bytes": 470568
+  },
+  "0:3": {
+   "file": "gm/0-3.json",
+   "name": "Honky-Tonk Piano",
+   "bytes": 15049565
+  },
+  "0:4": {
+   "file": "gm/0-4.json",
+   "name": "Tine Electric Piano",
+   "bytes": 182664
+  },
+  "0:5": {
+   "file": "gm/0-5.json",
+   "name": "FM Electric Piano",
+   "bytes": 71900
+  },
+  "0:6": {
+   "file": "gm/0-6.json",
+   "name": "Harpsichord",
+   "bytes": 282776
+  },
+  "0:7": {
+   "file": "gm/0-7.json",
+   "name": "Clavinet",
+   "bytes": 83382
+  },
+  "0:8": {
+   "file": "gm/0-8.json",
+   "name": "Celesta",
+   "bytes": 67373
+  },
+  "0:9": {
+   "file": "gm/0-9.json",
+   "name": "Glockenspiel",
+   "bytes": 100298
+  },
+  "0:10": {
+   "file": "gm/0-10.json",
+   "name": "Music Box",
+   "bytes": 36232
+  },
+  "0:11": {
+   "file": "gm/0-11.json",
+   "name": "Vibraphone",
+   "bytes": 87511
+  },
+  "0:12": {
+   "file": "gm/0-12.json",
+   "name": "Marimba",
+   "bytes": 124354
+  },
+  "0:13": {
+   "file": "gm/0-13.json",
+   "name": "Xylophone",
+   "bytes": 163059
+  },
+  "0:14": {
+   "file": "gm/0-14.json",
+   "name": "Tubular Bells",
+   "bytes": 23338
+  },
+  "0:15": {
+   "file": "gm/0-15.json",
+   "name": "Dulcimer",
+   "bytes": 155533
+  },
+  "0:16": {
+   "file": "gm/0-16.json",
+   "name": "Drawbar Organ",
+   "bytes": 18455
+  },
+  "0:17": {
+   "file": "gm/0-17.json",
+   "name": "Percussive Organ",
+   "bytes": 610248
+  },
+  "0:18": {
+   "file": "gm/0-18.json",
+   "name": "Rock Organ",
+   "bytes": 658483
+  },
+  "0:19": {
+   "file": "gm/0-19.json",
+   "name": "Church Organ",
+   "bytes": 622541
+  },
+  "0:20": {
+   "file": "gm/0-20.json",
+   "name": "Reed Organ",
+   "bytes": 44781
+  },
+  "0:21": {
+   "file": "gm/0-21.json",
+   "name": "Accordion",
+   "bytes": 247060
+  },
+  "0:22": {
+   "file": "gm/0-22.json",
+   "name": "Harmonica",
+   "bytes": 103805
+  },
+  "0:23": {
+   "file": "gm/0-23.json",
+   "name": "Bandoneon",
+   "bytes": 350865
+  },
+  "0:24": {
+   "file": "gm/0-24.json",
+   "name": "Nylon String Guitar",
+   "bytes": 255987
+  },
+  "0:25": {
+   "file": "gm/0-25.json",
+   "name": "Steel String Guitar",
+   "bytes": 338815
+  },
+  "0:26": {
+   "file": "gm/0-26.json",
+   "name": "Jazz Guitar",
+   "bytes": 181263
+  },
+  "0:27": {
+   "file": "gm/0-27.json",
+   "name": "Clean Guitar",
+   "bytes": 148628
+  },
+  "0:28": {
+   "file": "gm/0-28.json",
+   "name": "Palm Muted Guitar",
+   "bytes": 126331
+  },
+  "0:29": {
+   "file": "gm/0-29.json",
+   "name": "Overdrive Guitar",
+   "bytes": 576967
+  },
+  "0:30": {
+   "file": "gm/0-30.json",
+   "name": "Distortion Guitar",
+   "bytes": 490002
+  },
+  "0:31": {
+   "file": "gm/0-31.json",
+   "name": "Guitar Harmonics",
+   "bytes": 116200
+  },
+  "0:32": {
+   "file": "gm/0-32.json",
+   "name": "Acoustic Bass",
+   "bytes": 157703
+  },
+  "0:33": {
+   "file": "gm/0-33.json",
+   "name": "Fingered Bass",
+   "bytes": 234747
+  },
+  "0:34": {
+   "file": "gm/0-34.json",
+   "name": "Picked Bass",
+   "bytes": 317232
+  },
+  "0:35": {
+   "file": "gm/0-35.json",
+   "name": "Fretless Bass",
+   "bytes": 196885
+  },
+  "0:36": {
+   "file": "gm/0-36.json",
+   "name": "Slap Bass",
+   "bytes": 400389
+  },
+  "0:37": {
+   "file": "gm/0-37.json",
+   "name": "Pop Bass",
+   "bytes": 440002
+  },
+  "0:38": {
+   "file": "gm/0-38.json",
+   "name": "Synth Bass 1",
+   "bytes": 112752
+  },
+  "0:39": {
+   "file": "gm/0-39.json",
+   "name": "Synth Bass 2",
+   "bytes": 143981
+  },
+  "0:40": {
+   "file": "gm/0-40.json",
+   "name": "Violin",
+   "bytes": 345352
+  },
+  "0:41": {
+   "file": "gm/0-41.json",
+   "name": "Viola",
+   "bytes": 390274
+  },
+  "0:42": {
+   "file": "gm/0-42.json",
+   "name": "Cello",
+   "bytes": 307318
+  },
+  "0:43": {
+   "file": "gm/0-43.json",
+   "name": "Contrabass",
+   "bytes": 447987
+  },
+  "0:44": {
+   "file": "gm/0-44.json",
+   "name": "Strings Tremolo",
+   "bytes": 1259738
+  },
+  "0:45": {
+   "file": "gm/0-45.json",
+   "name": "Strings Pizzicato",
+   "bytes": 624781
+  },
+  "0:46": {
+   "file": "gm/0-46.json",
+   "name": "Harp",
+   "bytes": 171090
+  },
+  "0:47": {
+   "file": "gm/0-47.json",
+   "name": "Timpani",
+   "bytes": 130705
+  },
+  "0:48": {
+   "file": "gm/0-48.json",
+   "name": "Strings Fast",
+   "bytes": 1259738
+  },
+  "0:49": {
+   "file": "gm/0-49.json",
+   "name": "Strings Slow",
+   "bytes": 1259738
+  },
+  "0:50": {
+   "file": "gm/0-50.json",
+   "name": "Synth Strings 1",
+   "bytes": 481989
+  },
+  "0:51": {
+   "file": "gm/0-51.json",
+   "name": "Synth Strings 2",
+   "bytes": 481989
+  },
+  "0:52": {
+   "file": "gm/0-52.json",
+   "name": "Choir Aahs",
+   "bytes": 1091010
+  },
+  "0:53": {
+   "file": "gm/0-53.json",
+   "name": "Voice Oohs",
+   "bytes": 154703
+  },
+  "0:54": {
+   "file": "gm/0-54.json",
+   "name": "Synth Voice",
+   "bytes": 262878
+  },
+  "0:55": {
+   "file": "gm/0-55.json",
+   "name": "Orchestra Hit",
+   "bytes": 27328
+  },
+  "0:56": {
+   "file": "gm/0-56.json",
+   "name": "Trumpet",
+   "bytes": 68923
+  },
+  "0:57": {
+   "file": "gm/0-57.json",
+   "name": "Trombone",
+   "bytes": 134103
+  },
+  "0:58": {
+   "file": "gm/0-58.json",
+   "name": "Tuba",
+   "bytes": 59025
+  },
+  "0:59": {
+   "file": "gm/0-59.json",
+   "name": "Harmon Mute Trumpet",
+   "bytes": 70857
+  },
+  "0:60": {
+   "file": "gm/0-60.json",
+   "name": "French Horns",
+   "bytes": 368972
+  },
+  "0:61": {
+   "file": "gm/0-61.json",
+   "name": "Brass Section",
+   "bytes": 684933
+  },
+  "0:62": {
+   "file": "gm/0-62.json",
+   "name": "Synth Brass 1",
+   "bytes": 54085
+  },
+  "0:63": {
+   "file": "gm/0-63.json",
+   "name": "Synth Brass 2",
+   "bytes": 54085
+  },
+  "0:64": {
+   "file": "gm/0-64.json",
+   "name": "Soprano Sax",
+   "bytes": 290734
+  },
+  "0:65": {
+   "file": "gm/0-65.json",
+   "name": "Alto Sax",
+   "bytes": 251865
+  },
+  "0:66": {
+   "file": "gm/0-66.json",
+   "name": "Tenor Sax",
+   "bytes": 533132
+  },
+  "0:67": {
+   "file": "gm/0-67.json",
+   "name": "Baritone Sax",
+   "bytes": 1248231
+  },
+  "0:68": {
+   "file": "gm/0-68.json",
+   "name": "Oboe",
+   "bytes": 106740
+  },
+  "0:69": {
+   "file": "gm/0-69.json",
+   "name": "English Horn",
+   "bytes": 237582
+  },
+  "0:70": {
+   "file": "gm/0-70.json",
+   "name": "Bassoon",
+   "bytes": 187976
+  },
+  "0:71": {
+   "file": "gm/0-71.json",
+   "name": "Clarinet",
+   "bytes": 102972
+  },
+  "0:72": {
+   "file": "gm/0-72.json",
+   "name": "Piccolo",
+   "bytes": 132475
+  },
+  "0:73": {
+   "file": "gm/0-73.json",
+   "name": "Flute",
+   "bytes": 145114
+  },
+  "0:74": {
+   "file": "gm/0-74.json",
+   "name": "Recorder",
+   "bytes": 125781
+  },
+  "0:75": {
+   "file": "gm/0-75.json",
+   "name": "Pan Flute",
+   "bytes": 94080
+  },
+  "0:76": {
+   "file": "gm/0-76.json",
+   "name": "Bottle Chiff",
+   "bytes": 13693
+  },
+  "0:77": {
+   "file": "gm/0-77.json",
+   "name": "Shakuhachi",
+   "bytes": 24684
+  },
+  "0:78": {
+   "file": "gm/0-78.json",
+   "name": "Whistle",
+   "bytes": 8009
+  },
+  "0:79": {
+   "file": "gm/0-79.json",
+   "name": "Ocarina",
+   "bytes": 89623
+  },
+  "0:80": {
+   "file": "gm/0-80.json",
+   "name": "Square Lead",
+   "bytes": 165831
+  },
+  "0:81": {
+   "file": "gm/0-81.json",
+   "name": "Saw Lead",
+   "bytes": 54085
+  },
+  "0:82": {
+   "file": "gm/0-82.json",
+   "name": "Calliope Lead",
+   "bytes": 26788
+  },
+  "0:83": {
+   "file": "gm/0-83.json",
+   "name": "Chiffer Lead",
+   "bytes": 42234
+  },
+  "0:84": {
+   "file": "gm/0-84.json",
+   "name": "Charang",
+   "bytes": 160059
+  },
+  "0:85": {
+   "file": "gm/0-85.json",
+   "name": "Solo Vox",
+   "bytes": 151000
+  },
+  "0:86": {
+   "file": "gm/0-86.json",
+   "name": "5th Saw Wave",
+   "bytes": 536074
+  },
+  "0:87": {
+   "file": "gm/0-87.json",
+   "name": "Bass & Lead",
+   "bytes": 170236
+  },
+  "0:88": {
+   "file": "gm/0-88.json",
+   "name": "Fantasia",
+   "bytes": 584751
+  },
+  "0:89": {
+   "file": "gm/0-89.json",
+   "name": "Warm Pad",
+   "bytes": 1259738
+  },
+  "0:90": {
+   "file": "gm/0-90.json",
+   "name": "Polysynth",
+   "bytes": 481989
+  },
+  "0:91": {
+   "file": "gm/0-91.json",
+   "name": "Space Voice",
+   "bytes": 198843
+  },
+  "0:92": {
+   "file": "gm/0-92.json",
+   "name": "Bowed Glass",
+   "bytes": 512851
+  },
+  "0:93": {
+   "file": "gm/0-93.json",
+   "name": "Metal Pad",
+   "bytes": 1063168
+  },
+  "0:94": {
+   "file": "gm/0-94.json",
+   "name": "Halo Pad",
+   "bytes": 744867
+  },
+  "0:95": {
+   "file": "gm/0-95.json",
+   "name": "Sweep Pad",
+   "bytes": 481989
+  },
+  "0:96": {
+   "file": "gm/0-96.json",
+   "name": "Ice Rain",
+   "bytes": 660203
+  },
+  "0:97": {
+   "file": "gm/0-97.json",
+   "name": "Soundtrack",
+   "bytes": 481989
+  },
+  "0:98": {
+   "file": "gm/0-98.json",
+   "name": "Crystal",
+   "bytes": 37273
+  },
+  "0:99": {
+   "file": "gm/0-99.json",
+   "name": "Atmosphere",
+   "bytes": 737976
+  },
+  "0:100": {
+   "file": "gm/0-100.json",
+   "name": "Brightness",
+   "bytes": 768619
+  },
+  "0:101": {
+   "file": "gm/0-101.json",
+   "name": "Goblin",
+   "bytes": 195279
+  },
+  "0:102": {
+   "file": "gm/0-102.json",
+   "name": "Echo Drops",
+   "bytes": 1353888
+  },
+  "0:103": {
+   "file": "gm/0-103.json",
+   "name": "Star Theme",
+   "bytes": 630617
+  },
+  "0:104": {
+   "file": "gm/0-104.json",
+   "name": "Sitar",
+   "bytes": 94256
+  },
+  "0:105": {
+   "file": "gm/0-105.json",
+   "name": "Banjo",
+   "bytes": 150311
+  },
+  "0:106": {
+   "file": "gm/0-106.json",
+   "name": "Shamisen",
+   "bytes": 55874
+  },
+  "0:107": {
+   "file": "gm/0-107.json",
+   "name": "Koto",
+   "bytes": 26239
+  },
+  "0:108": {
+   "file": "gm/0-108.json",
+   "name": "Kalimba",
+   "bytes": 57221
+  },
+  "0:109": {
+   "file": "gm/0-109.json",
+   "name": "Bagpipe",
+   "bytes": 163984
+  },
+  "0:110": {
+   "file": "gm/0-110.json",
+   "name": "Fiddle",
+   "bytes": 345352
+  },
+  "0:111": {
+   "file": "gm/0-111.json",
+   "name": "Shenai",
+   "bytes": 35321
+  },
+  "0:112": {
+   "file": "gm/0-112.json",
+   "name": "Tinker Bell",
+   "bytes": 6098
+  },
+  "0:113": {
+   "file": "gm/0-113.json",
+   "name": "Agogo",
+   "bytes": 8513
+  },
+  "0:114": {
+   "file": "gm/0-114.json",
+   "name": "Steel Drums",
+   "bytes": 33664
+  },
+  "0:115": {
+   "file": "gm/0-115.json",
+   "name": "Woodblock",
+   "bytes": 8589
+  },
+  "0:116": {
+   "file": "gm/0-116.json",
+   "name": "Taiko Drum",
+   "bytes": 15432
+  },
+  "0:117": {
+   "file": "gm/0-117.json",
+   "name": "Melodic Tom",
+   "bytes": 17134
+  },
+  "0:118": {
+   "file": "gm/0-118.json",
+   "name": "Synth Drum",
+   "bytes": 25362
+  },
+  "0:119": {
+   "file": "gm/0-119.json",
+   "name": "Reverse Cymbal",
+   "bytes": 35257
+  },
+  "0:120": {
+   "file": "gm/0-120.json",
+   "name": "Fret Noise",
+   "bytes": 8455
+  },
+  "0:121": {
+   "file": "gm/0-121.json",
+   "name": "Breath Noise",
+   "bytes": 7942
+  },
+  "0:122": {
+   "file": "gm/0-122.json",
+   "name": "Sea Shore",
+   "bytes": 29083
+  },
+  "0:123": {
+   "file": "gm/0-123.json",
+   "name": "Bird Tweet",
+   "bytes": 23169
+  },
+  "0:124": {
+   "file": "gm/0-124.json",
+   "name": "Telephone",
+   "bytes": 54803
+  },
+  "0:125": {
+   "file": "gm/0-125.json",
+   "name": "Helicopter",
+   "bytes": 15428
+  },
+  "0:126": {
+   "file": "gm/0-126.json",
+   "name": "Applause",
+   "bytes": 57433
+  },
+  "0:127": {
+   "file": "gm/0-127.json",
+   "name": "Gun Shot",
+   "bytes": 10363
+  },
+  "8:24": {
+   "file": "gm/8-24.json",
+   "name": "Ukulele",
+   "bytes": 255987
+  },
+  "16:25": {
+   "file": "gm/16-25.json",
+   "name": "Mandolin",
+   "bytes": 581179
+  },
+  "128:0": {
+   "file": "gm/128-0.json",
+   "name": "Standard",
+   "bytes": 1297732
+  }
+ },
+ "sets": {
+  "violin": {
+   "file": "vsco/violin.json",
+   "name": "Violin (VSCO 2 solo)",
+   "bytes": 1338903
+  },
+  "violin-pizz": {
+   "file": "vsco/violin-pizz.json",
+   "name": "Violin pizzicato (VSCO 2)",
+   "bytes": 367947
+  },
+  "viola": {
+   "file": "vsco/viola.json",
+   "name": "Violas (VSCO 2 section)",
+   "bytes": 1123831
+  },
+  "cello": {
+   "file": "vsco/cello.json",
+   "name": "Cellos (VSCO 2 section)",
+   "bytes": 1048353
+  },
+  "cello-pizz": {
+   "file": "vsco/cello-pizz.json",
+   "name": "Cello pizzicato (VSCO 2)",
+   "bytes": 437863
+  },
+  "contrabass": {
+   "file": "vsco/contrabass.json",
+   "name": "Double bass (VSCO 2 solo)",
+   "bytes": 953072
+  },
+  "contrabass-pizz": {
+   "file": "vsco/contrabass-pizz.json",
+   "name": "Double bass pizzicato (VSCO 2)",
+   "bytes": 320691
+  },
+  "harp": {
+   "file": "vsco/harp.json",
+   "name": "Harp (VSCO 2)",
+   "bytes": 892356
+  },
+  "flute": {
+   "file": "vsco/flute.json",
+   "name": "Flute (VSCO 2)",
+   "bytes": 403825
+  },
+  "piccolo": {
+   "file": "vsco/piccolo.json",
+   "name": "Piccolo (VSCO 2)",
+   "bytes": 204020
+  },
+  "oboe": {
+   "file": "vsco/oboe.json",
+   "name": "Oboe (VSCO 2)",
+   "bytes": 751581
+  },
+  "clarinet": {
+   "file": "vsco/clarinet.json",
+   "name": "Clarinet (VSCO 2)",
+   "bytes": 875078
+  },
+  "bassoon": {
+   "file": "vsco/bassoon.json",
+   "name": "Bassoon (VSCO 2)",
+   "bytes": 842828
+  },
+  "trumpet": {
+   "file": "vsco/trumpet.json",
+   "name": "Trumpet (VSCO 2)",
+   "bytes": 798593
+  },
+  "horn": {
+   "file": "vsco/horn.json",
+   "name": "French horn (VSCO 2)",
+   "bytes": 545240
+  },
+  "trombone": {
+   "file": "vsco/trombone.json",
+   "name": "Trombone (VSCO 2)",
+   "bytes": 778327
+  },
+  "tuba": {
+   "file": "vsco/tuba.json",
+   "name": "Tuba (VSCO 2)",
+   "bytes": 504507
+  }
+ }
+}
