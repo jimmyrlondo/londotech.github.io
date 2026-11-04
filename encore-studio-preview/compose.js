@@ -17,6 +17,7 @@ import { parseCommand, searchCommands } from "./compose-commands.js";
 import { TEMPLATES } from "./compose-templates.js";
 import { proofread, analyze } from "./compose-proof.js";
 import { TUNINGS } from "./tunings.js";
+import { tabCapable, defaultNotation, notationOf, showsTab, tuningNames, tabVoice, moveString, pitchOnString, capoOf, stringsOf, MAX_FRET } from "./compose-tab.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -36,7 +37,27 @@ function clefFor(i) {
 }
 function partFor(name) {
   const i = INSTRUMENTS.find((x) => x.name === name) || INSTRUMENTS[0], grand = GRAND.includes(name);
-  return newPart({ name, instrument: name, clef: i.clef, transpose: i.transpose, staves: grand ? 2 : 1, clefs: grand ? ["treble", "bass"] : [i.clef] });
+  const p = newPart({ name, instrument: name, clef: i.clef, transpose: i.transpose, staves: grand ? 2 : 1, clefs: grand ? ["treble", "bass"] : [i.clef] });
+  // guitars, basses, ukuleles, banjos and mandolins start with TAB under the notes
+  if (defaultNotation(name) !== "standard") p.notation = defaultNotation(name);
+  return p;
+}
+// TAB on the part you're writing in: the selected note's string and fret
+const tabNow = () => (showsTab(part()) && ui.sel >= 0 && !ui.range ? tabVoice(part(), voice())[ui.sel]?.[Math.max(0, ui.selNote)] || null : null);
+function moveStringSel(up) {
+  if (ui.sel < 0 || ui.range || !showsTab(part())) return;
+  const next = moveString(part(), voice(), ui.sel, Math.max(0, ui.selNote), up);
+  if (!next) { toast(up ? "No higher string can play that note." : "No lower string can play that note."); return; }
+  commit(replaceAt(score(), ui.part, ui.sel, next, ui.voice)); renderTools();
+}
+// a fret typed for the selected note: the same string, a new pitch
+function setFretSel(fret) {
+  const t = tabNow(); if (!t?.string) return;
+  const m = pitchOnString(part(), t.string, fret);
+  if (m === null) { toast(`Fret ${fret} isn't on that string.`); renderTools(); return; }
+  ui.lastFret = fret;
+  changeSelected((e) => { e.notes = e.notes.map((n, i) => (i === Math.max(0, ui.selNote) ? { ...n, midi: m, spell: null, string: t.string } : n)); return e; });
+  lastMidi = m; preview([m]);
 }
 
 // ---------- the library ----------
@@ -111,7 +132,7 @@ function renderPos() {
   const t = caretTick(), b = barAtCaret(), info = barInfo(score(), { bars: b + 1 })[b], beatT = 1920 / (info?.time?.d || 4);
   const e = ui.sel >= 0 ? voice()[ui.sel] : null, raw = t - (info?.start || 0), past = info && raw >= info.ticks, pos = past ? 0 : raw;
   queueMicrotask(announce);
-  $("pos").textContent = `${part().name || "Part"}${part().voices.length > 1 ? `, voice ${ui.voice + 1}` : ""} · bar ${(info?.number ?? b + 1) + (past ? 1 : 0)}, beat ${(pos / beatT + 1).toFixed(pos % beatT ? 2 : 0)}` + (e && !e.rest ? ` · ${e.notes.map((n) => noteName(n.midi)).join(" ")}` : "");
+  $("pos").textContent = `${part().name || "Part"}${part().voices.length > 1 ? `, voice ${ui.voice + 1}` : ""} · bar ${(info?.number ?? b + 1) + (past ? 1 : 0)}, beat ${(pos / beatT + 1).toFixed(pos % beatT ? 2 : 0)}` + (e && !e.rest ? ` · ${e.notes.map((n) => noteName(n.midi)).join(" ")}` : "") + ((t) => (t?.string ? `, string ${t.string} fret ${t.fret}` : ""))(tabNow());
 }
 function noteName(m) { const sp = spell(m, score().key); return sp.step + (sp.alter > 0 ? "#".repeat(sp.alter) : "b".repeat(-sp.alter)) + sp.octave; }
 
@@ -126,10 +147,17 @@ function put(ev) {
     const st = eventStarts(voice()); ui.sel = st.indexOf(t); if (ui.sel < 0) ui.sel = st.findIndex((x) => x > t) - 1; ui.caret = ui.sel + 1;
   } else { commit(insertAt(s, ui.part, ui.caret, ev, ui.voice)); ui.sel = ui.caret; ui.caret++; }
 }
-function enterNote(midi, { addToChord = false } = {}) {
+function enterNote(midi, { addToChord = false, string = null } = {}) {
   ui.range = null;
-  if (addToChord && ui.sel >= 0 && !voice()[ui.sel].rest) { commit(setPitch(score(), ui.part, ui.sel, -1, midi, ui.voice)); ui.selNote = voice()[ui.sel].notes.length - 1; }
-  else { put(newEvent(curDur(), [midi], ui.triplet ? { tuplet: { n: 3, of: 2 } } : {})); ui.selNote = 0; }
+  if (addToChord && ui.sel >= 0 && !voice()[ui.sel].rest) {
+    if (string) { const ev = structuredClone(voice()[ui.sel]); ev.notes.push({ midi, tie: false, spell: null, string }); commit(replaceAt(score(), ui.part, ui.sel, ev, ui.voice)); }
+    else commit(setPitch(score(), ui.part, ui.sel, -1, midi, ui.voice));
+    ui.selNote = voice()[ui.sel].notes.length - 1;
+  } else {
+    const ev = newEvent(curDur(), [midi], ui.triplet ? { tuplet: { n: 3, of: 2 } } : {});
+    if (string) ev.notes[0].string = string; // put on a TAB line: that string
+    put(ev); ui.selNote = 0;
+  }
   ui.picked = false; lastMidi = midi; draw(); renderTools();
 }
 function enterRest() { ui.range = null; put(newEvent(curDur(), [])); ui.picked = false; draw(); renderTools(); }
@@ -204,6 +232,8 @@ paper.addEventListener("keydown", (e) => {
   if (k === "t") { e.preventDefault(); changeSelected((ev) => { if (ev.rest) return null; const all = ev.notes.every((x) => x.tie); ev.notes = ev.notes.map((n) => ({ ...n, tie: !all })); return ev; }); return; }
   if (k === "s" && e.altKey) { e.preventDefault(); spanOn("slur"); return; }
   if (k === "l") { e.preventDefault(); toggleLoop(); return; }
+  // on a part with TAB, Alt+Up/Down moves the note to the string above or below (same pitch); Ctrl+Up/Down is still an octave
+  if ((e.key === "ArrowUp" || e.key === "ArrowDown") && e.altKey && showsTab(part()) && ui.sel >= 0 && !ui.range) { e.preventDefault(); moveStringSel(e.key === "ArrowUp"); return; }
   if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); moveSelected((e.key === "ArrowUp" ? 1 : -1) * (e.altKey ? 12 : 1)); return; }
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault();
@@ -243,33 +273,39 @@ const near = (h, x, y) => x >= h.x - 4 && x <= h.x + h.w + 4 && y >= h.y - 4 && 
 paper.addEventListener("pointerdown", (e) => {
   if (!hit) return;
   paper.focus({ preventScroll: true });
-  const r = paper.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  const ev = hit.events.find((h) => h.event >= 0 && near(h, x, y));
+  // the drawing's own corner (the paper has padding around it): hit boxes and heights are in its units
+  const r = (paper.querySelector("svg") || paper).getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  // a TAB fret first (the notes' boxes reach down over the TAB staff)
+  const ev = hit.events.find((h) => h.tab && h.event >= 0 && near(h, x, y)) || hit.events.find((h) => h.event >= 0 && near(h, x, y));
   if (ev && (ev.part ?? 0) !== ui.part || ev && (ev.voice ?? 0) !== ui.voice) { ui.part = ev.part ?? 0; ui.voice = ev.voice ?? 0; ui.range = null; }
   const evData = ev ? voice()[ev.event] : null;
   if (ev && evData && !evData.rest) {
     if (e.shiftKey && ui.sel >= 0) ui.range = { from: ui.range ? ui.range.from : ui.sel, to: ev.event };
     else { ui.range = null; ui.sel = ev.event; ui.caret = ev.event + 1; ui.picked = true; }
-    ui.selNote = ev.notes?.length ? ev.notes.reduce((b, n, i) => (Math.abs(n.y - y) < Math.abs(ev.notes[b].y - y) ? i : b), 0) : 0;
+    const nb = ev.notes?.length ? ev.notes.reduce((b, n, i) => (Math.abs(n.y - y) < Math.abs(ev.notes[b].y - y) ? i : b), 0) : -1;
+    ui.selNote = nb >= 0 ? ev.notes[nb].note ?? nb : 0;
     preview(evData.notes.map((n) => n.midi)); draw(); renderTools(); return;
   }
-  const sys = hit.systems.find((s) => y >= s.top - 30 && y <= s.top + s.h + 10) || hit.systems[hit.systems.length - 1];
+  // the line (system) you clicked in: inside its band first, then the old, looser test
+  const sys = hit.systems.find((s) => y >= s.y && y <= s.y + s.h) || hit.systems.find((s) => y >= s.top - 30 && y <= s.top + s.h + 10) || hit.systems[hit.systems.length - 1];
   if (!sys) return;
   let p = hit.pitchInfo ? hit.pitchInfo(sys.index, y, x) : hit.pitchAt(sys.index, y);
   if (typeof p === "number") p = { part: ui.part, staff: staffOfVoice(ui.voice), midi: p };
   // the staff you clicked becomes where you write (its first voice, unless you're already in one of its voices)
   if (p.part !== undefined && p.part !== ui.part) { ui.part = p.part; ui.voice = Math.max(0, (part().voiceStaff || [0]).indexOf(p.staff ?? 0)); ui.range = null; }
   else if (p.staff !== undefined && staffOfVoice(ui.voice) !== p.staff) { ui.voice = Math.max(0, (part().voiceStaff || [0]).indexOf(p.staff)); ui.range = null; }
-  const midi = p.midi;
+  // a TAB line: that string, at the last fret you typed (open to start with)
+  let midi = p.midi, string = null;
+  if (p.string) { string = p.string; const m = pitchOnString(part(), p.string, ui.lastFret || 0); if (m !== null) midi = m; }
   if (ev && evData && evData.rest) {
     // a rest you clicked becomes that note, the same length
-    commit(replaceAt(score(), ui.part, ev.event, { ...evData, rest: false, notes: [{ midi, tie: false, spell: null }] }, ui.voice));
+    commit(replaceAt(score(), ui.part, ev.event, { ...evData, rest: false, notes: [{ midi, tie: false, spell: null, ...(string ? { string } : {}) }] }, ui.voice));
     ui.sel = ev.event; ui.caret = ev.event + 1; lastMidi = midi; preview([midi]); draw(); renderTools(); return;
   }
   // anywhere else: a note there (in the music, at that point; past the end, at the end)
   const tick = hit.tickAt(sys.index, x), st = eventStarts(voice());
   if (tick < voiceLength(voice())) { const i = st.findIndex((t) => t > tick); ui.caret = i < 0 ? st.length : Math.max(0, i - 1) + 1; } else ui.caret = voice().length;
-  preview([midi]); enterNote(midi, { addToChord: e.shiftKey });
+  preview([midi]); enterNote(midi, { addToChord: e.shiftKey, string });
 });
 
 // ---------- the on-screen piano ----------
@@ -448,6 +484,7 @@ function renderTools() {
     tbody.innerHTML = `<div class="lbl"><span>Writing in</span><span class="dim">click a staff to switch</span></div>
       <div class="row"><select class="t" id="partSel" style="flex:1 1 auto">${s.parts.map((x, i) => `<option value="${i}" ${i === ui.part ? "selected" : ""}>${esc(x.name || x.instrument)}</option>`).join("")}</select>
         <span class="seg" id="voiceSeg">${staffVoices.map((v, i) => `<button data-v="${v}" class="${v === ui.voice ? "on" : ""}" title="Voice ${i + 1}${p.staves === 2 ? (staffOfVoice(v) ? " (lower staff)" : " (upper staff)") : ""}">${p.staves === 2 && staffOfVoice(v) ? "L" : "V"}${i + 1}</button>`).join("")}${staffVoices.length < 2 && p.voices.length < 4 ? `<button data-add="1" title="A second voice on this staff">+V</button>` : ""}</span></div>
+      ${tabSection(p, e)}
       <div class="lbl"><span>Note length</span><span class="dim">keys 1 to 6</span></div>
       <div class="grid" id="durs">${PALETTE.map(([t, type, k]) => `<button class="pal${ui.dur === t && !ui.triplet ? " on" : ""}" data-d="${t}" title="${type}">${NOTE_ICON(type)}<kbd>${k}</kbd></button>`).join("")}</div>
       <div class="grid" style="margin-top:5px">
@@ -470,7 +507,7 @@ function renderTools() {
         <label>Dynamic<select class="t" id="dynIn" ${e ? "" : "disabled"}><option value="">None</option>${["pp", "p", "mp", "mf", "f", "ff"].map((d) => `<option ${e?.dyn === d ? "selected" : ""}>${d}</option>`).join("")}</select></label>
       </div>
       <div class="lbl"><span>How to write</span></div>
-      <div class="keys"><b>Click the staff</b> where a note goes (Shift-click a note to select a run), <b>tap the piano</b>, or <b>play a MIDI keyboard</b>. <kbd>A</kbd>-<kbd>G</kbd> notes (Shift adds to the chord), <kbd>1</kbd>-<kbd>6</kbd> lengths, <kbd>.</kbd> dot, <kbd>0</kbd> rest, <kbd>T</kbd> tie, <kbd>&#8593;</kbd><kbd>&#8595;</kbd> half step, <kbd>Ctrl</kbd>+<kbd>&#8593;</kbd> octave, <kbd>Shift</kbd>+<kbd>&#8592;</kbd><kbd>&#8594;</kbd> select, <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy and paste, <kbd>Space</kbd> play.</div>`;
+      <div class="keys"><b>Click the staff</b> where a note goes (Shift-click a note to select a run), <b>tap the piano</b>, or <b>play a MIDI keyboard</b>. <kbd>A</kbd>-<kbd>G</kbd> notes (Shift adds to the chord), <kbd>1</kbd>-<kbd>6</kbd> lengths, <kbd>.</kbd> dot, <kbd>0</kbd> rest, <kbd>T</kbd> tie, <kbd>&#8593;</kbd><kbd>&#8595;</kbd> half step, <kbd>Ctrl</kbd>+<kbd>&#8593;</kbd> octave, <kbd>Shift</kbd>+<kbd>&#8592;</kbd><kbd>&#8594;</kbd> select, <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy and paste, <kbd>Space</kbd> play.${showsTab(p) ? ` On TAB: <kbd>Alt</kbd>+<kbd>&#8593;</kbd>/<kbd>&#8595;</kbd> moves a note to another string, click a string to put a note on it, type a fret in the TAB box.` : ""}</div>`;
     $("partSel").onchange = (ev) => { ui.part = +ev.target.value; ui.voice = 0; ui.range = null; ui.caret = voice().length; ui.sel = ui.caret - 1; draw(); renderTools(); };
     $("voiceSeg").onclick = (ev) => {
       const b = ev.target.closest("button"); if (!b) return;
@@ -508,6 +545,7 @@ function renderTools() {
     };
     $("articIn").onchange = (ev) => changeSelected((x) => { x.artic = ev.target.value ? [ev.target.value] : []; return x; });
     $("dynIn").onchange = (ev) => changeSelected((x) => { x.dyn = ev.target.value || null; return x; });
+    bindTab();
   } else if (ui.tab === "bar") {
     const b = barAtCaret(), info = barInfo(s, { bars: b + 1 })[b] || {}, m = s.bars?.[b] || {};
     const letters = Object.values(s.bars || {}).map((x) => x.mark).filter(Boolean), nextMark = String.fromCharCode(65 + letters.length);
@@ -618,6 +656,8 @@ function renderTools() {
       if (k === "inst") {
         const n = INSTRUMENTS.find((y) => y.name === ev.target.value), fresh = partFor(n.name);
         Object.assign(x, { instrument: n.name, name: n.name, transpose: n.transpose, clef: n.clef });
+        // a new instrument: its own tuning, no capo, and TAB if players of it read TAB
+        delete x.tuning; delete x.capo; if (fresh.notation) x.notation = fresh.notation; else delete x.notation;
         if ((fresh.staves || 1) !== (x.staves || 1)) Object.assign(x, { staves: fresh.staves, clefs: fresh.clefs, voiceStaff: fresh.voiceStaff, voices: fresh.staves === 2 ? [...x.voices, ...fresh.voices.slice(x.voices.length)] : x.voices.filter((_, v) => (x.voiceStaff || [])[v] !== 1) });
       }
       if (k === "clef") { x.clef = ev.target.value; if (x.clefs) x.clefs[0] = x.clef; }
@@ -681,6 +721,39 @@ function renderTools() {
     $("dup").onclick = () => { const c = { ...structuredClone(s), id: newId("sc"), title: (s.title || "Untitled") + " (copy)", created: Date.now(), updated: Date.now() }; db.scores.push(c); save(); openScore(c.id); };
     $("delScore").onclick = () => { if (!confirm(`Delete "${s.title || "Untitled"}"? This can't be undone (unless you have a backup).`)) return; db.scores = db.scores.filter((x) => x !== s); if (!db.scores.length) db.scores.push(newScore({ title: "Untitled", bars: 0 })); openScore(db.scores[0].id); };
     $("paperChk").onchange = (ev) => { db.prefs.paper = ev.target.checked; save(); document.body.classList.toggle("light", db.prefs.paper); };
+  }
+}
+// ---------- TAB in the Write tab: show notes, TAB or both; tuning and capo; the selected note's string and fret ----------
+function tabSection(p, e) {
+  if (!tabCapable(p.instrument) || (p.staves || 1) !== 1) return "";
+  const mode = notationOf(p), on = mode !== "standard", t = on && e && !e.rest ? tabNow() : null;
+  const tunings = tuningNames(p.instrument), cur = tunings.includes(p.tuning) ? p.tuning : tunings[0];
+  return `<div class="lbl"><span>TAB</span><span class="dim">${on ? "Alt+Up/Down moves a note to another string" : "guitar-style numbers on the strings"}</span></div>
+    <div class="row"><span class="seg" id="notaSeg">${[["standard", "Notes"], ["both", "Notes + TAB"], ["tab", "TAB only"]].map(([v, n]) => `<button data-v="${v}" class="${mode === v ? "on" : ""}">${n}</button>`).join("")}</span></div>
+    ${on ? `<div class="form" style="margin-top:6px">
+      <label>Tuning<select class="t" id="tuneSel">${tunings.map((n) => `<option ${n === cur ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></label>
+      <label>Capo<select class="t" id="capoSel">${Array.from({ length: 13 }, (_, c) => `<option value="${c}" ${c === capoOf(p) ? "selected" : ""}>${c ? `Fret ${c}` : "None"}</option>`).join("")}</select></label>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn sm" id="strUp" ${t?.string ? "" : "disabled"} title="The same note on the string above (Alt+Up)">&#9650; String</button>
+      <button class="btn sm" id="strDn" ${t?.string ? "" : "disabled"} title="The same note on the string below (Alt+Down)">&#9660; String</button>
+      <label class="small">Fret <input class="t" id="fretIn" type="number" min="0" max="${MAX_FRET}" value="${t?.string ? t.fret : ""}" style="width:58px" ${t?.string ? "" : "disabled"} title="Type a fret and press Enter: the note moves on its string"></label>
+      <span class="small dim">${t?.string ? `String ${t.string}${t.auto ? " (picked for you)" : ""}` : e && !e.rest ? "Can't be played here" : "Select a note"}</span>
+    </div>` : ""}`;
+}
+function bindTab() {
+  if (!$("notaSeg")) return;
+  const setPart = (f) => { const sc = structuredClone(score()), x = sc.parts[ui.part]; f(x); commit(sc); renderTools(); };
+  $("notaSeg").onclick = (ev) => { const b = ev.target.closest("button"); if (b) setPart((x) => { x.notation = b.dataset.v; }); };
+  $("tuneSel") && ($("tuneSel").onchange = (ev) => setPart((x) => { if (ev.target.selectedIndex) x.tuning = ev.target.value; else delete x.tuning; }));
+  $("capoSel") && ($("capoSel").onchange = (ev) => setPart((x) => { if (+ev.target.value) x.capo = +ev.target.value; else delete x.capo; }));
+  $("strUp") && ($("strUp").onclick = () => moveStringSel(true));
+  $("strDn") && ($("strDn").onclick = () => moveStringSel(false));
+  const fi = $("fretIn");
+  if (fi) {
+    const go = () => { if (fi.value !== "" && +fi.value !== tabNow()?.fret) setFretSel(Math.round(+fi.value)); };
+    fi.onkeydown = (ev) => { if (ev.key === "Enter") { ev.preventDefault(); go(); paper.focus({ preventScroll: true }); } };
+    fi.onchange = go;
   }
 }
 function spansHere() {
