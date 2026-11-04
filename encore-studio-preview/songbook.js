@@ -274,7 +274,7 @@ $("artist").oninput = (e) => { const s = song(); if (!s) return; s.artist = e.ta
 write.oninput = () => { const s = song(); if (!s) return; s.body = write.value; touch(s); renderLibSoon(); renderToolsSoon(); };
 let libTimer = 0, toolTimer = 0;
 const renderLibSoon = () => { clearTimeout(libTimer); libTimer = setTimeout(renderLib, 500); };
-const renderToolsSoon = () => { clearTimeout(toolTimer); toolTimer = setTimeout(() => { fillKeySelect(); renderParts(); if (state.tab !== "words") renderTools(); }, 450); };
+const renderToolsSoon = () => { clearTimeout(toolTimer); toolTimer = setTimeout(() => { fillKeySelect(); renderParts(); renderChordStrip(); if (state.tab !== "words") renderTools(); }, 450); };
 write.addEventListener("paste", () => setTimeout(() => {
   const s = song(); if (!s) return;
   // a whole sheet pasted into an empty song: offer to tidy it up
@@ -1025,8 +1025,31 @@ function toast(t, ms = 2400) {
   el.textContent = t; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), ms);
 }
 function setMobile(m) { document.querySelector("main").dataset.m = m; for (const b of $("mtabs").children) b.classList.toggle("on", b.dataset.m === m); }
+// on a phone, the Lyrics tab shows the words (with a strip of chords) or the song's info
+function setLyricsTab(l) { $("songPanel").dataset.l = l; for (const b of $("ltabs").children) b.classList.toggle("on", b.dataset.l === l); if (l === "lyrics") renderChordStrip(); }
+$("ltabs").onclick = (e) => { const b = e.target.closest("button"); if (b) setLyricsTab(b.dataset.l); };
+
+/** The phone's chord strip: the song's own chords first, then the likely ones for its key, then More */
+function renderChordStrip() {
+  const strip = $("chordStrip"), s = song();
+  if (!strip) return;
+  if (!s) { strip.innerHTML = ""; return; }
+  const used = chordsUsed(s.body), k = writtenKey(s), L = k ? likelyChords(k) : null;
+  const likely = L ? [...L.home, ...L.sevenths.slice(0, 3)].map((x) => x.symbol).filter((c) => !used.includes(c)) : ["G", "C", "D", "Em", "Am", "F", "A", "E"].filter((c) => !used.includes(c));
+  const btn = (c, cls) => `<button class="${cls}${state.armed === c ? " on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`;
+  strip.innerHTML = used.map((c) => btn(c, "used")).join("") + (used.length && likely.length ? `<span class="sep"></span>` : "") +
+    likely.map((c) => btn(c, "")).join("") + `<button class="more" data-more="1">More chords</button>`;
+}
+// a tap keeps the keyboard up: the box keeps its focus, so the chord lands where you were typing
+$("chordStrip").addEventListener("pointerdown", (e) => { if (e.target.closest("button") && state.view === "write") e.preventDefault(); });
+$("chordStrip").onclick = (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.more) { setMobile("tools"); return; }
+  useChord(b.dataset.c);
+  renderChordStrip();
+};
 $("mtabs").onclick = (e) => { const b = e.target.closest("button"); if (b) setMobile(b.dataset.m); };
 write.addEventListener("keyup", () => { if (state.tab === "chords") renderToolsSoon(); });
 write.addEventListener("click", () => { if (state.tab === "chords") renderToolsSoon(); });
-function renderAll() { renderLib(); renderSong(); renderTools(); }
+function renderAll() { renderLib(); renderSong(); renderTools(); renderChordStrip(); }
 renderAll();

@@ -186,14 +186,44 @@
   @media (max-width: 899px) {
     main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 60px); padding: 8px; gap: 8px; }
     .mtabs { display: flex; gap: 4px; }
-    .mtabs button { flex: 1 1 0; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); border-radius: 10px; padding: 7px; font-weight: 800; }
+    .mtabs button { flex: 1 1 0; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); border-radius: 10px; padding: 6px 4px; font-weight: 800; font-size: 14px; white-space: nowrap; min-height: 40px; }
     .mtabs button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
     main > .panel { display: none; } main[data-m="lib"] #libPanel, main[data-m="song"] #songPanel, main[data-m="tools"] #toolPanel { display: flex; }
     .titleRow { flex-wrap: wrap; } .titleIn { font-size: 19px; flex: 1 1 100%; } .artistIn { flex: 1 1 0; width: auto; min-width: 0; }
     .tools2 { gap: 6px; } #addInst { flex: 1 1 100%; }
     .parts { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; } .pt { flex: none; }
     .sheet { padding: 12px 12px 30px; } .sheet .ln { padding-right: 26px; }
+    /* Lyrics: the words fill the screen, with a strip of chords to tap in under them */
+    .ltabs { display: flex; gap: 4px; padding: 8px 10px 0; }
+    .ltabs button { flex: 1 1 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--soft); font-weight: 800; padding: 6px; border-radius: 0; }
+    .ltabs button.on { color: var(--text); border-bottom-color: #ff3b00; }
+    #songPanel[data-l="lyrics"] .titleRow > :not(#title):not(#viewSeg) { display: none; }
+    #songPanel[data-l="lyrics"] .titleIn { flex: 1 1 0; font-size: 17px; min-width: 0; }
+    #songPanel[data-l="lyrics"] .titleRow { flex-wrap: nowrap; }
+    #songPanel[data-l="lyrics"] .tools2, #songPanel[data-l="lyrics"] .hint { display: none; }
+    #songPanel[data-l="lyrics"] .songHead { padding-bottom: 6px; }
+    #songPanel[data-l="lyrics"] .write { font-size: 16px; }
+    .chordStrip { display: flex; gap: 6px; overflow-x: auto; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--divider); flex: none; scrollbar-width: none; }
+    .chordStrip::-webkit-scrollbar { display: none; }
+    .chordStrip button { flex: none; min-width: 48px; border: 1px solid var(--divider-strong); background: var(--surface, #171412); color: var(--text); border-radius: 10px; font-weight: 800; font-size: 15px; padding: 0 12px; }
+    .chordStrip button.used { border-color: rgb(255 59 0 / .6); }
+    .chordStrip button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+    .chordStrip button.more { color: var(--soft); font-weight: 700; }
+    .chordStrip .sep { flex: none; width: 1px; background: var(--divider-strong); margin: 4px 2px; }
+    /* Song info: everything about the song, roomy, and no lyrics box */
+    #songPanel[data-l="info"] #write, #songPanel[data-l="info"] #sheet, #songPanel[data-l="info"] .parts,
+    #songPanel[data-l="info"] .hint, #songPanel[data-l="info"] .chordStrip, #songPanel[data-l="info"] #viewSeg { display: none !important; }
+    #songPanel[data-l="info"] .songHead { overflow-y: auto; flex: 1 1 auto; }
+    #songPanel[data-l="info"] .titleRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+    #songPanel[data-l="info"] .titleRow .artistIn { grid-column: 1 / -1; font-size: 16px; }
+    #songPanel[data-l="info"] .tools2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    #songPanel[data-l="info"] .tools2 > label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+    #songPanel[data-l="info"] .tools2 > label select { width: 100%; }
+    #songPanel[data-l="info"] #writtenWrap, #songPanel[data-l="info"] #quickFormat, #songPanel[data-l="info"] .tags, #songPanel[data-l="info"] #addInst { grid-column: 1 / -1; }
+    #songPanel[data-l="info"] .tools2 > .seg { justify-content: stretch; }
+    #songPanel[data-l="info"] .tools2 > .seg > button { flex: 1 1 0; }
   }
+  @media (min-width: 900px) { .ltabs, .chordStrip { display: none !important; } }
   /* cover and details, print */
   .coverBtn { width: 40px; height: 40px; flex: none; border-radius: 6px; border: 1px dashed var(--divider-strong); background: transparent; color: var(--dim); padding: 0; overflow: hidden; display: grid; place-items: center; font-size: 15px; }
   .coverBtn img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -238,7 +268,7 @@
 </div>
 
 <main data-m="song">
-  <div class="mtabs" id="mtabs" role="tablist"><button data-m="lib">Songs</button><button data-m="song" class="on">Song</button><button data-m="tools">Chords &amp; words</button></div>
+  <div class="mtabs" id="mtabs" role="tablist"><button data-m="lib">Songs</button><button data-m="song" class="on">Lyrics</button><button data-m="tools">Chords &amp; words</button></div>
 
   <section class="panel" id="libPanel" aria-label="Your songbook">
     <div class="head"><h2>Songbook</h2><button class="btn sm go" id="newSong">+ Song</button><button class="ib" id="newFolder" title="New folder" aria-label="New folder">&#128193;</button></div>
@@ -247,7 +277,8 @@
     <div class="hint"><span>Drag songs to put them in order or into a folder. Drag a folder to another category.</span></div>
   </section>
 
-  <section class="panel" id="songPanel" aria-label="The song">
+  <section class="panel" id="songPanel" aria-label="The song" data-l="lyrics">
+    <div class="ltabs" id="ltabs" role="tablist"><button data-l="lyrics" class="on">Lyrics</button><button data-l="info">Song info</button></div>
     <div class="songHead">
       <div class="titleRow">
         <button class="coverBtn" id="coverBtn" aria-label="Cover and details"></button>
@@ -270,6 +301,7 @@
     </div>
     <textarea class="write scroll" id="write" spellcheck="true" placeholder="Paste or type your lyrics.&#10;&#10;Put a chord in by tapping it on the right, or type it in brackets: [G]Here comes the [C]sun.&#10;Sections go on their own line: [Verse 1], [Chorus].&#10;&#10;Pasted a chord sheet with the chords above the words? Press Quick format."></textarea>
     <div class="sheet scroll hidden" id="sheet"></div>
+    <div class="chordStrip" id="chordStrip" aria-label="Chords to put in"></div>
     <div class="hint" id="hint"></div>
   </section>
 
