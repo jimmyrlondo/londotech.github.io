@@ -418,7 +418,14 @@ sheet.addEventListener("click", (e) => {
     return;
   }
   const w = e.target.closest(".w");
-  if (w && state.armed) { undoPush(s); s.body = insertChord(s.body, +w.dataset.at, state.armed); touch(s); renderSheet(); renderToolsSoon(); return; }
+  if (w && state.armed) {
+    undoPush(s);
+    // the first word under a chord: swap that chord (stacking a second one left the first over an empty gap)
+    const own = w.closest(".seg2")?.querySelector(".ch[data-at]");
+    if (own && w.closest(".tx")?.querySelector(".w") === w) s.body = insertChord(removeChordAt(s.body, +own.dataset.at), +own.dataset.at, state.armed);
+    else s.body = insertChord(s.body, +w.dataset.at, state.armed);
+    touch(s); renderSheet(); renderToolsSoon(); return;
+  }
   // no chord picked: a tapped word goes to the Words tab
   if (w) { const word = w.textContent.replace(/[^\p{L}'’-]/gu, ""); if (word) { sheet.querySelectorAll(".w.pick").forEach((x) => x.classList.remove("pick")); w.classList.add("pick"); lookupWord(word); } }
 });

@@ -96,6 +96,8 @@
   .bpmBox { min-width: 0; }
   .bpm { font-size: clamp(76px, 22vw, 128px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; font-variant-numeric: tabular-nums; }
   .bpmEdit { font: inherit; font-size: clamp(60px, 18vw, 104px); font-weight: 800; width: 3.6ch; text-align: center; background: var(--bg-subtle-default); color: var(--text); border: 1px solid #ff3b00; border-radius: 10px; padding: 0; }
+  /* touch screens: the shared 16px input rule (it stops iOS zooming small boxes) shrank this to a sliver; big text never zooms */
+  #panel .bpmEdit { font-size: clamp(60px, 18vw, 104px) !important; }
   .bpmLabel { color: var(--soft); font-size: 14px; margin-top: 4px; }
   .bpmLabel b { color: var(--text); font-weight: 700; }
   #tempoSlider { max-width: 560px; margin: 10px auto 0; display: block; }
