@@ -41,13 +41,14 @@ export async function encodeTrack(chans, fs, fmt, { lame = null, onProgress } = 
   throw new Error("Unknown export format " + fmt);
 }
 
-// AAC-LC 256 kbps with the browser's AudioEncoder (Chrome, Edge, Safari), in an M4A
+// AAC-LC 256 kbps with the browser's AudioEncoder (Chrome, Edge, Safari), in an M4A.
+// Windows' own AAC encoder (what Chrome and Edge use there) stops at 192, so it falls back to that.
 async function aac(chans, fs, onProgress) {
   if (typeof AudioEncoder === "undefined") throw new Error("This browser can't encode AAC. Use FLAC, WAV or MP3.");
-  const ch = chans.length, rate = await aacRate(fs, ch);
+  const ch = chans.length, pick = await aacPick(fs, ch), rate = pick?.rate || 0;
   if (!rate) throw new Error("This browser can't encode AAC.");
   const x = resample(chans, fs, rate), n = x[0].length;
-  const config = { codec: "mp4a.40.2", sampleRate: rate, numberOfChannels: ch, bitrate: 256000 };
+  const config = { codec: "mp4a.40.2", sampleRate: rate, numberOfChannels: ch, bitrate: pick.kbps * 1000 };
   const chunks = [];
   let desc = null, failed = null, firstTs = null;
   const enc = new AudioEncoder({
@@ -73,20 +74,25 @@ async function aac(chans, fs, onProgress) {
   const idx = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350].indexOf(rate);
   const asc = desc?.length >= 2 ? desc : Uint8Array.of((2 << 3) | (idx >> 1), ((idx & 1) << 7) | (ch << 3));
   const priming = Math.max(0, Math.round(-(firstTs || 0) * rate / 1e6));
-  const blob = muxM4a(chunks, { rate, channels: ch, asc, priming, samples: n, kbps: 256, meta: {} });
+  const blob = muxM4a(chunks, { rate, channels: ch, asc, priming, samples: n, kbps: pick.kbps, meta: {} });
   return new Uint8Array(await blob.arrayBuffer());
 }
 
 // The rate AAC is written at: 44.1 or 48 kHz as the side suggests, or the other one
 // when this browser's encoder only takes that (some only do 48), or 0 for none
-export async function aacRate(fs, channels = 2) {
-  if (typeof AudioEncoder === "undefined") return 0;
+export async function aacRate(fs, channels = 2) { return (await aacPick(fs, channels))?.rate || 0; }
+
+// { rate, kbps } for AAC here: 256 kbps where the encoder takes it, else 192 (Windows), or null
+async function aacPick(fs, channels = 2) {
+  if (typeof AudioEncoder === "undefined") return null;
   const first = lossyRate(fs);
-  for (const rate of [first, first === 48000 ? 44100 : 48000]) {
-    const ok = await AudioEncoder.isConfigSupported({ codec: "mp4a.40.2", sampleRate: rate, numberOfChannels: channels, bitrate: 256000 }).then((r) => r.supported, () => false);
-    if (ok) return rate;
+  for (const kbps of [256, 192]) {
+    for (const rate of [first, first === 48000 ? 44100 : 48000]) {
+      const ok = await AudioEncoder.isConfigSupported({ codec: "mp4a.40.2", sampleRate: rate, numberOfChannels: channels, bitrate: kbps * 1000 }).then((r) => r.supported, () => false);
+      if (ok) return { rate, kbps };
+    }
   }
-  return 0;
+  return null;
 }
 
 // Tags onto an encoded file, with Tag's writer. tags: { fields, custom: [{ name, value }],

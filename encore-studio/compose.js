@@ -647,7 +647,7 @@ function renderTools() {
       ${s.parts.length > 1 ? `<div class="row" style="margin-top:6px"><select class="t" id="partPrint" style="flex:1 1 auto">${s.parts.map((x, i) => `<option value="${i}">${esc(x.name)}</option>`).join("")}</select><button class="btn sm" id="printPart">Print this part</button></div>` : ""}
       <p class="note">MusicXML opens in MuseScore, Sibelius, Finale, Dorico and Guitar Pro. MIDI opens in any DAW, including Basement Studio. A part prints the way that player reads it.</p>
       <div class="lbl"><span>Audio</span><span class="dim">played the way it's written</span></div>
-      <div class="row"><select class="t" id="audFmt">${[["wav", "WAV 24-bit"], ["mp3-320", "MP3 320"], ["flac", "FLAC"], ["alac", "Apple Lossless"], ["m4a-256", "AAC 256"], ["opus-160", "Opus"], ["ogg-vorbis", "Ogg Vorbis"]].map(([v, n]) => `<option value="${v}" ${(db.prefs.audioFormat || "wav") === v ? "selected" : ""}>${n}</option>`).join("")}</select>
+      <div class="row"><select class="t" id="audFmt">${[["wav", "WAV 24-bit"], ["mp3-320", "MP3 320"], ["flac", "FLAC"], ["alac", "Apple Lossless"], ["m4a-256", "AAC"], ["opus-160", "Opus"], ["ogg-vorbis", "Ogg Vorbis"]].map(([v, n]) => `<option value="${v}" ${(db.prefs.audioFormat || "wav") === v ? "selected" : ""}>${n}</option>`).join("")}</select>
         <button class="btn sm" id="dlMix">The mix</button><button class="btn sm" id="dlStems">Stems (one per instrument)</button></div>
       <p class="note">Ready for <a href="master.html" style="color:inherit">Master</a> or <a href="journey.html" style="color:inherit">Journey</a>, or a DAW like Basement Studio.</p>
       <div class="lbl"><span>From Songbook</span><span class="dim">a lead sheet: chords, sections, the words</span></div>

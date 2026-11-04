@@ -734,5 +734,5 @@ export const EXPORT_FORMATS = [
   { id: "flac", name: "FLAC", sub: "Lossless, the archive copy", ext: "flac", folder: "FLAC" },
   { id: "wav", name: "WAV 24-bit", sub: "Lossless, opens anywhere", ext: "wav", folder: "WAV 24-bit" },
   { id: "mp3", name: "MP3 320", sub: "For sharing and old players", ext: "mp3", folder: "MP3 320" },
-  { id: "m4a", name: "AAC 256", sub: "M4A, for Apple Music and phones", ext: "m4a", folder: "AAC 256" },
+  { id: "m4a", name: "AAC", sub: "M4A, for Apple Music and phones (256 kbps, 192 on Windows)", ext: "m4a", folder: "AAC" },
 ];
