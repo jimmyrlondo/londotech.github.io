@@ -203,7 +203,8 @@
     #songPanel[data-l="lyrics"] .tools2, #songPanel[data-l="lyrics"] .hint { display: none; }
     #songPanel[data-l="lyrics"] .songHead { padding-bottom: 6px; }
     #songPanel[data-l="lyrics"] .write { font-size: 16px; }
-    .chordStrip { display: flex; gap: 6px; overflow-x: auto; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--divider); flex: none; scrollbar-width: none; }
+    .chordStrip { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0 0; flex: none; scrollbar-width: none; align-items: center; }
+    .chordStrip .lead { flex: none; font-size: 12px; color: var(--dim); font-weight: 700; margin-right: 2px; }
     .chordStrip::-webkit-scrollbar { display: none; }
     .chordStrip button { flex: none; min-width: 48px; border: 1px solid var(--divider-strong); background: var(--surface, #171412); color: var(--text); border-radius: 10px; font-weight: 800; font-size: 15px; padding: 0 12px; }
     .chordStrip button.used { border-color: rgb(255 59 0 / .6); }
@@ -213,8 +214,9 @@
     /* Song info: everything about the song, roomy, and no lyrics box */
     #songPanel[data-l="info"] #write, #songPanel[data-l="info"] #sheet, #songPanel[data-l="info"] .parts,
     #songPanel[data-l="info"] .hint, #songPanel[data-l="info"] .chordStrip, #songPanel[data-l="info"] #viewSeg { display: none !important; }
-    #songPanel[data-l="info"] .songHead { overflow-y: auto; flex: 1 1 auto; }
-    #songPanel[data-l="info"] .titleRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+    #songPanel[data-l="info"] .songHead { overflow-y: auto; flex: 1 1 auto; display: block; }
+    #songPanel[data-l="info"] .titleRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; align-content: start; }
+    #songPanel[data-l="info"] #printBtn { font-size: 0; width: auto; padding: 0 12px; } #songPanel[data-l="info"] #printBtn::after { content: "Print"; font-size: 14px; font-weight: 700; }
     #songPanel[data-l="info"] .titleRow .artistIn { grid-column: 1 / -1; font-size: 16px; }
     #songPanel[data-l="info"] .tools2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
     #songPanel[data-l="info"] .tools2 > label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
@@ -298,10 +300,10 @@
         <select class="t" id="addInst" aria-label="Tag an instrument"></select>
       </div>
       <div class="parts" id="parts" aria-label="Add a part of the song"></div>
+      <div class="chordStrip" id="chordStrip" aria-label="Chords: pick one, then tap the words"></div>
     </div>
     <textarea class="write scroll" id="write" spellcheck="true" placeholder="Paste or type your lyrics.&#10;&#10;Put a chord in by tapping it on the right, or type it in brackets: [G]Here comes the [C]sun.&#10;Sections go on their own line: [Verse 1], [Chorus].&#10;&#10;Pasted a chord sheet with the chords above the words? Press Quick format."></textarea>
     <div class="sheet scroll hidden" id="sheet"></div>
-    <div class="chordStrip" id="chordStrip" aria-label="Chords to put in"></div>
     <div class="hint" id="hint"></div>
   </section>
 
