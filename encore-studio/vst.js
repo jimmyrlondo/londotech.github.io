@@ -11,6 +11,7 @@ try {
   const rel = (await res.json()).find(r => !r.draft && r.assets?.length);
   const win = rel?.assets.find(a => /windows.*setup.*\.exe$/i.test(a.name)) || rel?.assets.find(a => /\.exe$/i.test(a.name));
   if (win) {
+    $('dl').hidden = false; $('soon').remove();
     $('dlWin').href = win.browser_download_url;
     $('dlWin').title = `${win.name} (${size(win.size)})`;
     const when = new Date(rel.published_at || rel.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });

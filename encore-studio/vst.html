@@ -33,6 +33,7 @@
   .kicker { font-size: 12px; letter-spacing: .1em; color: var(--soft); font-weight: 700; }
   .hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.03em; margin: 8px 0 14px; }
   .lede { font-size: 18px; color: var(--soft); max-width: 640px; margin: 0 0 22px; }
+  [hidden] { display: none !important; }
   .dl { display: flex; gap: 10px; flex-wrap: wrap; }
   .dl a { font-weight: 700; text-decoration: none; border-radius: 999px; padding: 13px 24px; font-size: 16px; }
   .dl .go { color: #fff; background: #ff3b00; }
@@ -84,7 +85,8 @@
       <div class="kicker">ENCORE. PLUGINS</div>
       <h1>ENCORE. VST</h1>
       <p class="lede">Five free plugins for any DAW that runs VST3: a whole vocal chain, reverb, EQ, one-click mastering and an acoustic guitar fixer. One installer, and you tick the ones you want.</p>
-      <div class="dl" id="dl">
+      <div class="ver" id="soon"><b>New downloads are on the way.</b> The next version is being prepared, so downloads are paused for now. Check back soon.</div>
+      <div class="dl" id="dl" hidden>
         <a class="go" id="dlWin" href="https://github.com/jimmyrlondo/encore-vst/releases">Download for Windows</a>
         <a class="ghost" href="#plugins">See the plugins</a>
       </div>
@@ -109,7 +111,7 @@
   </section>
 
   <section class="foot">
-    <div><b>Free.</b> The same plugins are built into <a href="basement.html">ENCORE. Basement Studio</a>. <a href="https://github.com/jimmyrlondo/encore-vst/releases" rel="noopener">Every release</a>.</div>
+    <div><b>Free.</b> The same plugins are built into <a href="basement.html">ENCORE. Basement Studio</a>.</div>
     <div>Presets: each plugin has factory presets, and saves yours in Documents\Encore\&lt;Plugin&gt;\Presets.</div>
   </section>
 </main>

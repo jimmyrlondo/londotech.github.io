@@ -33,6 +33,7 @@
   .kicker { font-size: 12px; letter-spacing: .1em; color: var(--soft); font-weight: 700; }
   .hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.03em; margin: 8px 0 14px; }
   .lede { font-size: 18px; color: var(--soft); max-width: 640px; margin: 0 0 22px; }
+  [hidden] { display: none !important; }
   .dl { display: flex; gap: 10px; flex-wrap: wrap; }
   .dl a { font-weight: 700; text-decoration: none; border-radius: 999px; padding: 13px 24px; font-size: 16px; }
   .dl .go { color: #fff; background: #ff3b00; }
@@ -78,8 +79,9 @@
     <div class="heroText">
       <div class="kicker">THE ENCORE DESKTOP APP</div>
       <h1>ENCORE. Basement Studio</h1>
-      <p class="lede">A free, open-source studio for bands and home recording. Record every input on your interface at once, edit, mix with the ENCORE. plugins built in, and send finished songs to ENCORE.</p>
-      <div class="dl" id="dl">
+      <p class="lede">A free studio for bands and home recording. Record every input on your interface at once, edit, mix with the ENCORE. plugins built in, and send finished songs to ENCORE.</p>
+      <div class="ver" id="soon"><b>New downloads are on the way.</b> The next version is being prepared, so downloads are paused for now. Check back soon.</div>
+      <div class="dl" id="dl" hidden>
         <a class="go" id="dlWin" href="https://github.com/jimmyrlondo/encore-studio/releases">Download for Windows</a>
         <a class="ghost" id="dlMac" href="https://github.com/jimmyrlondo/encore-studio/releases">Download for Mac</a>
         <a class="ghost" id="dlLinuxBtn" href="#linux">Linux and Raspberry Pi</a>
@@ -95,7 +97,7 @@
     <div class="shots" id="shots" aria-label="Screenshots"></div>
   </section>
 
-  <section class="linux" id="linux">
+  <section class="linux" id="linux" hidden>
     <h2>Linux and Raspberry Pi</h2>
     <p>For 64-bit Raspberry Pi OS (Bookworm or newer) on a Pi 4, Pi 400, Pi 5 or Pi 500, and for Debian 12+ and Ubuntu 22.04+ on a PC. Recording needs a USB audio interface on a Pi (they have no mic input).</p>
     <div class="lnx">
@@ -113,7 +115,7 @@
     <div class="feat"><h3>Low latency, set up for you</h3><p>On Windows it finds your interface's own ASIO driver and switches to it by itself. Templates sized for 2, 4 and 8-input interfaces.</p></div>
     <div class="feat"><h3>Edit like you mean it</h3><p>Snap to the grid, trim, fades and crossfades, split, takes, clip gain, markers for every verse and chorus, and right-click any clip for the rest.</p></div>
     <div class="feat"><h3>A real mixer</h3><p>Channel strips, sends to shared reverb and delay, group tracks for the whole kit, automation drawn on the tracks, and a master strip.</p></div>
-    <div class="feat"><h3>ENCORE. plugins, built in</h3><p>ENCORE. Vox (a whole vocal chain with tune and harmony), Verb, Equalize and Master. Your own VST3 and VST2 plugins work too, checked safely so a broken one can't crash it.</p></div>
+    <div class="feat"><h3>ENCORE. plugins, built in</h3><p>ENCORE. Vox (a whole vocal chain with tune and harmony), Verb, Equalize and Master. Your own VST3 plugins work too, checked safely so a broken one can't crash it.</p></div>
     <div class="feat"><h3>Instruments and MIDI</h3><p>Play your instrument plugins or the built-in synth from a keyboard or pads, edit in a piano roll, quantize, and build beats in the drum grid.</p></div>
     <div class="feat"><h3>Tuner, metronome, shortcuts</h3><p>A tuner with 87 instruments and their tunings, a metronome with sounds and accents, and every keyboard shortcut yours to change.</p></div>
     <div class="feat"><h3>Release-ready exports</h3><p>The mix or every track as stems, WAV, FLAC or MP3 at any rate, loudness for streaming, and a release package for ENCORE. with your details and cover.</p></div>
@@ -121,7 +123,7 @@
   </section>
 
   <section class="foot">
-    <div><b>Free and open source.</b> Built on Tracktion Engine and JUCE, under the GNU AGPLv3. <a href="https://github.com/jimmyrlondo/encore-studio" rel="noopener">See the code on GitHub</a> or <a href="https://github.com/jimmyrlondo/encore-studio/releases" rel="noopener">every release</a>.</div>
+    <div><b>Free, no account needed.</b> Powered by Tracktion Engine. Made with JUCE.</div>
     <div>Pairs with these web tools: master in <a href="master.html">Master</a>, record shows in <a href="live.html">Live</a>, rescue old records in <a href="restore.html">Restore</a>.</div>
   </section>
 </main>

@@ -1,6 +1,6 @@
 // Encore: Basement Studio's page: the download buttons point at the newest release on GitHub
 // (pre-releases included, since that's where the app is for now), with the installer preferred
-// over the zip. If GitHub can't be reached, the buttons stay on the releases page.
+// over the zip. With no published release (or GitHub unreachable) the page says downloads are coming soon.
 const $ = id => document.getElementById(id);
 const REPO = 'jimmyrlondo/encore-studio';
 
@@ -24,6 +24,7 @@ try {
   if (!res.ok) throw new Error(res.status);
   const rel = (await res.json()).find(r => !r.draft && r.assets?.length);
   if (rel) {
+    $('dl').hidden = false; $('linux').hidden = false; $('soon').remove();
     const win = pick(rel.assets, [/windows.*setup.*\.exe$/i, /\.exe$/i, /windows.*\.zip$/i]);
     const mac = pick(rel.assets, [/macos.*\.dmg$/i, /\.dmg$/i, /macos.*\.zip$/i]);
     if (win) { $('dlWin').href = win.browser_download_url; $('dlWin').title = `${win.name} (${size(win.size)})`; if (/\.zip$/i.test(win.name)) $('dlWin').textContent = 'Download for Windows (zip)'; }
