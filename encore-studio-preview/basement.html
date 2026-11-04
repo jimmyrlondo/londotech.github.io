@@ -53,6 +53,14 @@
   .feat { background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 16px 18px; }
   .feat h3 { margin: 0 0 6px; font-size: 16px; }
   .feat p { margin: 0; color: var(--soft); font-size: 14px; }
+  .linux { margin-top: 34px; background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 18px 20px; }
+  .linux h2 { margin: 0 0 6px; font-size: 20px; } .linux > p { margin: 0 0 12px; color: var(--soft); font-size: 14px; }
+  .lnx { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .lnx h3 { margin: 0 0 8px; font-size: 15px; }
+  .lnx .pill { display: inline-block; text-decoration: none; font-weight: 700; border-radius: 999px; padding: 10px 18px; margin: 0 8px 8px 0; color: #fff; background: #ff3b00; font-size: 14px; }
+  .lnx .pill.alt { background: transparent; color: var(--text); border: 1px solid var(--divider-strong); }
+  .lnx .pill.missing { opacity: .55; }
+  .linux code { font: 12.5px var(--family-mono, monospace); background: var(--bg-subtle-default, #110e0d); padding: 1px 5px; border-radius: 4px; }
   .foot { margin-top: 26px; display: grid; gap: 6px; color: var(--soft); font-size: 14px; }
   .foot a { color: var(--text); }
 </style>
@@ -74,15 +82,30 @@
       <div class="dl" id="dl">
         <a class="go" id="dlWin" href="https://github.com/jimmyrlondo/encore-studio/releases">Download for Windows</a>
         <a class="ghost" id="dlMac" href="https://github.com/jimmyrlondo/encore-studio/releases">Download for Mac</a>
+        <a class="ghost" id="dlLinuxBtn" href="#linux">Linux and Raspberry Pi</a>
       </div>
-      <div class="ver" id="ver">Free. No account needed. Windows 10/11 and macOS (Apple Silicon and Intel).</div>
+      <div class="ver" id="ver">Free. No account needed. Windows 10/11, macOS (Apple Silicon and Intel), Linux and Raspberry Pi.</div>
       <details class="first">
         <summary>The first time you open it</summary>
         <p><b>Windows:</b> it isn't code-signed yet, so SmartScreen may warn you. Click <b>More info</b>, then <b>Run anyway</b>.<br>
-           <b>Mac:</b> it isn't notarized yet. Right-click the app, choose <b>Open</b>, then <b>Open</b> again.</p>
+           <b>Mac:</b> it isn't notarized by Apple yet. Open it once (macOS will refuse), then go to <b>System Settings</b> &gt; <b>Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>. On macOS 14 and older you can also right-click the app and choose <b>Open</b>.<br>
+           <b>Linux and Raspberry Pi:</b> no warnings; see below for which file to pick.</p>
       </details>
     </div>
     <div class="shots" id="shots" aria-label="Screenshots"></div>
+  </section>
+
+  <section class="linux" id="linux">
+    <h2>Linux and Raspberry Pi</h2>
+    <p>For 64-bit Raspberry Pi OS (Bookworm or newer) on a Pi 4, Pi 400, Pi 5 or Pi 500, and for Debian 12+ and Ubuntu 22.04+ on a PC. Recording needs a USB audio interface on a Pi (they have no mic input).</p>
+    <div class="lnx">
+      <div><h3>Raspberry Pi (64-bit)</h3><a class="pill" id="dlDebArm" href="https://github.com/jimmyrlondo/encore-studio/releases">Installer (.deb)</a><a class="pill alt" id="dlAppArm" href="https://github.com/jimmyrlondo/encore-studio/releases">Run without installing (AppImage)</a></div>
+      <div><h3>Linux PC (64-bit)</h3><a class="pill" id="dlDebX64" href="https://github.com/jimmyrlondo/encore-studio/releases">Installer (.deb)</a><a class="pill alt" id="dlAppX64" href="https://github.com/jimmyrlondo/encore-studio/releases">Run without installing (AppImage)</a></div>
+    </div>
+    <details class="first"><summary>How to install</summary>
+      <p><b>Installer (.deb):</b> double-click it, or in a terminal in your Downloads folder: <code>sudo apt install ./encore-basement-studio_*.deb</code>. It shows up in your menu under Sound &amp; Video, and .encore songs open in it.<br>
+         <b>AppImage:</b> right-click it, Properties, allow it to run as a program (or <code>chmod +x</code>), then double-click. If it won't start, install <code>libfuse2</code>.<br>
+         <b>Sound:</b> works with your interface through ALSA, JACK or PipeWire.</p></details>
   </section>
 
   <section class="features">

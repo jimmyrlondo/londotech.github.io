@@ -1037,14 +1037,16 @@ function renderChordStrip() {
   const used = chordsUsed(s.body), k = writtenKey(s), L = k ? likelyChords(k) : null;
   const likely = L ? [...L.home, ...L.sevenths.slice(0, 3)].map((x) => x.symbol).filter((c) => !used.includes(c)) : ["G", "C", "D", "Em", "Am", "F", "A", "E"].filter((c) => !used.includes(c));
   const btn = (c, cls) => `<button class="${cls}${state.armed === c ? " on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`;
-  strip.innerHTML = used.map((c) => btn(c, "used")).join("") + (used.length && likely.length ? `<span class="sep"></span>` : "") +
+  strip.innerHTML = `<span class="lead">${state.armed ? "Tap words" : "Chords"}</span>` + used.map((c) => btn(c, "used")).join("") + (used.length && likely.length ? `<span class="sep"></span>` : "") +
     likely.map((c) => btn(c, "")).join("") + `<button class="more" data-more="1">More chords</button>`;
 }
-// a tap keeps the keyboard up: the box keeps its focus, so the chord lands where you were typing
-$("chordStrip").addEventListener("pointerdown", (e) => { if (e.target.closest("button") && state.view === "write") e.preventDefault(); });
+// a chord from the strip: the Chords view opens with that chord picked up, and every word you
+// tap gets it, with no keyboard in the way. Tap the chord again (or another) to put it down.
 $("chordStrip").onclick = (e) => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.more) { setMobile("tools"); return; }
+  if (document.activeElement === write) write.blur();
+  if (state.view !== "sheet") { state.view = "sheet"; db.prefs.view = state.view; save(); renderSong(); }
   useChord(b.dataset.c);
   renderChordStrip();
 };

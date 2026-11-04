@@ -28,6 +28,13 @@ try {
     const mac = pick(rel.assets, [/macos.*\.dmg$/i, /\.dmg$/i, /macos.*\.zip$/i]);
     if (win) { $('dlWin').href = win.browser_download_url; $('dlWin').title = `${win.name} (${size(win.size)})`; if (/\.zip$/i.test(win.name)) $('dlWin').textContent = 'Download for Windows (zip)'; }
     if (mac) { $('dlMac').href = mac.browser_download_url; $('dlMac').title = `${mac.name} (${size(mac.size)})`; }
+    // Linux and Raspberry Pi: a .deb to install and an AppImage to just run, for PCs (x64) and Pis (arm64)
+    const lnx = [['dlDebArm', /_arm64\.deb$/i], ['dlAppArm', /aarch64\.AppImage$/i], ['dlDebX64', /_amd64\.deb$/i], ['dlAppX64', /x86_64\.AppImage$/i]];
+    for (const [id, re] of lnx) {
+      const a = rel.assets.find((x) => re.test(x.name));
+      if (a) { $(id).href = a.browser_download_url; $(id).title = `${a.name} (${size(a.size)})`; }
+      else { $(id).classList.add('missing'); $(id).title = 'Coming with the next release'; }
+    }
     const when = new Date(rel.published_at || rel.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
     $('ver').textContent = `Version ${rel.tag_name.replace(/^v/, '')}${rel.prerelease ? ' (preview)' : ''}, ${when}. Free, no account needed. Windows 10/11 and macOS.`;
   }
