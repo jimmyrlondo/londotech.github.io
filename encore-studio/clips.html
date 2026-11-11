@@ -104,12 +104,19 @@
   .lookBtn:hover { border-color: #ff6c40; }
   .lookBtn.on { border-color: #ff3b00; box-shadow: 0 0 0 1px #ff3b00 inset; background: rgb(255 59 0 / .08); }
   .lookBtn .th { display: grid; place-items: center; height: 104px; border-radius: 8px; background: #000; overflow: hidden; }
-  .lookBtn canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .lookBtn canvas { display: block; height: 104px; width: auto; max-width: 100%; object-fit: contain; }
   .lookBtn b { font-size: 13.5px; }
   .lookBtn span { font-size: 11.5px; color: var(--dim); line-height: 1.3; }
   .swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .sw { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--divider-strong); padding: 0; }
   .sw.on { outline: 2px solid #fff; outline-offset: 2px; }
+  .sw.custom { position: relative; overflow: hidden; background: conic-gradient(#ff3b00, #facc15, #22c55e, #22d3ee, #6366f1, #ec4899, #ff3b00); cursor: pointer; }
+  .sw.custom::after { content: "+"; position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 16px; color: #fff; text-shadow: 0 1px 3px #000; pointer-events: none; }
+  .sw.custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
+  .swsep { width: 1px; height: 20px; background: var(--divider-strong); margin: 0 2px; }
+  .seg.slide { display: flex; align-items: center; gap: 8px; padding: 0 10px; }
+  .seg.slide input { width: 120px; accent-color: #ff3b00; }
+  .seg.slide output { font-weight: 800; font-size: 13px; min-width: 34px; }
   .sw.auto { width: auto; border-radius: 999px; padding: 0 10px; font-size: 12px; font-weight: 700; background: transparent; color: var(--soft); }
   .sw.auto.on { color: var(--text); }
   input[type=color].sw { overflow: hidden; background: none; cursor: pointer; }
@@ -252,8 +259,11 @@
         <label class="ck"><input type="checkbox" id="canvasText"> Title and artist on the Canvas</label>
         <p class="note">Spotify suggests no text on a Canvas (the app already shows your song's name under it) and a loop of 3 to 8 seconds that runs smoothly. It plays without sound. Spotify for Artists takes MP4 files.</p>
       </div>
-      <div class="lbl">Colour <span class="dim">from your cover</span></div>
+      <label class="ck"><input type="checkbox" id="showMark"> ENCORE. mark in the corner</label>
+      <div class="lbl">Accent colour <span class="dim">Auto picks from your cover</span></div>
       <div class="swatches" id="swatches"></div>
+      <div class="lbl">Background</div>
+      <div class="swatches" id="bgSwatches"></div>
     </div>
     <div class="scroll body hidden" id="tabWords">
       <p class="note" id="wordsIntro" style="margin-top:0"></p>

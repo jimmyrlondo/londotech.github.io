@@ -376,6 +376,45 @@ function pulse(ctx, scene, t, W, H) {
 }
 function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgb(${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255} / ${Math.max(0, Math.min(1, a)).toFixed(3)})`; }
 
+// ---------- the ENCORE. mark ----------
+// The wordmark from the tool bar, as paths (its box: 408.308,330.5 706.176 x 201.6), with the orange square.
+const MARK_BOX = { x: 408.308, y: 330.5, w: 706.176, h: 201.6 };
+const MARK_PATHS = ["M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z", "M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z", "M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z", "M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z", "M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z", "M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z"];
+const MARK_SQUARE = { x: 1083.956, y: 501.572, s: 30.528 };
+let markPaths = null;
+/** The ENCORE. wordmark, h pixels tall, its top-left at (x, y) */
+export function drawWordmark(ctx, x, y, h, ink = PAPER, alpha = 1) {
+  markPaths ||= MARK_PATHS.map((d) => new Path2D(d));
+  const k = h / MARK_BOX.h;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.translate(x - MARK_BOX.x * k, y - MARK_BOX.y * k); ctx.scale(k, k);
+  ctx.fillStyle = ink; for (const p of markPaths) ctx.fill(p);
+  ctx.fillStyle = "#ff3b00"; ctx.fillRect(MARK_SQUARE.x, MARK_SQUARE.y, MARK_SQUARE.s, MARK_SQUARE.s);
+  ctx.restore();
+}
+export const markWidth = (h) => h * MARK_BOX.w / MARK_BOX.h;
+/**
+ * Where the mark goes in each format: a corner the looks leave empty and the apps don't cover
+ * (vertical: under TikTok, Reels and Shorts' top bar, above the text-safe area; Canvas: above
+ * Spotify's title area; square and landscape: in the outer margin, bottom right).
+ */
+export function markSpot(fmt) {
+  const f = FORMATS[fmt], S = textSafe(fmt);
+  if (fmt === "vertical") { const h = 34; return { x: S.x + S.w - markWidth(h), y: S.y - h - 14, h }; }
+  if (fmt === "canvas") { const h = 36; return { x: S.x + S.w - markWidth(h), y: S.y - h - 40, h }; }
+  const h = fmt === "landscape" ? 30 : 26;
+  return { x: f.w - S.x - markWidth(h), y: f.h - S.y / 2 - h / 2, h };
+}
+function watermark(ctx, scene) {
+  if (scene.mark === false) return;
+  const m = markSpot(scene.fmt);
+  ctx.save();
+  ctx.shadowColor = "rgb(0 0 0 / 0.55)"; ctx.shadowBlur = m.h * 0.5;
+  drawWordmark(ctx, m.x, m.y, m.h, PAPER, 0.9);
+  ctx.restore();
+}
+
 const LOOK_FN = { spotlight, lyrics: bigLyrics, wave: audiogram, card: titleCard, drift, float, pulse };
 
 /**
@@ -388,18 +427,20 @@ export function drawFrame(ctx, scene, t) {
   ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.globalAlpha = 1; ctx.filter = "none";
   (LOOK_FN[look] || spotlight)(ctx, scene, t, W, H);
   ctx.restore();
+  ctx.save(); watermark(ctx, scene); ctx.restore();
 }
 
-/** Cover art stand-in when there's none yet: dark, with the ENCORE. square */
+/** Cover art stand-in when there's none yet: dark, with the ENCORE. mark small in the middle (so any crop keeps it whole) */
 export function placeholderCover(title = "", accent = "#ff3b00") {
   const c = mk(1000, 1000), g = c.getContext("2d");
   const grad = g.createLinearGradient(0, 0, 1000, 1000);
   grad.addColorStop(0, "#2c2723"); grad.addColorStop(1, "#0c0a09");
   g.fillStyle = grad; g.fillRect(0, 0, 1000, 1000);
-  g.fillStyle = accent; g.fillRect(760, 760, 140, 140);
-  g.fillStyle = PAPER; g.font = font(800, 120); g.textBaseline = "top";
-  const lines = wrapWords(title || "Your cover here", 760, (s) => g.measureText(s).width, 4);
-  lines.forEach((l, i) => g.fillText(l, 100, 100 + i * 128));
+  const r = g.createRadialGradient(500, 500, 0, 500, 500, 520);
+  r.addColorStop(0, hexA(accent, 0.22)); r.addColorStop(1, hexA(accent, 0));
+  g.fillStyle = r; g.fillRect(0, 0, 1000, 1000);
+  const h = 80, w = markWidth(h);
+  drawWordmark(g, 500 - w / 2, 500 - h / 2, h, PAPER, 0.92);
   return c;
 }
 export { hslHex };

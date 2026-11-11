@@ -12,7 +12,7 @@ export const FORMATS = {
 };
 export const FORMAT_ORDER = ["vertical", "square", "landscape", "canvas"];
 export const CLIP_LENGTHS = [15, 30, 60];
-export const CANVAS_LENGTHS = [4, 6, 8];   // Spotify asks for 3 to 8 seconds
+export const CANVAS_MIN = 3, CANVAS_MAX = 8;   // Spotify asks for 3 to 8 seconds
 export const MIN_CLIP = 3, MAX_CLIP = 60;
 
 export const LOOKS = {
@@ -203,7 +203,7 @@ export function paletteFrom(rgba) {
   const accentOf = (c) => hslHex(c.h, Math.max(0.62, Math.min(0.95, c.s)), 0.58);
   const accent = pop ? accentOf(pop) : "#ff3b00";
   const bg = main && main.n > total * 0.12 ? hslHex(main.h, Math.min(0.45, main.s), 0.11) : "#14110f";
-  const swatches = [...new Set([accent, ...byPop.slice(1, 4).map(accentOf), "#ff3b00", "#f2efe8"])].slice(0, 6);
+  const swatches = [...new Set([accent, ...byPop.slice(1, 5).map(accentOf)])].slice(0, 5);
   return { accent, bg, swatches, bright: total ? lsum / total : 0.5, colourful: colourful.length > 0 && grey < total * 0.85 };
 }
 
@@ -427,7 +427,7 @@ export const loopWave = (t, T, phase = 0) => 0.5 - 0.5 * Math.cos(2 * Math.PI * 
 export const easeOut = (x) => 1 - (1 - Math.max(0, Math.min(1, x))) ** 3;
 
 /** Settings worth remembering between visits (never the audio, art or words) */
-export const REMEMBER = ["artist", "cta", "ctaCustom", "fmt", "look", "canvasLook", "len", "canvasLen", "showTitle", "showCta", "showDate", "showLyrics", "canvasText", "safe", "safeWhich"];
+export const REMEMBER = ["artist", "cta", "ctaCustom", "fmt", "look", "canvasLook", "len", "canvasLen", "showTitle", "showCta", "showDate", "showLyrics", "canvasText", "safe", "safeWhich", "showMark"];
 export function pickSettings(state) { const o = {}; for (const k of REMEMBER) if (state[k] !== undefined) o[k] = state[k]; return o; }
 export function mergeSettings(state, saved) {
   if (!saved || typeof saved !== "object") return state;
@@ -436,9 +436,14 @@ export function mergeSettings(state, saved) {
   if (!LOOKS[state.look] || LOOKS[state.look].canvas) state.look = "spotlight";
   if (!LOOKS[state.canvasLook] || !LOOKS[state.canvasLook].canvas) state.canvasLook = "drift";
   if (!CLIP_LENGTHS.includes(state.len) && !(state.len >= MIN_CLIP && state.len <= MAX_CLIP)) state.len = 30;
-  if (!CANVAS_LENGTHS.includes(state.canvasLen)) state.canvasLen = 6;
+  if (!(state.canvasLen >= CANVAS_MIN && state.canvasLen <= CANVAS_MAX)) state.canvasLen = 6;
+  else state.canvasLen = Math.round(state.canvasLen * 2) / 2;
   return state;
 }
+
+/** Colours to pick from beside the cover's own: bright accents, then dark backgrounds */
+export const ACCENTS = ["#ff3b00", "#ff8a00", "#facc15", "#a3e635", "#22c55e", "#14b8a6", "#22d3ee", "#3b82f6", "#6366f1", "#a855f7", "#ec4899", "#e11d48", "#f2efe8"];
+export const BACKGROUNDS = ["#0b0908", "#1c1917", "#2a1a12", "#2b0f12", "#2a0f24", "#1a1433", "#0f1a33", "#0b2027", "#0d2418", "#26230c"];
 
 /** Which recording formats to ask the browser for, best first */
 export function mimeCandidates(audio) {

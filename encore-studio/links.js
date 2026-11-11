@@ -1,7 +1,7 @@
 // ENCORE. Links: release pages (smart link + pre-save page) built in the browser.
 import {
   PLATFORMS, LISTEN_ORDER, PRESAVE_PLATFORMS, EXTRA_PLATFORMS, THEMES, detectPlatform, songLinkUrl, mapSongLink, itunesSearchUrl, itunesLookupUrl, mapItunes, bestMatch,
-  oembedUrl, mapOembed, youtubeMusicUrl, parseFormCode, PROVIDER_NAMES, releaseAt, effectiveMode, paletteFromPixels, coverColours, themeTokens, hex, newPage, newLink, mergeLinks,
+  oembedUrl, mapOembed, youtubeMusicUrl, profileLink, parseFormCode, PROVIDER_NAMES, releaseAt, effectiveMode, paletteFromPixels, coverColours, themeTokens, hex, newPage, newLink, mergeLinks,
   moveItem, safeUrl, esc, slug, fileNameFor, makeBackup, readBackup, buildExportHtml, formatWhen, linkName, actionLabel,
 } from './links-core.js';
 import { encodeQR, qrToSvg } from './links-qr.js';
@@ -138,13 +138,15 @@ function updateRelease() { page.releaseAt = page.mode === 'pre' ? releaseAt(page
 $('relDate').addEventListener('input', (e) => { page.releaseDate = e.target.value; updateRelease(); renderSong(); changed(); });
 $('relTime').addEventListener('input', (e) => { page.releaseTime = e.target.value || '00:00'; updateRelease(); renderSong(); changed(); });
 $('autoFlip').addEventListener('change', (e) => { page.autoFlip = e.target.checked; changed(); });
+$('relLocal').addEventListener('change', (e) => { page.releaseLocal = e.target.checked; renderSong(); changed(); });
 function renderSong() {
   $('title').value = page.title; $('artist').value = page.artist; $('blurb').value = page.blurb || '';
   for (const b of $('modeSeg').children) { b.classList.toggle('on', b.dataset.v === page.mode); b.setAttribute('aria-checked', b.dataset.v === page.mode); }
   $('preBox').classList.toggle('hidden', page.mode !== 'pre');
-  $('relDate').value = page.releaseDate || ''; $('relTime').value = page.releaseTime || '00:00'; $('autoFlip').checked = page.autoFlip !== false;
+  $('relDate').value = page.releaseDate || ''; $('relTime').value = page.releaseTime || '00:00'; $('autoFlip').checked = page.autoFlip !== false; $('relLocal').checked = !!page.releaseLocal;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'your time zone';
-  let note = `The countdown ends at this moment in your time zone (${tz}). Fans see it in their own time.`;
+  let note = page.releaseLocal ? `Each fan's countdown ends at this time on their own clock. In your time zone (${tz}) that's the time shown above.`
+    : `The countdown ends at this moment in your time zone (${tz}). Fans see it in their own time.`;
   if (page.mode === 'pre' && page.releaseAt && page.releaseAt <= Date.now()) note = `That moment has passed, so the page ${page.autoFlip !== false ? 'already shows Out now' : 'shows a finished countdown'}. Pick a later date, or switch to Out now.`;
   else if (page.mode === 'pre' && !page.releaseAt) note = 'Pick your release day to start the countdown.';
   $('tzNote').textContent = note;
@@ -204,6 +206,8 @@ async function find() {
   $('cands').innerHTML = '';
   const det = detectPlatform(url);
   if (!det) { status('That doesn\'t look like a music link. Copy the share link from Spotify, Apple Music, YouTube, Deezer, TIDAL, Amazon, SoundCloud or Bandcamp.', 'bad'); return; }
+  const prof = profileLink(url);
+  if (prof) { await profileFound(url, prof); return; }
   $('findBtn').disabled = true;
   let info = { title: '', artist: '', artUrl: '', links: [] }, via = [];
   const key = store.get('songlink-key', '');
@@ -266,6 +270,26 @@ async function find() {
   const names = info.links.map((l) => PLATFORMS[l.platform]?.name).filter(Boolean);
   const pending = $('cands').children.length ? ' Is it one of these on Apple Music?' : '';
   status(`Found ${esc(info.title || 'your song')}${info.artist ? ' by ' + esc(info.artist) : ''}: ${added ? `added ${added} link${added > 1 ? 's' : ''} (${esc(names.join(', '))})` : 'your links were already there'}.${slNote && !via.includes('song.link') ? ' ' + esc(slNote) + ' Add the other services on the Links tab.' : ''}${pending}`, 'ok');
+}
+// An artist profile: keep it as a Follow button, take the artist's name if there's none yet, and say how to get a song link
+async function profileFound(url, prof) {
+  const name = PLATFORMS[prof.platform]?.name || 'that app';
+  const howTo = prof.platform === 'spotify' ? ' In Spotify: open the song, tap the three dots, Share, Copy Song Link.'
+    : prof.platform === 'appleMusic' ? ' In Apple Music: open the song, tap the three dots, Share, Copy Link.' : '';
+  if (prof.type === 'playlist') { status(`That's a playlist link. Paste a link to one song or album and we'll fill everything in.${howTo}`, 'bad'); return; }
+  let artist = '';
+  if (oembedUrl(prof.platform, url).startsWith('http') && ['spotify', 'youtube', 'soundcloud'].includes(prof.platform)) {
+    $('findBtn').disabled = true;
+    try { const r = await getJson(oembedUrl(prof.platform, url)); if (r.ok && r.json) artist = String(r.json.title || r.json.author_name || '').trim(); } catch {}
+    $('findBtn').disabled = false;
+  }
+  const extraPlatform = EXTRA_PLATFORMS.includes(prof.platform) ? prof.platform : 'link';
+  const had = page.links.some((l) => l.kind === 'extra' && l.url === url);
+  if (!had) { const l = newLink(extraPlatform, 'extra', url); l.action = 'Follow'; if (extraPlatform === 'link') l.label = name; page.links.push(l); }
+  const tookName = artist && !page.artist;
+  if (tookName) page.artist = artist;
+  renderSong(); renderLinks(); changed();
+  status(`That's ${artist ? esc(artist) + "'s" : 'an'} artist profile on ${esc(name)}, not a song. ${had ? 'It was already one of your links' : 'We added it to your links as a Follow button'}${tookName ? ', and ' + esc(artist) + ' as the artist' : ''}. To fill in the song, paste a link to one song or album.${howTo}`, 'ok');
 }
 function showCands(c) {
   $('cands').innerHTML = c.map((x, i) => `<button class="cand" data-i="${i}"><img src="${esc(x.artUrl.replace('1000x1000', '100x100'))}" alt=""><span><b>${esc(x.title)}</b><span>${esc(x.artist)} · ${esc(x.album)}</span></span></button>`).join('') + '<button class="btn sm" data-i="-1">None of these</button>';

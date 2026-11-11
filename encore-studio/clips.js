@@ -2,7 +2,7 @@
 // The page: your song, art and words on the left; the video preview, the hook finder
 // and the waveform in the middle; looks, lyric timing and export on the right.
 // Everything runs in this browser. Nothing is uploaded.
-import { FORMATS, FORMAT_ORDER, CLIP_LENGTHS, CANVAS_LENGTHS, LOOKS, looksFor, MIN_CLIP, MAX_CLIP, analyzeSong, suggestClips, lyricLines, songParts, lineTimes, activeLine,
+import { FORMATS, FORMAT_ORDER, CLIP_LENGTHS, CANVAS_MIN, CANVAS_MAX, ACCENTS, BACKGROUNDS, LOOKS, looksFor, MIN_CLIP, MAX_CLIP, analyzeSong, suggestClips, lyricLines, songParts, lineTimes, activeLine,
   formatTime, parseTime, clampClip, fileName, paletteFrom, safeRects, pickSettings, mergeSettings } from "./clips-core.js";
 import { drawFrame, placeholderCover } from "./clips-draw.js";
 import { recordVideo, clipBuffer, pickMime, canRecord, inspectVideo } from "./clips-export.js";
@@ -16,13 +16,14 @@ const SETTINGS_KEY = "encore-clips-settings";
 let saved = null;
 try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null"); } catch {}
 const state = mergeSettings({ artist: "", cta: "Out now", ctaCustom: "", fmt: "vertical", look: "spotlight", canvasLook: "drift", len: 30, canvasLen: 6,
-  showTitle: true, showCta: true, showDate: true, showLyrics: true, canvasText: false, safe: false, safeWhich: "all" }, saved);
+  showTitle: true, showCta: true, showDate: true, showLyrics: true, canvasText: false, safe: false, safeWhich: "all", showMark: true }, saved);
 let saveTimer = 0;
 const remember = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(pickSettings(state))); } catch {} }, 300); };
 
 const song = { name: "", chans: null, fs: 0, duration: 0, an: null, buffer: null, picks: [], pick: -1 };
 const cover = { img: null, id: 0, palette: null, fromFile: false };
 let accent = "";                       // "" = from the cover
+let bgPick = "";                       // "" = from the cover
 const clip = { start: 0, end: 30 };
 const words = { lines: [], timed: [], mode: "even" };
 let title = "", date = "";
@@ -53,7 +54,7 @@ function coverImage() {
 }
 function colors() {
   const p = cover.palette;
-  return { accent: accent || p?.accent || "#ff3b00", bg: p?.bg || "#14110f" };
+  return { accent: accent || p?.accent || "#ff3b00", bg: bgPick || p?.bg || "#14110f" };
 }
 /** Everything a frame needs, for a format (export takes a copy so later edits don't change a video being made) */
 function scene(fmt = state.fmt, snapshot = false) {
@@ -62,7 +63,7 @@ function scene(fmt = state.fmt, snapshot = false) {
     colors: colors(), title, artist: state.artist.trim(), cta: ctaText(), date: date.trim(),
     show: { title: state.showTitle, cta: state.showCta, date: state.showDate, lyrics: state.showLyrics },
     lyrics: { lines: words.lines.slice(), timed: words.mode === "timed" ? words.timed.slice() : null },
-    clip: { start: clip.start, end: clip.end }, an: song.an, canvasLen: state.canvasLen, canvasText: state.canvasText,
+    clip: { start: clip.start, end: clip.end }, an: song.an, canvasLen: state.canvasLen, canvasText: state.canvasText, mark: state.showMark,
   };
   sc.cache = snapshot ? {} : (caches[fmt] ||= {});
   return sc;
@@ -343,17 +344,24 @@ function renderLen() {
   const seg = $("lenSeg");
   if (isCanvas()) {
     $("lenLabel").textContent = "Loop";
-    seg.innerHTML = CANVAS_LENGTHS.map((s) => `<button data-l="${s}" class="${s === state.canvasLen ? "on" : ""}" type="button">${s} s</button>`).join("");
+    seg.classList.add("slide");
+    if (!$("canvasLen")) seg.innerHTML = `<input type="range" id="canvasLen" min="${CANVAS_MIN}" max="${CANVAS_MAX}" step="0.5" aria-label="Loop length in seconds"><output id="canvasLenOut"></output>`;
+    $("canvasLen").value = state.canvasLen; $("canvasLenOut").textContent = state.canvasLen + " s";
     return;
   }
   $("lenLabel").textContent = "Length";
   const L = Math.round(clipLen()), custom = !CLIP_LENGTHS.includes(L);
+  seg.classList.remove("slide");
   seg.innerHTML = CLIP_LENGTHS.map((s) => `<button data-l="${s}" class="${s === L ? "on" : ""}" type="button" ${song.duration && s > song.duration + 0.5 ? "disabled" : ""}>${s} s</button>`).join("") + (custom && song.an ? `<button class="on" type="button" disabled>${L} s</button>` : "");
 }
+$("lenSeg").addEventListener("input", (e) => {
+  if (e.target.id !== "canvasLen") return;
+  state.canvasLen = +e.target.value; $("canvasLenOut").textContent = state.canvasLen + " s"; loopT0 = performance.now();
+  remember(); requestDraw(); updateWhat(); thumbsSoon();
+});
 $("lenSeg").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-l]"); if (!b) return;
   const L = +b.dataset.l;
-  if (isCanvas()) { state.canvasLen = L; remember(); renderLen(); requestDraw(); updateWhat(); thumbsSoon(); return; }
   stopPlay();
   state.len = L; remember();
   if (song.an) {
@@ -400,7 +408,7 @@ function drawThumbs() {
   const F = fmtNow();
   for (const b of $("looks").children) {
     const c = b.querySelector("canvas"), g = c.getContext("2d"), k = Math.max(c.width / F.w, c.height / F.h) * 2;
-    c.width = Math.round(F.w * k); c.height = Math.round(F.h * k);
+    c.width = Math.round(F.w * k); c.height = Math.round(F.h * k); c.style.aspectRatio = `${F.w} / ${F.h}`;
     g.setTransform(k, 0, 0, k, 0, 0);
     const sc = scene(); if (isCanvas()) sc.canvasLook = b.dataset.look; else sc.look = b.dataset.look;
     sc.cache = (caches["thumb" + state.fmt] ||= {});
@@ -409,15 +417,31 @@ function drawThumbs() {
 }
 
 // ---------- colours ----------
+const swatchRow = (list, cur, kind) => list.map((c) => `<button class="sw${cur === c ? " on" : ""}" data-k="${kind}" data-c="${c}" style="background:${c}" type="button" aria-label="${kind === "bg" ? "Background" : "Accent"} colour ${c}" aria-pressed="${cur === c}"></button>`).join("");
+const customSw = (id, val, label) => `<label class="sw custom" title="${label}"><input type="color" id="${id}" value="${val}" aria-label="${label}"></label>`;
 function renderSwatches() {
-  const p = cover.palette, list = p ? p.swatches : ["#ff3b00", "#22d3ee", "#f2efe8"], cur = colors().accent;
-  $("swatches").innerHTML = `<button class="sw auto${!accent ? " on" : ""}" data-c="" type="button" title="Pick from the cover">Auto</button>` +
-    list.map((c) => `<button class="sw${accent === c ? " on" : ""}" data-c="${c}" style="background:${c}" type="button" aria-label="Accent colour ${c}"></button>`).join("") +
-    `<input type="color" class="sw" id="customColor" value="${cur}" aria-label="Your own colour" title="Your own colour">`;
+  const p = cover.palette, cur = colors();
+  const fromCover = p ? p.swatches.filter((c) => !ACCENTS.includes(c)) : [];
+  $("swatches").innerHTML = `<button class="sw auto${!accent ? " on" : ""}" data-k="accent" data-c="" type="button" title="Pick from the cover">Auto</button>` +
+    swatchRow(fromCover, accent, "accent") + (fromCover.length ? `<span class="swsep" aria-hidden="true"></span>` : "") +
+    swatchRow(ACCENTS, accent, "accent") + customSw("customColor", cur.accent, "Your own accent colour");
+  const coverBg = p?.bg && !BACKGROUNDS.includes(p.bg) ? [p.bg] : [];
+  $("bgSwatches").innerHTML = `<button class="sw auto${!bgPick ? " on" : ""}" data-k="bg" data-c="" type="button" title="Pick from the cover">Auto</button>` +
+    swatchRow([...coverBg, ...BACKGROUNDS], bgPick, "bg") + customSw("customBg", cur.bg, "Your own background colour");
 }
-$("swatches").addEventListener("click", (e) => { const b = e.target.closest("button.sw"); if (!b) return; accent = b.dataset.c; renderSwatches(); requestDraw(); thumbsSoon(); });
-$("swatches").addEventListener("input", (e) => { if (e.target.id === "customColor") { accent = e.target.value; requestDraw(); thumbsSoon(); } });
-$("swatches").addEventListener("change", (e) => { if (e.target.id === "customColor") renderSwatches(); });
+const freshBackdrops = () => { for (const k in caches) caches[k] = {}; };   // the blurred backdrop is tinted with the background
+function pickColour(kind, c) {
+  if (kind === "bg") bgPick = c; else accent = c;
+  freshBackdrops(); renderSwatches(); requestDraw(); thumbsSoon();
+}
+for (const id of ["swatches", "bgSwatches"]) {
+  $(id).addEventListener("click", (e) => { const b = e.target.closest("button.sw"); if (b) pickColour(b.dataset.k, b.dataset.c); });
+  $(id).addEventListener("input", (e) => {
+    if (e.target.id === "customColor") accent = e.target.value; else if (e.target.id === "customBg") bgPick = e.target.value; else return;
+    freshBackdrops(); requestDraw(); thumbsSoon();
+  });
+  $(id).addEventListener("change", (e) => { if (e.target.type === "color") renderSwatches(); });
+}
 
 // ---------- words and timing ----------
 function setLyricsText(text, fromUser = true) {
@@ -664,7 +688,7 @@ $("cta").addEventListener("change", (e) => { state.cta = e.target.value; $("ctaC
 $("ctaCustom").addEventListener("input", (e) => { state.ctaCustom = e.target.value; remember(); requestDraw(); thumbsSoon(); });
 $("date").addEventListener("input", (e) => { date = e.target.value; requestDraw(); thumbsSoon(); });
 $("lyrics").addEventListener("input", (e) => setLyricsText(e.target.value));
-for (const id of ["showTitle", "showCta", "showDate", "showLyrics", "canvasText"]) $(id).addEventListener("change", (e) => { state[id] = e.target.checked; remember(); requestDraw(); thumbsSoon(); });
+for (const id of ["showTitle", "showCta", "showDate", "showLyrics", "canvasText", "showMark"]) $(id).addEventListener("change", (e) => { state[id] = e.target.checked; remember(); requestDraw(); thumbsSoon(); });
 $("play").addEventListener("click", togglePlay);
 $("ttabs").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-t]"); if (!b) return;
@@ -706,7 +730,7 @@ $("artist").value = state.artist;
 $("cta").value = [...$("cta").options].some((o) => o.value === state.cta) ? state.cta : "";
 state.cta = $("cta").value;
 $("ctaCustom").value = state.ctaCustom; $("ctaCustom").classList.toggle("hidden", state.cta !== "custom");
-for (const id of ["showTitle", "showCta", "showDate", "showLyrics", "canvasText", "safe"]) $(id).checked = !!state[id];
+for (const id of ["showTitle", "showCta", "showDate", "showLyrics", "canvasText", "safe", "showMark"]) $(id).checked = !!state[id];
 clip.start = 0; clip.end = state.len;
 renderSwatches();
 setFormat(state.fmt);

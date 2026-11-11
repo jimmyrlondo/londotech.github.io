@@ -40,7 +40,7 @@ export const PLATFORMS = {
 };
 export const LISTEN_ORDER = ['spotify', 'appleMusic', 'youtubeMusic', 'youtube', 'amazonMusic', 'deezer', 'tidal', 'soundcloud', 'bandcamp', 'pandora', 'audiomack', 'anghami', 'boomplay', 'audius', 'napster', 'itunes', 'amazonStore'];
 export const PRESAVE_PLATFORMS = ['spotify', 'appleMusic', 'amazonMusic', 'deezer', 'tidal', 'link'];
-export const EXTRA_PLATFORMS = ['encore', 'bandcamp', 'merch', 'tickets', 'website', 'instagram', 'tiktok', 'youtube', 'x', 'facebook', 'email', 'link'];
+export const EXTRA_PLATFORMS = ['encore', 'spotify', 'appleMusic', 'soundcloud', 'bandcamp', 'merch', 'tickets', 'website', 'instagram', 'tiktok', 'youtube', 'x', 'facebook', 'email', 'link'];
 
 export function actionLabel(link) {
   if (link.action) return link.action;
@@ -51,6 +51,29 @@ export function actionLabel(link) {
 export const linkName = (link) => (link.label || '').trim() || (link.kind === 'presave' && link.platform === 'link' ? 'Pre-save on your app' : (PLATFORMS[link.platform] || PLATFORMS.link).name);
 
 // ---------- reading a music link ----------
+/**
+ * An artist profile or playlist link rather than one song or album: { platform, type: 'artist' | 'playlist' }, else null.
+ * (Spotify describes an artist page with the artist's name, which looks just like a song title.)
+ */
+export function profileLink(url) {
+  let u;
+  try { u = new URL(String(url).trim()); } catch { return null; }
+  const h = u.hostname.replace(/^www\./, '').toLowerCase(), p = u.pathname.replace(/\/+$/, ''), seg = p.split('/').filter(Boolean);
+  const kind = (artist, playlist) => (artist ? 'artist' : playlist ? 'playlist' : '');
+  let platform = '', type = '';
+  if (h === 'open.spotify.com') { platform = 'spotify'; type = kind(/\/(artist|user)\//.test(p + '/'), /\/(playlist|show|episode)\//.test(p + '/')); }
+  else if (h === 'music.apple.com' || h === 'itunes.apple.com') { platform = 'appleMusic'; type = kind(/\/artist\//.test(p), /\/playlist\//.test(p)); }
+  else if (h === 'youtube.com' || h === 'm.youtube.com' || h === 'music.youtube.com') {
+    platform = h === 'music.youtube.com' ? 'youtubeMusic' : 'youtube';
+    type = kind(/^\/(@|channel\/|c\/|user\/)/.test(p), !u.searchParams.get('v') && (/^\/playlist/.test(p) || u.searchParams.has('list')));
+  }
+  else if (h.endsWith('deezer.com')) { platform = 'deezer'; type = kind(/\/(artist|profile)\//.test(p), /\/playlist\//.test(p)); }
+  else if (h.endsWith('tidal.com')) { platform = 'tidal'; type = kind(/\/artist\//.test(p), /\/playlist\//.test(p)); }
+  else if (h === 'soundcloud.com' || h === 'm.soundcloud.com') { platform = 'soundcloud'; type = kind(seg.length === 1, false); }
+  else if (h.endsWith('bandcamp.com') && h !== 'bandcamp.com') { platform = 'bandcamp'; type = kind(seg.length === 0 || seg[0] === 'music', false); }
+  else if (h.startsWith('music.amazon.')) { platform = 'amazonMusic'; type = kind(/^\/artists\//.test(p), /^\/(user-)?playlists\//.test(p)); }
+  return type ? { platform, type } : null;
+}
 export function detectPlatform(url) {
   let u;
   try { u = new URL(String(url).trim()); } catch { return null; }
@@ -315,7 +338,7 @@ export function newPage(over = {}) {
   return {
     id: newId(), created: now, updated: now, title: '', artist: '', blurb: '',
     art: '', artRemote: '', colours: null,
-    mode: 'out', releaseDate: '', releaseTime: '00:00', releaseAt: null, autoFlip: true,
+    mode: 'out', releaseDate: '', releaseTime: '00:00', releaseAt: null, autoFlip: true, releaseLocal: false,
     links: [], signup: { on: false, code: '', heading: 'Get new music first', button: 'Sign up', note: '' },
     look: { theme: 'encore', buttons: 'solid', shape: 'pill', accent: '', credit: true },
     pageUrl: '', ...over,
@@ -459,9 +482,13 @@ section{width:100%;margin-top:22px}
 footer{margin-top:28px;font-size:12.5px}footer a{color:${tk.muted};text-decoration:none;font-weight:700;letter-spacing:.02em}footer a:hover{color:${tk.text}}
 html[data-mode=out] .pre,html[data-mode=pre] .out{display:none}
 @media (prefers-reduced-motion:reduce){.lk{transition:none}.lk:hover{transform:none}}`;
-  const js = canPre ? `(function(){var T=${Number(page.releaseAt)},F=${flip ? 1 : 0},O=${Math.round(opts.clockOffset || 0)},d=document.documentElement,w=document.getElementById("when");
+  // releaseLocal: the date and time on each fan's own clock (like a midnight drop in every country), else one moment everywhere
+  const lm = page.releaseLocal && String(page.releaseDate || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const hm = String(page.releaseTime || '00:00').split(':').map((x) => parseInt(x, 10) || 0);
+  const target = lm ? `new Date(${+lm[1]},${+lm[2] - 1},${+lm[3]},${hm[0]},${hm[1] || 0}).getTime()` : String(Number(page.releaseAt));
+  const js = canPre ? `(function(){var T=${target},F=${flip ? 1 : 0},O=${Math.round(opts.clockOffset || 0)},d=document.documentElement,w=document.getElementById("when");
 try{w.textContent=new Date(T).toLocaleString(undefined,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"})}catch(e){}
-function p(n){return(n<10?"0":"")+n}var id;function t(){var l=T-(Date.now()+O);if(l<=0){if(F)d.setAttribute("data-mode","out");for(var i=0;i<4;i++)document.getElementById("cd"+i).textContent="00";clearInterval(id);return}
+function p(n){return(n<10?"0":"")+n}var id;function t(){var l=T-(Date.now()+O);if(l>0)d.setAttribute("data-mode","pre");if(l<=0){if(F)d.setAttribute("data-mode","out");for(var i=0;i<4;i++)document.getElementById("cd"+i).textContent="00";clearInterval(id);return}
 var s=Math.floor(l/1e3),v=[Math.floor(s/86400),Math.floor(s/3600)%24,Math.floor(s/60)%60,s%60];for(var i=0;i<4;i++)document.getElementById("cd"+i).textContent=p(v[i])}
 t();id=setInterval(t,1000)})();` : '';
   const previewJs = opts.preview ? `document.addEventListener("click",function(e){var a=e.target.closest("a");if(a){e.preventDefault();parent.postMessage({links:"open",href:a.href},"*")}});document.addEventListener("submit",function(e){e.preventDefault();parent.postMessage({links:"submit"},"*")});` : '';
