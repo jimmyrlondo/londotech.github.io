@@ -9,8 +9,8 @@
 .bar .toolPick { display: none; flex: 1 1 auto; min-width: 0; max-width: 260px; font: inherit; font-size: 15px; font-weight: 700; color: var(--text);
                  background: var(--surface, #171412); border: 1px solid var(--divider-strong); border-radius: 9px; padding: 8px 10px; }
 @media (max-width: 1100px) { .bar .tools .navlink { font-size: 13px; padding: 9px 3px; } }
-/* below this the tabs would be cut short, so it's the grouped drop-down instead */
-@media (max-width: 1340px) {
+/* below this the tabs would be cut short (22 tools need about 1540 px), so it's the grouped drop-down instead */
+@media (max-width: 1599px) {
   .bar .tools { display: none; }
   .bar .toolPick { display: block; }
 }

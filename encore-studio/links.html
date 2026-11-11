@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links · ENCORE. Studio</title>
+<meta name="description" content="Make a release page for your song in minutes: one link to every streaming app, a pre-save countdown, an email sign-up and a QR code. One file you can put anywhere, free.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; overflow: hidden; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; flex: none; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .muted { color: var(--soft); } .dim { color: var(--dim); } .small { font-size: 12.5px; }
+
+  /* one screen: your releases, the editor, the phone */
+  main { --e: max(0px, (100vw - 1600px) / 2); padding: 12px 14px 14px; display: grid; grid-template-columns: calc(230px + var(--e) / 2) calc(450px + var(--e) / 2) minmax(0, 1fr); gap: 12px; height: calc(100vh - 60px); height: calc(100dvh - 60px); }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--divider); min-height: 52px; }
+  .head h2 { margin: 0; font-size: 15px; font-weight: 800; flex: 1 1 auto; }
+  .scroll { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+  .btn { border: 1px solid var(--divider-strong); background: transparent; border-radius: 999px; padding: 6px 13px; font-weight: 700; font-size: 13px; min-height: 34px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+  .btn:hover { border-color: var(--soft); }
+  .btn.go { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .btn.go:hover { background: #ff6c40; border-color: #ff6c40; }
+  .btn.sm { min-height: 28px; padding: 3px 10px; font-size: 12.5px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .ib { width: 30px; height: 30px; border: 0; background: transparent; color: var(--soft); border-radius: 8px; display: inline-grid; place-items: center; font-size: 15px; flex: none; padding: 0; }
+  .ib:hover { background: rgb(255 255 255 / .07); color: var(--text); }
+  .ib:disabled { opacity: .3; cursor: default; background: transparent; }
+  .seg { display: inline-flex; padding: 3px; border: 1px solid var(--divider-strong); border-radius: 999px; gap: 2px; flex: none; }
+  .seg button { border: 0; background: transparent; color: var(--soft); font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 999px; white-space: nowrap; }
+  .seg button.on { background: #ff3b00; color: #fff; }
+  .seg.full { display: flex; } .seg.full button { flex: 1 1 0; }
+  input.t, select.t, textarea.t { background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 8px; padding: 6px 9px; font-size: 14px; min-width: 0; width: 100%; }
+  textarea.t { resize: vertical; line-height: 1.4; }
+  input.t:focus, select.t:focus, textarea.t:focus { outline: 2px solid #ff3b00; outline-offset: -1px; }
+  input[type=date].t, input[type=time].t { color-scheme: dark; }
+  :focus-visible { outline: 2px solid #ff3b00; outline-offset: 1px; }
+
+  /* releases */
+  .rel { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; border: 0; background: transparent; padding: 7px 8px; border-radius: 10px; }
+  .rel:hover { background: rgb(255 255 255 / .05); }
+  .rel.on { background: rgb(255 59 0 / .14); box-shadow: inset 2px 0 0 #ff3b00; }
+  .rel img, .rel .noart { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; background: var(--bg-surface-hover); display: grid; place-items: center; color: var(--dim); font-weight: 800; }
+  .rel .tx { min-width: 0; flex: 1 1 auto; } .rel b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rel span { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--divider-strong); color: var(--soft); margin-right: 4px; }
+  .chip.pre { border-color: rgb(255 59 0 / .6); color: #ff8a5c; }
+  .libfoot { border-top: 1px solid var(--divider); padding: 10px 12px; display: grid; gap: 8px; }
+  .libfoot .row { display: flex; gap: 6px; } .libfoot .row .btn { flex: 1 1 0; }
+
+  /* editor */
+  .ttabs { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); }
+  .ttabs button { flex: 1 1 0; border: 0; background: transparent; color: var(--soft); font-weight: 800; font-size: 13.5px; padding: 7px 4px; border-radius: 9px; }
+  .ttabs button.on { background: #ff3b00; color: #fff; }
+  .tbody { padding: 12px 14px 18px; }
+  .tab { display: none; } .tab.on { display: block; }
+  .lbl { font-size: 11.5px; font-weight: 800; color: var(--soft); letter-spacing: .04em; text-transform: uppercase; margin: 16px 0 6px; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+  .lbl:first-child { margin-top: 2px; }
+  .lbl .dim { text-transform: none; letter-spacing: 0; font-weight: 600; }
+  .help { font-size: 12.5px; color: var(--dim); margin: 6px 0 0; }
+  .help b { color: var(--soft); }
+  .help a, .steps a { color: #ff8a5c; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fl { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--soft); font-weight: 700; }
+  .card { border: 1px solid var(--divider); border-radius: 12px; padding: 10px 12px; background: var(--bg-subtle-default); }
+  .find { display: flex; gap: 6px; }
+  .find input { flex: 1 1 auto; font-size: 14.5px; padding: 8px 10px; }
+  .status { font-size: 13px; margin-top: 8px; padding: 7px 10px; border-radius: 9px; background: rgb(255 255 255 / .04); border: 1px solid var(--divider); }
+  .status.ok { border-color: rgb(123 211 164 / .45); color: var(--green); background: rgb(123 211 164 / .07); }
+  .status.bad { border-color: rgb(239 68 68 / .45); color: #fca5a5; background: rgb(239 68 68 / .07); }
+  .status.busy { color: var(--soft); }
+  .cands { display: grid; gap: 4px; margin-top: 6px; }
+  .cand { display: flex; gap: 9px; align-items: center; text-align: left; border: 1px solid var(--divider-strong); background: transparent; border-radius: 10px; padding: 5px 8px; }
+  .cand:hover { border-color: #ff6c40; }
+  .cand img { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; flex: none; }
+  .cand b { display: block; font-size: 13.5px; } .cand span { display: block; font-size: 12px; color: var(--dim); }
+  details.more { margin-top: 8px; font-size: 13px; }
+  details.more summary { cursor: pointer; color: var(--soft); font-weight: 700; font-size: 12.5px; }
+  details.more[open] summary { margin-bottom: 6px; }
+  .cover { display: flex; gap: 12px; align-items: center; }
+  .cover .pic { width: 84px; height: 84px; border-radius: 8px; object-fit: cover; flex: none; border: 1px dashed var(--divider-strong); display: grid; place-items: center; color: var(--dim); font-size: 12px; text-align: center; background: var(--bg-subtle-default); overflow: hidden; }
+  .cover .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cover .acts { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .ck { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; cursor: pointer; }
+  .ck input { margin-top: 3px; accent-color: #ff3b00; width: 15px; height: 15px; flex: none; }
+  .ck span small { display: block; color: var(--dim); font-size: 12px; }
+
+  /* link rows */
+  .lsec { margin-bottom: 4px; }
+  .lrow { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--divider); border-radius: 12px; padding: 7px 6px 7px 8px; margin-bottom: 6px; background: var(--bg-subtle-default); }
+  .lrow.off { opacity: .5; }
+  .lrow .lic { width: 30px; height: 30px; flex: none; border-radius: 7px; overflow: hidden; margin-top: 2px; }
+  .lrow .lic svg { width: 100%; height: 100%; display: block; }
+  .lrow .lmain { flex: 1 1 auto; min-width: 0; display: grid; gap: 5px; }
+  .lrow .lline { display: flex; gap: 5px; }
+  .lrow .lline input { padding: 4px 8px; font-size: 13px; }
+  .lrow .lline .lname { flex: 1 1 60%; } .lrow .lline .lact { flex: 1 1 40%; }
+  .lrow .lurl { padding: 4px 8px; font-size: 13px; font-family: var(--family-mono); font-size: 12px; }
+  .lrow .lurl.badurl { border-color: #ef4444; }
+  .lrow .lbtns { display: grid; grid-template-columns: 26px 26px; gap: 2px; flex: none; }
+  .lrow .lbtns .ib { width: 26px; height: 26px; font-size: 13px; }
+  .addrow { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+  .addrow select { flex: 1 1 auto; }
+  .empty { color: var(--dim); font-size: 13px; padding: 4px 2px 8px; }
+  .steps { margin: 6px 0 0; padding-left: 20px; font-size: 13px; color: var(--soft); }
+  .steps li { margin: 3px 0; }
+
+  /* look */
+  .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+  .th { border: 1px solid var(--divider-strong); border-radius: 12px; padding: 0; overflow: hidden; background: transparent; text-align: left; }
+  .th.on { outline: 2px solid #ff3b00; outline-offset: 1px; border-color: transparent; }
+  .th .sw { height: 54px; display: flex; align-items: flex-end; gap: 4px; padding: 7px; background-size: cover; background-position: center; position: relative; }
+  .th .sw i { display: block; height: 10px; border-radius: 999px; flex: 1 1 auto; }
+  .th .sw i.a { flex: 0 0 22px; }
+  .th b { display: block; font-size: 12.5px; padding: 6px 8px; }
+  .th:disabled { opacity: .4; cursor: default; }
+  .swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+  .swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--divider-strong); padding: 0; }
+  .swatch.on { outline: 2px solid #fff; outline-offset: 2px; }
+  .acc { display: flex; gap: 8px; align-items: center; }
+  .acc input[type=color] { width: 40px; height: 32px; border: 1px solid var(--divider-strong); border-radius: 8px; background: transparent; padding: 2px; }
+
+  /* share */
+  .qrbox { display: flex; gap: 12px; align-items: flex-start; }
+  .qrbox canvas { width: 132px; height: 132px; border-radius: 8px; background: #fff; flex: none; image-rendering: pixelated; }
+  .qrbox .qa { display: grid; gap: 6px; min-width: 0; flex: 1 1 auto; }
+  .qrbox .qa .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .qurl { font: 11.5px var(--family-mono); color: var(--dim); word-break: break-all; }
+  .dlrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* the phone */
+  .pvhead { flex-wrap: wrap; }
+  .stage { flex: 1 1 auto; min-height: 0; display: grid; place-items: center; overflow: hidden; padding: 14px; background:
+           radial-gradient(60% 60% at 50% 40%, rgb(255 59 0 / .07), transparent 70%); border-radius: 0 0 14px 14px; }
+  .phone { position: relative; overflow: hidden; border-radius: 46px; background: #000; padding: 12px; box-shadow: 0 0 0 1px #3a3430, 0 30px 80px -20px #000, inset 0 0 0 2px #1c1917; flex: none; }
+  .screen { width: 390px; height: 844px; border-radius: 36px; overflow: hidden; background: #111; transform-origin: 0 0; }
+  .screen iframe { width: 390px; height: 844px; border: 0; display: block; background: #0c0a09; }
+  .pvnote { font-size: 12px; color: var(--dim); padding: 0 12px 10px; text-align: center; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 16px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); max-width: min(560px, 92vw); width: max-content; text-align: center; }
+  .mtabs { display: none; }
+
+  @media (max-width: 1240px) { main { grid-template-columns: 200px 420px minmax(0, 1fr); } }
+  @media (max-width: 1060px) { main { grid-template-columns: 170px 380px minmax(0, 1fr); } }
+  /* a phone: one panel at a time, picked from the row at the top */
+  @media (max-width: 899px) {
+    main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); padding: 8px; gap: 8px; }
+    .mtabs { display: flex; gap: 4px; }
+    .mtabs button { flex: 1 1 0; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); border-radius: 10px; padding: 6px 4px; font-weight: 800; font-size: 14px; white-space: nowrap; min-height: 40px; }
+    .mtabs button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+    main > .panel { display: none; } main[data-m="lib"] #libPanel, main[data-m="edit"] #editPanel, main[data-m="preview"] #previewPanel { display: flex; }
+    .ttabs button { font-size: 13px; padding: 8px 2px; }
+    .tbody { padding: 12px 12px 24px; }
+    .stage { padding: 0; }
+    .phone { padding: 0; border-radius: 0; box-shadow: none; background: transparent; }
+    .pvnote { padding-top: 8px; }
+    input.t, select.t, textarea.t { font-size: 16px; }
+    .lrow .lline input, .lrow .lurl { font-size: 15px; }
+  }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink on" href="links.html" aria-current="page">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html" selected>Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main data-m="edit">
+  <div class="mtabs" id="mtabs" role="tablist"><button data-m="lib">Releases</button><button data-m="edit" class="on">Edit</button><button data-m="preview">Preview</button></div>
+
+  <section class="panel" id="libPanel" aria-label="Your releases">
+    <div class="head"><h2>Releases</h2><button class="btn sm go" id="newPage">+ New</button></div>
+    <div class="scroll" id="lib" style="padding:6px"></div>
+    <div class="libfoot">
+      <div class="row"><button class="btn sm" id="backupBtn" title="Save every release page to a file">Back up</button><button class="btn sm" id="restoreBtn" title="Bring back release pages from a backup file">Restore</button></div>
+      <p class="help" style="margin:0">Your pages are saved in this browser only. Back up now and then, or to move them to another computer.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="editPanel" aria-label="Edit the release page">
+    <div class="ttabs" id="ttabs" role="tablist"><button data-t="song" class="on">Song</button><button data-t="links">Links</button><button data-t="signup">Sign-up</button><button data-t="look">Look</button><button data-t="share">Share</button></div>
+    <div class="scroll tbody" id="tbody">
+
+      <div class="tab on" data-tab="song">
+        <div class="card">
+          <div class="lbl" style="margin-top:0">Start from one link</div>
+          <div class="find"><input class="t" id="findUrl" type="url" inputmode="url" placeholder="Paste a Spotify, Apple Music, YouTube... link" aria-label="A link to your song"><button class="btn go" id="findBtn">Find it</button></div>
+          <p class="help">Works with Spotify, Apple Music, YouTube, Deezer, TIDAL, Amazon, SoundCloud and Bandcamp links. We look the link up through <b>song.link</b> and Apple's free music catalogue, then fill in what they find. You can change anything after.</p>
+          <div id="findStatus" class="status hidden" role="status" aria-live="polite"></div>
+          <div class="cands" id="cands"></div>
+          <details class="more" id="keyBox">
+            <summary>song.link key (optional)</summary>
+            <p class="help" style="margin-top:0">song.link finds every streaming service from one link, but it now asks for a free key. To get one, email <b>developers@song.link</b> and paste it here. Without it, we still find Apple Music and the details from your link, and you add the rest by hand. The key stays in this browser and never goes in your page.</p>
+            <div class="find" style="margin-top:6px"><input class="t" id="slKey" type="password" autocomplete="off" placeholder="Paste your song.link key" aria-label="song.link key"><button class="btn sm" id="slKeyClear">Clear</button></div>
+          </details>
+        </div>
+
+        <div class="lbl">The song</div>
+        <div class="grid2">
+          <label class="fl">Title<input class="t" id="title" placeholder="Song or album title" autocomplete="off"></label>
+          <label class="fl">Artist<input class="t" id="artist" placeholder="Your artist name" autocomplete="off"></label>
+        </div>
+        <label class="fl" style="margin-top:8px">A line for fans <span class="dim" style="font-weight:600">(optional)</span><textarea class="t" id="blurb" rows="2" maxlength="200" placeholder="New single, out everywhere. Thank you for listening."></textarea></label>
+
+        <div class="lbl">Cover art</div>
+        <div class="cover">
+          <div class="pic" id="artPic">No cover yet</div>
+          <div class="acts">
+            <button class="btn sm" id="artUpload">Upload cover</button>
+            <button class="btn sm hidden" id="artRemove">Remove</button>
+            <span class="help" style="margin:0">A square image works best. It goes inside your page file, so it never breaks.</span>
+          </div>
+        </div>
+
+        <div class="lbl">Release</div>
+        <div class="seg full" id="modeSeg" role="radiogroup" aria-label="Is it out yet?"><button data-v="pre" role="radio">Pre-release</button><button data-v="out" role="radio">Out now</button></div>
+        <div id="preBox" class="hidden" style="margin-top:10px">
+          <div class="grid2">
+            <label class="fl">Release day<input class="t" id="relDate" type="date"></label>
+            <label class="fl">Time<input class="t" id="relTime" type="time" value="00:00"></label>
+          </div>
+          <p class="help" id="tzNote"></p>
+          <label class="ck" style="margin-top:8px"><input type="checkbox" id="autoFlip" checked><span>Switch to Out now by itself on release day<small>The pre-save buttons turn into listen buttons the moment the countdown ends. Add your listen links on the Links tab.</small></span></label>
+        </div>
+      </div>
+
+      <div class="tab" data-tab="links">
+        <div class="lsec" id="preSec">
+          <div class="lbl">Pre-save buttons <span class="dim">shown before release day</span></div>
+          <div id="list-presave"></div>
+          <div class="addrow"><select class="t" id="add-presave" aria-label="Add a pre-save button"></select></div>
+          <details class="more">
+            <summary>Where do I get pre-save links?</summary>
+            <ol class="steps">
+              <li><b>DistroKid:</b> open your release and copy its <b>HyperFollow</b> link. One link covers Spotify, Apple Music and more, so add it as a single button.</li>
+              <li><b>TuneCore, CD Baby, Amuse and others:</b> look for a pre-save or smart link on your release's page.</li>
+              <li><b>Apple Music pre-add:</b> once your distributor sets up a pre-order, the Apple Music album page is your pre-add link.</li>
+            </ol>
+          </details>
+        </div>
+        <div class="lsec">
+          <div class="lbl">Listen buttons <span class="dim" id="listenWhen">where fans can play it</span></div>
+          <div id="list-listen"></div>
+          <div class="addrow"><select class="t" id="add-listen" aria-label="Add a listen button"></select></div>
+        </div>
+        <div class="lsec">
+          <div class="lbl">More links <span class="dim">store, merch, tickets, socials</span></div>
+          <div id="list-extra"></div>
+          <div class="addrow"><select class="t" id="add-extra" aria-label="Add another link"></select></div>
+          <p class="help">Your ENCORE. store page, Bandcamp, merch, shows and socials. Use the arrows to put them in order and the eye to hide one without deleting it.</p>
+        </div>
+      </div>
+
+      <div class="tab" data-tab="signup">
+        <label class="ck"><input type="checkbox" id="suOn"><span><b>Show an email sign-up</b><small>Fans join your own Kit or Mailchimp list. The emails go straight to you: ENCORE. never sees them.</small></span></label>
+        <div id="suBox">
+          <div class="lbl">Your form's code</div>
+          <textarea class="t" id="suCode" rows="5" spellcheck="false" placeholder="Paste the embed code from Kit or Mailchimp here (it starts with <form), or your sign-up form's web address." style="font: 12px/1.45 var(--family-mono)"></textarea>
+          <div id="suStatus" class="status hidden" role="status" aria-live="polite"></div>
+          <div class="grid2" style="margin-top:10px">
+            <label class="fl">Heading<input class="t" id="suHeading" placeholder="Get new music first"></label>
+            <label class="fl">Button<input class="t" id="suButton" placeholder="Sign up"></label>
+          </div>
+          <label class="fl" style="margin-top:8px">Small print <span class="dim" style="font-weight:600">(optional)</span><input class="t" id="suNote" placeholder="One email per release. No spam."></label>
+          <details class="more" open>
+            <summary>Where do I find this in Kit?</summary>
+            <ol class="steps">
+              <li>In Kit, go to <b>Grow</b>, then <b>Landing Pages &amp; Forms</b>, and open your form (or make a simple one).</li>
+              <li>Click <b>Publish</b> and choose <b>HTML</b> (not JavaScript).</li>
+              <li>Copy the code and paste it above.</li>
+            </ol>
+          </details>
+          <details class="more">
+            <summary>Where do I find this in Mailchimp?</summary>
+            <ol class="steps">
+              <li>In Mailchimp, go to <b>Audience</b>, then <b>Signup forms</b>, and pick <b>Embedded form</b>.</li>
+              <li>Click <b>Continue</b>, then <b>Copy Code</b>.</li>
+              <li>Paste it above.</li>
+            </ol>
+          </details>
+          <p class="help">When a fan signs up, Kit or Mailchimp opens in a new tab to confirm it.</p>
+        </div>
+      </div>
+
+      <div class="tab" data-tab="look">
+        <div class="lbl" style="margin-top:2px">Theme</div>
+        <div class="themes" id="themes"></div>
+        <p class="help" id="themeHelp"></p>
+        <div class="lbl">Colours from your cover <span class="dim">tap one for the buttons</span></div>
+        <div class="swatches" id="swatches"></div>
+        <div class="acc" style="margin-top:8px"><input type="color" id="accent" aria-label="Button colour"><span class="small muted" id="accentLbl">Button colour</span><button class="btn sm" id="accentAuto">Automatic</button></div>
+        <div class="lbl">Buttons</div>
+        <div class="seg full" id="btnSeg"><button data-v="solid">Solid</button><button data-v="accent">Colour</button><button data-v="outline">Outline</button></div>
+        <div class="lbl">Shape</div>
+        <div class="seg full" id="shapeSeg"><button data-v="pill">Round</button><button data-v="rounded">Soft</button><button data-v="square">Square</button></div>
+        <label class="ck" style="margin-top:14px"><input type="checkbox" id="credit" checked><span>Show "Made with ENCORE." at the bottom</span></label>
+      </div>
+
+      <div class="tab" data-tab="share">
+        <div class="lbl" style="margin-top:2px">1. Download your page</div>
+        <div class="dlrow"><button class="btn go" id="dlHtml">Download page (.html)</button><span class="small dim" id="dlSize"></span></div>
+        <p class="help">One file with everything inside: no ads, no trackers, and it loads fast on a phone.</p>
+        <div id="coverDl" class="hidden">
+          <p class="help"><b>For link previews</b> (the picture people see when you share the link), put this image in the same folder as your page: <button class="btn sm" id="dlCover" style="margin-left:4px">Download cover image</button></p>
+        </div>
+
+        <div class="lbl">2. Where it lives</div>
+        <input class="t" id="pageUrl" type="url" inputmode="url" placeholder="https://yourname.netlify.app/night-drive.html" aria-label="Your page's web address">
+        <p class="help">After you put the page online, paste its address here. It makes your QR code and gives link previews the right address. Then download the page again.</p>
+
+        <div class="lbl">3. QR code</div>
+        <select class="t" id="qrWhat" aria-label="What the QR code opens" style="margin-bottom:8px"></select>
+        <div class="qrbox">
+          <canvas id="qrCanvas" width="264" height="264" aria-label="QR code"></canvas>
+          <div class="qa">
+            <div class="qurl" id="qrUrl"></div>
+            <div class="row"><button class="btn sm" id="qrPng">PNG</button><button class="btn sm" id="qrSvg">SVG</button></div>
+            <p class="help" style="margin:0">PNG for posts and stories, SVG for posters and merch (it stays sharp at any size). Test it with your phone camera before you print.</p>
+          </div>
+        </div>
+
+        <div class="lbl">4. Where to put it (free)</div>
+        <ol class="steps">
+          <li><b>Netlify Drop:</b> go to <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">app.netlify.com/drop</a>, drag your page in (put it in a folder, rename it index.html for a clean address). Make a free account to keep it online.</li>
+          <li><b>GitHub Pages:</b> make a free repository, upload the file, then turn on Pages in Settings.</li>
+          <li><b>Your own website:</b> upload the file like any other page, or ask whoever runs your site.</li>
+        </ol>
+        <p class="help">Soon your release pages will also live on your ENCORE. artist page, no hosting needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="previewPanel" aria-label="What fans will see">
+    <div class="head pvhead">
+      <h2>What fans see</h2>
+      <div class="seg hidden" id="whenSeg" aria-label="Preview the page"><button data-v="now" class="on" title="The page as it is right now">Now</button><button data-v="flip" title="Jump to ten seconds before release and watch it switch">Watch it switch</button><button data-v="after" title="The page after release day">After release</button></div>
+      <button class="btn sm go" id="dlHtml2">Download</button>
+    </div>
+    <div class="stage" id="stage"><div class="phone" id="phone"><div class="screen" id="screen"><iframe id="pv" title="Preview of your release page" sandbox="allow-scripts"></iframe></div></div></div>
+    <div class="pvnote" id="pvNote">Buttons are switched off in the preview. Your downloaded page works for real.</div>
+  </section>
+</main>
+<input type="file" id="artFile" accept="image/*" hidden>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+<script type="module" src="links.js"></script>
+</body>
+</html>

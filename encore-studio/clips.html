@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clips · ENCORE. Studio</title>
+<meta name="description" content="Drop in a finished song and get promo videos ready to post: vertical for TikTok, Reels and Shorts, square, landscape and a Spotify Canvas. Finds the hook for you, made in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; flex: none; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .45; cursor: default; }
+  .muted { color: var(--soft); } .dim { color: var(--dim); } .small { font-size: 12.5px; }
+
+  /* one screen: your song on the left, the video in the middle, looks and export on the right */
+  main { --e: max(0px, (100vw - 1600px) / 2); padding: 12px 14px 14px; display: grid; grid-template-columns: calc(300px + var(--e) / 2) minmax(0, 1fr) calc(350px + var(--e) / 2); gap: 12px; height: calc(100vh - 60px); }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--divider); min-height: 51px; }
+  .head h2 { margin: 0; font-size: 15px; font-weight: 800; flex: 1 1 auto; }
+  .scroll { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+  .btn { border: 1px solid var(--divider-strong); background: transparent; border-radius: 999px; padding: 6px 13px; font-weight: 700; font-size: 13px; min-height: 34px; white-space: nowrap; }
+  .btn:hover:not(:disabled) { border-color: var(--soft); }
+  .btn.go { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .btn.go:hover:not(:disabled) { background: #ff6c40; border-color: #ff6c40; }
+  .btn.sm { min-height: 28px; padding: 3px 10px; font-size: 12.5px; }
+  .btn.wide { width: 100%; }
+  .seg { display: inline-flex; padding: 3px; border: 1px solid var(--divider-strong); border-radius: 999px; gap: 2px; flex: none; }
+  .seg button { border: 0; background: transparent; color: var(--soft); font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 999px; white-space: nowrap; }
+  .seg button.on { background: #ff3b00; color: #fff; }
+  .seg button:hover:not(.on) { color: var(--text); }
+  input.t, select.t, textarea.t { background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 8px; padding: 6px 9px; font-size: 14px; min-width: 0; width: 100%; color: var(--text); }
+  input.t:focus, select.t:focus, textarea.t:focus { outline: 2px solid #ff3b00; outline-offset: -1px; }
+  input.t.bad { border-color: var(--red); }
+  .lbl { font-size: 11.5px; font-weight: 800; color: var(--soft); letter-spacing: .04em; text-transform: uppercase; margin: 14px 0 6px; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+  .lbl:first-child { margin-top: 2px; }
+  .lbl .dim { text-transform: none; letter-spacing: 0; font-weight: 600; }
+  .body { padding: 12px 14px 16px; }
+  .fl { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--soft); font-weight: 700; margin-top: 10px; }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .ck { display: flex; gap: 8px; align-items: center; font-size: 13.5px; padding: 3px 0; cursor: pointer; }
+  .ck input { accent-color: #ff3b00; width: 16px; height: 16px; margin: 0; }
+  .note { font-size: 12.5px; color: var(--dim); line-height: 1.45; margin: 6px 0 0; }
+  .note b { color: var(--soft); }
+  kbd { font: 11px var(--family-mono); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 0 4px; color: var(--soft); }
+
+  /* your song */
+  .drop { width: 100%; border: 1.5px dashed var(--divider-strong); border-radius: 12px; background: var(--bg-subtle-default); padding: 16px 12px; text-align: center; color: var(--soft); display: grid; gap: 4px; }
+  .drop b { color: var(--text); font-size: 15px; }
+  .drop:hover, .drop.over { border-color: #ff3b00; color: var(--text); }
+  .drop.loaded { padding: 9px 12px; text-align: left; grid-template-columns: 1fr auto; align-items: center; border-style: solid; }
+  .drop.loaded b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status { font-size: 12.5px; color: var(--soft); margin-top: 6px; min-height: 18px; }
+  .status.err { color: #ff8a8a; }
+  .coverRow { display: flex; gap: 12px; align-items: center; }
+  .coverBtn { width: 76px; height: 76px; flex: none; border-radius: 8px; border: 1px dashed var(--divider-strong); background: var(--bg-subtle-default); color: var(--dim); padding: 0; overflow: hidden; display: grid; place-items: center; font-size: 12px; line-height: 1.2; }
+  .coverBtn img, .coverBtn canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .coverBtn:hover, .coverBtn.over { border-color: #ff3b00; color: var(--text); }
+  .coverRow .txt { display: grid; gap: 6px; font-size: 12.5px; color: var(--dim); min-width: 0; }
+  textarea.lyr { resize: none; min-height: 120px; font-size: 14px; line-height: 1.5; }
+
+  /* the video */
+  .stagePanel { overflow: hidden; }
+  .stageHead { flex-wrap: wrap; row-gap: 6px; }
+  .stageHead .grow { flex: 1 1 auto; }
+  .stage { flex: 1 1 auto; min-height: 0; position: relative; display: grid; place-items: center; padding: 14px;
+           background: radial-gradient(circle at 50% 40%, rgb(255 255 255 / .035), transparent 70%), var(--bg-subtle-default); }
+  .stage canvas { display: block; border-radius: 10px; box-shadow: 0 18px 50px rgb(0 0 0 / .55), 0 0 0 1px rgb(255 255 255 / .06); background: #000; }
+  .stage .empty { position: absolute; inset: auto 0 18px 0; text-align: center; font-size: 13px; color: var(--soft); pointer-events: none; }
+  .stage .empty span { background: rgb(12 10 9 / .8); padding: 5px 12px; border-radius: 999px; border: 1px solid var(--divider); }
+  .transport { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--divider); flex-wrap: wrap; row-gap: 6px; }
+  .transport .time { font: 13px var(--family-mono); color: var(--soft); min-width: 104px; }
+  .playBtn { min-width: 112px; }
+  .hooks { display: flex; gap: 6px; align-items: center; padding: 0 12px 8px; overflow-x: auto; scrollbar-width: none; min-height: 40px; }
+  .hooks::-webkit-scrollbar { display: none; }
+  .hooks .lead { font-size: 12px; font-weight: 800; color: var(--soft); flex: none; text-transform: uppercase; letter-spacing: .04em; }
+  .hook { flex: none; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--divider-strong); background: transparent; border-radius: 999px; padding: 3px 12px 3px 4px; font-size: 12.5px; color: var(--soft); max-width: 280px; }
+  .hook i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; background: var(--bg-surface-strong); color: var(--text); display: grid; place-items: center; font-weight: 800; font-size: 12px; flex: none; }
+  .hook b { color: var(--text); font-family: var(--family-mono); font-weight: 700; }
+  .hook span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hook:hover { border-color: #ff6c40; }
+  .hook.on { border-color: #ff3b00; background: rgb(255 59 0 / .14); color: var(--text); }
+  .hook.on i { background: #ff3b00; color: #fff; }
+  .waveWrap { padding: 0 12px 12px; }
+  #wave { width: 100%; height: 76px; display: block; border-radius: 10px; background: var(--bg-subtle-default); border: 1px solid var(--divider); touch-action: none; cursor: pointer; }
+
+  /* looks and export */
+  .ttabs { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); }
+  .ttabs button { flex: 1 1 0; border: 0; background: transparent; color: var(--soft); font-weight: 800; font-size: 13.5px; padding: 7px 4px; border-radius: 9px; }
+  .ttabs button.on { background: #ff3b00; color: #fff; }
+  .looks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .lookBtn { border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); border-radius: 12px; padding: 7px; text-align: left; display: grid; gap: 6px; align-content: start; }
+  .lookBtn:hover { border-color: #ff6c40; }
+  .lookBtn.on { border-color: #ff3b00; box-shadow: 0 0 0 1px #ff3b00 inset; background: rgb(255 59 0 / .08); }
+  .lookBtn .th { display: grid; place-items: center; height: 104px; border-radius: 8px; background: #000; overflow: hidden; }
+  .lookBtn canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .lookBtn b { font-size: 13.5px; }
+  .lookBtn span { font-size: 11.5px; color: var(--dim); line-height: 1.3; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .sw { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--divider-strong); padding: 0; }
+  .sw.on { outline: 2px solid #fff; outline-offset: 2px; }
+  .sw.auto { width: auto; border-radius: 999px; padding: 0 10px; font-size: 12px; font-weight: 700; background: transparent; color: var(--soft); }
+  .sw.auto.on { color: var(--text); }
+  input[type=color].sw { overflow: hidden; background: none; cursor: pointer; }
+  input[type=color].sw::-webkit-color-swatch-wrapper { padding: 0; } input[type=color].sw::-webkit-color-swatch { border: 0; border-radius: 50%; }
+  .lines { display: grid; gap: 4px; margin-top: 8px; }
+  .ln { display: grid; grid-template-columns: 22px 74px minmax(0, 1fr); gap: 6px; align-items: center; font-size: 13px; padding: 2px 4px; border-radius: 8px; }
+  .ln .n { font: 11px var(--family-mono); color: var(--dim); text-align: right; }
+  .ln input { font: 12.5px var(--family-mono); padding: 3px 6px; }
+  .ln span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ln.now { background: rgb(255 59 0 / .14); }
+  .ln.out span { color: var(--dim); }
+  .tapBox { border: 1px solid #ff3b00; background: rgb(255 59 0 / .08); border-radius: 12px; padding: 10px; margin-top: 10px; display: grid; gap: 8px; }
+  .tapBtn { min-height: 64px; border-radius: 12px; border: 0; background: #ff3b00; color: #fff; font-weight: 800; font-size: 16px; padding: 8px 12px; line-height: 1.25; }
+  .tapBtn small { display: block; font-weight: 600; font-size: 12.5px; opacity: .9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .exportBox { border-top: 1px solid var(--divider); padding: 10px 12px 12px; display: grid; gap: 8px; flex: none; max-height: 52%; overflow-y: auto; }
+  .exportBox .what { font-size: 12.5px; color: var(--soft); }
+  .exportBox .what b { color: var(--text); }
+  .exportBox .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .job { border: 1px solid var(--divider); border-radius: 10px; padding: 7px 9px; display: grid; gap: 5px; font-size: 12.5px; }
+  .job .top { display: flex; gap: 8px; align-items: center; }
+  .job .nm { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+  .job .st { color: var(--dim); flex: none; }
+  .job.done { border-color: rgb(123 211 164 / .35); }
+  .job.failed .st { color: #ff8a8a; }
+  .job a.btn { text-decoration: none; color: var(--text); display: inline-flex; align-items: center; }
+  .meter { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: #ff3b00; border-radius: 3px; transition: width .2s linear; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 999px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); max-width: 92vw; text-align: center; }
+  dialog.dlg { background: var(--panel); color: var(--text); border: 1px solid var(--divider-strong); border-radius: 14px; padding: 18px 20px; width: min(620px, 94vw); max-height: 88vh; overflow: hidden; }
+  dialog.dlg[open] { display: flex; flex-direction: column; gap: 10px; }
+  dialog.dlg::backdrop { background: rgb(0 0 0 / .6); }
+  dialog.dlg h3 { margin: 0; font-size: 17px; }
+  .sbList { overflow-y: auto; min-height: 120px; max-height: 40vh; display: grid; gap: 2px; align-content: start; border: 1px solid var(--divider); border-radius: 10px; padding: 4px; }
+  .sbSong { text-align: left; border: 0; background: transparent; padding: 6px 10px; border-radius: 8px; font-size: 14px; display: flex; gap: 8px; }
+  .sbSong span { color: var(--dim); font-size: 12.5px; margin-left: auto; white-space: nowrap; }
+  .sbSong:hover { background: rgb(255 255 255 / .05); }
+  .sbSong.on { background: rgb(255 59 0 / .14); box-shadow: inset 2px 0 0 #ff3b00; }
+  .partChips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .partChips button { border: 1px solid var(--divider-strong); background: transparent; border-radius: 999px; padding: 3px 11px; font-size: 12.5px; font-weight: 700; color: var(--soft); }
+  .partChips button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  pre.sbPrev { font: 13px/1.45 var(--family-primary); background: var(--bg-subtle-default); border: 1px solid var(--divider); border-radius: 10px; padding: 8px 10px; max-height: 22vh; overflow: auto; white-space: pre-wrap; margin: 0; }
+  .dlgEnd { display: flex; gap: 8px; justify-content: flex-end; }
+  .mtabs { display: none; }
+
+  @media (max-width: 1280px) { main { grid-template-columns: 270px minmax(0, 1fr) 320px; } .lookBtn .th { height: 88px; } }
+  @media (max-height: 760px) { .lookBtn .th { height: 80px; } .lookBtn span { display: none; } #wave { height: 64px; } }
+  @media (max-width: 1100px) { main { grid-template-columns: 250px minmax(0, 1fr) 300px; } }
+  /* a phone: one panel at a time, picked from the row at the top */
+  @media (max-width: 899px) {
+    main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 60px); padding: 8px; gap: 8px; }
+    .mtabs { display: flex; gap: 4px; }
+    .mtabs button { flex: 1 1 0; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); border-radius: 10px; padding: 6px 4px; font-weight: 800; font-size: 14px; white-space: nowrap; min-height: 40px; }
+    .mtabs button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+    main > .panel { display: none; } main[data-m="song"] #songPanel, main[data-m="clip"] #stagePanel, main[data-m="look"] #sidePanel { display: flex; }
+    .stage { padding: 8px; }
+    .stageHead .seg button { padding: 4px 9px; }
+    .transport { padding: 6px 10px; gap: 8px; }
+    .playBtn { min-width: 0; }
+    #lenLabel { display: none; }
+    .exportBox { max-height: 60%; }
+    .looks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .seg button, .btn, .hook { min-height: 36px; }
+    .ck { min-height: 32px; }
+  }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="clips.html" aria-current="page">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html" selected>Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main data-m="clip" id="main">
+  <div class="mtabs" id="mtabs" role="tablist"><button data-m="song">Song</button><button data-m="clip" class="on">Clip</button><button data-m="look">Look &amp; export</button></div>
+
+  <section class="panel" id="songPanel" aria-label="Your song">
+    <div class="head"><h2>Your song</h2></div>
+    <div class="scroll body">
+      <button class="drop" id="audioDrop" type="button"><b>Drop your finished song here</b><span>or click to pick a file (WAV, MP3, FLAC, M4A and more)</span></button>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+
+      <div class="lbl">Cover art <span class="dim" id="coverNote"></span></div>
+      <div class="coverRow">
+        <button class="coverBtn" id="coverBtn" type="button" aria-label="Choose cover art">Drop or<br>pick art</button>
+        <div class="txt"><div class="row"><button class="btn sm" id="coverPick" type="button">Choose picture</button><button class="btn sm hidden" id="coverClear" type="button">Remove</button></div><span>Square art looks best. Colours for the video come from it.</span></div>
+      </div>
+
+      <label class="fl">Title<input class="t" id="title" autocomplete="off" placeholder="Song title"></label>
+      <label class="fl">Artist<input class="t" id="artist" autocomplete="off" placeholder="Your artist name"></label>
+      <label class="fl">Call to action
+        <select class="t" id="cta">
+          <option value="">None</option><option>Out now</option><option>Pre-save now</option><option>New single Friday</option><option>Listen now, link in bio</option><option>Stream it everywhere</option><option value="custom">Write my own</option>
+        </select>
+      </label>
+      <input class="t hidden" id="ctaCustom" style="margin-top:6px" autocomplete="off" placeholder="Your own words, short is best" maxlength="40" aria-label="Your own call to action">
+      <label class="fl">Release date <span class="dim" style="font-weight:600">(optional, shown as you type it)</span><input class="t" id="date" autocomplete="off" placeholder="e.g. Dec 5 or This Friday" maxlength="32"></label>
+
+      <div class="lbl">Lyrics <span class="dim">(optional)</span></div>
+      <textarea class="t lyr" id="lyrics" spellcheck="true" placeholder="Paste the words sung in your clip, one line per line on screen.&#10;&#10;Chords like [G] and part names like [Chorus] are taken out for you."></textarea>
+      <div class="row" style="margin-top:6px"><button class="btn sm" id="fromSongbook" type="button">From my Songbook</button><span class="small dim" id="lineCount"></span></div>
+    </div>
+  </section>
+
+  <section class="panel stagePanel" id="stagePanel" aria-label="Your clip">
+    <div class="head stageHead">
+      <div class="seg" id="fmtSeg" aria-label="Format"><button data-f="vertical" title="1080x1920 for TikTok, Reels and Shorts">Vertical</button><button data-f="square" title="1080x1080 for the Instagram and Facebook feed">Square</button><button data-f="landscape" title="1920x1080 for YouTube and X">Landscape</button><button data-f="canvas" title="Spotify Canvas: a silent 9:16 loop, 3 to 8 seconds">Canvas</button></div>
+      <span class="grow small dim" id="fmtNote"></span>
+      <label class="ck small" id="safeWrap" title="Shows where TikTok, Reels and Shorts put their buttons and captions. Only in this preview, never in your video."><input type="checkbox" id="safe"> App buttons</label>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="Video preview"></canvas>
+      <div class="empty" id="stageEmpty"><span>Add your song to hear it and find the best part</span></div>
+    </div>
+    <div class="transport">
+      <button class="btn go playBtn" id="play" type="button" disabled>&#9654; Play clip</button>
+      <span class="time" id="time">0:00 / 0:00</span>
+      <span class="grow" style="flex:1 1 auto"></span>
+      <span class="small dim" id="lenLabel">Length</span>
+      <div class="seg" id="lenSeg" aria-label="Clip length"></div>
+    </div>
+    <div class="hooks" id="hooks"><span class="lead">Best parts</span><span class="small dim">Add a song and the hook finder picks the best parts to clip.</span></div>
+    <div class="waveWrap"><canvas id="wave" aria-label="Your song. Drag the orange box to choose the part to clip, drag its edges to change the length."></canvas></div>
+  </section>
+
+  <section class="panel" id="sidePanel" aria-label="Look and export">
+    <div class="ttabs" id="ttabs"><button data-t="look" class="on">Look</button><button data-t="words">Lyric timing</button></div>
+    <div class="scroll body" id="tabLook">
+      <div class="lbl">Look <span class="dim" id="lookNote"></span></div>
+      <div class="looks" id="looks"></div>
+      <div class="lbl">On the video</div>
+      <div id="textOpts">
+        <label class="ck"><input type="checkbox" id="showTitle"> Title and artist</label>
+        <label class="ck"><input type="checkbox" id="showCta"> Call to action</label>
+        <label class="ck"><input type="checkbox" id="showDate"> Release date</label>
+        <label class="ck"><input type="checkbox" id="showLyrics"> Lyrics</label>
+      </div>
+      <div id="canvasOpts" class="hidden">
+        <label class="ck"><input type="checkbox" id="canvasText"> Title and artist on the Canvas</label>
+        <p class="note">Spotify suggests no text on a Canvas (the app already shows your song's name under it) and a loop of 3 to 8 seconds that runs smoothly. It plays without sound. Spotify for Artists takes MP4 files.</p>
+      </div>
+      <div class="lbl">Colour <span class="dim">from your cover</span></div>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div class="scroll body hidden" id="tabWords">
+      <p class="note" id="wordsIntro" style="margin-top:0"></p>
+      <div class="row" style="margin-top:10px">
+        <div class="seg" id="timeSeg" aria-label="Lyric timing"><button data-v="even">Spread evenly</button><button data-v="timed">My timing</button></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="tapStart" type="button">Tap along</button><button class="btn sm" id="tapClear" type="button">Clear timing</button></div>
+      <div class="tapBox hidden" id="tapBox">
+        <button class="tapBtn" id="tapBtn" type="button">Tap at each new line <small id="tapNext"></small></button>
+        <div class="row"><span class="small dim" style="flex:1 1 auto">Press <kbd>Space</kbd> or tap the button as each line starts.</span><button class="btn sm" id="tapStop" type="button">Stop</button></div>
+      </div>
+      <div class="lines" id="lines"></div>
+    </div>
+    <div class="exportBox" id="exportBox">
+      <div class="what" id="what"></div>
+      <div class="btns"><button class="btn go" id="make" type="button" disabled>Make this video</button><button class="btn" id="makeAll" type="button" disabled>Make all formats</button></div>
+      <div id="jobs" class="row" style="display:grid;gap:6px"></div>
+      <p class="note hidden" id="recNote"></p>
+    </div>
+  </section>
+</main>
+
+<dialog class="dlg" id="sbDlg" aria-labelledby="sbTitle">
+  <h3 id="sbTitle">Words from your Songbook</h3>
+  <input class="t" id="sbSearch" type="search" placeholder="Search your songs" aria-label="Search your songs">
+  <div class="sbList" id="sbList"></div>
+  <div id="sbParts" class="hidden"><div class="lbl" style="margin-top:0">Which part is in your clip? <span class="dim">pick one or more</span></div><div class="partChips" id="partChips"></div></div>
+  <pre class="sbPrev hidden" id="sbPrev"></pre>
+  <div class="dlgEnd"><button class="btn" id="sbCancel" type="button">Cancel</button><button class="btn go" id="sbUse" type="button" disabled>Use these words</button></div>
+</dialog>
+
+<input type="file" id="audioFile" hidden>
+<input type="file" id="coverFile" accept="image/*" hidden>
+<script type="module" src="clips.js"></script>
+</body>
+</html>
