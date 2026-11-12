@@ -238,12 +238,19 @@ document.addEventListener("keydown", (e) => {
 });
 document.addEventListener("keyup", (e) => { if (ui.recording && KEYMAP[e.key.toLowerCase()] !== undefined) playNote("off", 12 * (ui.octave + 1) + KEYMAP[e.key.toLowerCase()]); });
 
-// clicking the staff: a note selects it (shift-click: a run); empty staff or a rest puts a note where you clicked
-const near = (h, x, y) => x >= h.x - 4 && x <= h.x + h.w + 4 && y >= h.y - 4 && y <= h.y + h.h + 4;
+// clicking the staff: a note selects it (shift-click: a run) and dragging it up or down changes its pitch;
+// empty staff or a rest puts a note where you clicked
+const near = (h, x, y) => x >= h.x - 6 && x <= h.x + h.w + 6 && y >= h.y - 4 && y <= h.y + h.h + 4;
+/** Where the pointer is on the music itself (the hit map is in the score's own pixels, inside the paper's padding) */
+function scorePoint(e) {
+  const r = (paper.querySelector("svg.score") || paper).getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+let noteDrag = null;   // { system, event, note, pointer, moved }
 paper.addEventListener("pointerdown", (e) => {
-  if (!hit) return;
+  if (!hit || e.button > 0) return;
   paper.focus({ preventScroll: true });
-  const r = paper.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const { x, y } = scorePoint(e);
   const ev = hit.events.find((h) => h.event >= 0 && near(h, x, y));
   if (ev && (ev.part ?? 0) !== ui.part || ev && (ev.voice ?? 0) !== ui.voice) { ui.part = ev.part ?? 0; ui.voice = ev.voice ?? 0; ui.range = null; }
   const evData = ev ? voice()[ev.event] : null;
@@ -251,6 +258,7 @@ paper.addEventListener("pointerdown", (e) => {
     if (e.shiftKey && ui.sel >= 0) ui.range = { from: ui.range ? ui.range.from : ui.sel, to: ev.event };
     else { ui.range = null; ui.sel = ev.event; ui.caret = ev.event + 1; ui.picked = true; }
     ui.selNote = ev.notes?.length ? ev.notes.reduce((b, n, i) => (Math.abs(n.y - y) < Math.abs(ev.notes[b].y - y) ? i : b), 0) : 0;
+    if (!e.shiftKey) { noteDrag = { system: ev.system, event: ev.event, note: ui.selNote, pointer: e.pointerId, moved: false }; try { paper.setPointerCapture(e.pointerId); } catch {} }
     preview(evData.notes.map((n) => n.midi)); draw(); renderTools(); return;
   }
   const sys = hit.systems.find((s) => y >= s.top - 30 && y <= s.top + s.h + 10) || hit.systems[hit.systems.length - 1];
@@ -272,10 +280,29 @@ paper.addEventListener("pointerdown", (e) => {
   preview([midi]); enterNote(midi, { addToChord: e.shiftKey });
 });
 
+// dragging a picked note up or down: it follows the pointer line by line (one undo step for the whole drag)
+paper.addEventListener("pointermove", (e) => {
+  const d = noteDrag; if (!d || e.pointerId !== d.pointer || !hit) return;
+  const { x, y } = scorePoint(e);
+  let p = hit.pitchInfo ? hit.pitchInfo(d.system, y, x) : hit.pitchAt(d.system, y);
+  const midi = typeof p === "number" ? p : p?.midi;
+  const cur = voice()[d.event];
+  if (midi == null || !cur || cur.rest) return;
+  const k = Math.min(d.note, cur.notes.length - 1);
+  if (cur.notes[k].midi === midi) return;
+  const next = replaceAt(score(), ui.part, d.event, { ...cur, notes: cur.notes.map((n, i) => (i === k ? { ...n, midi: Math.max(12, Math.min(120, midi)), spell: null } : n)) }, ui.voice);
+  if (!d.moved) { d.moved = true; commit(next); }
+  else { const i = db.scores.indexOf(score()); next.updated = Date.now(); db.scores[i] = next; save(); draw(); }
+  lastMidi = midi; preview([midi]);
+});
+const endDrag = (e) => { if (noteDrag && e.pointerId === noteDrag.pointer) { const moved = noteDrag.moved; noteDrag = null; if (moved) { snapshot(score()); renderTools(); } } };
+paper.addEventListener("pointerup", endDrag);
+paper.addEventListener("pointercancel", endDrag);
+
 // ---------- the on-screen piano ----------
 const pianoEl = $("piano");
 function renderPiano() {
-  const lo = 12 * (ui.octave + 1), span = innerWidth < 700 ? 1 : 2, hi = lo + 12 * span + 1;
+  const lo = 12 * (ui.octave + 1), span = innerWidth < 700 ? 1 : 2, hi = lo + 12 * span;
   const whites = []; for (let m = lo; m <= hi; m++) if (![1, 3, 6, 8, 10].includes(m % 12)) whites.push(m);
   const w = 100 / whites.length;
   let html = whites.map((m, i) => `<div class="wk" data-m="${m}" style="left:${i * w}%;width:${w}%">${m % 12 === 0 ? `<span>C${Math.floor(m / 12) - 1}</span>` : ""}</div>`).join("");

@@ -15,6 +15,8 @@ const SETTINGS_KEY = "encore-clips-settings";
 // ---------- state ----------
 let saved = null;
 try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null"); } catch {}
+// Removing the ENCORE. mark is for members; there are no member accounts in Green Room yet, so it's always on
+const MEMBER = false;
 const state = mergeSettings({ artist: "", cta: "Out now", ctaCustom: "", fmt: "vertical", look: "spotlight", canvasLook: "drift", len: 30, canvasLen: 6,
   showTitle: true, showCta: true, showDate: true, showLyrics: true, canvasText: false, safe: false, safeWhich: "all", showMark: true }, saved);
 let saveTimer = 0;
@@ -63,7 +65,7 @@ function scene(fmt = state.fmt, snapshot = false) {
     colors: colors(), title, artist: state.artist.trim(), cta: ctaText(), date: date.trim(),
     show: { title: state.showTitle, cta: state.showCta, date: state.showDate, lyrics: state.showLyrics },
     lyrics: { lines: words.lines.slice(), timed: words.mode === "timed" ? words.timed.slice() : null },
-    clip: { start: clip.start, end: clip.end }, an: song.an, canvasLen: state.canvasLen, canvasText: state.canvasText, mark: state.showMark,
+    clip: { start: clip.start, end: clip.end }, an: song.an, canvasLen: state.canvasLen, canvasText: state.canvasText, mark: MEMBER ? state.showMark : true,
   };
   sc.cache = snapshot ? {} : (caches[fmt] ||= {});
   return sc;
@@ -730,7 +732,8 @@ $("artist").value = state.artist;
 $("cta").value = [...$("cta").options].some((o) => o.value === state.cta) ? state.cta : "";
 state.cta = $("cta").value;
 $("ctaCustom").value = state.ctaCustom; $("ctaCustom").classList.toggle("hidden", state.cta !== "custom");
-for (const id of ["showTitle", "showCta", "showDate", "showLyrics", "canvasText", "safe", "showMark"]) $(id).checked = !!state[id];
+for (const id of ["showTitle", "showCta", "showDate", "showLyrics", "canvasText", "safe"]) $(id).checked = !!state[id];
+$("showMark").checked = MEMBER ? state.showMark : true; $("showMark").disabled = !MEMBER;
 clip.start = 0; clip.end = state.len;
 renderSwatches();
 setFormat(state.fmt);
