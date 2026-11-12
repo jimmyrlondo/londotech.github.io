@@ -314,6 +314,25 @@ function clientPoint(x, y) {
   const { r, k, off } = svgScale(sv);
   return { x: r.left + x / k, y: r.top + (y - off) / k };
 }
+/**
+ * The line of music a click is for, or null when it's away from every staff (the title, the margins,
+ * the space between lines): only staves on the page you clicked count, and only within a few ledger lines
+ */
+const REACH = 5;   // how far above or below a staff (in staff spaces) a click still writes a note
+function systemNear(x, y, svg) {
+  const sp = hit.sp || 8, pg = svg && hit.pages ? hit.pages[+svg.dataset.page] : null;
+  let best = null, bd = Infinity;
+  for (const s of hit.systems) {
+    if (pg && !pg.systems.includes(s.index)) continue;
+    if (x < s.x - sp || x > s.x + s.w + sp) continue;
+    for (const q of s.staves) {
+      const h = q.tab ? q.h : 4 * sp, d = y < q.top ? q.top - y : y > q.top + h ? y - q.top - h : 0;
+      if (d < bd) { bd = d; best = s; }
+    }
+  }
+  return bd <= REACH * sp ? best : null;
+}
+const MIDI_LO = 21, MIDI_HI = 108;   // a piano's range: nothing a click writes goes past it
 // a handle for the click-through tests (like window.__clips)
 window.__compose = { get hit() { return hit; }, get ui() { return ui; }, score: () => score(), clientPoint };
 let noteDrag = null;   // { system, event, note, pointer, moved }
@@ -321,8 +340,9 @@ paper.addEventListener("pointerdown", (e) => {
   if (!hit || e.button > 0) return;
   paper.focus({ preventScroll: true });
   const { x, y, svg: onPage } = scorePoint(e);
+  const pg = onPage && hit.pages ? hit.pages[+onPage.dataset.page] : null, here = (h) => !pg || pg.systems.includes(h.system);
   // a TAB fret first (the notes' boxes reach down over the TAB staff)
-  const ev = hit.events.find((h) => h.tab && h.event >= 0 && near(h, x, y)) || hit.events.find((h) => h.event >= 0 && near(h, x, y));
+  const ev = hit.events.find((h) => h.tab && h.event >= 0 && here(h) && near(h, x, y)) || hit.events.find((h) => h.event >= 0 && here(h) && near(h, x, y));
   if (ev && (ev.part ?? 0) !== ui.part || ev && (ev.voice ?? 0) !== ui.voice) { ui.part = ev.part ?? 0; ui.voice = ev.voice ?? 0; ui.range = null; }
   const evData = ev ? voice()[ev.event] : null;
   if (ev && evData && !evData.rest && e.shiftKey && !ev.tab && ev.notes?.length) {
@@ -330,7 +350,7 @@ paper.addEventListener("pointerdown", (e) => {
     const far = ev.notes.every((n) => Math.abs(n.y - y) > (hit.sp || 8) * 0.6);
     const pi = far ? (hit.pitchInfo ? hit.pitchInfo(ev.system, y, x) : hit.pitchAt(ev.system, y)) : null;
     const midi = typeof pi === "number" ? pi : pi?.midi;
-    if (far && midi != null && (pi?.staff === undefined || pi.staff === ev.staff) && !evData.notes.some((n) => n.midi === midi)) {
+    if (far && midi != null && midi >= MIDI_LO && midi <= MIDI_HI && (pi?.staff === undefined || pi.staff === ev.staff) && !evData.notes.some((n) => n.midi === midi)) {
       commit(setPitch(score(), ui.part, ev.event, -1, midi, ui.voice));
       ui.range = null; ui.sel = ev.event; ui.caret = ev.event + 1; ui.picked = true; ui.selNote = voice()[ev.event].notes.length - 1; lastMidi = midi;
       preview([midi]); draw(); renderTools(); return;
@@ -345,8 +365,8 @@ paper.addEventListener("pointerdown", (e) => {
     preview(evData.notes.map((n) => n.midi)); draw(); renderTools(); return;
   }
   // the line (system) you clicked in: inside its band first, then the old, looser test
-  const sys = hit.systems.find((s) => y >= s.y && y <= s.y + s.h) || hit.systems.find((s) => y >= s.top - 30 && y <= s.top + s.h + 10) || hit.systems[hit.systems.length - 1];
-  if (!sys) return;
+  const sys = systemNear(x, y, onPage);
+  if (!sys) { if (ui.range || ui.picked) { ui.range = null; ui.picked = false; draw(); renderTools(); } return; }
   let p = hit.pitchInfo ? hit.pitchInfo(sys.index, y, x) : hit.pitchAt(sys.index, y);
   if (typeof p === "number") p = { part: ui.part, staff: staffOfVoice(ui.voice), midi: p };
   // the staff you clicked becomes where you write (its first voice, unless you're already in one of its voices)
@@ -354,6 +374,8 @@ paper.addEventListener("pointerdown", (e) => {
   else if (p.staff !== undefined && staffOfVoice(ui.voice) !== p.staff) { ui.voice = Math.max(0, (part().voiceStaff || [0]).indexOf(p.staff)); ui.range = null; }
   // a TAB line: that string, at the last fret you typed (open to start with)
   let midi = p.midi, string = null;
+  if (midi == null) return;
+  midi = Math.max(MIDI_LO, Math.min(MIDI_HI, midi));
   if (p.string) { string = p.string; const m = pitchOnString(part(), p.string, ui.lastFret || 0); if (m !== null) midi = m; }
   // where in time you clicked: snapped to the beat grid of the length you picked, inside its bar
   const raw = hit.tickAt(sys.index, x);
@@ -383,7 +405,7 @@ paper.addEventListener("pointermove", (e) => {
   let p = hit.pitchInfo ? hit.pitchInfo(d.system, y, x) : hit.pitchAt(d.system, y);
   const midi = typeof p === "number" ? p : p?.midi;
   const cur = voice()[d.event];
-  if (midi == null || !cur || cur.rest) return;
+  if (midi == null || midi < MIDI_LO || midi > MIDI_HI || !cur || cur.rest) return;
   const k = Math.min(d.note, cur.notes.length - 1);
   if (cur.notes[k].midi === midi) return;
   const next = replaceAt(score(), ui.part, d.event, { ...cur, notes: cur.notes.map((n, i) => (i === k ? { ...n, midi: Math.max(12, Math.min(120, midi)), spell: null } : n)) }, ui.voice);
