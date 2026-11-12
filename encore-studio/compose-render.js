@@ -10,6 +10,7 @@
 // slurs, hairpins, octave lines, pedal, repeats, endings, rehearsal marks,
 // segno and coda, key, time and tempo changes. Contract: COMPOSE-MODEL.md.
 import * as core from "./compose-core.js";
+import { notationOf, stringsOf, tabVoice, tuningLabel, capoOf, pitchFor } from "./compose-tab.js";
 
 const STEPS = "CDEFGAB", PC = [0, 2, 4, 5, 7, 9, 11];
 // the diatonic number (octave * 7 + step) of each clef's bottom line
@@ -22,6 +23,10 @@ const LEVEL = { whole: 0, half: 0, quarter: 0, eighth: 1, "16th": 2, "32nd": 3, 
 const ORANGE = "#ff3b00", SOFT = "#ff8a5c";
 const GRACE = 0.62; // grace notes are drawn at about two thirds size
 const SERIF = `Georgia, 'Times New Roman', serif`;
+// TAB: the space between TAB lines and the size of the fret numbers, in staff spaces
+const TAB_SP = 1.5, FRET_PX = 1.3;
+// a fret number as printed: in brackets when the note is tied over from the one before
+const fretText = (e, i, t) => (e.tiedFromPrev || e.tabTiedIn?.has(e.notes[i]?.midi) ? `(${t.fret})` : String(t.fret));
 const f2 = (n) => Math.round(n * 100) / 100;
 const escx = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -354,6 +359,16 @@ export function engrave(score, opts = {}) {
     lp.staves.forEach((st, s) => staves.push({ pi, s, part, clef: st.clef || "treble", voices: st.voices, transposed, nStaves: lp.staves.length,
       bottom: CLEF_BOTTOM[st.clef] ?? 30, keyAt: (b) => (transposed ? core.writtenKey(b.key || 0, part.transpose) : b.key || 0) }));
   }
+  // TAB: a part shown as TAB (or notes and TAB) gets a TAB staff that shares its notes' places; with TAB only,
+  // the notes are still laid out (for spacing and rhythm) but only the TAB is drawn
+  for (const st of staves) {
+    const mode = st.s === 0 && st.nStaves === 1 ? notationOf(st.part) : "standard";
+    if (mode === "standard") continue;
+    const strings = stringsOf(st.part), frets = new Map();
+    st.voices.forEach((ms) => { const v = ms[0]?.voice ?? 0; if (!frets.has(v)) frets.set(v, tabVoice(st.part, st.part.voices?.[v] || [])); });
+    st.tab = { mode, strings, frets, label: tuningLabel(st.part), capo: capoOf(st.part), h: (strings.length - 1) * TAB_SP * sp };
+    st.tabStaff = { ...st, isTab: true, std: st };
+  }
   const multi = shown.length > 1;
   const anyGrand = staves.some((st) => st.nStaves > 1);
   // the clef a staff reads in a bar (its own, or a change on an earlier bar)
@@ -368,8 +383,15 @@ export function engrave(score, opts = {}) {
     st.voices.forEach((ms, k) => {
       const vIndex = ms[0]?.voice ?? k;
       const src = st.part.voices?.[vIndex] || [];
+      let prevPiece = null;
       for (const m of ms) for (const e of m.events) {
         e.vk = k; e.voice = vIndex; e.st = st; e.m = m;
+        if (st.tab) {
+          // TAB: this piece's strings and frets, and which of its notes are tied over from the piece before
+          e.tabTiedIn = new Set(prevPiece && !prevPiece.rest ? prevPiece.notes.filter((n) => n.tie).map((n) => n.midi) : []);
+          e.tabFrets = e.rest ? null : (st.tab.frets.get(vIndex) || [])[e.ref] || null;
+          prevPiece = e;
+        }
         e.level = LEVEL[e.type] ?? 0;
         e.src = src[e.ref] || {};
         e.hyphen = e.lyricHyphen ?? e.src.lyricHyphen; e.arts = e.artic ?? e.src.artic ?? []; e.dynamic = e.dyn ?? e.src.dyn;
@@ -424,6 +446,11 @@ export function engrave(score, opts = {}) {
     const accW = e.accColW.reduce((a, b) => a + b + 0.18 * sp, 0);
     e.left = accW + (anyLeft ? hw : 0) + (accW ? 0.2 * sp : 0) + (e.arp ? 1.2 * sp : 0) + (e.graceW || 0);
     e.w = hw + (anyRight ? hw : 0) + (e.dots ? 0.5 * sp + e.dots * 0.55 * sp : 0) + (e.level && e.up ? 1.1 * sp : 0);
+    // a fret number (in brackets when tied over) can be wider than the notehead
+    if (e.tabFrets) {
+      const fw = Math.max(0, ...e.tabFrets.map((t, i) => (t?.string ? textWidth(fretText(e, i, t), FRET_PX * sp, 600) : 0))) / 2 + 0.2 * sp;
+      e.left = Math.max(e.left, fw - hw / 2); e.w = Math.max(e.w, hw / 2 + fw);
+    }
   }
   // two voices at the same moment: a second (or a unison with different noteheads) puts the down voice to the right
   for (const st of staves) for (let i = 0; i < bars.length; i++) {
@@ -643,13 +670,28 @@ export function engrave(score, opts = {}) {
     y += 0.8 * sp;
   }
   const barMarks = (b) => b.mark || b.nav || b.text || b.tempoChange;
+  // the room a TAB staff needs: its tuning label (first line), chord symbols and rhythm stems when it's TAB only
+  const tabRoom = (st, k, idx, si, s) => {
+    const only = st.tab.mode === "tab", isTop = k === 0;
+    let chords = false, tup = false;
+    for (const ms of st.voices) for (const m of ms) if (idx.has(m.index)) for (const e of m.events) { if (e.chord) chords = true; if (e.tuplet && !e.rest) tup = true; }
+    const marks = isTop && s.bars.some(barMarks), volta = isTop && s.bars.some((b) => b.voltaRun);
+    const label = si === 0 && st.tab.label ? 1.9 * sp : 0;
+    const above = 1.4 * sp + label + (only && chords ? 2.4 * sp : 0) + (volta ? 2.4 * sp : 0) + (marks ? 2.6 * sp : 0) + (isTop && si === 0 ? 1.8 * sp : isTop ? 0.6 * sp : 0);
+    const below = only ? 4.4 * sp + (tup ? 1.8 * sp : 0) : 1.4 * sp;
+    return { st, tab: true, h: st.tab.h, hi: 8, lo: 0, chords: only && chords, above, below, extraDown: 0, dyn: false, lyricVoices: [], ped: false, volta, marks, label: !!label };
+  };
   systems.forEach((s, si) => {
     const idx = new Set(s.bars.map((b) => b.index));
     // hide empty staves (opts.hideEmpty): after the first system, an instrument with nothing to play here is left out
     const hasMusic = (pi) => staves.some((st) => st.pi === pi && st.voices.some((ms) => ms.some((m) => idx.has(m.index) && m.events.some((e) => !e.rest || e.slash))));
     const keepPart = new Set(shown.filter((pi) => !opts.hideEmpty || si === 0 || hasMusic(pi)));
     if (!keepPart.size) keepPart.add(shown[0]);
-    s.staves = staves.filter((st) => keepPart.has(st.pi)).map((st, k) => {
+    // the staves drawn: a TAB part's TAB staff goes under its notes (or instead of them, for TAB only)
+    const drawn = [];
+    for (const st of staves) if (keepPart.has(st.pi)) { if (!st.tab || st.tab.mode === "both") drawn.push(st); if (st.tab) drawn.push(st.tabStaff); }
+    s.staves = drawn.map((st, k) => {
+      if (st.isTab) return tabRoom(st, k, idx, si, s);
       let hi = 8, lo = 0, chords = false, lyricLines = 0, dyn = false, hair = false, ped = false, oct8va = false, oct8vb = false;
       let stackUp = 0, trill = false, fingDown = 0;
       const lyrVoices = new Set();
@@ -687,16 +729,17 @@ export function engrave(score, opts = {}) {
       const marks = isTop && s.bars.some(barMarks), volta = isTop && s.bars.some((b) => b.voltaRun);
       const above = Math.max(2.5 * sp, ((hi - 8) * sp) / 2 + 1.0 * sp, stackUp + 1.0 * sp) + (trill ? 1.9 * sp : 0) + (chords ? 2.4 * sp : 0) + (oct8va ? (oct8va === 2 ? 4.2 : 1.8) * sp : 0) + (volta ? 2.4 * sp : 0) + (marks ? 2.6 * sp : 0) + (isTop && si === 0 ? 1.8 * sp : isTop ? 0.6 * sp : 0);
       const below = Math.max(2.0 * sp, (-lo * sp) / 2 + 1.0 * sp) + extraDown + (dyn || hair ? 2.2 * sp : 0) + lyricLines * 2.4 * sp + (ped ? 2.2 * sp : 0) + (oct8vb ? 1.8 * sp : 0);
-      return { st, hi, lo, chords, above, below, extraDown, dyn: dyn || hair, lyricVoices: [...lyrVoices].sort(), ped, volta, marks };
+      return { st, h: 4 * sp, hi, lo, chords, above, below, extraDown, dyn: dyn || hair, lyricVoices: [...lyrVoices].sort(), ped, volta, marks };
     });
     s.y = y;
     s.staves.forEach((ss, k) => {
-      const gap = k === 0 ? ss.above : Math.max(ss.above + s.staves[k - 1].below, ss.st.pi === s.staves[k - 1].st.pi ? 7 * sp : 8 * sp);
-      ss.top = (k === 0 ? y : s.staves[k - 1].top + 4 * sp) + gap;
+      const prev = s.staves[k - 1];
+      const gap = k === 0 ? ss.above : Math.max(ss.above + prev.below, ss.st.pi === prev.st.pi ? (ss.tab ? 4.5 * sp : 7 * sp) : 8 * sp);
+      ss.top = (k === 0 ? y : prev.top + prev.h) + gap;
     });
     const lastS = s.staves[s.staves.length - 1];
     s.top = s.staves[0].top;
-    y = lastS.top + 4 * sp + lastS.below + (staves.length > 1 ? 1.5 * sp : 0);
+    y = lastS.top + lastS.h + lastS.below + (staves.length > 1 || s.staves.length > 1 ? 1.5 * sp : 0);
     s.h = y - s.y;
   });
   // endings: each volta runs to the next ending or a closing repeat (marks the bars so the space is kept)
@@ -709,11 +752,12 @@ export function engrave(score, opts = {}) {
   const line = (x1, y1, x2, y2, w, color = "currentColor") => `<line x1="${f2(x1)}" y1="${f2(y1)}" x2="${f2(x2)}" y2="${f2(y2)}" stroke="${color}" stroke-width="${f2(w)}"/>`;
   systems.forEach((s, si) => {
     const g = [], under = [];
-    const sTop = s.staves[0].top, sBot = s.staves[s.staves.length - 1].top + 4 * sp;
+    const sTop = s.staves[0].top, sBot = s.staves[s.staves.length - 1].top + s.staves[s.staves.length - 1].h;
     const leftX = s.left;
     // staff lines and system start (clef, key, time) for every staff
     s.staves.forEach((ss, k) => {
       const T = ss.top, st = ss.st, b0 = s.bars[0];
+      if (ss.tab) { tabStart(ss, s, g, leftX); return; }
       for (let i = 0; i < 5; i++) g.push(line(leftX, T + i * sp, s.right, T + i * sp, 0.11 * sp));
       let x = leftX + 0.6 * sp;
       const clef0 = clefAt(st, b0.index);
@@ -749,6 +793,7 @@ export function engrave(score, opts = {}) {
     s.staves.forEach((ss, k) => {
       const T = ss.top, st = ss.st;
       const firstOfPart = k === 0 || s.staves[k - 1].st.pi !== st.pi;
+      if (ss.tab) { drawTab(ss, k, s, si, g, under, firstOfPart); return; }
       const chordY = T - ss.above + (k === 0 ? (si === 0 ? 1.8 * sp : 0.6 * sp) + (ss.marks ? 2.6 * sp : 0) + (ss.volta ? 2.4 * sp : 0) : 0) + 2.0 * sp;
       const lowest = T + 4 * sp + Math.max(2.0 * sp, (-ss.lo * sp) / 2 + 1.0 * sp) + (ss.extraDown || 0);
       // what's placed around the notes, settled once the staff's notes are drawn: marks above and below (closest first),
@@ -759,7 +804,7 @@ export function engrave(score, opts = {}) {
       const pedY = lyricBase + ss.lyricVoices.length * 2.4 * sp + 0.4 * sp;
       // barlines: through a grand staff, and through a group of instruments (vocal staves keep theirs to themselves),
       // drawn once from the top of each joined run of staves
-      const joined = (q, r) => q.st.pi === r.st.pi || (multi && !vocal(q.st.part) && !vocal(r.st.part));
+      const joined = (q, r) => !q.tab && !r.tab && (q.st.pi === r.st.pi || (multi && !vocal(q.st.part) && !vocal(r.st.part)));
       const joinedNext = k < s.staves.length - 1 && joined(ss, s.staves[k + 1]);
       let runTop = k; while (runTop > 0 && joined(s.staves[runTop - 1], s.staves[runTop])) runTop--;
       const runTops = s.staves.slice(runTop, k + 1).map((q) => q.top);
@@ -869,7 +914,7 @@ export function engrave(score, opts = {}) {
       const c = { part: 0, voice: 0, ...opts.cursor };
       const ss = s.staves.find((q) => q.st.pi === c.part && q.st.voices.some((ms) => (ms[0]?.voice ?? 0) === c.voice)) || s.staves.find((q) => q.st.pi === c.part);
       const cx = ss ? xForTick(s, ss.st, c.voice, c.tick, sp) : null;
-      if (cx !== null && ss) g.push(`<rect class="cursor" x="${f2(cx - 0.09 * sp)}" y="${f2(ss.top - 1.5 * sp)}" width="${f2(0.18 * sp)}" height="${f2(7 * sp)}" fill="${ORANGE}" rx="${f2(0.09 * sp)}"/>`);
+      if (cx !== null && ss) g.push(`<rect class="cursor" x="${f2(cx - 0.09 * sp)}" y="${f2(ss.top - 1.5 * sp)}" width="${f2(0.18 * sp)}" height="${f2(ss.h + 3 * sp)}" fill="${ORANGE}" rx="${f2(0.09 * sp)}"/>`);
     }
     if (opts.playhead !== undefined && opts.playhead !== null) {
       const px = xForTick(s, s.staves[0].st, null, opts.playhead, sp);
@@ -1061,6 +1106,109 @@ export function engrave(score, opts = {}) {
     }
     if (!e.tiedFromPrev && e.dynamic) ss.req.dyns.push({ x: e.x, text: e.dynamic });
   }
+  // ---- TAB: a staff of strings with fret numbers on them, under the notes (or instead of them) ----
+  // the start of a TAB staff on a line: the TAB clef, the time signature (TAB only) and the part's name (TAB only)
+  function tabStart(ss, s, g, leftX) {
+    const T = ss.top, st = ss.st, H = ss.h, only = st.tab.mode === "tab", b0 = s.bars[0];
+    const fs = Math.min(1.9 * sp, H / 3.3), cy = T + H / 2, cx = leftX + 0.6 * sp + 1.1 * sp;
+    g.push(`<g class="tabclef" font-family="${SERIF}" font-weight="700" font-size="${f2(fs)}" text-anchor="middle" fill="currentColor">`
+      + ["T", "A", "B"].map((ch, i) => `<text x="${f2(cx)}" y="${f2(cy + (i - 1) * fs * 0.98 + fs * 0.36)}">${ch}</text>`).join("") + "</g>");
+    if (only && (s.first || b0.timeChange)) {
+      // where the notes' time signature would sit: after the clef and key
+      const x = leftX + 0.6 * sp + ((CLEF_W[clefAt(st.std, b0.index)] || 2.6) + 0.6) * sp + keySigW(st.std.keyAt(b0), null, sp);
+      g.push(timeSig(b0.time, x + 0.3 * sp, cy - 2 * sp, sp).svg);
+    }
+    if (only && multi) {
+      const nm = nameOf(st.part, s.first);
+      if (nm) g.push(`<text x="${f2(leftX - decoW - 0.6 * sp)}" y="${f2(cy + 0.45 * sp)}" text-anchor="end" font-size="${f2(1.3 * sp)}" font-weight="600" fill="currentColor">${escx(nm)}</text>`);
+    }
+  }
+  // the lines (broken where a number sits), barlines, fret numbers; with TAB only, rests, the rhythm under the staff,
+  // chord symbols over it and the tuning label
+  function drawTab(ss, k, s, si, g, under, firstOfPart) {
+    const T = ss.top, st = ss.st, H = ss.h, tab = st.tab, only = tab.mode === "tab", N = tab.strings.length, tsp = TAB_SP * sp, fpx = FRET_PX * sp;
+    const lineY = (n) => T + (n - 1) * tsp, midTop = T + H / 2 - 2 * sp;
+    const gaps = Array.from({ length: N + 1 }, () => []), nums = [];
+    const stemTop = T + H + 0.9 * sp, stemBot = T + H + 3.3 * sp;
+    const visible = (m) => s.bars.includes(bars[m.index]) && !bars[m.index].mmHidden && !bars[m.index].mm;
+    // barlines (TAB keeps its own, as guitar books do) and multi-bar rests
+    s.bars.forEach((b, bi) => {
+      const xr = b.x + b.w, last = si === systems.length - 1 && bi === s.bars.length - 1;
+      g.push(barline(b.repeatEnd ? "end" : b.barline || (last ? "final" : b.autoDouble ? "double" : "single"), xr, T, T + H, sp, false, [midTop]));
+      if (b.repeatStart) {
+        const afterEnd = bi > 0 && bars[b.index - 1]?.repeatEnd && !b.keyChange && !b.timeChange;
+        g.push(barline("start", bi === 0 ? b.x - b.preFirst + 0.1 * sp : afterEnd ? b.x - 0.5 * sp : b.x + b.pre - 1.6 * sp, T, T + H, sp, afterEnd, [midTop]));
+      }
+      if (only && b.pre && b.timeChange) g.push(timeSig(b.time, b.x + 0.4 * sp + (b.clefW || 0) + (b.keyChange ? Math.max(...staves.map((q) => keySigW(q.keyAt(b), q.keyAt(bars[b.index - 1]), sp))) + 0.4 * sp : 0), midTop, sp).svg);
+      if (b.mm && only) {
+        const x1 = b.x + (b.pre || 0) + 1.0 * sp, x2 = b.x + b.w - 1.0 * sp, my = T + H / 2;
+        g.push(`<rect x="${f2(x1)}" y="${f2(my - 0.5 * sp)}" width="${f2(x2 - x1)}" height="${f2(sp)}" fill="currentColor"/>`, line(x1, my - sp, x1, my + sp, 0.18 * sp), line(x2, my - sp, x2, my + sp, 0.18 * sp));
+        g.push(`<text x="${f2((x1 + x2) / 2)}" y="${f2(T - 0.7 * sp)}" text-anchor="middle" font-family="${SERIF}" font-weight="700" font-size="${f2(2.1 * sp)}" fill="currentColor">${b.mm}</text>`);
+      }
+      if (firstOfPart) hit.measures.push({ index: b.index, x: b.x, w: b.w, system: si, y: s.y, h: s.h, start: b.start, ticks: b.ticks, part: st.pi, staves: s.staves.filter((q) => q.st.pi === st.pi).map((q) => ({ part: q.st.pi, staff: q.st.s, y: q.top, h: q.h, tab: !!q.tab })) });
+    });
+    // the tuning (and capo) over the first line
+    if (si === 0 && tab.label) g.push(`<text class="tuning" x="${f2(s.left)}" y="${f2(T - 1.6 * sp - (ss.chords ? 2.4 * sp : 0))}" font-size="${f2(1.2 * sp)}" font-style="italic" fill="currentColor" opacity=".85">${escx(tab.label)}</text>`);
+    st.voices.forEach((ms) => {
+      for (const m of ms) {
+        if (!visible(m)) continue;
+        const tupRuns = [];
+        for (const e of m.events) {
+          const selected = isSel(e), ink = selected ? ORANGE : "currentColor";
+          if (inRange(e)) under.push(`<rect x="${f2(e.x - (e.left || 0) - 0.4 * sp)}" y="${f2(T - 1.0 * sp)}" width="${f2((e.left || 0) + e.w + 2.0 * sp)}" height="${f2(H + 2 * sp)}" fill="${ORANGE}" opacity=".16"/>`);
+          if (only && e.chord) g.push(chordSymbolSvg(e.chord, e.x, T - 1.9 * sp, sp).svg);
+          if (e.rest) {
+            if (!only || e.slash) continue;
+            const type = e.wholeBar ? "whole" : e.type, dy = e.forced === "up" ? -1.5 * sp : e.forced === "down" ? 1.5 * sp : 0;
+            g.push(`<g class="tabrest">${restGlyph(type, e.x, midTop + dy, sp, ink)}</g>`);
+            if (e.dots && !e.wholeBar) g.push(`<circle cx="${f2(e.x + REST_W[e.type] * sp + 0.45 * sp)}" cy="${f2(midTop + 1.5 * sp + dy)}" r="${f2(0.2 * sp)}" fill="${ink}"/>`);
+            hit.events.push({ part: st.pi, staff: st.s, voice: e.voice, event: e.ref, measure: m.index, x: e.x - 0.3 * sp, y: T - 0.5 * tsp, w: REST_W[type] * sp + 0.6 * sp, h: H + tsp, system: si, start: e.start, ticks: e.ticks, rest: true, tab: true });
+            continue;
+          }
+          const cx = e.x + e.hw / 2, notes = [];
+          (e.tabFrets || []).forEach((t, i) => {
+            if (!t?.string) return;
+            const text = fretText(e, i, t), w = textWidth(text, fpx, 600), y = lineY(t.string);
+            const noteSel = selected && (sel.note === undefined || sel.note === null || sel.note === i);
+            nums.push(`<text class="fret" x="${f2(cx)}" y="${f2(y + 0.45 * sp)}" text-anchor="middle" font-size="${f2(fpx)}" font-weight="600" fill="${noteSel ? ORANGE : selected ? SOFT : "currentColor"}">${escx(text)}</text>`);
+            gaps[t.string].push([cx - w / 2 - 0.12 * sp, cx + w / 2 + 0.12 * sp]);
+            notes.push({ note: i, y, x: e.x });
+          });
+          if (only && !e.stemless && notes.length) {
+            // the rhythm under the TAB: stems (shorter for halves), flags or beams, dots
+            const y1 = e.type === "half" ? stemTop + 1.2 * sp : stemTop;
+            g.push(`<line class="tabstem" x1="${f2(cx)}" y1="${f2(y1)}" x2="${f2(cx)}" y2="${f2(stemBot)}" stroke="${ink}" stroke-width="${f2(0.12 * sp)}"/>`);
+            if (e.level && !e.beamG) g.push(flags(e.level, cx - 0.06 * sp, stemBot, false, sp, ink));
+            for (let d = 0; d < (e.dots || 0); d++) g.push(`<circle cx="${f2(cx + 0.55 * sp + d * 0.55 * sp)}" cy="${f2(stemBot - 0.9 * sp)}" r="${f2(0.2 * sp)}" fill="${ink}"/>`);
+          }
+          if (only && e.tuplet?.first) tupRuns.push([e]); else if (only && e.tuplet && tupRuns.length && !tupRuns[tupRuns.length - 1].done) tupRuns[tupRuns.length - 1].push(e);
+          if (only && e.tuplet?.last && tupRuns.length) tupRuns[tupRuns.length - 1].done = true;
+          hit.events.push({ part: st.pi, staff: st.s, voice: e.voice, event: e.ref, measure: m.index, x: e.x - e.left, y: T - 0.5 * tsp, w: e.left + e.w, h: H + tsp, system: si, start: e.start, ticks: e.ticks, notes, tab: true });
+        }
+        if (only) {
+          const seen = new Set();
+          for (const e of m.events) if (e.beamG && !seen.has(e.beamG)) {
+            seen.add(e.beamG);
+            const evs = e.beamG.events.map((x) => ({ stemX: x.x + x.hw / 2, level: x.level, dots: x.dots }));
+            g.push(drawBeams({ events: evs, up: false, beamAt: () => stemBot }, 0, sp, isSel(e) ? ORANGE : "currentColor"));
+          }
+          for (const run of tupRuns) {
+            const a = run[0], b = run[run.length - 1], x = (a.x + a.hw / 2 + b.x + b.hw / 2) / 2, n = a.tuplet.n;
+            g.push(`<text x="${f2(x)}" y="${f2(stemBot + 1.6 * sp)}" text-anchor="middle" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.3 * sp)}" fill="currentColor">${n}</text>`);
+          }
+        }
+      }
+    });
+    // the lines, broken around the numbers so they read cleanly on any paper colour
+    for (let n = 1; n <= N; n++) {
+      const y = lineY(n), cuts = gaps[n].sort((a, b) => a[0] - b[0]);
+      let x = s.left;
+      for (const [a, b] of cuts) { if (a > x) g.push(`<line class="tabline" x1="${f2(x)}" y1="${f2(y)}" x2="${f2(a)}" y2="${f2(y)}" stroke="currentColor" stroke-width="${f2(0.11 * sp)}"/>`); x = Math.max(x, b); }
+      if (x < s.right) g.push(`<line class="tabline" x1="${f2(x)}" y1="${f2(y)}" x2="${f2(s.right)}" y2="${f2(y)}" stroke="currentColor" stroke-width="${f2(0.11 * sp)}"/>`);
+    }
+    g.push(`<g class="tab">${nums.join("")}</g>`);
+    void k;
+  }
   // everything placed around a staff's notes once they're drawn, so nothing overlaps: marks above (closest first, each on
   // whatever is under it), chord symbols in one row over all of it, dynamics in one row under the lowest thing below, and
   // hairpins on that row that stop short of the dynamics. Returns the first lyric line's baseline.
@@ -1251,8 +1399,17 @@ export function engrave(score, opts = {}) {
   // a height on a staff to a pitch: the line or space, in the key at that bar (concert pitch when written transposed)
   hit.pitchInfo = (si, yy, xx = null) => {
     const s = systems[si]; if (!s) return null;
-    let ss = s.staves[0], best = Infinity;
-    for (const q of s.staves) { const d = Math.abs(yy - (q.top + 2 * sp)); if (d < best) { best = d; ss = q; } }
+    // on a TAB staff (or just off its outer lines): that string, open (fret 0, or the capo)
+    const band = (q) => (yy < q.top ? q.top - yy : yy > q.top + q.h ? yy - q.top - q.h : 0);
+    let tq = s.staves.find((q) => q.tab && band(q) <= 0.6 * TAB_SP * sp);
+    // only TAB on this line: the nearest TAB staff
+    if (!tq && !s.staves.some((q) => !q.tab)) tq = s.staves.reduce((a, q) => (band(q) < band(a) ? q : a));
+    if (tq) {
+      const tab = tq.st.tab, n = Math.max(1, Math.min(tab.strings.length, Math.round((yy - tq.top) / (TAB_SP * sp)) + 1));
+      return { part: tq.st.pi, staff: tq.st.s, midi: pitchFor(tab.strings[n - 1], 0, tab.capo), string: n, tab: true };
+    }
+    let ss = s.staves.find((q) => !q.tab) || s.staves[0], best = Infinity;
+    for (const q of s.staves) { if (q.tab) continue; const d = Math.abs(yy - (q.top + 2 * sp)); if (d < best) { best = d; ss = q; } }
     const b = xx === null ? s.bars[0] : s.bars.find((x) => xx < x.x + x.w) || s.bars[s.bars.length - 1];
     const key = ss.st.keyAt(b);
     const pos = Math.round((ss.top + 4 * sp - yy) / (sp / 2)), d = pos + (CLEF_BOTTOM[clefAt(ss.st, b.index)] ?? ss.st.bottom), step = ((d % 7) + 7) % 7, oct = Math.floor(d / 7);
@@ -1260,7 +1417,7 @@ export function engrave(score, opts = {}) {
     return { part: ss.st.pi, staff: ss.st.s, midi };
   };
   // v1 callers (one staff) get the number; several staves get { part, staff, midi }
-  hit.pitchAt = (si, yy, xx = null) => { const r = hit.pitchInfo(si, yy, xx); if (!r) return null; return staves.length === 1 ? r.midi : r; };
+  hit.pitchAt = (si, yy, xx = null) => { const r = hit.pitchInfo(si, yy, xx); if (!r) return null; return staves.length === 1 && !r.tab ? r.midi : r; };
   hit.tickAt = (si, xx) => {
     const s = systems[si]; if (!s) return null;
     const b = s.bars.find((x) => xx < x.x + x.w) || s.bars[s.bars.length - 1];
@@ -1273,7 +1430,7 @@ export function engrave(score, opts = {}) {
     return b.start + b.ticks;
   };
   hit.systems = systems.map((s, i) => ({ index: i, y: s.y, h: s.h, top: s.top, staffHeight: 4 * sp, x: s.left, w: s.right - s.left, measures: s.bars.map((b) => b.index),
-    staves: s.staves.map((q) => ({ part: q.st.pi, staff: q.st.s, top: q.top })) }));
+    staves: s.staves.map((q) => (q.tab ? { part: q.st.pi, staff: q.st.s, top: q.top, h: q.h, tab: true, strings: q.st.tab.strings.length } : { part: q.st.pi, staff: q.st.s, top: q.top })) }));
   return { svg, height, ...hit, sp, boxes };
 
   // a tick to an x on a staff (or across all staves): between the moments things start

@@ -35,7 +35,7 @@
   @media (min-width: 1000px) {
     .layout { grid-template-columns: minmax(0, 3fr) minmax(380px, 2fr); }
     .layout > .tabsBox { position: sticky; top: 72px; }
-    .tabBody { max-height: calc(100vh - 146px); overflow-y: auto; }
+    .tabBody { max-height: calc(100vh - 146px); max-height: calc(100dvh - 146px); overflow-y: auto; }
   }
   .panel, .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; }
   .panel { padding: 14px 16px; }

@@ -18,7 +18,7 @@
   @media (min-width: 1000px) {
     .layout { grid-template-columns: minmax(380px, 5fr) minmax(0, 6fr); }
     .layout > .panel { position: sticky; top: 76px; }
-    .tabBody { max-height: calc(100vh - 150px); overflow-y: auto; }
+    .tabBody { max-height: calc(100vh - 150px); max-height: calc(100dvh - 150px); overflow-y: auto; }
   }
   .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
   .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
@@ -96,6 +96,8 @@
   .bpmBox { min-width: 0; }
   .bpm { font-size: clamp(76px, 22vw, 128px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; font-variant-numeric: tabular-nums; }
   .bpmEdit { font: inherit; font-size: clamp(60px, 18vw, 104px); font-weight: 800; width: 3.6ch; text-align: center; background: var(--bg-subtle-default); color: var(--text); border: 1px solid #ff3b00; border-radius: 10px; padding: 0; }
+  /* touch screens: the shared 16px input rule (it stops iOS zooming small boxes) shrank this to a sliver; big text never zooms */
+  #panel .bpmEdit { font-size: clamp(60px, 18vw, 104px) !important; }
   .bpmLabel { color: var(--soft); font-size: 14px; margin-top: 4px; }
   .bpmLabel b { color: var(--text); font-weight: 700; }
   #tempoSlider { max-width: 560px; margin: 10px auto 0; display: block; }
@@ -196,13 +198,13 @@
   .viewPick button { flex: none; font-size: 13px; font-weight: 700; color: var(--dim); background: transparent; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 6px 9px; min-height: 34px; }
   .viewPick button:hover { color: var(--text); }
   .viewPick button.on { color: var(--text); border-bottom-color: var(--accent); }
-  .viewBox { display: none; position: relative; height: clamp(150px, calc(100vh - 560px), 360px); margin: 0 0 8px; }
+  .viewBox { display: none; position: relative; height: clamp(150px, calc(100vh - 560px), 360px); height: clamp(150px, calc(100dvh - 560px), 360px); margin: 0 0 8px; }
   .viewBox canvas, .stageView canvas { width: 100%; height: 100%; display: block; touch-action: none; }
   .panel.withView .viewBox { display: block; }
   .panel.withView .beat { height: 50px; }
   .panel.withView .beat .num { top: 3px; }
   .panel.withView .beatHint { display: none; }
-  .panel.withView.withPoly .viewBox { height: clamp(140px, calc(100vh - 630px), 300px); }
+  .panel.withView.withPoly .viewBox { height: clamp(140px, calc(100vh - 630px), 300px); height: clamp(140px, calc(100dvh - 630px), 300px); }
   @media (max-width: 999px) { .viewBox { height: clamp(150px, calc(100svh - 610px), 300px); } .panel.withView.withPoly .viewBox { height: 150px; } }
   .stagePick { position: relative; z-index: 1; margin: calc(8px + env(safe-area-inset-top)) 0 0; flex: none; max-width: 100%; }
   .stagePick button { font-size: 15px; padding: 8px 12px; min-height: 44px; }

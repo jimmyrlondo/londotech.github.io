@@ -6,6 +6,7 @@
 // (slurs, hairpins, octave lines, pedal) and bar marks (key, time and tempo changes,
 // repeats, endings, D.C./D.S./Coda/Fine, rehearsal marks).
 import { parseChord, chordSymbol, TYPE } from "./chords-core.js";
+import { notationOf, stringsOf, tabVoice, capoOf, tuningByOpens, tabClef } from "./compose-tab.js";
 
 export const TPQ = 480;
 const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
@@ -673,7 +674,7 @@ export function normalize(score) {
         if (prev && prev.rest && e.rest && plain(e) && plain(prev)) { prev.dur += e.dur; where.set(e.id, `${pi}:${vi}:${out.length - 1}`); continue; }
         const c = { dur: e.dur, rest: !!e.rest, notes: e.rest ? [] : e.notes.map((n) => {
           const o = { midi: n.midi, tie: !!n.tie, spell: n.spell || null };
-          if (n.finger) o.finger = String(n.finger); if (n.head && n.head !== "normal") o.head = n.head; if (n.harm) o.harm = true;
+          if (n.finger) o.finger = String(n.finger); if (n.head && n.head !== "normal") o.head = n.head; if (n.harm) o.harm = true; if (n.string) o.string = n.string;
           return o;
         }).sort((a, b) => a.midi - b.midi) };
         if (e.graces?.length) c.graces = e.graces.map((g) => ({ slash: g.slash !== false, notes: (g.notes || []).map((n) => ({ midi: n.midi })).sort((a, b) => a.midi - b.midi) }));
@@ -697,7 +698,7 @@ export function normalize(score) {
     const clefs = clefsOf(p);
     p.clef = clefs[0];
     if (stavesOf(p) === 1) { delete p.staves; delete p.clefs; delete p.voiceStaff; } else { p.clefs = [...clefs]; p.voiceStaff = [0, 1, 2, 3].map((v) => staffOfVoice(p, v)); }
-    for (const [k, d] of [["mute", false], ["solo", false], ["volume", 0.8]]) if (p[k] === undefined || p[k] === d) delete p[k];
+    for (const [k, d] of [["mute", false], ["solo", false], ["volume", 0.8], ["notation", "standard"], ["capo", 0], ["tuning", null]]) if (p[k] === undefined || p[k] === d) delete p[k];
   });
   // spans by position instead of id; bars without anything on them dropped
   s.spans = (s.spans || []).map((sp) => {
@@ -1034,7 +1035,21 @@ export function toMusicXML(score) {
   const timeXML = (t) => `        <time><beats>${t.groups?.length ? t.groups.join("+") : t.n}</beats><beat-type>${t.d}</beat-type></time>`;
   const metronome = (tempo, pi) => pi === 0 ? `      <direction placement="above"><direction-type><metronome><beat-unit>quarter</beat-unit><per-minute>${tempo}</per-minute></metronome></direction-type><sound tempo="${tempo}"/></direction>` : "";
   score.parts.forEach((p, pi) => {
-    const P = L.parts[pi], tr = p.transpose || 0, nst = P.staves.length;
+    const P = L.parts[pi], tr = p.transpose || 0;
+    // TAB: "tab" writes one TAB staff; "both" adds a TAB staff (staff 2) with the notes again; notes carry string and fret
+    const tabMode = notationOf(p), tabStrings = tabMode !== "standard" ? stringsOf(p) : [];
+    const tabOf = new Map(); if (tabStrings.length) p.voices.forEach((v, vi) => tabOf.set(vi, tabVoice(p, v)));
+    const both = tabMode === "both", nst = both ? 2 : P.staves.length;
+    const tabFret = (m, ev, ni) => (ev.ref >= 0 ? tabOf.get(m.voice)?.[ev.ref]?.[ni] : null) || null;
+    const techTab = (t) => (t?.string ? `<string>${t.string}</string><fret>${t.fret}</fret>` : "");
+    const staffDetails = (num) => {
+      const lines = tabStrings.slice().reverse().map((s, k) => {
+        const [, step, acc, oct] = /^([A-G])(#|b)?(-?\d+)$/.exec(s.full || "") || [null, "E", "", "4"];
+        return `<staff-tuning line="${k + 1}"><tuning-step>${step}</tuning-step>${acc ? `<tuning-alter>${acc === "#" ? 1 : -1}</tuning-alter>` : ""}<tuning-octave>${oct}</tuning-octave></staff-tuning>`;
+      }).join("");
+      return `        <staff-details${num ? ` number="${num}"` : ""}><staff-lines>${tabStrings.length}</staff-lines>${lines}${capoOf(p) ? `<capo>${capoOf(p)}</capo>` : ""}</staff-details>`;
+    };
+    const tabClefXML = (num) => `        <clef${num ? ` number="${num}"` : ""}><sign>TAB</sign><line>5</line></clef>`;
     x.push(`  <part id="P${pi + 1}">`);
     const syll = new Map(), slurNo = new Map(); let nextSlur = 1;
     bars.forEach((b, i) => {
@@ -1046,13 +1061,15 @@ export function toMusicXML(score) {
       if (i === 0) {
         attrs.push(`        <divisions>${DIV}</divisions>`, `        <key><fifths>${writtenKey(b.key, tr)}</fifths><mode>${b.mode === "minor" ? "minor" : "major"}</mode></key>`, timeXML(b.time));
         if (nst > 1) attrs.push(`        <staves>${nst}</staves>`);
-        P.staves.forEach((st, k) => attrs.push(clefXML(st.clef, nst > 1 ? k + 1 : 0)));
+        if (tabMode === "tab") attrs.push(tabClefXML(0), staffDetails(0));
+        else if (both) attrs.push(clefXML(P.staves[0].clef, 1), tabClefXML(2), staffDetails(2));
+        else P.staves.forEach((st, k) => attrs.push(clefXML(st.clef, nst > 1 ? k + 1 : 0)));
         if (tr) { const d = diatonicSteps(tr); attrs.push(`        <transpose><diatonic>${-d}</diatonic><chromatic>${-tr}</chromatic></transpose>`); }
       } else {
         if (b.keyChange) attrs.push(`        <key><fifths>${writtenKey(b.key, tr)}</fifths><mode>${b.mode === "minor" ? "minor" : "major"}</mode></key>`);
         if (b.timeChange) attrs.push(timeXML(b.time));
         // a clef change on any of this part's staves
-        P.staves.forEach((st, k) => { const m0 = st.voices[0]?.[i]; if (m0?.clefChange) attrs.push(clefXML(m0.clef, nst > 1 ? k + 1 : 0)); });
+        if (tabMode !== "tab") P.staves.forEach((st, k) => { const m0 = st.voices[0]?.[i]; if (m0?.clefChange) attrs.push(clefXML(m0.clef, nst > 1 ? k + 1 : 0)); });
       }
       if (attrs.length) x.push("      <attributes>", ...attrs, "      </attributes>");
       // the first part carries the marks that belong to the whole score
@@ -1141,7 +1158,8 @@ export function toMusicXML(score) {
               const tech = [];
               if (n && n.finger) tech.push(/^[pima]$/.test(n.finger) ? `<pluck>${n.finger}</pluck>` : `<fingering>${xesc(n.finger)}</fingering>`);
               if (n && n.harm) tech.push("<harmonic><natural/></harmonic>");
-              if (tech.length) nots.push(`<technical>${tech.join("")}</technical>`);
+              if (n && tabStrings.length) tech.push(techTab(tabFret(m, ev, ni)));
+              if (tech.join("")) nots.push(`<technical>${tech.join("")}</technical>`);
               if (n && ev.arp) nots.push(`<arpeggiate${ev.arpDir === "down" ? ' direction="down"' : ev.arpDir === "up" ? ' direction="up"' : ""}/>`);
               if (ni === 0) for (const sp of ev.spans) if (sp.type === "gliss") {
                 if (sp.start) nots.push('<glissando type="start" line-type="solid" number="1">gliss.</glissando>');
@@ -1167,6 +1185,27 @@ export function toMusicXML(score) {
           }
         }
       }));
+      // notes and TAB: the same notes again on the TAB staff (staff 2, voices from 5), with their strings and frets
+      if (both) P.staves[0].voices.forEach((ms) => {
+        const m = ms[i];
+        if (!m.events.length) return;
+        if (wrote) x.push(`      <backup><duration>${b.ticks}</duration></backup>`);
+        wrote = true;
+        const vnum = m.voice + 5;
+        srcVoiceTuplets = p.voices[m.voice] || null;
+        for (const ev of m.events) {
+          if (ev.full) { x.push(`      <note><rest measure="yes"/><duration>${m.ticks}</duration><voice>${vnum}</voice><staff>2</staff></note>`); continue; }
+          (ev.rest ? [null] : ev.notes).forEach((n, ni) => {
+            const tu = ev.tuplet ? srcTuplet(ev) : null, on = tu?.outer ? tu.outer.n : 1, oo = tu?.outer ? tu.outer.of : 1;
+            const t = n ? techTab(tabFret(m, ev, ni)) : "";
+            const nots = [n && ev.tiedFromPrev ? '<tied type="stop"/>' : "", n && n.tie ? '<tied type="start"/>' : "", t ? `<technical>${t}</technical>` : ""].join("");
+            x.push(`      <note>${ni ? "<chord/>" : ""}${n ? `<pitch><step>${n.step}</step>${n.alter ? `<alter>${n.alter}</alter>` : ""}<octave>${n.octave}</octave></pitch>` : "<rest/>"}<duration>${ev.ticks}</duration>`
+              + `${n && ev.tiedFromPrev ? '<tie type="stop"/>' : ""}${n && n.tie ? '<tie type="start"/>' : ""}<voice>${vnum}</voice><type>${ev.type}</type>${"<dot/>".repeat(ev.dots)}`
+              + `${ev.tuplet ? `<time-modification><actual-notes>${ev.tuplet.n * on}</actual-notes><normal-notes>${ev.tuplet.of * oo}</normal-notes></time-modification>` : ""}<staff>2</staff>`
+              + `${ev.beam && ni === 0 ? `<beam number="1">${beamPos(m, ev)}</beam>` : ""}${nots ? `<notations>${nots}</notations>` : ""}</note>`);
+          });
+        }
+      });
       // the end of the bar: jumps, then the right barline
       if (pi === 0) for (const nav of navsOf(b)) {
         if (nav === "Segno" || nav === "Coda") continue;
@@ -1252,7 +1291,7 @@ export function fromMusicXML(text) {
     const nm = names.get(pel.attrs.id) || {}, pi = score.parts.length;
     const part = newPart({ name: nm.name || "Part", instrument: nm.instrument || nm.name || "Piano" });
     if (nm.volume !== null && nm.volume !== undefined && Number.isFinite(nm.volume)) part.volume = nm.volume;
-    let div = 1, tr = 0, measureStart = 0, staves = 1, writtenFifths = 0;
+    let div = 1, tr = 0, measureStart = 0, staves = 1, writtenFifths = 0, tabStaff = 0, tabTuning = null, tabCapo = 0;
     const clefs = ["treble", "bass"], clefSeen = new Set(), vmap = new Map(), lastOf = new Map();
     const openSlurs = new Map(), openDir = new Map(); // slur number -> { from, voice }; span type -> { from, voice }
     let pendingChord = null, pendingDyn = [], dirStarts = [];
@@ -1295,7 +1334,14 @@ export function fromMusicXML(text) {
             if (groups) time.groups = groups;
             if (mi === 0) score.time = time; else setMark(mi, "time", time);
           }
+          // a TAB staff: its tuning and capo (line 1 is the lowest string); its notes repeat the other staff's, so they're skipped
+          for (const sd of kids(el, "staff-details")) {
+            const num = +(sd.attrs.number || 1), tun = kids(sd, "staff-tuning").sort((a, b) => +a.attrs.line - +b.attrs.line);
+            if (tun.length) tabTuning = { num, opens: tun.map((t) => midiOf(txt(t, "tuning-step"), +txt(t, "tuning-alter") || 0, +txt(t, "tuning-octave"))) };
+            if (kid(sd, "capo")) tabCapo = +txt(sd, "capo") || 0;
+          }
           for (const c of kids(el, "clef")) {
+            if (txt(c, "sign") === "TAB") { tabStaff = +(c.attrs.number || 1); continue; }
             const s = txt(c, "sign"), l = +txt(c, "line"), o = +txt(c, "clef-octave-change") || 0, num = +(c.attrs.number || 1);
             const name = s === "F" ? "bass" : s === "C" ? (l === 4 ? "tenor" : "alto") : s === "percussion" ? "percussion" : o === -1 ? "treble8vb" : "treble";
             if (!clefSeen.has(num)) { clefs[num - 1] = name; clefSeen.add(num); if (mi > 0) setMark(mi, "clefs", { ...(bars[mi]?.clefs || {}), [`${pi}:${num - 1}`]: name }); }
@@ -1357,6 +1403,7 @@ export function fromMusicXML(text) {
         else if (el.name === "note") {
           if (kid(el, "cue")) continue;
           const isChord = !!kid(el, "chord"), d = Math.round(+txt(el, "duration") * TPQ / div);
+          if (tabStaff && staves === 2 && +(txt(el, "staff") || 1) === tabStaff) { if (!isChord && !kid(el, "grace")) { pos += d; maxPos = Math.max(maxPos, pos); } continue; }
           const v = ourVoice(+(txt(el, "staff") || 1), txt(el, "voice") || "1");
           const pitch = kid(el, "pitch"), rest = kid(el, "rest"), nots = kid(el, "notations"), techEl = kid(nots, "technical");
           let n = null;
@@ -1366,6 +1413,7 @@ export function fromMusicXML(text) {
             // how this note is played and shown: fingering, notehead, harmonic
             const fg = txt(techEl, "fingering") || txt(techEl, "pluck"); if (fg) n.finger = fg;
             const head = txt(el, "notehead");
+            const strNo = +txt(techEl, "string"); if (Number.isInteger(strNo) && strNo > 0) n.string = strNo;
             if (kid(techEl, "harmonic")) n.harm = true;
             else if (["x", "diamond", "slash", "triangle", "circle-x"].includes(head)) n.head = head;
           }
@@ -1448,6 +1496,16 @@ export function fromMusicXML(text) {
       // the bar is as long as its music (a pickup, an odd last bar), or the time signature's bar when it's empty
       measureStart += maxPos > 0 ? maxPos : barTicks(score, mi);
     });
+    // TAB: notes and TAB (two staves) or TAB only become one staff shown that way, with the tuning and capo
+    if (tabStaff) {
+      const tabOnly = staves === 1;
+      if (!tabOnly) { staves = 1; part.staves = 1; if (tabStaff === 1) clefs[0] = clefs[1]; }
+      if (tabOnly || !clefSeen.has(tabStaff === 1 ? 2 : 1)) clefs[0] = tabClef(part.instrument);
+      part.notation = tabOnly ? "tab" : "both";
+      const tn = tabTuning ? tuningByOpens(part.instrument, tabTuning.opens) : null;
+      if (tn) part.tuning = tn;
+      if (tabCapo) part.capo = tabCapo;
+    }
     part.clefs = staves === 2 ? [clefs[0], clefs[1]] : [clefs[0]];
     part.clef = part.clefs[0];
     if (staves === 1) part.voiceStaff = [0, 0, 0, 0];

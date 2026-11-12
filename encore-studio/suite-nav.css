@@ -36,3 +36,20 @@
 .bar .tools .navsep { flex: none; width: 1px; margin: 12px 3px; background: var(--divider-strong); }
 /* on smaller laptops the label next to the logo gives its room to the tabs */
 @media (max-width: 1440px) { .bar .home .chip-label { display: none; } }
+
+/* ---------- phones and tablets: everything big enough for a finger ----------
+   Touch screens only (a mouse keeps the compact sizes). 40 px is the floor for anything you
+   tap; checkboxes and sliders get a bigger hit area without looking chunky. */
+@media (pointer: coarse) {
+  button, select, .btn, a.btn, [role="button"], .seg > button, .pt,
+  input[type="text"], input[type="number"], input[type="search"], input[type="email"], input[type="url"] { min-height: 40px; }
+  button:not(.w):not(.ch), .ib { min-width: 40px; }
+  input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; }
+  input[type="range"] { min-height: 32px; }
+  label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { min-height: 40px; display: inline-flex; align-items: center; gap: 8px; }
+  .bar .home { min-height: 40px; }
+}
+/* iPhones zoom the whole page in when you tap a box with text under 16 px: keep them at 16 */
+@supports (-webkit-touch-callout: none) {
+  @media (pointer: coarse) { input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; } }
+}

@@ -19,7 +19,7 @@
     main:has(#report:not(.hidden)) { max-width: 1320px; padding-bottom: 16px; }
     #report:not(.hidden) { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 18px; align-items: start; }
     .repL { position: sticky; top: 76px; }
-    .repR { max-height: calc(100vh - 96px); overflow-y: auto; padding-right: 4px; }
+    .repR { max-height: calc(100vh - 96px); max-height: calc(100dvh - 96px); overflow-y: auto; padding-right: 4px; }
     .repL .verdict .actions { flex-wrap: wrap; }
   }
   .hidden { display: none !important; }
