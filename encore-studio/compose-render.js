@@ -22,7 +22,8 @@ const SHARP_ORDER = "FCGDAEB";
 const LEVEL = { whole: 0, half: 0, quarter: 0, eighth: 1, "16th": 2, "32nd": 3, "64th": 4 };
 const ORANGE = "#ff3b00", SOFT = "#ff8a5c";
 const GRACE = 0.62; // grace notes are drawn at about two thirds size
-const SERIF = `Georgia, 'Times New Roman', serif`;
+const SERIF = `'EB Garamond', Georgia, 'Times New Roman', serif`;
+const TEXT_FONT = `'EB Garamond', Georgia, 'Times New Roman', serif`;
 // TAB: the space between TAB lines and the size of the fret numbers, in staff spaces
 const TAB_SP = 1.5, FRET_PX = 1.3;
 // a fret number as printed: in brackets when the note is tied over from the one before
@@ -661,13 +662,15 @@ export function engrave(score, opts = {}) {
   let headSvg = "";
   const oneTransposed = shown.length === 1 && staves[0]?.transposed;
   if (header) {
-    if (score.title) { y += 3.2 * sp; headSvg += `<text x="${f2(width / 2)}" y="${f2(y)}" text-anchor="middle" font-size="${f2(Math.min(2.6 * sp, (2.6 * sp * (width - 2 * margin)) / Math.max(1, textWidth(score.title, 2.6 * sp, 800))))}" font-weight="800" fill="currentColor">${escx(score.title)}</text>`; }
-    if (score.subtitle) { y += 1.9 * sp; headSvg += `<text x="${f2(width / 2)}" y="${f2(y)}" text-anchor="middle" font-size="${f2(1.5 * sp)}" fill="currentColor" opacity=".8">${escx(score.subtitle)}</text>`; }
-    y += 1.9 * sp;
-    if (score.composer) headSvg += `<text x="${f2(width - margin)}" y="${f2(y)}" text-anchor="end" font-size="${f2(1.35 * sp)}" fill="currentColor">${escx(score.composer)}</text>`;
-    if (score.lyricist) headSvg += `<text x="${f2(margin)}" y="${f2(y)}" font-size="${f2(1.35 * sp)}" fill="currentColor">${escx("Words: " + score.lyricist)}</text>`;
-    if (oneTransposed) { y += 1.6 * sp; headSvg += `<text x="${f2(margin)}" y="${f2(y)}" font-size="${f2(1.2 * sp)}" font-style="italic" fill="currentColor" opacity=".8">${escx(staves[0].part.name || staves[0].part.instrument || "")} (written pitch)</text>`; }
-    y += 0.8 * sp;
+    // on a page the header reads like a printed score: a big serif title, the composer at the right
+    const pg = !!opts.page, fam = pg ? ` font-family="${TEXT_FONT}"` : "", tPx = pg ? 4.1 * sp : 2.6 * sp, tW = pg ? 600 : 800;
+    if (score.title) { y += (pg ? 4.6 : 3.2) * sp; headSvg += `<text x="${f2(width / 2)}" y="${f2(y)}" text-anchor="middle"${fam} font-size="${f2(Math.min(tPx, (tPx * (width - 2 * margin)) / Math.max(1, textWidth(score.title, tPx, tW, pg ? TEXT_FONT : undefined))))}" font-weight="${tW}" fill="currentColor">${escx(score.title)}</text>`; }
+    if (score.subtitle) { y += (pg ? 2.6 : 1.9) * sp; headSvg += `<text x="${f2(width / 2)}" y="${f2(y)}" text-anchor="middle"${fam} font-size="${f2((pg ? 2.0 : 1.5) * sp)}" fill="currentColor" opacity=".8">${escx(score.subtitle)}</text>`; }
+    y += (pg ? 2.8 : 1.9) * sp;
+    if (score.composer) headSvg += `<text x="${f2(width - margin)}" y="${f2(y)}" text-anchor="end"${fam} font-size="${f2((pg ? 1.75 : 1.35) * sp)}" fill="currentColor">${escx(score.composer)}</text>`;
+    if (score.lyricist) headSvg += `<text x="${f2(margin)}" y="${f2(y)}"${fam} font-size="${f2((pg ? 1.6 : 1.35) * sp)}" fill="currentColor"${pg ? ' font-style="italic"' : ""}>${escx("Words: " + score.lyricist)}</text>`;
+    if (oneTransposed) { y += 1.6 * sp; headSvg += `<text x="${f2(margin)}" y="${f2(y)}"${fam} font-size="${f2(1.2 * sp)}" font-style="italic" fill="currentColor" opacity=".8">${escx(staves[0].part.name || staves[0].part.instrument || "")} (written pitch)</text>`; }
+    y += (pg ? 1.6 : 0.8) * sp;
   }
   const barMarks = (b) => b.mark || b.nav || b.text || b.tempoChange;
   // the room a TAB staff needs: its tuning label (first line), chord symbols and rhythm stems when it's TAB only
@@ -1431,7 +1434,7 @@ export function engrave(score, opts = {}) {
   };
   hit.systems = systems.map((s, i) => ({ index: i, y: s.y, h: s.h, top: s.top, staffHeight: 4 * sp, x: s.left, w: s.right - s.left, measures: s.bars.map((b) => b.index),
     staves: s.staves.map((q) => (q.tab ? { part: q.st.pi, staff: q.st.s, top: q.top, h: q.h, tab: true, strings: q.st.tab.strings.length } : { part: q.st.pi, staff: q.st.s, top: q.top })) }));
-  return { svg, height, ...hit, sp, boxes };
+  return { svg, height, ...hit, sp, boxes, headSvg, systemSvgs: out, width };
 
   // a tick to an x on a staff (or across all staves): between the moments things start
   function xForTick(s, st, voice, tick, sp) {
@@ -1544,12 +1547,34 @@ function shortName(name) {
   return (w.length > 4 ? w.slice(0, 3) + "." : w) + (num ? ` ${num}` : "");
 }
 
-/** Draw into a container element (its width if opts.width is not given) and return the hit map */
+/**
+ * Draw into a container element (its width if opts.width is not given) and return the hit map.
+ * opts.page: { height, zoom, margin: { top, right, bottom, left } } lays the music out on pages
+ * (opts.width is then the page's music width): each page is its own <svg class="score" data-off>
+ * showing a slice of the one tall drawing, so hit map points stay in the drawing's units.
+ */
 export function render(container, score, opts = {}) {
   const width = opts.width || container.clientWidth || 800;
   const r = engrave(score, { ...opts, width });
-  container.innerHTML = r.svg;
-  const { svg, ...hitmap } = r;
-  void svg;
+  const { svg, headSvg, systemSvgs, ...hitmap } = r;
+  if (!opts.page) { container.innerHTML = svg; hitmap.pages = null; return hitmap; }
+  const P = opts.page, z = P.zoom || 1, M = P.margin, H = P.height;
+  // systems onto pages: a system that would run past the bottom starts the next page
+  const pages = [];
+  let cur = { off: 0, items: [] };
+  hitmap.systems.forEach((sy, i) => {
+    if (cur.items.length && sy.y + sy.h - cur.off > H) { pages.push(cur); cur = { off: sy.y, items: [] }; }
+    cur.items.push(i);
+  });
+  pages.push(cur);
+  const title = escx(score.title || "Score"), n = pages.length;
+  container.innerHTML = pages.map((pg, k) => {
+    const off = Math.floor(pg.off);
+    return `<div class="page" style="width:${f2((width + M.left + M.right) * z)}px;height:${f2((H + M.top + M.bottom) * z)}px;padding:${f2(M.top * z)}px ${f2(M.right * z)}px ${f2(M.bottom * z)}px ${f2(M.left * z)}px">`
+      + `<svg xmlns="http://www.w3.org/2000/svg" class="score" data-off="${off}" data-page="${k}" width="${f2(width * z)}" height="${f2(H * z)}" viewBox="0 ${off} ${f2(width)} ${H}" overflow="visible" font-family="${TEXT_FONT}" role="img" aria-label="${title}, page ${k + 1} of ${n}">`
+      + (k === 0 ? headSvg : "") + pg.items.map((i) => systemSvgs[i]).join("") + `</svg>`
+      + (n > 1 ? `<div class="pnum">${k + 1}</div>` : "") + `</div>`;
+  }).join("");
+  hitmap.pages = pages.map((pg) => ({ off: Math.floor(pg.off), height: H, systems: pg.items }));
   return hitmap;
 }

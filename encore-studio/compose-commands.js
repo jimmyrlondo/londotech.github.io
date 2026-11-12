@@ -124,6 +124,7 @@ export const COMMANDS = [
   ["print", "Print or save PDF", "Ctrl+P", ""], ["print-part", "Print one part", "", "player extract"],
   ["history", "Version history", "", "restore earlier backup undo"],
   ["paper", "Light or dark paper", "", "theme colors page"],
+  ["page-view", "Page view or scroll view", "", "pages sheet print layout scroll strip"],
   ["shortcuts", "Keyboard shortcuts", "?", "help keys"],
 ].map(([id, name, keys, words]) => ({ id, name, keys, words }));
 

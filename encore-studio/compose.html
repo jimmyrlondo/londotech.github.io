@@ -9,7 +9,7 @@
 <meta name="description" content="Write sheet music: click, type or play notes on a MIDI keyboard, record with a click and see it written out, add chords and lyrics, hear it back, and export MusicXML, MIDI or PDF.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=EB+Garamond:ital,wght@0,400..800;1,400..600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="encore-tokens.css">
 <style>
   * { box-sizing: border-box; }
@@ -57,6 +57,12 @@
   .paper { padding: 10px 14px 30px; color: #f2efe8; position: relative; outline: none; }
   .paper:focus-visible { box-shadow: inset 0 0 0 2px rgb(255 59 0 / .4); border-radius: 8px; }
   .paper svg { display: block; }
+  /* the page view: white Letter pages with margins on a dark desk, like a printed score */
+  .paper.pages { display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 24px 16px 48px; color: #14110f; }
+  .paper.pages:focus-visible { box-shadow: none; }
+  .paper.pages .page { position: relative; box-sizing: border-box; flex: none; background: #fffefa; border-radius: 2px; box-shadow: 0 1px 2px rgb(0 0 0 / .5), 0 10px 28px rgb(0 0 0 / .45); }
+  .paper.pages .page svg { overflow: visible; }
+  .paper.pages .pnum { position: absolute; bottom: 22px; left: 0; right: 0; text-align: center; font: 500 12px "EB Garamond", Georgia, serif; color: #6b625a; }
   .light .paper { background: #f6f3ec; color: #14110f; border-radius: 10px; }
   .count { position: absolute; inset: 0; display: grid; place-items: center; font-size: 120px; font-weight: 800; color: #ff3b00; pointer-events: none; text-shadow: 0 4px 30px rgb(0 0 0 / .5); }
   /* the on-screen piano */
@@ -141,6 +147,7 @@
     .bar, #libPanel, #toolPanel, .mtabs, .tool, .pianoWrap { display: none !important; }
     body { background: #fff; } main { display: block; height: auto; padding: 0; } .panel { border: 0; background: #fff; }
     .paper { color: #000 !important; background: #fff !important; padding: 0; } .scroll { overflow: visible; }
+    .paper.pages { display: block; padding: 0; gap: 0; } .paper.pages .page { box-shadow: none; border-radius: 0; break-after: page; margin: 0 auto; }
   }
 </style>
 <link rel="stylesheet" href="suite-nav.css">

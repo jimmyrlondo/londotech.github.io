@@ -113,6 +113,14 @@ let hit = null, drawQueued = false, playTick = null;
 // the recorded instruments a score needs, fetched a moment after it changes (so Play starts on them, not the synth)
 let prepTimer = 0;
 function prepareSoon() { clearTimeout(prepTimer); prepTimer = setTimeout(() => { try { prepareScore(score()).catch(() => {}); } catch {} }, 900); }
+// the page view: US Letter at 96 px to the inch, a 7 mm staff, shown as large as the panel allows
+const PAGE = { w: 816, h: 1056, m: { top: 58, right: 62, bottom: 66, left: 62 }, scale: 0.8 };
+function pageLayout() {
+  if (db.prefs.view === "scroll" || innerWidth < 700) return null;
+  const room = ($("paperScroll")?.clientWidth || paper.clientWidth) - 48;
+  const zoom = Math.max(0.6, Math.min(1.35, room / PAGE.w));
+  return { height: PAGE.h - PAGE.m.top - PAGE.m.bottom, zoom, margin: PAGE.m };
+}
 function draw() {
   prepareSoon();
   if (drawQueued) return;
@@ -121,7 +129,9 @@ function draw() {
     drawQueued = false;
     const s = score(), longest = Math.max(...s.parts.flatMap((p) => p.voices.map(voiceLength)), 0);
     const bars = Math.max(4, Math.ceil((longest + 1) / barTicks(s)) + 1), r = rangeNow();
-    hit = render(paper, s, { width: paper.clientWidth - 28, scale: innerWidth < 700 ? 0.78 : 1,
+    const pg = pageLayout();
+    paper.classList.toggle("pages", !!pg);
+    hit = render(paper, s, { width: pg ? PAGE.w - PAGE.m.left - PAGE.m.right : paper.clientWidth - 28, scale: pg ? PAGE.scale : innerWidth < 700 ? 0.78 : 1, page: pg,
       selection: ui.sel >= 0 && !ui.range ? { part: ui.part, voice: ui.voice, event: ui.sel, note: ui.selNote } : null,
       range: ui.range && r ? { part: ui.part, voice: ui.voice, from: r.from, to: r.to } : null,
       cursor: ui.playing ? null : { part: ui.part, voice: ui.voice, tick: caretTick() }, playhead: playTick, transposed: ui.transposed, bars });
@@ -282,15 +292,27 @@ document.addEventListener("keyup", (e) => { if (ui.recording && KEYMAP[e.key.toL
 // clicking the staff: a note selects it (shift-click: a run) and dragging it up or down changes its pitch;
 // empty staff or a rest puts a note where you clicked
 const near = (h, x, y) => x >= h.x - 6 && x <= h.x + h.w + 6 && y >= h.y - 4 && y <= h.y + h.h + 4;
-/** Where the pointer is on the music itself (the hit map is in the score's own pixels, inside the paper's padding) */
-function scorePoint(e) {
-  const r = (paper.querySelector("svg.score") || paper).getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top };
+/** Where the pointer is on the music itself: the page under it (or the nearest), in the drawing's own units */
+function pageSvgs() { return [...paper.querySelectorAll("svg.score")]; }
+function svgScale(sv) { const vb = sv.viewBox.baseVal, r = sv.getBoundingClientRect(); return { r, k: vb && vb.width ? vb.width / r.width : 1, off: vb ? vb.y : 0 }; }
+function scorePoint(e, only = null) {
+  const list = only ? [only] : pageSvgs();
+  if (!list.length) { const r = paper.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, svg: null }; }
+  let best = list[0], bd = Infinity;
+  for (const sv of list) {
+    const r = sv.getBoundingClientRect(), d = e.clientY < r.top ? r.top - e.clientY : e.clientY > r.bottom ? e.clientY - r.bottom : 0;
+    if (d < bd) { bd = d; best = sv; }
+  }
+  const { r, k, off } = svgScale(best);
+  return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k + off, svg: best };
 }
-/** The other way: a point in the score's pixels (on a system) to the screen (tests use this) */
+/** The other way: a point in the drawing to the screen (tests use this) */
 function clientPoint(x, y) {
-  const r = (paper.querySelector("svg.score") || paper).getBoundingClientRect();
-  return { x: r.left + x, y: r.top + y };
+  const list = pageSvgs();
+  const sv = list.find((v) => { const vb = v.viewBox.baseVal; return y >= vb.y && y < vb.y + vb.height; }) || list[list.length - 1];
+  if (!sv) { const r = paper.getBoundingClientRect(); return { x: r.left + x, y: r.top + y }; }
+  const { r, k, off } = svgScale(sv);
+  return { x: r.left + x / k, y: r.top + (y - off) / k };
 }
 // a handle for the click-through tests (like window.__clips)
 window.__compose = { get hit() { return hit; }, get ui() { return ui; }, score: () => score(), clientPoint };
@@ -298,7 +320,7 @@ let noteDrag = null;   // { system, event, note, pointer, moved }
 paper.addEventListener("pointerdown", (e) => {
   if (!hit || e.button > 0) return;
   paper.focus({ preventScroll: true });
-  const { x, y } = scorePoint(e);
+  const { x, y, svg: onPage } = scorePoint(e);
   // a TAB fret first (the notes' boxes reach down over the TAB staff)
   const ev = hit.events.find((h) => h.tab && h.event >= 0 && near(h, x, y)) || hit.events.find((h) => h.event >= 0 && near(h, x, y));
   if (ev && (ev.part ?? 0) !== ui.part || ev && (ev.voice ?? 0) !== ui.voice) { ui.part = ev.part ?? 0; ui.voice = ev.voice ?? 0; ui.range = null; }
@@ -308,7 +330,7 @@ paper.addEventListener("pointerdown", (e) => {
     else { ui.range = null; ui.sel = ev.event; ui.caret = ev.event + 1; ui.picked = true; }
     const nb = ev.notes?.length ? ev.notes.reduce((b, n, i) => (Math.abs(n.y - y) < Math.abs(ev.notes[b].y - y) ? i : b), 0) : -1;
     ui.selNote = nb >= 0 ? ev.notes[nb].note ?? nb : 0;
-    if (!e.shiftKey && !ev.tab) { noteDrag = { system: ev.system, event: ev.event, note: ui.selNote, pointer: e.pointerId, moved: false }; try { paper.setPointerCapture(e.pointerId); } catch {} }
+    if (!e.shiftKey && !ev.tab) { noteDrag = { system: ev.system, event: ev.event, note: ui.selNote, pointer: e.pointerId, moved: false, svg: onPage }; try { paper.setPointerCapture(e.pointerId); } catch {} }
     preview(evData.notes.map((n) => n.midi)); draw(); renderTools(); return;
   }
   // the line (system) you clicked in: inside its band first, then the old, looser test
@@ -346,7 +368,7 @@ paper.addEventListener("pointerdown", (e) => {
 // dragging a picked note up or down: it follows the pointer line by line (one undo step for the whole drag)
 paper.addEventListener("pointermove", (e) => {
   const d = noteDrag; if (!d || e.pointerId !== d.pointer || !hit) return;
-  const { x, y } = scorePoint(e);
+  const { x, y } = scorePoint(e, d.svg && d.svg.isConnected ? d.svg : null);
   let p = hit.pitchInfo ? hit.pitchInfo(d.system, y, x) : hit.pitchAt(d.system, y);
   const midi = typeof p === "number" ? p : p?.midi;
   const cur = voice()[d.event];
@@ -947,7 +969,7 @@ function runCommand(id, arg) {
     "export-midi": () => download(new Blob([toMidiFile(score())], { type: "audio/midi" }), fileName("mid")),
     "export-wav": () => exportAudio(false), "export-stems": () => exportAudio(true),
     print: () => window.print(), "print-part": () => { ui.tab = "share"; renderTools(); },
-    history: () => openHistory(), paper: () => { db.prefs.paper = !db.prefs.paper; save(); document.body.classList.toggle("light", db.prefs.paper); },
+    history: () => openHistory(), paper: () => { db.prefs.paper = !db.prefs.paper; save(); document.body.classList.toggle("light", db.prefs.paper); }, "page-view": () => { db.prefs.view = db.prefs.view === "scroll" ? "page" : "scroll"; save(); draw(); toast(db.prefs.view === "scroll" ? "Scroll view: one long strip of music." : "Page view: the music on printed pages."); },
     shortcuts: () => { ui.tab = "write"; renderTools(); $("tbody").querySelector(".keys")?.scrollIntoView({ block: "center" }); },
     grace: () => addGrace(arg !== false),
   }[id];
