@@ -338,6 +338,7 @@ window.__compose = { get hit() { return hit; }, get ui() { return ui; }, score: 
 let noteDrag = null;   // { system, event, note, pointer, moved }
 paper.addEventListener("pointerdown", (e) => {
   if (!hit || e.button > 0) return;
+  if (e.pointerType === "mouse") e.preventDefault();   // no browser text selection (the title, tempo...) while clicking or dragging
   paper.focus({ preventScroll: true });
   const { x, y, svg: onPage } = scorePoint(e);
   const pg = onPage && hit.pages ? hit.pages[+onPage.dataset.page] : null, here = (h) => !pg || pg.systems.includes(h.system);
@@ -361,7 +362,12 @@ paper.addEventListener("pointerdown", (e) => {
     else { ui.range = null; ui.sel = ev.event; ui.caret = ev.event + 1; ui.picked = true; }
     const nb = ev.notes?.length ? ev.notes.reduce((b, n, i) => (Math.abs(n.y - y) < Math.abs(ev.notes[b].y - y) ? i : b), 0) : -1;
     ui.selNote = nb >= 0 ? ev.notes[nb].note ?? nb : 0;
-    if (!e.shiftKey && !ev.tab) { noteDrag = { system: ev.system, event: ev.event, note: ui.selNote, pointer: e.pointerId, moved: false, svg: onPage }; try { paper.setPointerCapture(e.pointerId); } catch {} }
+    if (!e.shiftKey && !ev.tab) {
+      const nk = Math.min(ui.selNote, evData.notes.length - 1), st0 = eventStarts(voice())[ev.event];
+      noteDrag = { system: ev.system, event: ev.event, note: nk, pointer: e.pointerId, moved: false, svg: onPage, page: onPage?.dataset.page ?? 0, x0: e.clientX, y0: e.clientY,
+        part: ev.part ?? 0, staff: ev.staff ?? 0, voice: ui.voice, midi0: evData.notes[nk].midi, midi: evData.notes[nk].midi, tick0: st0, tick: st0, dur: evData.dur };
+      try { paper.setPointerCapture(e.pointerId); } catch {}
+    }
     preview(evData.notes.map((n) => n.midi)); draw(); renderTools(); return;
   }
   // the line (system) you clicked in: inside its band first, then the old, looser test
@@ -398,24 +404,89 @@ paper.addEventListener("pointerdown", (e) => {
   preview([midi]); enterNote(midi, { string });
 });
 
-// dragging a picked note up or down: it follows the pointer line by line (one undo step for the whole drag)
+// dragging a picked note: a ghost note follows the pointer (up and down: pitch on its own staff; sideways: the beat),
+// with a soft tone on each new pitch; the score changes once, when it's dropped (one undo step), and Esc cancels
+const SVGNS = "http://www.w3.org/2000/svg";
+let dragTone = null;
+function softTone(midi) {
+  if (dragTone) { clearTimeout(dragTone.t); noteOff(dragTone.m); }
+  noteOn(midi, 0.32, 0, 0, { instrument: part().instrument });
+  dragTone = { m: midi, t: setTimeout(() => { noteOff(midi); dragTone = null; }, 220) };
+}
+/** x on the drawing for a tick in this part and voice: from the drawn notes and rests (and the bar, past them) */
+function xForTick(d, tick) {
+  const evs = hit.events.filter((h) => (h.part ?? 0) === d.part && (h.voice ?? 0) === d.voice && h.system === d.system && !h.tab && h.start != null);
+  const e = evs.find((h) => tick >= h.start && tick < h.start + h.ticks);
+  if (e) { const x0 = e.notes?.[0]?.x ?? e.x + 0.3 * hit.sp; return x0 + ((tick - e.start) / Math.max(1, e.ticks)) * e.w * 0.8; }
+  const m = hit.measures.find((m) => m.part === d.part && m.system === d.system && tick >= m.start && tick < m.start + m.ticks);
+  return m ? m.x + 1.2 * hit.sp + ((tick - m.start) / m.ticks) * (m.w - 2.4 * hit.sp) : null;
+}
+function where(tick) {
+  const m = hit.measures.find((m) => tick >= m.start && tick < m.start + m.ticks) || hit.measures[hit.measures.length - 1];
+  const bt = 1920 / (score().time?.d || 4), beat = Math.floor((tick - m.start) / bt) + 1, rem = (tick - m.start) % bt;
+  return `bar ${m.index + 1}, beat ${beat}${rem ? "+" : ""}`;
+}
+function showGhost(d) {
+  // the page may have been redrawn since the drag began (picking the note redraws it): find that page again
+  if (!d.svg || !d.svg.isConnected) d.svg = paper.querySelector(`svg.score[data-page="${d.page}"]`) || paper.querySelector("svg.score");
+  let g = d.svg && d.svg.querySelector("g.ghost");
+  if (!g && d.svg) { g = document.createElementNS(SVGNS, "g"); g.setAttribute("class", "ghost"); d.svg.appendChild(g); }
+  if (!g) return;
+  const sp = hit.sp, p = d.pi, y = p.y, x = xForTick(d, d.tick) ?? d.gx ?? 0;
+  d.gx = x;
+  const ly = (k) => p.top + 4 * sp - (k * sp) / 2;
+  let led = "";
+  // ledger lines for a ghost above or below its staff
+  for (let k = 10; k <= p.pos; k += 2) led += `<line x1="${x - 0.45 * sp}" x2="${x + 1.65 * sp}" y1="${ly(k)}" y2="${ly(k)}"/>`;
+  for (let k = -2; k >= p.pos; k -= 2) led += `<line x1="${x - 0.45 * sp}" x2="${x + 1.65 * sp}" y1="${ly(k)}" y2="${ly(k)}"/>`;
+  const label = `${noteName(d.midi)} · ${where(d.tick)}`, lw = label.length * 0.78 * sp + 0.8 * sp, lx = x + 0.6 * sp - lw / 2;   // centred above the ghost
+  g.innerHTML = `<g stroke="#ff6a1a" stroke-width="${0.16 * sp}">${led}</g>`
+    + `<ellipse cx="${x + 0.6 * sp}" cy="${y}" rx="${0.66 * sp}" ry="${0.46 * sp}" transform="rotate(-20 ${x + 0.6 * sp} ${y})" fill="#ff6a1a" opacity=".85"/>`
+    + `<g font-family="DM Sans, system-ui, sans-serif" font-size="${1.5 * sp}" font-weight="700"><rect x="${lx}" y="${y - 3.6 * sp}" rx="${0.4 * sp}" height="${1.95 * sp}" width="${lw}" fill="#14110f" opacity=".88"/>`
+    + `<text x="${lx + 0.4 * sp}" y="${y - 2.1 * sp}" fill="#fff">${label}</text></g>`;
+}
+function clearGhost() { paper.querySelectorAll("g.ghost").forEach((g) => g.remove()); paper.classList.remove("dragging"); }
 paper.addEventListener("pointermove", (e) => {
   const d = noteDrag; if (!d || e.pointerId !== d.pointer || !hit) return;
+  if (!d.moved && Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 4) return;   // a click, not a drag yet
+  if (!d.moved) { d.moved = true; paper.classList.add("dragging"); }
+  if (!d.svg || !d.svg.isConnected) d.svg = paper.querySelector(`svg.score[data-page="${d.page}"]`);
   const { x, y } = scorePoint(e, d.svg && d.svg.isConnected ? d.svg : null);
-  let p = hit.pitchInfo ? hit.pitchInfo(d.system, y, x) : hit.pitchAt(d.system, y);
-  const midi = typeof p === "number" ? p : p?.midi;
-  const cur = voice()[d.event];
-  if (midi == null || midi < MIDI_LO || midi > MIDI_HI || !cur || cur.rest) return;
-  const k = Math.min(d.note, cur.notes.length - 1);
-  if (cur.notes[k].midi === midi) return;
-  const next = replaceAt(score(), ui.part, d.event, { ...cur, notes: cur.notes.map((n, i) => (i === k ? { ...n, midi: Math.max(12, Math.min(120, midi)), spell: null } : n)) }, ui.voice);
-  if (!d.moved) { d.moved = true; commit(next); }
-  else { const i = db.scores.indexOf(score()); next.updated = Date.now(); db.scores[i] = next; save(); draw(); }
-  lastMidi = midi; preview([midi]);
+  const pi = hit.pitchInfo(d.system, y, x, { part: d.part, staff: d.staff });
+  if (!pi || pi.midi == null) return;
+  const midi = Math.max(MIDI_LO, Math.min(MIDI_HI, pi.midi));
+  // sideways: the beat under the pointer (snapped to the note's own length), within this line of music
+  const sy = hit.systems[d.system], raw = hit.tickAt(d.system, Math.max(sy.x, Math.min(sy.x + sy.w - 1, x)));
+  const tick = Math.abs(e.clientX - d.x0) < 10 ? d.tick0 : snapToBeat(raw, d.dur);
+  if (midi !== d.midi) softTone(midi);
+  d.midi = midi; d.tick = tick; d.pi = pi;
+  showGhost(d);
 });
-const endDrag = (e) => { if (noteDrag && e.pointerId === noteDrag.pointer) { const moved = noteDrag.moved; noteDrag = null; if (moved) { snapshot(score()); renderTools(); } } };
-paper.addEventListener("pointerup", endDrag);
-paper.addEventListener("pointercancel", endDrag);
+function dropNote(d) {
+  const v = voice(), cur = v[d.event];
+  if (!cur || cur.rest || (d.midi === d.midi0 && d.tick === d.tick0)) return false;
+  const moved = { ...structuredClone(cur), notes: cur.notes.map((n, i) => (i === d.note ? { ...n, midi: d.midi, spell: null } : n)) };
+  let s;
+  if (d.tick === d.tick0) s = replaceAt(score(), ui.part, d.event, moved, ui.voice);
+  else {
+    // to another beat: rest where it was, the note (and its chord) where it's dropped, nothing else moves
+    s = writeAt(score(), ui.part, ui.voice, d.tick0, [newEvent(cur.dur, [])], "overwrite");
+    delete moved.id;
+    s = writeAt(s, ui.part, ui.voice, d.tick, [moved], "overwrite");
+  }
+  commit(s);
+  const st = eventStarts(voice()); ui.sel = Math.max(0, st.indexOf(d.tick)); ui.caret = ui.sel + 1; ui.selNote = d.note; ui.range = null; lastMidi = d.midi;
+  return true;
+}
+const endDrag = (e, cancel = false) => {
+  const d = noteDrag; if (!d || (e && e.pointerId !== d.pointer)) return;
+  noteDrag = null; clearGhost();
+  if (d.moved && !cancel && e?.type === "pointerup") dropNote(d);
+  if (d.moved) { draw(); renderTools(); }
+};
+paper.addEventListener("pointerup", (e) => endDrag(e));
+paper.addEventListener("pointercancel", (e) => endDrag(e, true));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && noteDrag) { e.stopPropagation(); endDrag(null, true); } }, true);
 
 // ---------- the on-screen piano ----------
 const pianoEl = $("piano");
@@ -616,7 +687,7 @@ function renderTools() {
         <label>Dynamic<select class="t" id="dynIn" ${e ? "" : "disabled"}><option value="">None</option>${["pp", "p", "mp", "mf", "f", "ff"].map((d) => `<option ${e?.dyn === d ? "selected" : ""}>${d}</option>`).join("")}</select></label>
       </div>
       <div class="lbl"><span>How to write</span></div>
-      <div class="keys"><b>Click the staff</b> where a note goes (it uses the length picked above and lands on the beat you click). Click a note to pick it, <b>drag it up or down</b> to change it, Shift-click above or below it to add to its chord, Shift-click another note to select a run. Or <b>tap the piano</b>, or <b>play a MIDI keyboard</b>. <kbd>A</kbd>-<kbd>G</kbd> notes (Shift adds to the chord), <kbd>1</kbd>-<kbd>6</kbd> lengths, <kbd>.</kbd> dot, <kbd>0</kbd> rest, <kbd>T</kbd> tie, <kbd>&#8593;</kbd><kbd>&#8595;</kbd> half step, <kbd>Ctrl</kbd>+<kbd>&#8593;</kbd> octave, <kbd>Shift</kbd>+<kbd>&#8592;</kbd><kbd>&#8594;</kbd> select, <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy and paste, <kbd>Space</kbd> play.${showsTab(p) ? ` On TAB: <kbd>Alt</kbd>+<kbd>&#8593;</kbd>/<kbd>&#8595;</kbd> moves a note to another string, click a string to put a note on it, type a fret in the TAB box.` : ""}</div>`;
+      <div class="keys"><b>Click the staff</b> where a note goes (it uses the length picked above and lands on the beat you click). Click a note to pick it, then <b>drag it</b>: up or down changes the pitch, sideways moves it to another beat (it drops when you let go, <kbd>Esc</kbd> cancels). Shift-click above or below it to add to its chord, Shift-click another note to select a run. Or <b>tap the piano</b>, or <b>play a MIDI keyboard</b>. <kbd>A</kbd>-<kbd>G</kbd> notes (Shift adds to the chord), <kbd>1</kbd>-<kbd>6</kbd> lengths, <kbd>.</kbd> dot, <kbd>0</kbd> rest, <kbd>T</kbd> tie, <kbd>&#8593;</kbd><kbd>&#8595;</kbd> half step, <kbd>Ctrl</kbd>+<kbd>&#8593;</kbd> octave, <kbd>Shift</kbd>+<kbd>&#8592;</kbd><kbd>&#8594;</kbd> select, <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy and paste, <kbd>Space</kbd> play.${showsTab(p) ? ` On TAB: <kbd>Alt</kbd>+<kbd>&#8593;</kbd>/<kbd>&#8595;</kbd> moves a note to another string, click a string to put a note on it, type a fret in the TAB box.` : ""}</div>`;
     $("partSel").onchange = (ev) => { ui.part = +ev.target.value; ui.voice = 0; ui.range = null; ui.caret = voice().length; ui.sel = ui.caret - 1; draw(); renderTools(); };
     $("voiceSeg").onclick = (ev) => {
       const b = ev.target.closest("button"); if (!b) return;

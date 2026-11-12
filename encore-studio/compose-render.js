@@ -1370,7 +1370,7 @@ export function engrave(score, opts = {}) {
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" class="score" width="${f2(width)}" height="${height}" viewBox="0 0 ${f2(width)} ${height}" role="img" aria-label="${escx(score.title || "Score")}">${headSvg}${out.join("")}</svg>`;
   // a height on a staff to a pitch: the line or space, in the key at that bar (concert pitch when written transposed)
-  hit.pitchInfo = (si, yy, xx = null) => {
+  hit.pitchInfo = (si, yy, xx = null, want = null) => {
     const s = systems[si]; if (!s) return null;
     // on a TAB staff (or just off its outer lines): that string, open (fret 0, or the capo)
     const band = (q) => (yy < q.top ? q.top - yy : yy > q.top + q.h ? yy - q.top - q.h : 0);
@@ -1383,11 +1383,12 @@ export function engrave(score, opts = {}) {
     }
     let ss = s.staves.find((q) => !q.tab) || s.staves[0], best = Infinity;
     for (const q of s.staves) { if (q.tab) continue; const d = Math.abs(yy - (q.top + 2 * sp)); if (d < best) { best = d; ss = q; } }
+    if (want) { const w = s.staves.find((q) => !q.tab && q.st.pi === want.part && q.st.s === want.staff); if (w) ss = w; }
     const b = xx === null ? s.bars[0] : s.bars.find((x) => xx < x.x + x.w) || s.bars[s.bars.length - 1];
     const key = ss.st.keyAt(b);
     const pos = Math.round((ss.top + 4 * sp - yy) / (sp / 2)), d = pos + (CLEF_BOTTOM[clefAt(ss.st, b.index)] ?? ss.st.bottom), step = ((d % 7) + 7) % 7, oct = Math.floor(d / 7);
     const midi = (oct + 1) * 12 + PC[step] + keyAlter(STEPS[step], key) - (ss.st.transposed ? ss.st.part.transpose || 0 : 0);
-    return { part: ss.st.pi, staff: ss.st.s, midi };
+    return { part: ss.st.pi, staff: ss.st.s, midi, y: ss.top + 4 * sp - pos * (sp / 2), top: ss.top, pos };
   };
   // v1 callers (one staff) get the number; several staves get { part, staff, midi }
   hit.pitchAt = (si, yy, xx = null) => { const r = hit.pitchInfo(si, yy, xx); if (!r) return null; return staves.length === 1 && !r.tab ? r.midi : r; };

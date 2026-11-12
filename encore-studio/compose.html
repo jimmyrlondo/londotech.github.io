@@ -55,7 +55,9 @@
   .tool .sep { width: 1px; height: 24px; background: var(--divider-strong); margin: 0 2px; }
   .tool label { display: inline-flex; gap: 5px; align-items: center; font-size: 12px; font-weight: 700; color: var(--soft); }
   .tool .pos { margin-left: auto; font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
-  .paper { padding: 10px 14px 30px; color: #f2efe8; position: relative; outline: none; }
+  .paper { padding: 10px 14px 30px; color: #f2efe8; position: relative; outline: none; -webkit-user-select: none; user-select: none; }
+  .paper.dragging, .paper.dragging * { cursor: grabbing !important; }
+  .paper g.ghost { pointer-events: none; }
   .paper:focus-visible { box-shadow: inset 0 0 0 2px rgb(255 59 0 / .4); border-radius: 8px; }
   @font-face { font-family: "Bravura"; src: url("vendor/bravura/Bravura.woff2") format("woff2"); font-display: block; }
   .paper svg { display: block; }
