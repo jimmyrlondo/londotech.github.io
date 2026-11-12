@@ -48,12 +48,38 @@ function ellipsePts(cx, cy, rx, ry, rotDeg, n = 28) {
   for (let i = 0; i < n; i++) { const t = (i / n) * Math.PI * 2, x = rx * Math.cos(t), y = ry * Math.sin(t); pts.push(`${f2(cx + x * c - y * s)},${f2(cy + x * s + y * c)}`); }
   return "M" + pts.join("L") + "Z";
 }
+// ---------- the music font: Bravura (SMuFL). A glyph's units are staff spaces at a font size of 4 spaces ----------
+export const MUSIC_FONT = "Bravura";
+const G = {
+  noteheadWhole: 0xe0a2, noteheadHalf: 0xe0a3, noteheadBlack: 0xe0a4,
+  gClef: 0xe050, gClef8vb: 0xe052, cClef: 0xe05c, fClef: 0xe062, percClef: 0xe069,
+  restWhole: 0xe4e3, restHalf: 0xe4e4, restQuarter: 0xe4e5, rest8th: 0xe4e6, rest16th: 0xe4e7, rest32nd: 0xe4e8, rest64th: 0xe4e9,
+  flatG: 0xe260, natural: 0xe261, sharp: 0xe262, dsharp: 0xe263, dflat: 0xe264,
+  flagUp: [0xe240, 0xe242, 0xe244, 0xe246], flagDown: [0xe241, 0xe243, 0xe245, 0xe247],
+  timeSig0: 0xe080, segno: 0xe047, coda: 0xe048, brace: 0xe000,
+  accent: 0xe4a0, fermataAbove: 0xe4c0, fermataBelow: 0xe4c1,
+  trill: 0xe566, turn: 0xe567, invturn: 0xe568, invmordent: 0xe56c, mordent: 0xe56d,
+  metQuarter: 0xeca5, metHalf: 0xeca3, metDot: 0xecb7,
+};
+const DYN = { p: [0xe520, 1.46], m: [0xe521, 1.748], f: [0xe522, 1.456], r: [0xe523, 1.108], s: [0xe524, 0.916], z: [0xe525, 0.976], n: [0xe526, 1.232] };
+/** One or more glyphs as text: x is the glyph's left, y its baseline (SMuFL's origin) */
+function glyph(cp, x, y, sp, fill = "currentColor", extra = "") {
+  const t = (Array.isArray(cp) ? cp : [cp]).map((c) => `&#x${c.toString(16)};`).join("");
+  return `<text x="${f2(x)}" y="${f2(y)}" font-family="${MUSIC_FONT}" font-size="${f2(4 * sp)}" fill="${fill}"${extra}>${t}</text>`;
+}
+/** A dynamic in Bravura's letters (p, m, f, r, s, z, n), or null when it has other letters */
+function dynGlyphs(text) { const t = String(text || ""); return t && [...t].every((c) => DYN[c]) ? [...t].map((c) => DYN[c]) : null; }
+const dynWidth = (text, sp) => { const g = dynGlyphs(text); return g ? g.reduce((a, d) => a + d[1], 0) * sp * 0.92 : textWidth(text, 1.75 * sp, 700, SERIF, true); };
+function dynSvg(text, x, y, sp, fill = "currentColor") {
+  const g = dynGlyphs(text);
+  if (!g) return `<text x="${f2(x)}" y="${f2(y)}" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.75 * sp)}" fill="${fill}">${escx(text)}</text>`;
+  let cx = x, out = "";
+  for (const [cp, w] of g) { out += glyph(cp, cx, y, sp, fill); cx += w * sp * 0.92; }   // Bravura's letters touch a little, as engraved dynamics do
+  return out;
+}
 const HEAD_W = 1.18; // notehead width in spaces
 function notehead(type, x, y, sp, fill = "currentColor") {
-  const cx = x + (HEAD_W * sp) / 2;
-  if (type === "whole") return `<path fill="${fill}" fill-rule="evenodd" d="${ellipsePts(cx + 0.1 * sp, y, 0.78 * sp, 0.5 * sp, 0)}${ellipsePts(cx + 0.1 * sp, y, 0.36 * sp, 0.24 * sp, 58)}"/>`;
-  if (type === "half") return `<path fill="${fill}" fill-rule="evenodd" d="${ellipsePts(cx, y, 0.6 * sp, 0.42 * sp, -22)}${ellipsePts(cx, y, 0.5 * sp, 0.2 * sp, -35)}"/>`;
-  return `<path fill="${fill}" d="${ellipsePts(cx, y, 0.6 * sp, 0.42 * sp, -22)}"/>`;
+  return glyph(type === "whole" ? G.noteheadWhole : type === "half" ? G.noteheadHalf : G.noteheadBlack, x + (type === "whole" ? 0.03 * sp : 0), y, sp, fill);
 }
 const headWidth = (type, sp) => (type === "whole" ? 1.75 : HEAD_W) * sp;
 // other noteheads: x, circle-x, diamond (harmonics are hollow diamonds), triangle, slash; open for halves and wholes
@@ -67,16 +93,11 @@ function headShape(kind, type, x, y, sp, fill = "currentColor", harm = false) {
   return paint(`M${X(0.04)},${f2(y)}L${f2(cx)},${Y(-0.52)}L${X(1.14)},${f2(y)}L${f2(cx)},${Y(0.52)}Z`); // diamond
 }
 // an ornament centered at cx, sitting on yb: the trill, turns and mordents (box w x h)
-const ORN_BOX = { trill: [1.7, 1.45], turn: [2.1, 1.1], invturn: [2.1, 1.5], mordent: [2.2, 1.5], invmordent: [2.2, 0.95] };
+const ORN_BOX = { trill: [2.1, 1.6], turn: [2.1, 1.0], invturn: [2.1, 1.0], mordent: [3.1, 1.6], invmordent: [3.1, 1.05] };
 function ornGlyph(o, cx, yb, sp, fill = "currentColor") {
-  const X = (v) => f2(cx + v * sp), Y = (v) => f2(yb - v * sp), st = `fill="none" stroke="${fill}" stroke-linecap="round" stroke-linejoin="round"`;
-  if (o === "trill") return `<text x="${f2(cx)}" y="${f2(yb - 0.08 * sp)}" text-anchor="middle" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.75 * sp)}" fill="${fill}">tr</text>`;
-  if (o === "turn" || o === "invturn") {
-    const d = `M${X(-0.95)},${Y(0.25)}C${X(-1.15)},${Y(0.95)} ${X(-0.3)},${Y(1.2)} ${X(0)},${Y(0.55)}C${X(0.3)},${Y(-0.1)} ${X(1.15)},${Y(0.15)} ${X(0.95)},${Y(0.85)}`;
-    return `<path ${st} stroke-width="${f2(0.22 * sp)}" d="${d}"/>` + (o === "invturn" ? `<path ${st} stroke-width="${f2(0.13 * sp)}" d="M${X(0)},${Y(-0.15)}L${X(0)},${Y(1.35)}"/>` : "");
-  }
-  const z = `M${X(-1.0)},${Y(0.45)}L${X(-0.5)},${Y(0.9)}L${X(-0.1)},${Y(0.45)}L${X(0.4)},${Y(0.9)}L${X(0.8)},${Y(0.45)}`;
-  return `<path ${st} stroke-width="${f2(0.2 * sp)}" d="${z}"/>` + (o === "mordent" ? `<path ${st} stroke-width="${f2(0.13 * sp)}" d="M${X(-0.1)},${Y(0)}L${X(-0.1)},${Y(1.4)}"/>` : "");
+  const W = { trill: 2.084, turn: 1.84, invturn: 1.828, mordent: 2.916, invmordent: 2.9 }[o] || 2;
+  const cp = { trill: G.trill, turn: G.turn, invturn: G.invturn, mordent: G.mordent, invmordent: G.invmordent }[o];
+  return cp ? glyph(cp, cx - (W * sp) / 2, yb - 0.05 * sp, sp, fill) : "";
 }
 // a wavy line, down the left of a chord (arpeggio) or along a trill
 function wavy(x1, y1, x2, y2, sp, fill = "currentColor") {
@@ -99,21 +120,11 @@ function tremSvg(n, cx, yMid, sp, fill = "currentColor") {
 }
 
 function accidental(alter, x, y, sp, fill = "currentColor") {
-  const S = (v) => f2(v * sp), X = (v) => f2(x + v * sp), Y = (v) => f2(y + v * sp);
-  const thin = S(0.12);
-  if (alter === 1) { // sharp: two uprights, two thick rising bars
-    const bar = (yy) => `<path d="M${X(-0.55)},${Y(yy + 0.2)}L${X(0.55)},${Y(yy - 0.12)}L${X(0.55)},${Y(yy - 0.52)}L${X(-0.55)},${Y(yy - 0.2)}Z"/>`;
-    return `<g fill="${fill}"><rect x="${X(-0.31)}" y="${Y(-1.3)}" width="${thin}" height="${S(2.7)}"/><rect x="${X(0.19)}" y="${Y(-1.45)}" width="${thin}" height="${S(2.7)}"/>${bar(-0.25)}${bar(0.75)}</g>`;
-  }
-  if (alter === -1) return flatGlyph(x, y, sp, fill);
-  if (alter === 0) { // natural
-    const bar = (yy) => `<path d="M${X(-0.32)},${Y(yy + 0.08)}L${X(0.32)},${Y(yy - 0.12)}L${X(0.32)},${Y(yy - 0.45)}L${X(-0.32)},${Y(yy - 0.25)}Z"/>`;
-    return `<g fill="${fill}"><rect x="${X(-0.32)}" y="${Y(-1.35)}" width="${thin}" height="${S(1.95)}"/><rect x="${X(0.2)}" y="${Y(-0.6)}" width="${thin}" height="${S(1.95)}"/>${bar(-0.18)}${bar(0.62)}</g>`;
-  }
-  if (alter === 2) { // double sharp: a bold x
-    return `<g fill="${fill}"><path d="M${X(-0.45)},${Y(-0.45)}L${X(-0.15)},${Y(-0.45)}L${X(0)},${Y(-0.15)}L${X(0.15)},${Y(-0.45)}L${X(0.45)},${Y(-0.45)}L${X(0.45)},${Y(-0.15)}L${X(0.15)},${Y(0)}L${X(0.45)},${Y(0.15)}L${X(0.45)},${Y(0.45)}L${X(0.15)},${Y(0.45)}L${X(0)},${Y(0.15)}L${X(-0.15)},${Y(0.45)}L${X(-0.45)},${Y(0.45)}L${X(-0.45)},${Y(0.15)}L${X(-0.15)},${Y(0)}L${X(-0.45)},${Y(-0.15)}Z"/></g>`;
-  }
-  if (alter === -2) return flatGlyph(x - 0.3 * sp, y, sp, fill) + flatGlyph(x + 0.35 * sp, y, sp, fill);
+  if (alter === 1) return glyph(G.sharp, x - 0.5 * sp, y, sp, fill);
+  if (alter === -1) return glyph(G.flatG, x - 0.4 * sp, y, sp, fill);
+  if (alter === 0) return glyph(G.natural, x - 0.34 * sp, y, sp, fill);
+  if (alter === 2) return glyph(G.dsharp, x - 0.5 * sp, y, sp, fill);
+  if (alter === -2) return glyph(G.dflat, x - 0.75 * sp, y, sp, fill);
   return "";
 }
 function flatGlyph(x, y, sp, fill) {
@@ -128,62 +139,28 @@ function clefGlyph(clef, x, staffTop, sp, scale = 1) {
     const ox = x, oy = staffTop + 4 * sp;
     return `<g transform="translate(${f2(ox)},${f2(oy)}) scale(${scale}) translate(${f2(-ox)},${f2(-oy)})">${clefGlyph(clef, x, staffTop, sp)}</g>`;
   }
-  const X = (v) => f2(x + v * sp), yB = staffTop + 4 * sp;
-  if (clef === "treble" || clef === "treble8vb") {
-    const Y = (v) => f2(yB - sp + v * sp); // origin on the G line (second line up)
-    const d = `M${X(1.5)},${Y(0.28)}C${X(1.0)},${Y(0.42)} ${X(0.82)},${Y(-0.3)} ${X(1.35)},${Y(-0.52)}C${X(2.25)},${Y(-0.82)} ${X(2.45)},${Y(1.0)} ${X(1.3)},${Y(1.12)}`
-      + `C${X(0.12)},${Y(1.22)} ${X(-0.25)},${Y(0.05)} ${X(0.35)},${Y(-0.8)}C${X(0.82)},${Y(-1.5)} ${X(1.72)},${Y(-2.05)} ${X(1.9)},${Y(-3.05)}C${X(2.05)},${Y(-3.85)} ${X(1.82)},${Y(-4.75)} ${X(1.48)},${Y(-4.72)}`
-      + `C${X(1.05)},${Y(-4.68)} ${X(0.92)},${Y(-3.55)} ${X(1.12)},${Y(-2.55)}L${X(1.58)},${Y(2.15)}C${X(1.7)},${Y(2.95)} ${X(1.05)},${Y(3.12)} ${X(0.72)},${Y(2.82)}`;
-    const belly = `M${X(1.3)},${Y(1.12)}C${X(0.12)},${Y(1.22)} ${X(-0.25)},${Y(0.05)} ${X(0.35)},${Y(-0.8)}C${X(0.82)},${Y(-1.5)} ${X(1.5)},${Y(-1.9)} ${X(1.75)},${Y(-2.6)}`;
-    let s = `<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="${d}" stroke-width="${f2(0.16 * sp)}"/><path d="${belly}" stroke-width="${f2(0.34 * sp)}"/>`
-      + `<path d="M${X(1.35)},${Y(-0.52)}C${X(2.25)},${Y(-0.82)} ${X(2.45)},${Y(1.0)} ${X(1.3)},${Y(1.12)}" stroke-width="${f2(0.28 * sp)}"/></g><circle cx="${X(0.78)}" cy="${Y(2.5)}" r="${f2(0.34 * sp)}" fill="currentColor"/>`;
-    if (clef === "treble8vb") s += `<text x="${X(1.2)}" y="${Y(3.95)}" font-size="${f2(1.25 * sp)}" font-family="${SERIF}" font-style="italic" font-weight="700" text-anchor="middle" fill="currentColor">8</text>`;
-    return s;
-  }
-  if (clef === "bass") {
-    const Y = (v) => f2(yB - 3 * sp + v * sp); // origin on the F line (fourth line up)
-    return `<circle cx="${X(0.42)}" cy="${Y(0)}" r="${f2(0.36 * sp)}" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="${f2(0.3 * sp)}" d="M${X(0.25)},${Y(-0.25)}C${X(0.55)},${Y(-1.05)} ${X(2.15)},${Y(-1.05)} ${X(2.2)},${Y(0.25)}C${X(2.25)},${Y(1.55)} ${X(1.2)},${Y(2.55)} ${X(0.15)},${Y(3.1)}"/>`
-      + `<circle cx="${X(2.75)}" cy="${Y(-0.5)}" r="${f2(0.17 * sp)}" fill="currentColor"/><circle cx="${X(2.75)}" cy="${Y(0.5)}" r="${f2(0.17 * sp)}" fill="currentColor"/>`;
-  }
-  if (clef === "alto" || clef === "tenor") {
-    const Y = (v) => f2(yB - (clef === "alto" ? 2 : 3) * sp + v * sp); // origin on the C line
-    const lobe = (dir) => `<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="${f2(0.26 * sp)}" d="M${X(0.9)},${Y(dir * 0.05)}C${X(1.45)},${Y(dir * 0.45)} ${X(1.65)},${Y(dir * 0.55)} ${X(1.75)},${Y(dir * 1.1)}C${X(1.95)},${Y(dir * 2.0)} ${X(1.2)},${Y(dir * 2.1)} ${X(1.15)},${Y(dir * 1.55)}"/><circle cx="${X(1.22)}" cy="${Y(dir * 1.55)}" r="${f2(0.24 * sp)}" fill="currentColor"/>`;
-    return `<rect x="${X(0)}" y="${Y(-2)}" width="${f2(0.42 * sp)}" height="${f2(4 * sp)}" fill="currentColor"/><rect x="${X(0.6)}" y="${Y(-2)}" width="${f2(0.13 * sp)}" height="${f2(4 * sp)}" fill="currentColor"/>${lobe(-1)}${lobe(1)}`;
-  }
-  // percussion: two thick bars across the middle
-  return `<rect x="${X(0.4)}" y="${f2(yB - 3 * sp)}" width="${f2(0.4 * sp)}" height="${f2(2 * sp)}" fill="currentColor"/><rect x="${X(1.1)}" y="${f2(yB - 3 * sp)}" width="${f2(0.4 * sp)}" height="${f2(2 * sp)}" fill="currentColor"/>`;
+  const yB = staffTop + 4 * sp;   // the bottom line; each clef sits on its own line
+  if (clef === "treble") return glyph(G.gClef, x, yB - sp, sp);
+  if (clef === "treble8vb") return glyph(G.gClef8vb, x, yB - sp, sp);
+  if (clef === "bass") return glyph(G.fClef, x, yB - 3 * sp, sp);
+  if (clef === "alto") return glyph(G.cClef, x, yB - 2 * sp, sp);
+  if (clef === "tenor") return glyph(G.cClef, x, yB - 3 * sp, sp);
+  return glyph(G.percClef, x + 0.2 * sp, yB - 2 * sp, sp);
 }
-const CLEF_W = { treble: 2.6, treble8vb: 2.6, bass: 3.0, alto: 2.2, tenor: 2.2, percussion: 1.9 };
+const CLEF_W = { treble: 2.7, treble8vb: 2.7, bass: 2.9, alto: 2.85, tenor: 2.85, percussion: 1.9 };
 
 // rests: dy moves the whole rest up or down (a second voice), in px
 function restGlyph(type, x, staffTop, sp, fill = "currentColor") {
-  const X = (v) => f2(x + v * sp), Y = (v) => f2(staffTop + v * sp); // y from the top line
-  if (type === "whole") return `<rect x="${X(0)}" y="${Y(1)}" width="${f2(1.25 * sp)}" height="${f2(0.5 * sp)}" fill="${fill}"/>`;
-  if (type === "half") return `<rect x="${X(0)}" y="${Y(1.5)}" width="${f2(1.25 * sp)}" height="${f2(0.5 * sp)}" fill="${fill}"/>`;
-  if (type === "quarter") return `<path fill="none" stroke="${fill}" stroke-linejoin="round" stroke-linecap="round" stroke-width="${f2(0.3 * sp)}" d="M${X(0.15)},${Y(0.55)}L${X(0.78)},${Y(1.25)}L${X(0.28)},${Y(1.85)}L${X(0.85)},${Y(2.55)}C${X(0.2)},${Y(2.25)} ${X(0.05)},${Y(2.95)} ${X(0.6)},${Y(3.4)}"/>`;
-  const n = LEVEL[type] || 1;
-  // eighth and shorter: a slanted stem with a hook and dot per flag, stacked down the stem
-  let s = `<path fill="none" stroke="${fill}" stroke-linecap="round" stroke-width="${f2(0.13 * sp)}" d="M${X(1.05 + (n - 1) * 0.12)},${Y(1.15)}L${X(0.55 - (n - 1) * 0.1)},${Y(3.0 + (n - 1) * 1)}"/>`;
-  for (let i = 0; i < n; i++) {
-    const yy = 1.15 + i, xx = 1.05 + (n - 1) * 0.12 - i * 0.2;
-    s += `<circle cx="${X(xx - 0.72)}" cy="${Y(yy + 0.12)}" r="${f2(0.24 * sp)}" fill="${fill}"/><path fill="none" stroke="${fill}" stroke-linecap="round" stroke-width="${f2(0.13 * sp)}" d="M${X(xx - 0.8)},${Y(yy + 0.3)}C${X(xx - 0.45)},${Y(yy + 0.45)} ${X(xx - 0.15)},${Y(yy + 0.25)} ${X(xx)},${Y(yy)}"/>`;
-  }
-  return s;
+  if (type === "whole") return glyph(G.restWhole, x, staffTop + sp, sp, fill);   // hangs from the fourth line
+  const cp = { half: G.restHalf, quarter: G.restQuarter, eighth: G.rest8th, "16th": G.rest16th, "32nd": G.rest32nd, "64th": G.rest64th }[type] || G.rest8th;
+  return glyph(cp, x, staffTop + 2 * sp, sp, fill);   // the rest sits on (or is centred on) the middle line
 }
-const REST_W = { whole: 1.25, half: 1.25, quarter: 1.0, eighth: 1.2, "16th": 1.35, "32nd": 1.5, "64th": 1.6 };
+const REST_W = { whole: 1.13, half: 1.13, quarter: 1.08, eighth: 1.0, "16th": 1.28, "32nd": 1.45, "64th": 1.7 };
 
 // flags: a full curved flag per level from the stem's end, swept out and back in (mirrored for a down stem)
 function flags(n, x, yEnd, up, sp, fill) {
-  let s = "";
-  const d = up ? 1 : -1;
-  for (let i = 0; i < n; i++) {
-    const y = yEnd + d * i * 0.78 * sp, X = (v) => f2(x + v * sp), Y = (v) => f2(y + d * v * sp);
-    const last = i === n - 1, tail = last ? 1 : 0.8; // inner flags are a little shorter
-    s += `<path fill="${fill}" d="M${X(0)},${Y(0)}C${X(0.08)},${Y(0.62)} ${X(0.92)},${Y(0.95)} ${X(1.05)},${Y(1.7 * tail)}`
-      + `C${X(1.16)},${Y(2.25 * tail)} ${X(0.98)},${Y(2.72 * tail)} ${X(0.74)},${Y(3.05 * tail)}C${X(0.9)},${Y(2.62 * tail)} ${X(0.96)},${Y(2.2 * tail)} ${X(0.72)},${Y(1.8 * tail)}`
-      + `C${X(0.52)},${Y(1.45)} ${X(0.2)},${Y(1.22)} ${X(0)},${Y(1.15)}Z"/>`;
-  }
-  return s;
+  const k = Math.max(1, Math.min(4, n)) - 1;
+  return glyph(up ? G.flagUp[k] : G.flagDown[k], x, yEnd, sp, fill);
 }
 // a curve between two points, thick in the middle (ties and slurs); lift: height of the arch in px
 function arc(x1, y1, x2, y2, above, lift, sp, fill = "currentColor") {
@@ -196,22 +173,19 @@ function tie(x1, x2, y, above, sp, fill = "currentColor") {
   const h = Math.min(1.2, 0.35 + (x2 - x1) / sp / 14) * sp * 0.75;
   return arc(x1, y, x2, y, above, h, sp, fill);
 }
+const TS_W = [1.88, 1.336, 1.784, 1.684, 1.88, 1.612, 1.736, 1.764, 1.744, 1.736];
+const numW = (n, sp) => [...String(n)].reduce((a, d) => a + (TS_W[+d] || 1.8), 0) * sp;
 function timeSig(time, x, staffTop, sp) {
-  const f = `font-family="${SERIF}" font-weight="900" font-size="${f2(2.85 * sp)}" text-anchor="middle" fill="currentColor"`;
-  const w = Math.max(String(time.n).length, String(time.d).length) * 1.45 * sp, cx = x + w / 2;
-  return { svg: `<text x="${f2(cx)}" y="${f2(staffTop + 1.92 * sp)}" ${f}>${time.n}</text><text x="${f2(cx)}" y="${f2(staffTop + 3.92 * sp)}" ${f}>${time.d}</text>`, w };
+  const w = timeW(time, sp), num = (v, y) => { const nw = numW(v, sp); return glyph([...String(v)].map((d) => G.timeSig0 + +d), x + (w - nw) / 2, y, sp); };
+  return { svg: num(time.n, staffTop + sp) + num(time.d, staffTop + 3 * sp), w };
 }
-const timeW = (time, sp) => Math.max(String(time.n).length, String(time.d).length) * 1.45 * sp;
+const timeW = (time, sp) => Math.max(numW(time.n, sp), numW(time.d, sp));
 
 // a curly brace for a grand staff, top to bottom
 function brace(x, y1, y2, sp) {
-  const h = y2 - y1, m = (y1 + y2) / 2, w = Math.min(1.6 * sp, 0.1 * h + 0.6 * sp);
-  const X = (v) => f2(x + v * w), Y = (v) => f2(y1 + v * h);
-  // outer edge then inner edge: two S curves meeting at the middle point
-  return `<path fill="currentColor" d="M${X(1)},${Y(0)}C${X(0.15)},${Y(0.04)} ${X(0.75)},${Y(0.3)} ${X(0.55)},${Y(0.4)}C${X(0.45)},${Y(0.45)} ${X(0.2)},${Y(0.48)} ${X(0)},${f2(m)}`
-    + `C${X(0.2)},${Y(0.52)} ${X(0.45)},${Y(0.55)} ${X(0.55)},${Y(0.6)}C${X(0.75)},${Y(0.7)} ${X(0.15)},${Y(0.96)} ${X(1)},${Y(1)}`
-    + `C${X(0.5)},${Y(0.95)} ${X(1.2)},${Y(0.74)} ${X(0.95)},${Y(0.6)}C${X(0.8)},${Y(0.53)} ${X(0.45)},${Y(0.51)} ${X(0.18)},${f2(m)}`
-    + `C${X(0.45)},${Y(0.49)} ${X(0.8)},${Y(0.47)} ${X(0.95)},${Y(0.4)}C${X(1.2)},${Y(0.26)} ${X(0.5)},${Y(0.05)} ${X(1)},${Y(0)}Z"/>`;
+  // the glyph is one staff (4 spaces) tall and grows evenly, as engravers do; its right edge stays where the old one was
+  const h = y2 - y1, k = h / (4 * sp), gw = 0.277 * k * sp, room = Math.min(1.6 * sp, 0.1 * h + 0.6 * sp);
+  return `<g transform="translate(${f2(x + room - gw)},${f2(y2)}) scale(${f2(k)})">${glyph(G.brace, 0, 0, sp)}</g>`;
 }
 // the thick bracket that joins the staves of several instruments, with curled ends
 function bracket(x, y1, y2, sp) {
@@ -221,21 +195,14 @@ function bracket(x, y1, y2, sp) {
     + `<path fill="currentColor" d="M${f2(x)},${f2(y2 + 0.4 * sp)}C${f2(x + 0.8 * sp)},${f2(y2 + 0.45 * sp)} ${f2(x + 1.6 * sp)},${f2(y2 + 0.8 * sp)} ${f2(x + 2.0 * sp)},${f2(y2 + 1.4 * sp)}C${f2(x + 1.7 * sp)},${f2(y2 + 0.6 * sp)} ${f2(x + 0.9 * sp)},${f2(y2 - 0.1 * sp)} ${f2(x)},${f2(y2 - 0.1 * sp)}Z"/>`;
 }
 // segno: a slanted S with a stroke through it and two dots
-function segno(cx, cy, sp) {
-  const X = (v) => f2(cx + v * sp), Y = (v) => f2(cy + v * sp);
-  return `<g fill="none" stroke="currentColor" stroke-linecap="round"><path stroke-width="${f2(0.32 * sp)}" d="M${X(0.75)},${Y(-1.0)}C${X(0.55)},${Y(-1.55)} ${X(-0.85)},${Y(-1.45)} ${X(-0.6)},${Y(-0.55)}C${X(-0.4)},${Y(0.1)} ${X(0.7)},${Y(-0.05)} ${X(0.65)},${Y(0.7)}C${X(0.6)},${Y(1.5)} ${X(-0.75)},${Y(1.5)} ${X(-0.75)},${Y(0.95)}"/>`
-    + `<path stroke-width="${f2(0.13 * sp)}" d="M${X(-1.0)},${Y(1.35)}L${X(1.0)},${Y(-1.35)}"/></g><circle cx="${X(-0.85)}" cy="${Y(-0.15)}" r="${f2(0.2 * sp)}" fill="currentColor"/><circle cx="${X(0.85)}" cy="${Y(0.25)}" r="${f2(0.2 * sp)}" fill="currentColor"/>`;
-}
+function segno(cx, cy, sp) { return glyph(G.segno, cx - 1.11 * sp, cy + 1.46 * sp, sp); }
 // coda: an oval crossed by a long upright and a long level line
-function codaSym(cx, cy, sp) {
-  return `<path fill="currentColor" fill-rule="evenodd" d="${ellipsePts(cx, cy, 0.85 * sp, 1.05 * sp, 0)}${ellipsePts(cx, cy, 0.55 * sp, 0.9 * sp, 0)}"/>`
-    + `<rect x="${f2(cx - 0.07 * sp)}" y="${f2(cy - 1.55 * sp)}" width="${f2(0.14 * sp)}" height="${f2(3.1 * sp)}" fill="currentColor"/><rect x="${f2(cx - 1.4 * sp)}" y="${f2(cy - 0.07 * sp)}" width="${f2(2.8 * sp)}" height="${f2(0.14 * sp)}" fill="currentColor"/>`;
-}
+function codaSym(cx, cy, sp) { return glyph(G.coda, cx - 1.9 * sp, cy + 1.48 * sp, sp * 0.75); }
 // a metronome mark: note = bpm
 function tempoMark(bpm, beat, x, y, sp) {
-  const comp = beat === "dotted", type = beat === "half" ? "half" : "quarter";
-  return `<g transform="translate(${f2(x)},${f2(y)}) scale(.72)">${notehead(type, 0, 0, sp)}<line x1="${f2(HEAD_W * sp - 0.06 * sp)}" y1="0" x2="${f2(HEAD_W * sp - 0.06 * sp)}" y2="${f2(-3.2 * sp)}" stroke="currentColor" stroke-width="${f2(0.12 * sp)}"/>${comp ? `<circle cx="${f2(HEAD_W * sp + 0.55 * sp)}" cy="0" r="${f2(0.2 * sp)}" fill="currentColor"/>` : ""}</g>`
-    + `<text x="${f2(x + (comp ? 1.9 : 1.4) * sp)}" y="${f2(y + 0.45 * sp)}" font-size="${f2(1.45 * sp)}" font-weight="700" fill="currentColor">= ${bpm}</text>`;
+  const comp = beat === "dotted", type = beat === "half" ? "half" : "quarter", k = 0.62;
+  const note = glyph(type === "half" ? G.metHalf : G.metQuarter, x, y, sp * k) + (comp ? glyph(G.metDot, x + 1.6 * sp * k, y, sp * k) : "");
+  return note + `<text x="${f2(x + (comp ? 2.4 : 1.75) * sp * k + 0.25 * sp)}" y="${f2(y)}" font-family="${TEXT_FONT}" font-size="${f2(1.75 * sp)}" font-weight="700" fill="currentColor">= ${bpm}</text>`;
 }
 
 // ---------- chord symbols: root, then the quality, extensions raised and smaller ----------
@@ -487,7 +454,7 @@ export function engrave(score, opts = {}) {
       if (e.lyric) c.lyr = Math.max(c.lyr, textWidth(e.lyric, lyricPx) / 2 + 0.4 * sp);
       // a chord symbol or a dynamic reaches to the right of its note: the next note waits for it
       if (e.chord) c.txt = Math.max(c.txt || 0, chordSymbolSvg(e.chord, 0, 0, sp).w + 0.9 * sp);
-      if (!e.tiedFromPrev && e.dynamic) c.txt = Math.max(c.txt || 0, textWidth(e.dynamic, 1.75 * sp, 700, SERIF, true) + 0.7 * sp);
+      if (!e.tiedFromPrev && e.dynamic) c.txt = Math.max(c.txt || 0, dynWidth(e.dynamic, sp) + 0.7 * sp);
     }
     b.cols = cols;
     cols.forEach((c, k) => {
@@ -527,8 +494,11 @@ export function engrave(score, opts = {}) {
   bars.forEach((b, i) => { const nx = bars[i + 1]; if (nx && nx.keyChange && !b.repeatEnd && !b.barline) b.autoDouble = true; });
 
   // ---- 3. systems: as many bars as fit, then stretched to the width ----
-  const nameOf = (p, full) => (full ? p.name || p.instrument || "" : p.short || shortName(p.name || p.instrument || ""));
-  const namesW = (full) => (multi || (anyGrand && shown.length > 1) ? Math.max(0, ...shown.map((pi) => textWidth(nameOf(score.parts[pi], full), 1.3 * sp, 600))) + (full ? 1.2 * sp : 0.9 * sp) : 0);
+  // an instrument's own list name loses its note in brackets on the page ("Guitar (6-string)" reads "Guitar"); a name you typed stays as typed
+  const plain = (p) => { const n = p.name || p.instrument || ""; return n === p.instrument ? n.replace(/\s*\([^)]*\)\s*$/, "") : n; };
+  const nameOf = (p, full) => (full ? plain(p) : p.short || shortName(p.name || p.instrument || ""));
+  const NAME_PX = opts.page ? 1.7 * sp : 1.3 * sp, NAME_WT = opts.page ? 500 : 600;   // on a page, part names at a printed size
+  const namesW = (full) => (multi || (anyGrand && shown.length > 1) ? Math.max(0, ...shown.map((pi) => textWidth(nameOf(score.parts[pi], full), NAME_PX, NAME_WT, opts.page ? TEXT_FONT : undefined))) + (full ? 1.2 * sp : 0.9 * sp) : 0);
   const decoW = (multi ? 2.4 * sp : 0) + (anyGrand ? 1.6 * sp : 0);
   const startW = (bi, first) => {
     const b = bars[bi];
@@ -565,7 +535,7 @@ export function engrave(score, opts = {}) {
     s.courtesy = nextFirst !== null ? courtesyW(nextFirst) : 0;
     const innerW = width - margin - s.left;
     const fixed = s.start + s.courtesy + s.bars.reduce((a, b, k) => a + b.min + (k ? b.preMid : 0) + b.endW, 0);
-    const target = last && fixed < innerW * 0.78 ? fixed : innerW; // a short last system keeps its natural spacing
+    const target = last && fixed < innerW * 0.78 && !(opts.page && systems.length === 1) ? fixed : innerW; // a short last system keeps its natural spacing (on a page, a lone first line still fills it)
     const extra = Math.max(0, target - fixed), flexSum = s.bars.reduce((a, b) => a + b.flex, 0) || 1;
     let x = s.left + s.start;
     s.bars.forEach((b, k) => {
@@ -774,7 +744,7 @@ export function engrave(score, opts = {}) {
       if (multi && st.s === 0) {
         const nm = nameOf(st.part, s.first);
         const yy = st.nStaves > 1 ? (T + s.staves[k + 1].top + 4 * sp) / 2 + 0.45 * sp : T + 2.45 * sp;
-        if (nm) g.push(`<text x="${f2(leftX - decoW - 0.6 * sp)}" y="${f2(yy)}" text-anchor="end" font-size="${f2(1.3 * sp)}" font-weight="600" fill="currentColor">${escx(nm)}</text>`);
+        if (nm) g.push(`<text x="${f2(leftX - decoW - 0.6 * sp)}" y="${f2(yy)}" text-anchor="end" font-size="${f2(NAME_PX)}" font-weight="${NAME_WT}" fill="currentColor">${escx(nm)}</text>`);
       }
       // a grand staff: the brace, and barlines through both staves
       if (st.nStaves > 1 && st.s === 0) g.push(brace(leftX - (anyGrand ? 1.5 * sp : 0), T, s.staves[k + 1].top + 4 * sp, sp));
@@ -1045,13 +1015,13 @@ export function engrave(score, opts = {}) {
       for (const a of art) {
         if (a === "staccato") g.push(`<circle cx="${f2(acx)}" cy="${f2(ay)}" r="${f2(0.2 * sp)}" fill="${ink}"/>`);
         if (a === "tenuto") g.push(line(acx - 0.6 * sp, ay, acx + 0.6 * sp, ay, 0.16 * sp, ink));
-        if (a === "accent") g.push(`<path fill="none" stroke="${ink}" stroke-width="${f2(0.15 * sp)}" d="M${f2(acx - 0.7 * sp)},${f2(ay - 0.4 * sp)}L${f2(acx + 0.7 * sp)},${f2(ay)}L${f2(acx - 0.7 * sp)},${f2(ay + 0.4 * sp)}"/>`);
+        if (a === "accent") g.push(glyph(G.accent, acx - 0.678 * sp, ay + 0.49 * sp, sp, ink));
         if (a === "fermata") {
           const below = e.forced === "down", fy = below ? Math.max(T + 5.2 * sp, T + Math.max(yOf(e.heads[0].pos), e.up ? 0 : e.stemEnd) + 1.2 * sp) : Math.min(T - 1.2 * sp, T + Math.min(yOf(e.heads[e.heads.length - 1].pos), e.up ? e.stemEnd : 99) - 1.2 * sp);
           const d = below ? -1 : 1;
           fermY[0] = Math.min(fermY[0], below ? fy - 0.3 * sp : fy - 1.5 * sp); fermY[1] = Math.max(fermY[1], below ? fy + 1.5 * sp : fy + 0.3 * sp);
           box("artic", acx - 1.15 * sp, below ? fy - 0.3 * sp : fy - 1.45 * sp, acx + 1.15 * sp, below ? fy + 1.45 * sp : fy + 0.3 * sp, si, skey(ss));
-          g.push(`<path fill="${ink}" d="M${f2(acx - 1.1 * sp)},${f2(fy)}C${f2(acx - 1.0 * sp)},${f2(fy - d * 1.4 * sp)} ${f2(acx + 1.0 * sp)},${f2(fy - d * 1.4 * sp)} ${f2(acx + 1.1 * sp)},${f2(fy)}C${f2(acx + 0.9 * sp)},${f2(fy - d * 1.1 * sp)} ${f2(acx - 0.9 * sp)},${f2(fy - d * 1.1 * sp)} ${f2(acx - 1.1 * sp)},${f2(fy)}Z"/><circle cx="${f2(acx)}" cy="${f2(fy - d * 0.3 * sp)}" r="${f2(0.2 * sp)}" fill="${ink}"/>`);
+          g.push(glyph(d > 0 ? G.fermataAbove : G.fermataBelow, acx - 1.21 * sp, fy, sp, ink));
         }
         if (a === "staccato" || a === "tenuto" || a === "accent") {
           const ex_ = a === "staccato" ? 0.25 * sp : 0.75 * sp;
@@ -1079,9 +1049,9 @@ export function engrave(score, opts = {}) {
       ss.req.floor.push({ x1: rx1, x2: rx2, y: bot });
       // ornaments (and the accidental over them) and playing technique, placed above with everything else there
       if (e.orn && !e.tiedFromPrev) {
-        const [ow, oh] = ORN_BOX[e.orn] || [2, 1.4], cx = e.x + hw / 2, accH = e.ornAcc !== undefined && e.ornAcc !== null ? 1.5 * sp : 0;
+        const [ow, oh] = ORN_BOX[e.orn] || [2, 1.4], cx = e.x + hw / 2, accH = e.ornAcc !== undefined && e.ornAcc !== null ? 2.1 * sp : 0;
         ss.req.above.push({ pri: 1, kind: "orn", x1: cx - (ow * sp) / 2, x2: cx + (ow * sp) / 2, h: oh * sp + accH,
-          draw: (yb) => ornGlyph(e.orn, cx, yb, sp, ink) + (accH ? accidental(e.ornAcc, cx, yb - oh * sp - 0.75 * sp, sp * 0.62, ink) : "") });
+          draw: (yb) => ornGlyph(e.orn, cx, yb, sp, ink) + (accH ? accidental(e.ornAcc, cx, yb - oh * sp - 1.15 * sp, sp * 0.62, ink) : "") });
       }
       if (e.tech && !e.tiedFromPrev) {
         const tpx = 1.4 * sp, tw = textWidth(e.tech, tpx, 400, SERIF, true);
@@ -1123,7 +1093,7 @@ export function engrave(score, opts = {}) {
     }
     if (only && multi) {
       const nm = nameOf(st.part, s.first);
-      if (nm) g.push(`<text x="${f2(leftX - decoW - 0.6 * sp)}" y="${f2(cy + 0.45 * sp)}" text-anchor="end" font-size="${f2(1.3 * sp)}" font-weight="600" fill="currentColor">${escx(nm)}</text>`);
+      if (nm) g.push(`<text x="${f2(leftX - decoW - 0.6 * sp)}" y="${f2(cy + 0.45 * sp)}" text-anchor="end" font-size="${f2(NAME_PX)}" font-weight="${NAME_WT}" fill="currentColor">${escx(nm)}</text>`);
     }
   }
   // the lines (broken where a number sits), barlines, fret numbers; with TAB only, rests, the rhythm under the staff,
@@ -1230,12 +1200,12 @@ export function engrave(score, opts = {}) {
       for (const c of items) row = Math.min(row, skyAt(c.x, c.x + c.w) - pad - 0.4 * sp);
       for (const c of items) { g.push(chordSymbolSvg(c.sym, c.x, row, sp).svg); box("chord", c.x, row - 1.3 * sp, c.x + c.w, row + 0.4 * sp, si, key); }
     }
-    const D = R.dyns.map((d) => ({ ...d, w: textWidth(d.text, 1.75 * sp, 700, SERIF, true) }));
+    const D = R.dyns.map((d) => ({ ...d, w: dynWidth(d.text, sp) }));
     let row = dynY;
     for (const d of D) row = Math.max(row, floorAt(d.x, d.x + d.w) + pad + 1.25 * sp);
     for (const h of R.hairpins) row = Math.max(row, floorAt(h.x1, h.x2) + pad + 1.25 * sp);
     for (const d of D) {
-      g.push(`<text x="${f2(d.x)}" y="${f2(row)}" font-family="${SERIF}" font-style="italic" font-weight="700" font-size="${f2(1.75 * sp)}" fill="currentColor">${escx(d.text)}</text>`);
+      g.push(dynSvg(d.text, d.x, row, sp));
       box("dyn", d.x, row - 1.25 * sp, d.x + d.w, row + 0.35 * sp, si, key); R.floor.push({ x1: d.x, x2: d.x + d.w, y: row + 0.35 * sp });
     }
     for (const h of R.hairpins) {
