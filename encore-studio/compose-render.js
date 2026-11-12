@@ -809,7 +809,7 @@ export function engrave(score, opts = {}) {
           g.push(`<text x="${f2((x1 + x2) / 2)}" y="${f2(T - 0.7 * sp)}" text-anchor="middle" font-family="${SERIF}" font-weight="700" font-size="${f2(2.1 * sp)}" fill="currentColor">${b.mm}</text>`);
           ss.req.sky.push({ x1: (x1 + x2) / 2 - 1.5 * sp, x2: (x1 + x2) / 2 + 1.5 * sp, y: T - 2.3 * sp });
         }
-        if (k === 0 || firstOfPart) hit.measures.push({ index: b.index, x: b.x, w: b.w, system: si, y: s.y, h: s.h, start: b.start, ticks: b.ticks, part: st.pi, staves: s.staves.filter((q) => q.st.pi === st.pi).map((q) => ({ part: q.st.pi, staff: q.st.s, y: q.top, h: 4 * sp })) });
+        if (k === 0 || firstOfPart) hit.measures.push({ index: b.index, x: b.x, w: b.w, system: si, y: s.y, h: s.h, start: b.start, ticks: b.ticks, part: st.pi, staves: s.staves.filter((q) => q.st.pi === st.pi).map((q) => ({ part: q.st.pi, staff: q.st.s, y: q.top, h: q.h || 4 * sp, tab: !!q.tab })) });
       });
       // courtesy key and time at the end of the line, before a change
       if (s.courtesy) {

@@ -325,6 +325,17 @@ paper.addEventListener("pointerdown", (e) => {
   const ev = hit.events.find((h) => h.tab && h.event >= 0 && near(h, x, y)) || hit.events.find((h) => h.event >= 0 && near(h, x, y));
   if (ev && (ev.part ?? 0) !== ui.part || ev && (ev.voice ?? 0) !== ui.voice) { ui.part = ev.part ?? 0; ui.voice = ev.voice ?? 0; ui.range = null; }
   const evData = ev ? voice()[ev.event] : null;
+  if (ev && evData && !evData.rest && e.shiftKey && !ev.tab && ev.notes?.length) {
+    // shift-click in a note's column at another pitch (away from its heads): that pitch joins the chord
+    const far = ev.notes.every((n) => Math.abs(n.y - y) > (hit.sp || 8) * 0.6);
+    const pi = far ? (hit.pitchInfo ? hit.pitchInfo(ev.system, y, x) : hit.pitchAt(ev.system, y)) : null;
+    const midi = typeof pi === "number" ? pi : pi?.midi;
+    if (far && midi != null && (pi?.staff === undefined || pi.staff === ev.staff) && !evData.notes.some((n) => n.midi === midi)) {
+      commit(setPitch(score(), ui.part, ev.event, -1, midi, ui.voice));
+      ui.range = null; ui.sel = ev.event; ui.caret = ev.event + 1; ui.picked = true; ui.selNote = voice()[ev.event].notes.length - 1; lastMidi = midi;
+      preview([midi]); draw(); renderTools(); return;
+    }
+  }
   if (ev && evData && !evData.rest) {
     if (e.shiftKey && ui.sel >= 0) ui.range = { from: ui.range ? ui.range.from : ui.sel, to: ev.event };
     else { ui.range = null; ui.sel = ev.event; ui.caret = ev.event + 1; ui.picked = true; }
@@ -583,7 +594,7 @@ function renderTools() {
         <label>Dynamic<select class="t" id="dynIn" ${e ? "" : "disabled"}><option value="">None</option>${["pp", "p", "mp", "mf", "f", "ff"].map((d) => `<option ${e?.dyn === d ? "selected" : ""}>${d}</option>`).join("")}</select></label>
       </div>
       <div class="lbl"><span>How to write</span></div>
-      <div class="keys"><b>Click the staff</b> where a note goes (Shift-click a note to select a run), <b>tap the piano</b>, or <b>play a MIDI keyboard</b>. <kbd>A</kbd>-<kbd>G</kbd> notes (Shift adds to the chord), <kbd>1</kbd>-<kbd>6</kbd> lengths, <kbd>.</kbd> dot, <kbd>0</kbd> rest, <kbd>T</kbd> tie, <kbd>&#8593;</kbd><kbd>&#8595;</kbd> half step, <kbd>Ctrl</kbd>+<kbd>&#8593;</kbd> octave, <kbd>Shift</kbd>+<kbd>&#8592;</kbd><kbd>&#8594;</kbd> select, <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy and paste, <kbd>Space</kbd> play.${showsTab(p) ? ` On TAB: <kbd>Alt</kbd>+<kbd>&#8593;</kbd>/<kbd>&#8595;</kbd> moves a note to another string, click a string to put a note on it, type a fret in the TAB box.` : ""}</div>`;
+      <div class="keys"><b>Click the staff</b> where a note goes (it uses the length picked above and lands on the beat you click). Click a note to pick it, <b>drag it up or down</b> to change it, Shift-click above or below it to add to its chord, Shift-click another note to select a run. Or <b>tap the piano</b>, or <b>play a MIDI keyboard</b>. <kbd>A</kbd>-<kbd>G</kbd> notes (Shift adds to the chord), <kbd>1</kbd>-<kbd>6</kbd> lengths, <kbd>.</kbd> dot, <kbd>0</kbd> rest, <kbd>T</kbd> tie, <kbd>&#8593;</kbd><kbd>&#8595;</kbd> half step, <kbd>Ctrl</kbd>+<kbd>&#8593;</kbd> octave, <kbd>Shift</kbd>+<kbd>&#8592;</kbd><kbd>&#8594;</kbd> select, <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy and paste, <kbd>Space</kbd> play.${showsTab(p) ? ` On TAB: <kbd>Alt</kbd>+<kbd>&#8593;</kbd>/<kbd>&#8595;</kbd> moves a note to another string, click a string to put a note on it, type a fret in the TAB box.` : ""}</div>`;
     $("partSel").onchange = (ev) => { ui.part = +ev.target.value; ui.voice = 0; ui.range = null; ui.caret = voice().length; ui.sel = ui.caret - 1; draw(); renderTools(); };
     $("voiceSeg").onclick = (ev) => {
       const b = ev.target.closest("button"); if (!b) return;
