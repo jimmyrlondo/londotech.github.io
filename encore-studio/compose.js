@@ -134,8 +134,9 @@ function draw() {
     hit = render(paper, s, { width: pg ? PAGE.w - PAGE.m.left - PAGE.m.right : paper.clientWidth - 28, scale: pg ? PAGE.scale : innerWidth < 700 ? 0.78 : 1, page: pg,
       selection: ui.sel >= 0 && !ui.range ? { part: ui.part, voice: ui.voice, event: ui.sel, note: ui.selNote } : null,
       range: ui.range && r ? { part: ui.part, voice: ui.voice, from: r.from, to: r.to } : null,
-      cursor: ui.playing ? null : { part: ui.part, voice: ui.voice, tick: caretTick() }, playhead: playTick, transposed: ui.transposed, bars });
-    renderPos();
+      cursor: ui.playing ? null : { part: ui.part, voice: ui.voice, tick: caretTick() }, playhead: null, transposed: ui.transposed, bars });
+    renderPos(); renderMap();
+    if (playTick !== null) placePlayhead(playTick, false);
   });
 }
 function renderPos() {
@@ -238,6 +239,7 @@ function pasteSel() {
 // the keyboard on the score: letters, numbers, arrows (MuseScore-style, so people who know it feel at home)
 const DUR_KEYS = { 1: 60, 2: 120, 3: 240, 4: 480, 5: 960, 6: 1920 };
 paper.addEventListener("keydown", (e) => {
+  if (e.key !== " " && !e.ctrlKey && !e.metaKey) ui.from = null;   // typing or moving the cursor: Play starts from the cursor again
   if (ui.recording) return; // while recording, the letter keys are the piano
   if (e.key === "/" && !e.ctrlKey) { e.preventDefault(); openPalette(); return; }
   const k = e.key.toLowerCase();
@@ -341,6 +343,13 @@ paper.addEventListener("pointerdown", (e) => {
   if (e.pointerType === "mouse") e.preventDefault();   // no browser text selection (the title, tempo...) while clicking or dragging
   paper.focus({ preventScroll: true });
   const { x, y, svg: onPage } = scorePoint(e);
+  if (ui.playing && !ui.recording) {
+    // listening: a tap on the music plays from there (to the beat), and never edits
+    const sy = systemNear(x, y, onPage);
+    if (sy) { const raw = hit.tickAt(sy.index, x); seekTo(snapToBeat(raw, 1920 / (score().time?.d || 4))); }
+    return;
+  }
+  ui.from = null;
   const pg = onPage && hit.pages ? hit.pages[+onPage.dataset.page] : null, here = (h) => !pg || pg.systems.includes(h.system);
   // a TAB fret first (the notes' boxes reach down over the TAB staff)
   const ev = hit.events.find((h) => h.tab && h.event >= 0 && here(h) && near(h, x, y)) || hit.events.find((h) => h.event >= 0 && here(h) && near(h, x, y));
@@ -527,13 +536,20 @@ onNotes((ev) => {
 const perfOpts = (from) => ({ from, swing: db.prefs.swing || undefined, humanize: db.prefs.humanize ?? 0.3 });
 // where a tick first comes in the played timeline (seconds)
 function secondsAt(tl, tick) { const seg = tl.segments.find((g) => tick >= g.start && tick < g.start + g.ticks); return seg ? seg.time + ((tick - seg.start) / seg.ticks) * seg.dur : 0; }
-function play() {
+function play(at = null) {
   stopAll();
-  const s = score(), a = audio(), loop = ui.loop && rangeNow();
-  const from = loop ? eventStarts(voice())[loop.from] : ui.caret >= voice().length && !ui.range ? 0 : caretTick();
+  const s = score(), a = audio(), lb = ui.loopBars && mapBars[ui.loopBars.to] ? ui.loopBars : null, loop = !lb && ui.loop && rangeNow();
+  let from = lb ? Math.max(mapBars[lb.from].start, at ?? 0) : at ?? (loop ? eventStarts(voice())[loop.from] : startTick());
+  if (lb && from >= mapBars[lb.to].start + mapBars[lb.to].ticks) from = mapBars[lb.from].start;
   const t0 = a.currentTime + 0.12;
   let loopSec = null;
-  if (loop) {
+  if (lb) {
+    // a run of bars from the song map: from here to the end of its last bar, then round again from its first
+    const secs = (b) => (b.ticks * 60) / ((b.tempo || s.tempo) * TPQ);
+    let end = 0; for (let k = lb.from; k <= lb.to; k++) end += secs(mapBars[k]);
+    const head = (from - mapBars[lb.from].start) * 60 / ((mapBars[lb.from].tempo || s.tempo) * TPQ);
+    loopSec = { start: 0, end: Math.max(0.05, end - head) };
+  } else if (loop) {
     // the loop runs from the start of the run to the end of its last note, in performed seconds
     const evs = perform(s, perfOpts(from)), mine = evs.filter((e) => e.part === ui.part && e.voice === ui.voice && e.ref >= loop.from && e.ref <= loop.to);
     const end = mine.length ? Math.max(...mine.map((e) => e.time + e.dur)) : 1;
@@ -553,13 +569,132 @@ function play() {
     const t = r.player.timeAt ? r.player.timeAt(audio().currentTime) : audio().currentTime - t0;
     if (t > end + 0.3) { stopAll(); return; }
     // the playhead follows repeats, jumps and the loop through the timeline
-    playTick = t <= 0 ? from : (tl.at(startSec + t)?.tick ?? from); draw();
-    ui.playing.raf = setTimeout(step, 50);
+    if (lb) { const len = loopSec.end; const tt = t <= 0 ? 0 : t % len; playTick = tl.at(startSec + tt)?.tick ?? from; if (playTick >= mapBars[lb.to].start + mapBars[lb.to].ticks) playTick = from; }
+    else playTick = t <= 0 ? from : (tl.at(startSec + t)?.tick ?? from);
+    placePlayhead(playTick, true); mapPos(playTick);
+    ui.playing.raf = setTimeout(step, 40);
   };
   step();
 }
+// ---------- the song map: every bar at a glance, click one to play from there, drag across bars to loop them ----------
+const PART_COLORS = ["#ff6a2b", "#4fb3ff", "#7bd88f", "#f5c542", "#c792ea", "#ff7eb6"];
+let mapBars = [], mapTl = null;
+/** where Play starts when nothing else says: the map's start point, or the cursor (the top, when the cursor is past the end) */
+const startTick = () => ui.from ?? (ui.caret >= voice().length && !ui.range ? 0 : caretTick());
+const fmtTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+function renderMap() {
+  if (!hit || !$("smCells")) return;
+  const s = score(), n = Math.max(1, ...hit.measures.map((m) => m.index + 1));
+  const bars = barInfo(s, { bars: n }).slice(0, n), parts = s.parts.slice(0, 6);
+  // which bars each instrument plays in
+  const used = parts.map((p) => {
+    const set = new Set();
+    p.voices.forEach((v) => { const st = eventStarts(v); let k = 0; v.forEach((e, i) => {
+      if (e.rest) return; const a = st[i], b = a + e.dur;
+      while (k > 0 && bars[k].start > a) k--;
+      for (let j = k; j < bars.length && bars[j].start < b; j++) if (a < bars[j].start + bars[j].ticks) { set.add(j); k = j; }
+    }); });
+    return set;
+  });
+  const key = n + "|" + parts.length + "|" + used.map((u) => [...u].join(",")).join(";") + "|" + bars.map((b) => b.number).join(",");
+  mapBars = bars; mapTl = timeline(s);
+  const cells = $("smCells");
+  if (cells.dataset.key !== key) {
+    cells.dataset.key = key;
+    cells.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
+    cells.innerHTML = bars.map((b, k) => `<div class="smCell" data-bar="${k}" title="Bar ${b.number ?? k + 1}">${parts.map((p, i) => `<i${used[i].has(k) ? ` style="background:${PART_COLORS[i % PART_COLORS.length]}"` : ""}></i>`).join("")}</div>`).join("");
+    const w = $("smTrack").clientWidth || 600, every = [1, 2, 4, 5, 8, 10, 16, 20, 25, 50, 100].find((e) => (w / n) * e >= 24) || 100;
+    $("smNums").innerHTML = bars.map((b, k) => (k % every === 0 ? `<span class="smNum" style="left:${(k / n) * 100}%">${b.number ?? k + 1}</span>` : "")).join("");
+    $("smTrack").setAttribute("aria-valuemax", String(n));
+  }
+  showLoop();
+  mapPos(playTick ?? startTick());
+}
+/** the bar a tick is in (index into the map) and how far through it */
+function mapAt(tick) {
+  let k = 0; while (k + 1 < mapBars.length && mapBars[k + 1].start <= tick) k++;
+  const b = mapBars[k]; return b ? { k, f: Math.max(0, Math.min(1, (tick - b.start) / b.ticks)) } : { k: 0, f: 0 };
+}
+function mapPos(tick) {
+  if (!mapBars.length) return;
+  const { k, f } = mapAt(tick), n = mapBars.length;
+  $("smNeedle").style.left = `${((k + f) / n) * 100}%`;
+  $("smTrack").setAttribute("aria-valuenow", String(k + 1)); $("smTrack").setAttribute("aria-valuetext", `Bar ${mapBars[k].number ?? k + 1}`);
+  const seg = mapTl?.segments.find((g) => tick >= g.start && tick < g.start + g.ticks);
+  const now = seg ? seg.time + ((tick - seg.start) / seg.ticks) * seg.dur : (mapTl?.duration || 0);
+  $("smTime").textContent = `${fmtTime(Math.min(now, mapTl?.duration || 0))} / ${fmtTime(mapTl?.duration || 0)}`;
+  const cells = $("smCells").children;
+  if (ui.playing) for (let j = 0; j < cells.length; j++) cells[j].classList.toggle("past", j < k);
+  else for (const c of cells) c.classList.remove("past");
+}
+function showLoop() {
+  const el = $("smLoop"), lb = ui.loopBars, n = mapBars.length;
+  if (!lb || !n) { el.hidden = true; return; }
+  el.hidden = false; el.style.left = `${(lb.from / n) * 100}%`; el.style.width = `${((lb.to - lb.from + 1) / n) * 100}%`;
+}
+/** jump there: playing goes on from that spot (or starts); stopped, the next Play starts there */
+function seekTo(tick, start = true) {
+  ui.from = tick;
+  if (ui.loopBars && (mapAt(tick).k < ui.loopBars.from || mapAt(tick).k > ui.loopBars.to)) { ui.loopBars = null; showLoop(); $("loopBtn")?.classList.remove("on"); }
+  if (ui.playing || start) play(tick);
+  else { mapPos(tick); placePlayhead(tick, true); }
+}
+{
+  const tr = $("smTrack");
+  const barOf = (e) => { const r = tr.getBoundingClientRect(); return Math.max(0, Math.min(mapBars.length - 1, Math.floor(((e.clientX - r.left) / r.width) * mapBars.length))); };
+  let drag = null;
+  tr.addEventListener("pointerdown", (e) => {
+    if (e.button > 0 || !mapBars.length || ui.recording) return;
+    e.preventDefault(); tr.focus({ preventScroll: true });
+    try { tr.setPointerCapture(e.pointerId); } catch {}
+    drag = { from: barOf(e), to: barOf(e), id: e.pointerId };
+  });
+  tr.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const k = barOf(e); if (k === drag.to) return;
+    drag.to = k; ui.loopBars = { from: Math.min(drag.from, k), to: Math.max(drag.from, k) }; drag.loop = true; showLoop();
+  });
+  const up = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    if (e.type === "pointercancel") return;
+    if (d.loop) { $("loopBtn")?.classList.add("on"); ui.from = null; play(mapBars[ui.loopBars.from].start); return; }
+    seekTo(mapBars[d.from].start);
+  };
+  tr.addEventListener("pointerup", up); tr.addEventListener("pointercancel", up);
+  tr.addEventListener("keydown", (e) => {
+    if (!mapBars.length) return;
+    const cur = mapAt(playTick ?? startTick()).k;
+    const go = { ArrowLeft: cur - 1, ArrowRight: cur + 1, Home: 0, End: mapBars.length - 1, PageUp: cur - 4, PageDown: cur + 4 }[e.key];
+    if (go === undefined) return;
+    e.preventDefault(); e.stopPropagation();
+    seekTo(mapBars[Math.max(0, Math.min(mapBars.length - 1, go))].start, !!ui.playing);
+  });
+  $("smFollow").checked = db.prefs.follow !== false;
+  $("smFollow").onchange = (e) => { db.prefs.follow = e.target.checked; save(); };
+}
+// the playing line on the page itself: moved, not redrawn, and kept in view when Follow is on
+let lastFollow = -1;
+function placePlayhead(tick, follow) {
+  if (!hit || !hit.xAt) return;
+  const p = hit.xAt(tick);
+  if (!p) return;
+  const pg = hit.pages ? Math.max(0, hit.pages.findIndex((q) => q.systems.includes(p.system))) : 0;
+  const sv = paper.querySelector(hit.pages ? `svg.score[data-page="${pg}"]` : "svg.score"); if (!sv) return;
+  let r = sv.querySelector("rect.livehead");
+  if (!r) { paper.querySelectorAll("rect.livehead").forEach((x) => x.remove()); r = document.createElementNS("http://www.w3.org/2000/svg", "rect"); r.setAttribute("class", "livehead"); r.setAttribute("fill", "#ff3b00"); r.setAttribute("opacity", ".55"); r.setAttribute("pointer-events", "none"); sv.appendChild(r); }
+  const sp = hit.sp || 8;
+  r.setAttribute("x", (p.x - 0.12 * sp).toFixed(2)); r.setAttribute("y", p.top.toFixed(2)); r.setAttribute("width", (0.24 * sp).toFixed(2)); r.setAttribute("height", (p.bottom - p.top).toFixed(2));
+  if (follow && db.prefs.follow !== false && p.system !== lastFollow) {
+    lastFollow = p.system;
+    const box = $("paperScroll"), br = box.getBoundingClientRect(), rr = r.getBoundingClientRect();
+    if (rr.top < br.top + 10 || rr.bottom > br.bottom - 10) box.scrollBy({ top: rr.top - br.top - br.height * 0.18, behavior: "smooth" });
+  }
+  if (!follow) lastFollow = p.system;
+}
 function toggleLoop() {
-  if (!ui.loop && !ui.range) { toast("Select a run first (click a note, shift-click another), then loop it."); return; }
+  if (ui.loopBars) { const was = !!ui.playing, t = playTick; ui.loopBars = null; showLoop(); $("loopBtn")?.classList.remove("on"); if (was) play(t); return; }
+  if (!ui.loop && !ui.range) { toast("Drag across bars in the song map to loop them, or select a run of notes (click one, shift-click another)."); return; }
   ui.loop = !ui.loop; $("loopBtn")?.classList.toggle("on", ui.loop);
   if (ui.loop) play(); else stopAll();
 }
@@ -581,7 +716,7 @@ async function exportAudio(stems = false, preset = db.prefs.audioFormat || "wav"
 function stopAll() {
   if (ui.playing) { ui.playing.met?.stop(); ui.playing.player?.stop?.(); clearTimeout(ui.playing.raf); ui.playing = null; }
   if (ui.backing) { ui.backing.stop?.(); ui.backing = null; }
-  allOff(); playTick = null;
+  allOff(); playTick = null; paper.querySelectorAll("rect.livehead").forEach((r) => r.remove());
   $("playBtn").innerHTML = "&#9654;"; $("playBtn").classList.remove("on");
   if (ui.recording) finishRecording();
   draw();

@@ -1403,6 +1403,18 @@ export function engrave(score, opts = {}) {
     }
     return b.start + b.ticks;
   };
+  // where a tick is drawn: its line of music, the x, and the band the playhead covers (null past the end)
+  hit.xAt = (tick) => {
+    for (let si = 0; si < systems.length; si++) {
+      const s = systems[si], first = s.bars[0], last = s.bars[s.bars.length - 1];
+      if (!first || tick < first.start || tick > last.start + last.ticks) continue;
+      if (tick === last.start + last.ticks && systems[si + 1]) continue;
+      const x = xForTick(s, s.staves[0].st, null, tick, sp); if (x === null) continue;
+      const lq = s.staves[s.staves.length - 1];
+      return { system: si, x, top: s.staves[0].top - 2 * sp, bottom: lq.top + (lq.h || 4 * sp) + 2 * sp };
+    }
+    return null;
+  };
   hit.systems = systems.map((s, i) => ({ index: i, y: s.y, h: s.h, top: s.top, staffHeight: 4 * sp, x: s.left, w: s.right - s.left, measures: s.bars.map((b) => b.index),
     staves: s.staves.map((q) => (q.tab ? { part: q.st.pi, staff: q.st.s, top: q.top, h: q.h, tab: true, strings: q.st.tab.strings.length } : { part: q.st.pi, staff: q.st.s, top: q.top })) }));
   return { svg, height, ...hit, sp, boxes, headSvg, systemSvgs: out, width };

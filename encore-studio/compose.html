@@ -52,6 +52,25 @@
 
   /* the score */
   .tool { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--divider); }
+  /* the song map: every bar at a glance, one thin row per instrument */
+  .songmap { display: flex; align-items: center; gap: 10px; padding: 6px 12px 8px; border-bottom: 1px solid var(--divider); }
+  .smTime { font: 700 12px var(--family-mono, monospace); color: var(--soft); min-width: 88px; white-space: nowrap; }
+  .smTrack { position: relative; flex: 1 1 auto; min-width: 0; height: 38px; cursor: pointer; touch-action: none; outline: none; border-radius: 6px; user-select: none; -webkit-user-select: none; }
+  .smTrack:focus-visible { box-shadow: 0 0 0 1px var(--divider-strong); }
+  .smNums { position: absolute; left: 0; right: 0; top: 0; height: 12px; }
+  .smNum { position: absolute; top: 0; font: 700 9.5px var(--family-mono, monospace); color: var(--dim); padding-left: 2px; line-height: 12px; }
+  .smCells { position: absolute; left: 0; right: 0; top: 13px; bottom: 0; display: grid; gap: 1px; }
+  .smCell { display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 3px 1px; border-radius: 2px; background: rgb(255 255 255 / .05); min-width: 0; }
+  .smCell:hover { background: rgb(255 255 255 / .12); }
+  .smCell i { display: block; height: 3px; border-radius: 1px; background: rgb(255 255 255 / .1); }
+  .smCell.past { background: rgb(255 59 0 / .14); }
+  .smNeedle { position: absolute; top: 10px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--text); border-radius: 1px; box-shadow: 0 0 6px #ff3b00; pointer-events: none; }
+  .smLoop { position: absolute; top: 11px; bottom: -2px; background: rgb(255 59 0 / .18); border: 1.5px solid #ff3b00; border-radius: 4px; pointer-events: none; }
+  .smFollow { display: inline-flex; gap: 4px; align-items: center; font-size: 12px; font-weight: 700; color: var(--soft); white-space: nowrap; }
+  .light .smCell { background: rgb(0 0 0 / .05); } .light .smCell:hover { background: rgb(0 0 0 / .1); } .light .smCell i { background: rgb(0 0 0 / .08); }
+  .smFollow input { accent-color: #ff3b00; }
+  @media (max-width: 699px) { .songmap { gap: 8px; padding: 6px 10px 8px; } .smTime { min-width: 0; font-size: 11px; } }
+  @media print { .songmap { display: none !important; } }
   .tool .sep { width: 1px; height: 24px; background: var(--divider-strong); margin: 0 2px; }
   .tool label { display: inline-flex; gap: 5px; align-items: center; font-size: 12px; font-weight: 700; color: var(--soft); }
   .tool .pos { margin-left: auto; font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
@@ -188,6 +207,11 @@
       <label class="hidden" id="writtenWrap"><input type="checkbox" id="written"> Written pitch</label>
       <button class="btn sm" id="sayBtn" title="Type a mark (pp, cresc., Cmaj7, 3/4, rit.) or find any command">Type it&hellip; <kbd>Ctrl K</kbd></button>
       <span class="pos" id="pos"></span>
+    </div>
+    <div class="songmap" id="songmap">
+      <span class="smTime" id="smTime">0:00 / 0:00</span>
+      <div class="smTrack" id="smTrack" tabindex="0" role="slider" aria-label="Song map: click a bar to play from there, drag across bars to loop them" aria-valuemin="1" aria-valuenow="1" title="Click a bar to play from there. Drag across bars to loop them."><div class="smNums" id="smNums"></div><div class="smCells" id="smCells"></div><div class="smLoop" id="smLoop" hidden></div><div class="smNeedle" id="smNeedle"></div></div>
+      <label class="smFollow" title="Keep the playing line in view"><input type="checkbox" id="smFollow"> Follow</label>
     </div>
     <div class="scroll" id="paperScroll"><div class="paper" id="paper" tabindex="0" aria-label="Score. Type notes A to G, numbers for lengths, arrows to move."></div></div>
     <div class="pianoWrap">
