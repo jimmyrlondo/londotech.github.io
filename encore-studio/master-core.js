@@ -160,6 +160,9 @@ export async function loadMaster(wasmBytesOrModule) {
       x.mc_override_style(style, ...v.tone, ...v.comp, v.sat, v.width, v.monoHz);
     },
 
+    // Calibration only: how strongly the auto tone match corrects each band, and its limit
+    overrideMatch(fraction, capDb) { x.mc_override_match(...fraction, capDb); },
+
     // A live instance for an AudioWorklet (128-sample blocks)
     createRealtime(fs) {
       const h = x.mc_create(fs, 128);
