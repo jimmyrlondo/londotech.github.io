@@ -28,9 +28,13 @@ const store = {
   set: (k, v) => { try { localStorage.setItem("encore.journey." + k, JSON.stringify(v)); } catch {} },
 };
 const saved = store.get("settings", {});
+// Only who-you-are details carry over to the next release. The title, UPC, year and cover belong to one release.
+const KEEP = ["artist", "genre", "publisher", "copyright"];
+const keepOnly = (r) => Object.fromEntries(KEEP.filter((k) => r?.[k]).map((k) => [k, r[k]]));
 const state = {
   step: "songs", songs: [], sel: -1, nextId: 1,
-  release: { artist: "", title: "", year: String(new Date().getFullYear()), genre: "", publisher: "", copyright: "", upc: "", ...store.get("release", {}) },
+  release: { artist: "", title: "", year: String(new Date().getFullYear()), genre: "", publisher: "", copyright: "", upc: "", ...keepOnly(store.get("release", {})) },
+  typed: new Set(), // release fields typed in for this release (the songs' own tags don't overwrite those)
   art: null,
   skipMaster: false, style: saved.style ?? 0, intensity: saved.intensity ?? 0.5, target: saved.target ?? 0, flow: saved.flow ?? 0.5,
   formats: new Set(saved.formats ?? DEFAULT_FORMATS),
@@ -92,9 +96,18 @@ document.addEventListener("dragover", (e) => e.preventDefault());
 document.addEventListener("drop", (e) => { e.preventDefault(); if (e.target.closest?.("#cover")) return; addFiles(e.dataTransfer.files); });
 
 let queue = Promise.resolve();
+// A new release: clear what belonged to the last one (the title, UPC, year and cover) and let the new songs' tags fill in
+function newRelease() {
+  Object.assign(state.release, { title: "", upc: "", year: String(new Date().getFullYear()) });
+  state.typed = new Set();
+  if (state.art?.url) URL.revokeObjectURL(state.art.url);
+  state.art = null;
+}
 function addFiles(list) {
   const files = [...list].filter((f) => AUDIO_EXT.test(f.name) || (f.type || "").startsWith("audio/"));
   if (!files.length) { setStatus("Those don't look like audio files."); return; }
+  if (!state.songs.length && state.hadSongs) newRelease(); // the list was emptied, so these are a different release
+  state.hadSongs = true;
   for (const file of files) {
     const s = { id: state.nextId++, file, name: file.name, title: guessTitle(file.name), featuring: "", composer: "", isrc: "", explicit: false, nudgeDb: 0,
       status: "Waiting", blob: null, fs: 0, seconds: 0, origLufs: null, master: null, err: "" };
@@ -124,9 +137,9 @@ async function prepare(s) {
     const m = await masterJob({ type: "measure", file: s.blob });
     s.origLufs = m.lufs; s.origPeakDb = m.peakDb; s.mix = m.mix;
     s.status = "";
-    // release details from the songs' own tags, where the form is still empty
+    // release details from the songs' own tags, unless typed in for this release (remembered details give way to the tags)
     const g = guessRelease(state.songs.filter((x) => x.tags).map((x) => x.tags));
-    for (const k of Object.keys(g)) if (!state.release[k] && g[k]) state.release[k] = g[k];
+    for (const k of Object.keys(g)) if (g[k] && !state.typed.has(k)) state.release[k] = g[k];
   } catch (err) {
     s.err = err.message || String(err); s.status = "";
   }
@@ -264,11 +277,11 @@ $("steps").onclick = (e) => { const b = e.target.closest(".step"); if (b) go(b.d
 $("backBtn").onclick = () => { const i = STEPS.findIndex((s) => s.id === state.step); if (i > 0) go(STEPS[i - 1].id); };
 $("nextBtn").onclick = () => {
   const i = STEPS.findIndex((s) => s.id === state.step);
-  if (i === STEPS.length - 1) { if (confirm("Clear the songs and start a new release? Your release details are kept.")) startOver(); return; }
+  if (i === STEPS.length - 1) { if (confirm("Clear the songs and start a new release? Your artist name, label, genre and copyright are kept; the title, UPC and cover are cleared.")) startOver(); return; }
   go(STEPS[i + 1].id);
 };
 function go(step) { state.step = step; body.scrollTop = 0; render(); if (step === "check" && !state.busy && state.songs.length && stepStatus(state).check !== "done") runCheck(); }
-function startOver() { stopAudio(); for (const u of urls.values()) URL.revokeObjectURL(u); urls.clear(); state.songs = []; state.sel = -1; state.released = null; state.checked = false; go("songs"); }
+function startOver() { stopAudio(); for (const u of urls.values()) URL.revokeObjectURL(u); urls.clear(); state.songs = []; state.sel = -1; state.released = null; state.checked = false; newRelease(); go("songs"); }
 
 function renderBody() {
   const n = state.songs.length;
@@ -334,7 +347,7 @@ function renderBody() {
     fillGenreSelect($("r_genre"));
     $("r_genre").value = r.genre || "";
     for (const k of ["artist", "title", "year", "genre", "publisher", "copyright", "upc"]) {
-      $("r_" + k).addEventListener("input", (e) => { state.release[k] = e.target.value; store.set("release", state.release); invalidate(); renderSteps(); });
+      $("r_" + k).addEventListener("input", (e) => { state.release[k] = e.target.value; state.typed.add(k); store.set("release", keepOnly(state.release)); invalidate(); renderSteps(); });
     }
     $("trackRows").addEventListener("input", (e) => {
       const inp = e.target, i = +inp.closest("tr").dataset.i, s = state.songs[i];
