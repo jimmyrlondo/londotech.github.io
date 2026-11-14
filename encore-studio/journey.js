@@ -93,7 +93,7 @@ for (const ev of ["dragenter", "dragover"]) drop.addEventListener(ev, (e) => { e
 for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, () => drop.classList.remove("over"));
 drop.addEventListener("drop", (e) => { e.preventDefault(); addFiles(e.dataTransfer.files); });
 document.addEventListener("dragover", (e) => e.preventDefault());
-document.addEventListener("drop", (e) => { e.preventDefault(); if (e.target.closest?.("#cover")) return; addFiles(e.dataTransfer.files); });
+document.addEventListener("drop", (e) => { e.preventDefault(); if (e.target.closest?.("#cover, #drop")) return; addFiles(e.dataTransfer.files); }); // the drop zone and the cover handle their own drops
 
 let queue = Promise.resolve();
 // A new release: clear what belonged to the last one (the title, UPC, year and cover) and let the new songs' tags fill in
