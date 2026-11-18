@@ -110,6 +110,8 @@ export class LiveAnalyzer {
   finish(opts = {}) {
     const minSongSec = opts.minSongSec ?? 40;     // shorter music runs are tuning / noodling
     const mergeGapSec = opts.mergeGapSec ?? 6;    // quiet breakdowns inside a song
+    const minLevelSongSec = opts.minLevelSongSec ?? 75; // level mode: shorter pieces join a neighbour
+    const maxFoldGapSec = opts.maxFoldGapSec ?? 20;     // ...unless the gap to it is longer than this
     const F = this.frames, nf = F.length;
     const seconds = Math.floor(nf * HOP_SEC);
     if (seconds < 5) return { songs: [], gaps: [], seconds, timeline: [] };
@@ -156,7 +158,21 @@ export class LiveAnalyzer {
     });
     const smooth = medianFilter(score, 2);
     const thr = otsu(smooth.filter((_, i) => !isQuiet[i]));
-    const isMusic = Array.from(smooth, (v, i) => !isQuiet[i] && v > thr);
+    const tonalMusic = Array.from(smooth, (v, i) => !isQuiet[i] && v > thr);
+
+    // How well tonality tells music from crowd noise in THIS recording. A quiet
+    // acoustic set splits cleanly; a loud, distorted band sounds as "noisy" as
+    // applause, so there the songs are found by level instead: the band plays
+    // at a steady level and every gap between songs dips below it.
+    const tonalSep = separation(audible.map((s) => s.flat), tonalThr);
+    const levelWeight = clamp01((5 - tonalSep) / 2);          // 0 = tonality is enough, 1 = use level
+    const bandLevel = levels.map((_, i) => percentile(levels.slice(Math.max(0, i - 60), i + 61).filter((_, j) => !isQuiet[Math.max(0, i - 60) + j]), 0.75));
+    const dip = medianFilter(levels.map((v, i) => bandLevel[i] - v), 1);
+    const spread = median(dip.filter((d, i) => !isQuiet[i] && d < 8).map(Math.abs));
+    const dipThr = Math.max(5, Math.min(10, 2 + 3 * spread));
+    const levelMusic = dip.map((d, i) => !isQuiet[i] && d < dipThr);
+    const isMusic = levelWeight >= 0.5 ? levelMusic : tonalMusic;
+    const gapMerge = levelWeight >= 0.5 ? 3 : mergeGapSec;
     // applause: audible, clearly noisy, little low end
     const lowRef = percentile(audible.map((s) => s.lowRatio), 0.6);
     const isApplause = sec.map((s, i) => !isQuiet[i] && !isMusic[i] && s.flat > tonalThr + 0.1 && s.lowRatio < lowRef);
@@ -167,27 +183,67 @@ export class LiveAnalyzer {
     for (let s = 0; s < seconds; s++) {
       if (!isMusic[s]) continue;
       const last = runs[runs.length - 1];
-      const gapHasApplause = last && isApplause.slice(last.end, s).filter(Boolean).length >= 2;
-      if (last && s - last.end <= mergeGapSec && !gapHasApplause) last.end = s + 1;
+      const gapHasApplause = levelWeight < 0.5 && last && isApplause.slice(last.end, s).filter(Boolean).length >= 2;
+      if (last && s - last.end <= gapMerge && !gapHasApplause) last.end = s + 1;
       else runs.push({ start: s, end: s + 1 });
+    }
+    if (levelWeight >= 0.5) {
+      // level mode: a short dip inside a song (a stop, a breakdown) can split
+      // it; fold pieces too short to be a song back into the neighbour across
+      // the shorter gap
+      for (let changed = true; changed && runs.length > 1;) {
+        changed = false;
+        let i = -1, len = Infinity;
+        runs.forEach((r, j) => { if (r.end - r.start < len) { len = r.end - r.start; i = j; } });
+        if (len >= minLevelSongSec) break;
+        const gapL = i > 0 ? runs[i].start - runs[i - 1].end : Infinity, gapR = i < runs.length - 1 ? runs[i + 1].start - runs[i].end : Infinity;
+        if (Math.min(gapL, gapR) > maxFoldGapSec) { runs.splice(i, 1); changed = true; continue; }
+        if (gapL <= gapR) { runs[i - 1].end = runs[i].end; runs.splice(i, 1); } else { runs[i + 1].start = runs[i].start; runs.splice(i, 1); }
+        changed = true;
+      }
+    }
+    if (levelWeight >= 0.5) {
+      // a quieter song (acoustic, a solo number) sits well below the band's
+      // level; the tone test still finds those, so add any long tonal stretch
+      // that falls between the loud songs
+      const tonal = [];
+      for (let s = 0; s < seconds; s++) {
+        if (!tonalMusic[s]) continue;
+        const last = tonal[tonal.length - 1];
+        if (last && s - last.end <= mergeGapSec) last.end = s + 1; else tonal.push({ start: s, end: s + 1 });
+      }
+      for (const t of tonal) {
+        if (t.end - t.start < minSongSec) continue;
+        if (runs.some((r) => r.start < t.end && t.start < r.end)) continue;
+        runs.push(t);
+      }
+      runs.sort((x, y) => x.start - y.start);
     }
     runs = runs.filter((r) => r.end - r.start >= minSongSec);
 
     // refine edges to 0.1 s: start where tonal sound comes in; end where the
     // tonal sound stops (ring-out included, applause excluded)
-    const tonalFrame = (k, lvl) => frameFlat[k] < tonalThr && frameDb[k] > lvl - 22;
+    const levelMode = levelWeight >= 0.5;
+    const tonalFrame = (k, lvl) => levelMode ? frameDb[k] > lvl - dipThr - 6 : frameFlat[k] < tonalThr && frameDb[k] > lvl - 22;
     const songs = runs.map((r, i) => {
       const songLevel = percentile(frameDb.slice(r.start * per, r.end * per), 0.6);
+      // never reach into the song before or after
+      const floorK = i > 0 ? runs[i - 1].end * per : 0, ceilK = i < runs.length - 1 ? runs[i + 1].start * per : nf;
       let a = r.start * per;
-      for (let k = a; k >= Math.max(0, a - 6 * per); k--) { if (!tonalFrame(k, songLevel) && frameDb[k] < songLevel - 18) break; a = k; }
+      const back = Math.max(floorK, a - 6 * per);
+      for (let k = a; k >= back; k--) { if (!tonalFrame(k, songLevel) && frameDb[k] < songLevel - (levelMode ? dipThr : 18)) break; a = k; }
       let b = Math.max(a, (r.end - 1) * per);
-      for (let k = b; k < Math.min(nf, b + 12 * per); k++) { if (tonalFrame(k, songLevel)) b = k; else if (k - b > 8) break; }
+      const fwd = Math.min(ceilK, nf, b + 12 * per);
+      for (let k = b; k < fwd; k++) { if (tonalFrame(k, songLevel)) b = k; else if (k - b > 8) break; }
       const startSec = Math.max(0, a * HOP_SEC - 0.3);
       const endSec = Math.min(nf * HOP_SEC, b * HOP_SEC + 0.6);
       const body = smooth.slice(r.start, r.end);
       const conf = clamp01((body.reduce((x, v) => x + v, 0) / body.length - thr) / 0.5);
       return { n: i + 1, start: +startSec.toFixed(1), end: +endSec.toFixed(1), confidence: +conf.toFixed(2), level: +songLevel.toFixed(1) };
     });
+
+    // ring-outs never run into the next song
+    for (let i = 1; i < songs.length; i++) if (songs[i - 1].end > songs[i].start) songs[i - 1].end = songs[i].start;
 
     // ---- what's between the songs ------------------------------------------
     const kindOf = (s) => {
@@ -208,8 +264,16 @@ export class LiveAnalyzer {
       gaps.push({ start: a, end: b, kind: main, detail: counts });
     }
 
-    return { songs, gaps, seconds, timeline: sec.map((_, x) => kindOf(x)), threshold: thr, peak: this.peak };
+    return { songs, gaps, seconds, timeline: sec.map((_, x) => kindOf(x)), threshold: thr, peak: this.peak, mode: levelWeight >= 0.5 ? "level" : "tone", tonalSep: +tonalSep.toFixed(2), dipThr: +dipThr.toFixed(1) };
   }
+}
+
+// How far apart the two groups either side of thr are, in standard deviations
+function separation(values, thr) {
+  const a = values.filter((v) => v <= thr), b = values.filter((v) => v > thr);
+  if (a.length < 5 || b.length < 5) return 0;
+  const m = (x) => x.reduce((p, q) => p + q, 0) / x.length, v = (x) => { const mm = m(x); return x.reduce((p, q) => p + (q - mm) ** 2, 0) / x.length; };
+  return Math.abs(m(b) - m(a)) / Math.sqrt((v(a) + v(b)) / 2 + 1e-9);
 }
 
 // Otsu's method: the score that best splits the set into two groups
