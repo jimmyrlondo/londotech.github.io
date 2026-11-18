@@ -157,6 +157,9 @@ ul { padding-left: 1.2em; }
 .product { display: flex; flex-direction: column; }
 .product .ph { background: #fff; border-radius: 8px; height: 190px; display: grid; place-items: center; margin-bottom: 16px; }
 .product .ph img { max-height: 180px; width: auto; mix-blend-mode: multiply; }
+.product .ph-text { background: var(--mist); }
+.product .ph-text span { font: 800 2rem/1.1 var(--head); text-align: center; color: var(--ink-2); }
+.product .ph-text small { font-size: 1rem; font-weight: 600; color: var(--muted); }
 .product .tag { display: inline-block; font: 700 .75rem/1 var(--head); letter-spacing: .08em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; background: var(--mist); color: var(--ink-2); margin-bottom: 10px; }
 .product ul { margin: 0 0 14px; color: var(--ink-2); }
 .product .btn { margin-top: auto; align-self: flex-start; }
