@@ -73,7 +73,8 @@
   .syll { text-align: center; min-width: 0; }
   .kana { font-family: "Noto Sans JP", var(--family-primary); font-size: clamp(56px, 8vw, 88px); font-weight: 700; line-height: 1.05; }
   .romaji { font-family: var(--family-mono); font-size: 20px; color: var(--soft); }
-  .hint { color: var(--dim); font-size: 13px; margin-top: 4px; min-height: 20px; }
+  .say { color: var(--text); font-size: 14px; margin-top: 2px; min-height: 21px; }
+  .hint { color: var(--dim); font-size: 13px; margin-top: 2px; min-height: 20px; }
   .count { display: flex; justify-content: center; gap: 10px; margin: 10px 0 8px; }
   .count span { width: 44px; height: 14px; border-radius: 7px; background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); transition: background .05s; }
   .count span.lit { background: var(--soft); }
@@ -140,13 +141,15 @@
       <div class="syll">
         <div class="kana" id="kana" lang="ja">か</div>
         <div class="romaji" id="romaji">ka</div>
+        <div class="say" id="say"></div>
         <div class="hint" id="hint"></div>
       </div>
       <button class="nav" id="next" aria-label="Next sound" title="Next (right arrow)">&#8250;</button>
     </div>
     <div class="count" id="count" aria-hidden="true"><span></span><span></span><span></span><span class="sing"></span></div>
     <div class="controls">
-      <button class="small" id="guideBtn" title="Hear the note (G)">Hear the note</button>
+      <button class="small" id="exampleBtn" title="Hear how the sound is said (E)">Hear an example</button>
+      <button class="small" id="guideBtn" title="Hear the note you sing every sound on (G)">Hear the note</button>
       <button class="go" id="recBtn" title="Record (space)">Record</button>
       <button class="small" id="playBtn" title="Play the take (P)" disabled>Play take</button>
     </div>
@@ -233,6 +236,10 @@
       <section data-tab="help">
         <h3>What this makes</h3>
         <p>A voicebank: one short recording of every sound in a language, plus a timing file (oto.ini) that tells singing software where each sound starts. OpenUtau, the free singing program, stitches the sounds together to sing any melody and lyrics you type.</p>
+        <h3>Why the note never changes</h3>
+        <p>Every sound in the list is sung on the same note, on purpose. The singing software bends each recording to whatever melody it sings, and it sounds most natural when every sample starts from one steady pitch. To change the note, pick a different one in Setup. Recording the whole list again on a second note (a few steps higher or lower) makes the voice sound better across a wider range.</p>
+        <h3>Hearing an example</h3>
+        <p>"Hear an example" says the sound with your device&#39;s Japanese speaking voice, so you can copy how it&#39;s pronounced. Copy the sound, not its pitch: then sing it on your note. If your device has no Japanese voice the button is greyed out (Windows: Settings, Time &amp; language, Speech, add Japanese).</p>
         <h3>How a take works</h3>
         <p>Press Record. You hear three clicks with the note playing, then the orange light comes on: sing the sound once, right on that beat, and hold the vowel steady until the light goes off. The recorder checks the take (volume, noise, timing, pitch, length) and sets the timing markers for you. You can drag a marker on the waveform if it's off.</p>
         <h3>For the best voice</h3>
@@ -244,7 +251,7 @@
           <li>Wireless headphones add delay. Wired ones keep the count-in tight.</li>
         </ul>
         <h3>Keys</h3>
-        <div class="keys"><kbd>Space</kbd><span>Record</span><kbd>&larr; &rarr;</kbd><span>Previous / next sound</span><kbd>P</kbd><span>Play the take</span><kbd>G</kbd><span>Hear the note</span></div>
+        <div class="keys"><kbd>Space</kbd><span>Record</span><kbd>&larr; &rarr;</kbd><span>Previous / next sound</span><kbd>P</kbd><span>Play the take</span><kbd>G</kbd><span>Hear the note</span><kbd>E</kbd><span>Hear an example of the sound</span></div>
         <h3>Your recordings</h3>
         <p class="tip">Everything stays in this browser on this computer. Nothing is uploaded. Clearing the browser's site data deletes the takes, so download the zip when you're done. This tool is for ages 13 and up.</p>
       </section>

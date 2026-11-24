@@ -56,6 +56,27 @@ export function hintFor(entry) {
   return `Sing "${entry.key}" once, right on the beat, and hold the vowel steady until the light goes off.`;
 }
 
+// How each sound is said, for English speakers. Vowels are always pure and short (no glide at the end).
+const VOWEL_SAY = { a: "ah", i: "ee", u: "oo", e: "eh", o: "oh" };
+const CONS_SAY = { k: "k", s: "s", t: "t", n: "n", h: "h", m: "m", y: "y", r: "r", w: "w", g: "g", z: "z", d: "d", b: "b", p: "p", f: "f", v: "v", j: "j", sh: "sh", ch: "ch", ts: "ts" };
+const SPECIAL = {
+  a: "\"ah\" as in father", i: "\"ee\" as in see", u: "\"oo\" as in food, with relaxed lips (not pushed forward)", e: "\"eh\" as in bed", o: "\"oh\" as in go, but short: don't let it turn into \"oh-w\"",
+  n: "a hum through the nose, mouth closed, like \"mm\" but with the tongue up",
+  shi: "\"she\"", chi: "\"chee\" as in cheese", tsu: "\"tsoo\": the \"ts\" from the end of cats, then \"oo\"", fu: "\"foo\", but blow softly through barely open lips; teeth don't touch the lip",
+  ji: "\"jee\" as in jeep", zu: "\"dzoo\", a soft z with a tiny d in front", wo: "\"oh\" (the w is almost silent)",
+  hi: "\"hee\", with a little breathy hiss like the h in huge", ti: "\"tee\"", tu: "\"too\"", di: "\"dee\"", du: "\"doo\"", si: "\"see\"", zi: "\"zee\"", ye: "\"yeh\"", wi: "\"wee\"", we: "\"weh\"",
+};
+/** Plain-English pronunciation guide for one sound. */
+export function sayFor(entry) {
+  if (entry.custom || entry.key === "br") return "";
+  if (SPECIAL[entry.key]) return "Say it like " + SPECIAL[entry.key] + ".";
+  const k = entry.key, v = k.slice(-1), c = k.slice(0, -1);
+  const vowel = VOWEL_SAY[v] ?? v;
+  if (c.startsWith("r")) return `Say it like "${c.length > 1 ? "ry" : "r"}${vowel}", with a quick tap of the tongue: halfway between r, l and d (like the "tt" in American "butter").`;
+  if (c.length === 2 && c.endsWith("y")) return `Say it like "${c[0]}y${vowel}", one quick syllable (not "${c[0]}ee-${vowel}").`;
+  return `Say it like "${(CONS_SAY[c] ?? c)}${vowel}".`;
+}
+
 /** A custom extra (honk, laugh, shout...). Names become file names, so keep them simple. */
 export function customEntry(name) {
   const key = String(name).toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 24);

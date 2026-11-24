@@ -2,7 +2,7 @@
 // checks it, sets the oto.ini timing automatically, keeps everything in this browser and exports
 // an OpenUtau-ready zip.
 import { analyzeTake, kindOf, levelCheck, midiToHz, noteName, wavMono16, readWavMono16, resampleLinear, buildVoicebank, TERMS, folderName } from "./vocalsynth-core.js";
-import { LISTS, hintFor, customEntry } from "./vocalsynth-lists.js";
+import { LISTS, hintFor, sayFor, customEntry } from "./vocalsynth-lists.js";
 import * as store from "./vocalsynth-store.js";
 import { zip } from "./zip.js";
 
@@ -120,6 +120,22 @@ function click(at, accent) {
 async function hearNote() {
   try { await ensureAudio(); tone(project.midi, ctx.currentTime + 0.05, 1.2, 0.2); } catch (e) { showErr(e.message); }
 }
+
+// ---------- example pronunciation (the device's Japanese speaking voice) ----------
+function jaVoice() {
+  if (!("speechSynthesis" in window)) return null;
+  const vs = speechSynthesis.getVoices().filter((v) => /^ja/i.test(v.lang));
+  return vs.find((v) => /natural|online/i.test(v.name)) ?? vs[0] ?? null;
+}
+function sayExample() {
+  const e = cur(), v = jaVoice();
+  if (!v || e.custom || e.key === "br") return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(e.kana);
+  u.voice = v; u.lang = v.lang; u.rate = 0.75;
+  speechSynthesis.speak(u);
+}
+if ("speechSynthesis" in window) speechSynthesis.addEventListener?.("voiceschanged", () => project && render());
 
 async function record() {
   if (busy) return;
@@ -303,6 +319,9 @@ function render() {
   $("kana").style.fontSize = e.custom && e.label.length > 5 ? "48px" : "";
   $("romaji").textContent = e.custom ? "extra" : e.key;
   $("hint").textContent = hintFor(e);
+  $("say").textContent = sayFor(e);
+  $("guideBtn").textContent = `Hear ${noteName(project.midi)}`;
+  $("exampleBtn").disabled = !jaVoice() || !!e.custom || e.key === "br";
   $("bankName").textContent = project.name || "Untitled voicebank";
   const here = list.map((x) => takeFor(x.key)), done = here.filter(Boolean).length;
   $("bankMeta").textContent = `note ${noteName(project.midi)} · ${done} of ${list.length}`;
@@ -384,6 +403,7 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&a
 function wire() {
   $("recBtn").onclick = record;
   $("guideBtn").onclick = hearNote;
+  $("exampleBtn").onclick = sayExample;
   $("playBtn").onclick = playTake;
   $("prev").onclick = () => go(idx - 1);
   $("next").onclick = () => go(idx + 1);
@@ -433,6 +453,7 @@ function wire() {
     else if (ev.key === "ArrowRight") go(idx + 1);
     else if (ev.key === "p" || ev.key === "P") playTake();
     else if (ev.key === "g" || ev.key === "G") hearNote();
+    else if (ev.key === "e" || ev.key === "E") sayExample();
   });
 }
 
