@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chip · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+
+  /* ENCORE. Chip */
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(0, 7fr) minmax(360px, 4fr); }
+    .panel { height: calc(100vh - 104px); height: calc(100dvh - 104px); }
+    .tabBody { max-height: calc(100vh - 160px); max-height: calc(100dvh - 160px); }
+  }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 12px 14px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toolName { font-weight: 800; font-size: 19px; }
+  .pgChip { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .back { color: var(--dim); font-size: 13px; text-decoration: none; }
+  .back:hover { color: var(--text); }
+  .songName { color: var(--soft); font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .badge { font: 700 12px var(--family-primary); border-radius: 999px; padding: 6px 11px; border: 1px solid var(--green); color: var(--green); background: rgb(34 197 94 / .08); min-height: 32px; }
+  .badge.free { border-color: var(--warn); color: var(--warn); background: rgb(245 158 11 / .08); }
+  .transport { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .transport .go { padding: 9px 20px; min-height: 40px; min-width: 92px; }
+  .seg { display: inline-flex; border: 1px solid var(--divider-strong); border-radius: 999px; overflow: hidden; }
+  .seg button { font-size: 13px; color: var(--soft); background: transparent; border: 0; padding: 8px 12px; min-height: 38px; }
+  .seg button.on { color: #fff; background: #ff3b00; }
+  .mini { display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
+  .mini select, .mini input { min-height: 36px; padding: 5px 7px; font-size: 13px; }
+  .mini input[type=number] { width: 72px; }
+  .pos { font-family: var(--family-mono); font-size: 13px; color: var(--soft); min-width: 52px; }
+  .chans { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .chans::-webkit-scrollbar { display: none; }
+  .chan { flex: none; display: flex; align-items: center; gap: 4px; border: 1px solid var(--divider-strong); border-radius: 10px; padding: 3px 4px 3px 6px; background: transparent; color: var(--soft); min-height: 40px; position: relative; overflow: hidden; }
+  .chan.on { color: var(--text); border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+  .chan .nm { font-size: 13px; font-weight: 700; background: none; border: 0; color: inherit; padding: 6px 4px; }
+  .chan .nm::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--c); margin-right: 6px; }
+  .chan .ms { font: 700 11px var(--family-mono); width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--divider-strong); background: transparent; color: var(--dim); padding: 0; }
+  .chan .ms.on { background: var(--warn); color: #000; border-color: var(--warn); }
+  .chan .vu { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--c); transition: width .06s linear; pointer-events: none; }
+  .rows { display: flex; gap: 4px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .rows::-webkit-scrollbar { display: none; }
+  .rows button { flex: none; font: 700 12px var(--family-mono); min-width: 34px; min-height: 30px; border-radius: 7px; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); }
+  .rows button.on { background: var(--text); color: var(--bg); }
+  .rows button.playing { box-shadow: inset 0 -3px 0 #ff3b00; }
+  .rows .lbl { font-size: 12px; color: var(--dim); flex: none; margin-right: 2px; }
+  .stage { flex: 1; min-height: 0; position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--divider); background: #151210; }
+  #roll { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+  .trk { position: absolute; inset: 0; overflow: auto; font: 12px/1 var(--family-mono); outline: none; background: #151210; }
+  .trk table { border-collapse: collapse; }
+  .trk th { position: sticky; top: 0; background: #1d1916; color: var(--soft); font-weight: 700; padding: 6px 8px; text-align: left; white-space: nowrap; z-index: 1; }
+  .trk td { padding: 2px 8px; white-space: pre; color: #c9c3bd; cursor: pointer; border-right: 1px solid var(--divider); }
+  .trk td.rn { color: var(--dim); cursor: default; }
+  .trk tr.beat td { background: rgba(255,255,255,0.04); }
+  .trk tr.now td { background: rgba(255,59,0,0.22); }
+  .trk td.cur { outline: 2px solid #ff3b00; outline-offset: -2px; }
+  .trk td.dim { color: #57514c; }
+  .status { min-height: 20px; font-size: 13px; color: var(--soft); }
+  .status.limit { color: var(--warn); }
+  .btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btns > button { flex: none; }
+  .duty { display: flex; gap: 6px; }
+  .duty button { flex: 1; font: 700 13px var(--family-mono); min-height: 40px; border-radius: 8px; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); }
+  .duty button.on { border-color: #ff3b00; color: var(--text); background: rgb(255 59 0 / .14); }
+  canvas.small { width: 100%; height: 90px; display: block; background: var(--bg-subtle-default); border-radius: 8px; touch-action: none; }
+  canvas.wavec { cursor: crosshair; height: 110px; }
+  .instList { list-style: none; padding: 0; margin: 0 0 8px; max-height: 190px; overflow-y: auto; }
+  .instList li button { width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 8px; background: transparent; border: 0; border-bottom: 1px solid var(--divider); color: var(--soft); padding: 8px 6px; font-size: 14px; min-height: 40px; }
+  .instList li button.on { color: var(--text); font-weight: 700; }
+  .instList li small { color: var(--dim); font-family: var(--family-mono); font-size: 11px; }
+  .arr { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .arr th { color: var(--dim); font-weight: 600; text-align: left; padding: 4px; font-size: 11px; white-space: nowrap; }
+  .arr td { padding: 3px 4px; border-top: 1px solid var(--divider); }
+  .arr tr.on td { background: rgb(255 59 0 / .08); }
+  .arr select { min-height: 32px; padding: 3px 4px; font-size: 13px; width: 100%; min-width: 52px; }
+  .arr .rb { font: 700 12px var(--family-mono); min-width: 30px; min-height: 30px; border-radius: 6px; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); }
+  .arr tr.on .rb { background: var(--text); color: var(--bg); }
+  .issues { list-style: none; padding: 0; margin: 6px 0; font-size: 13px; color: var(--soft); }
+  .issues li { padding: 4px 0 4px 18px; position: relative; }
+  .issues li::before { content: ""; position: absolute; left: 3px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .chips button { font: 12px var(--family-mono); border: 1px solid var(--divider-strong); border-radius: 999px; background: transparent; color: var(--soft); padding: 5px 9px; min-height: 30px; }
+  .chips button.on { border-color: #ff3b00; color: var(--text); }
+  .saved { list-style: none; padding: 0; margin: 4px 0 8px; max-height: 150px; overflow-y: auto; }
+  .saved li { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--divider); padding: 4px 0; font-size: 14px; }
+  .saved li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .saved li button { padding: 5px 10px; min-height: 32px; }
+  .fmt { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  .note { background: var(--bg-subtle-default); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--soft); margin: 8px 0; }
+  .fileBtn { display: inline-flex; flex-direction: row; align-items: center; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; font-size: 13px; color: var(--text); cursor: pointer; min-height: 40px; }
+  .downloads a { display: block; color: var(--text); font-size: 14px; padding: 4px 0; }
+  .hidden { display: none !important; }
+  @media (max-width: 999px) { .stage { height: 440px; flex: none; } }
+  @media (max-width: 480px) { .transport .go { min-width: 80px; } .songName { display: none; } .fmt { grid-template-columns: 1fr; } }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Song editor">
+    <div class="head">
+      <span class="toolName">Chip</span><span class="pgChip">PLAYGROUND</span>
+      <a class="back" href="playground.html">Back to the Playground</a>
+      <span class="songName" id="songName"></span>
+      <button class="badge" id="badge" title="Whether a real chip could play this song">Hardware-legal</button>
+    </div>
+    <div class="transport">
+      <button class="go" id="playBtn" title="Play or stop (space)">Play</button>
+      <div class="seg" role="group" aria-label="What to play"><button id="modeRow" class="on" title="Loop the row you're editing">Row</button><button id="modeSong" title="Play the whole song">Song</button></div>
+      <span class="pos" id="pos">1.1</span>
+      <label class="mini">BPM <input type="number" id="bpm" min="30" max="400" step="0.01" value="150"></label>
+      <div class="seg" role="group" aria-label="Tool"><button id="toolDraw" class="on" title="Draw notes">Draw</button><button id="toolSel" title="Select notes">Select</button></div>
+      <label class="mini">Length <select id="noteLen"><option value="1">1 step</option><option value="2" selected>2 steps</option><option value="4">1 beat</option><option value="8">2 beats</option><option value="16">1 bar</option></select></label>
+      <div class="seg" role="group" aria-label="View"><button id="viewRoll" class="on">Piano roll</button><button id="viewTrk">Tracker</button></div>
+    </div>
+    <div class="chans" id="chans" role="group" aria-label="Channels"></div>
+    <div class="rows" id="rows" aria-label="Song rows"></div>
+    <div class="stage" id="stage">
+      <canvas id="roll" aria-label="Piano roll. Click to add a note, drag to move or stretch it, right-click to delete."></canvas>
+      <div class="trk hidden" id="trk" tabindex="0" aria-label="Tracker view"></div>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Chip">
+      <button role="tab" data-tab="note" class="on">Note</button>
+      <button role="tab" data-tab="sound">Sounds</button>
+      <button role="tab" data-tab="song">Song</button>
+      <button role="tab" data-tab="export">Export</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="note" class="show">
+        <div id="noteNone">
+          <h3>New notes</h3>
+          <label>Sound for this channel<select id="newInst"></select></label>
+          <label style="margin-top:8px">Volume <span id="newVolV"></span><input type="range" id="newVol" min="1" max="15" step="1" value="12"></label>
+          <p class="tip">Click a note to change its effects. Shift-click, or drag with Select, to pick several. Right-click a note to delete it.</p>
+          <div class="note" id="chanInfo"></div>
+        </div>
+        <div id="noteEdit" class="hidden">
+          <h3 id="noteTitle">Note</h3>
+          <div class="tip" id="noteInfo"></div>
+          <div class="row" style="margin-top:6px">
+            <label>Sound<select id="nInst"></select></label>
+            <label>Volume <span id="nVolV"></span><input type="range" id="nVol" min="0" max="15" step="1"></label>
+          </div>
+          <h3>Effects</h3>
+          <div class="row">
+            <label>Arpeggio<select id="nArp"></select></label>
+            <label>Arp speed<select id="nArpSpeed"><option value="1">Every frame (classic)</option><option value="2">Every 2 frames</option><option value="3">Every 3 frames</option><option value="4">Every 4 frames</option></select></label>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <label>Vibrato<select id="nVib"><option value="0">Off</option><option value="1">Light</option><option value="2">Medium</option><option value="3">Wide</option><option value="4">Siren</option></select></label>
+            <label>Vibrato speed<select id="nVibSpeed"><option value="1">Slow</option><option value="2">Medium</option><option value="3">Fast</option><option value="4">Very fast</option></select></label>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <label>Slide (semitones)<input type="number" id="nSlide" min="-24" max="24" step="1"></label>
+            <label>Glide from last note<select id="nGlide"><option value="0">Off</option><option value="3">Quick</option><option value="6">Medium</option><option value="12">Slow</option></select></label>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <label>Volume envelope<select id="nEnv"></select></label>
+            <label id="nSweepL">Duty sweep<select id="nSweep"><option value="none">Off</option><option value="up">Thin to wide</option><option value="down">Wide to thin</option><option value="cycle">Cycle</option></select></label>
+            <label id="nRateL" class="hidden">Sample speed<select id="nRate"></select></label>
+          </div>
+          <div class="btns" style="margin-top:12px"><button class="small" id="nPlay">Hear it</button><button class="small" id="nClear">Clear effects</button><button class="small" id="nDel">Delete</button></div>
+        </div>
+      </section>
+
+      <section data-tab="sound">
+        <h3>Sounds for the <span id="sKind">pulse</span> channel</h3>
+        <ul class="instList" id="instList"></ul>
+        <div class="btns"><button class="small" id="sNew">New sound</button><button class="small" id="sDup">Duplicate</button><button class="small" id="sDel">Delete</button></div>
+        <div id="sEdit">
+          <label style="margin-top:10px">Name<input type="text" id="sName" maxlength="40"></label>
+          <div id="sDutyBox"><h3>Pulse width</h3><div class="duty" id="sDuty"></div><input type="range" id="sDutyFree" min="1" max="15" step="1" class="hidden" aria-label="Pulse width in sixteenths"></div>
+          <div id="sWaveBox" class="hidden"><h3>Wave (32 steps, 4-bit)</h3><canvas class="small wavec" id="sWave" aria-label="Draw the wave"></canvas>
+            <div class="chips" id="sWavePresets"></div></div>
+          <div id="sNoiseBox" class="hidden"><label class="toggle"><input type="checkbox" id="sShort"> Metallic noise (short loop mode)</label></div>
+          <h3>Volume envelope</h3>
+          <div class="row"><label>Shape<select id="sEnv"></select></label><label>Release (frames)<input type="number" id="sRel" min="0" max="60" step="1"></label></div>
+          <canvas class="small" id="sEnvView" aria-hidden="true" style="margin-top:8px;height:60px"></canvas>
+          <h3>Built-in effects</h3>
+          <div class="row"><label>Arpeggio<select id="sArp"></select></label><label>Vibrato<select id="sVib"><option value="0">Off</option><option value="1">Light</option><option value="2">Medium</option><option value="3">Wide</option><option value="4">Siren</option></select></label></div>
+          <div class="btns" style="margin-top:10px"><button class="small" id="sPlay">Hear it</button></div>
+        </div>
+      </section>
+
+      <section data-tab="song">
+        <label>Song name<input type="text" id="gName" maxlength="80"></label>
+        <div class="row" style="margin-top:8px">
+          <label>Chip<select id="gChip"><option value="2a03">2A03 (8-bit console style)</option><option value="dmg">DMG (8-bit handheld style)</option></select></label>
+          <label>Rules<select id="gMode"><option value="chip">Chip mode (hardware-legal)</option><option value="free">Free mode (no limits)</option></select></label>
+        </div>
+        <div id="gIssues"></div>
+        <div class="row" style="margin-top:8px">
+          <label>Steps per row<select id="gLen"><option value="16">16 (1 bar)</option><option value="32">32 (2 bars)</option><option value="48">48 (3 bars)</option><option value="64">64 (4 bars)</option></select></label>
+          <label class="toggle" style="align-self:end"><input type="checkbox" id="gFilter" checked> Console output filter</label>
+        </div>
+        <p class="tip" id="gTempo"></p>
+        <div class="chips" id="gTempos" aria-label="Frame-exact tempos"></div>
+        <h3>Arrangement</h3>
+        <div style="overflow-x:auto"><table class="arr" id="arr"></table></div>
+        <div class="btns" style="margin-top:8px"><button class="small" id="rAdd">Add row</button><button class="small" id="rDup">Duplicate row</button><button class="small" id="rUp">Move up</button><button class="small" id="rDown">Move down</button><button class="small" id="rDel">Delete row</button></div>
+        <div class="row" style="margin-top:8px"><label class="toggle"><input type="checkbox" id="gLoop" checked> Loop the song</label><label>Loop back to row<select id="gLoopRow"></select></label></div>
+        <h3>Channels</h3>
+        <div id="panBox"></div>
+        <div class="btns" id="addChBox" style="margin-top:6px"></div>
+        <h3>Songs on this device</h3>
+        <ul class="saved" id="saved"></ul>
+        <div class="btns"><button class="small" id="pSave">Save</button><button class="small" id="pNew">New song</button><button class="small" id="pDown">Download song file</button><label class="fileBtn">Open song file<input type="file" id="pOpen" accept=".json,application/json" class="hidden"></label></div>
+        <label style="margin-top:8px">Start from a demo<select id="pDemo"><option value="">Pick a demo...</option></select></label>
+      </section>
+
+      <section data-tab="export">
+        <h3>What to make</h3>
+        <div class="fmt">
+          <label class="toggle"><input type="checkbox" id="xWav" checked> WAV (mix)</label>
+          <label class="toggle"><input type="checkbox" id="xMp3"> MP3 (320 kbps)</label>
+          <label class="toggle"><input type="checkbox" id="xStems"> Stems (zip of WAVs)</label>
+          <label class="toggle"><input type="checkbox" id="xMidi"> MIDI</label>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <label>Times through<select id="xLoops"><option value="1">Once</option><option value="2">Twice (loop once)</option><option value="3">Three times</option></select></label>
+          <label>Sample rate<select id="xRate"><option value="48000">48 kHz</option><option value="44100">44.1 kHz</option></select></label>
+        </div>
+        <div class="row" style="margin-top:12px"><button class="go" id="xGo">Export</button></div>
+        <p class="tip" id="xStatus"></p>
+        <div class="downloads" id="xLinks"></div>
+        <p class="tip">Every stem starts at the very first sample and runs the full length of the song, so they line up when you drop them into any DAW. Played together they add up exactly to the mix.</p>
+      </section>
+
+      <section data-tab="help">
+        <h3>What this is</h3>
+        <p>A chiptune maker with a piano roll on top of real sound-chip voices. The 2A03 has two pulse channels, a stepped triangle, a noise channel and a channel for 1-bit drum samples (8-bit console style). The DMG has two pulses, a 4-bit wave channel and noise, in stereo (8-bit handheld style).</p>
+        <h3>Chip mode and Free mode</h3>
+        <p>Chip mode (on when you start) keeps the song to what the real chip can do: its channels, its four pulse widths, 16 volume steps, its note range and pitch steps, no volume on the triangle. If you try something the chip can't do, the line under the piano roll tells you why. The badge says "Hardware-legal" while the whole song fits. Free mode lifts the limits (extra channels, any pulse width, smooth volume, exact pitch) and the badge lists what a real chip couldn't play. Switching back to Chip mode fixes the song for you and tells you what changed.</p>
+        <h3>Writing a song</h3>
+        <p>Pick a channel above the piano roll, then click to add notes and drag to stretch them. A song is a list of rows; each row picks a pattern for every channel, so a drum pattern can repeat while the melody changes. Use the row buttons to move between rows, and the Song tab to arrange them.</p>
+        <h3>The effects</h3>
+        <p>Arpeggio flips through a chord very fast, the classic way to play a chord on one channel. Vibrato wobbles the pitch in steps, the way a sound driver does it. Slide bends the note; glide slides in from the last note. The volume envelope shapes each note, and duty sweep changes the pulse width as the note plays. Everything updates 60 times a second, like the drivers in old games.</p>
+        <h3>Keys</h3>
+        <div class="keys"><kbd>Space</kbd><span>Play / stop</span><kbd>Delete</kbd><span>Delete the selected notes</span><kbd>&uarr; &darr;</kbd><span>Move selected notes a semitone (Shift: an octave)</span><kbd>&larr; &rarr;</kbd><span>Move selected notes a step</span><kbd>Ctrl Z / Ctrl Y</kbd><span>Undo / redo</span><kbd>Ctrl C / Ctrl V</kbd><span>Copy / paste notes</span><kbd>1 to 9</kbd><span>Pick a channel</span><kbd>Z S X D C...</kbd><span>Type notes in the tracker view (Q row is an octave up)</span></div>
+        <h3>Your songs</h3>
+        <p class="tip">Everything runs on your device. Songs are saved in this browser, and you can download a song file to keep or share. Nothing is uploaded. The sounds are made from scratch by the chip models; no game sounds are used.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<script type="module" src="chip.js"></script>
+</body>
+</html>

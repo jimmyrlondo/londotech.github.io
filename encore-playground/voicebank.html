@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Voicebank · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+
+  /* the main panel */
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 14px 16px 16px; }
+  .head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .bankName { font-weight: 800; font-size: 17px; }
+  .bankMeta { color: var(--soft); font-size: 13px; font-family: var(--family-mono); }
+  .progress { height: 6px; border-radius: 3px; background: var(--bg-subtle-default); margin: 6px 0 8px; overflow: hidden; display: flex; }
+  .progress i { display: block; height: 100%; }
+  .card { display: grid; grid-template-columns: 52px 1fr 52px; align-items: center; gap: 8px; }
+  .nav { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); font-size: 22px; }
+  .nav:hover { border-color: var(--soft); }
+  .syll { text-align: center; min-width: 0; }
+  .kana { font-family: "Noto Sans JP", var(--family-primary); font-size: clamp(56px, 8vw, 88px); font-weight: 700; line-height: 1.05; }
+  .kana.line { font-family: var(--family-primary); font-size: clamp(30px, 3.4vw, 44px); line-height: 1.2; word-spacing: .15em; }
+  .kana.line span { transition: color .08s; }
+  .kana.line span.now { color: #ff3b00; }
+  .romaji { font-family: var(--family-mono); font-size: 20px; color: var(--soft); }
+  .say { color: var(--text); font-size: 14px; margin-top: 2px; min-height: 21px; }
+  .hint { color: var(--dim); font-size: 13px; margin-top: 2px; min-height: 20px; }
+  .count { display: flex; justify-content: center; gap: 10px; margin: 10px 0 8px; }
+  .count span { width: 44px; height: 14px; border-radius: 7px; background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); transition: background .05s; }
+  .count span.lit { background: var(--soft); }
+  .count span.sing { width: 110px; }
+  .count span.sing.lit { background: #ff3b00; border-color: #ff3b00; }
+  .controls { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .controls .go { min-width: 150px; min-height: 52px; font-size: 17px; }
+  .meter { height: 8px; border-radius: 4px; background: var(--bg-subtle-default); margin: 10px 0 4px; overflow: hidden; position: relative; }
+  .meter i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--green); transition: width .05s linear; }
+  .meter i.hot { background: var(--warn); } .meter i.clip { background: var(--red); }
+  .meterLabel { display: flex; justify-content: space-between; color: var(--dim); font-size: 12px; font-family: var(--family-mono); }
+  .result { margin-top: 10px; border-top: 1px solid var(--divider); padding-top: 10px; min-height: 40px; }
+  .checks { list-style: none; margin: 0 0 8px; padding: 0; font-size: 14px; }
+  .checks li { padding: 3px 0 3px 22px; position: relative; }
+  .checks li::before { content: ""; position: absolute; left: 4px; top: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+  .checks li.warn::before { background: var(--warn); } .checks li.fail::before { background: var(--red); }
+  .wave { width: 100%; height: 96px; display: block; background: var(--bg-subtle-default); border-radius: 8px; cursor: crosshair; touch-action: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--dim); margin-top: 6px; }
+  .legend b { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .otoNums { font-family: var(--family-mono); font-size: 12px; color: var(--dim); margin-top: 4px; }
+
+  /* list tab */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
+  .cell { border: 1px solid var(--divider-strong); border-radius: 8px; background: transparent; color: var(--soft); padding: 6px 2px; min-height: 52px; text-align: center; line-height: 1.15; }
+  .cell b { display: block; font-family: "Noto Sans JP", var(--family-primary); font-size: 17px; color: var(--text); font-weight: 500; }
+  .cell small { font-family: var(--family-mono); font-size: 11px; }
+  .cell.ok { border-color: var(--green); background: rgb(34 197 94 / .10); }
+  .cell.warn { border-color: var(--warn); background: rgb(245 158 11 / .10); }
+  .cell.fail { border-color: var(--red); background: rgb(239 68 68 / .10); }
+  .cell.cur { outline: 2px solid #ff3b00; outline-offset: 1px; }
+  .groupTitle { font-size: 12px; color: var(--dim); margin: 12px 0 6px; }
+  .summary { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--soft); margin-bottom: 8px; }
+  .summary b { color: var(--text); }
+  .banks { list-style: none; padding: 0; margin: 0 0 8px; }
+  .banks li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--divider); }
+  .banks li span { flex: 1; min-width: 0; }
+  .banks li small { color: var(--dim); display: block; font-size: 12px; }
+  .banks li.on span { color: #ff3b00; font-weight: 700; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  .note { background: var(--bg-subtle-default); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--soft); margin: 8px 0; }
+  .note.warn { border-left: 3px solid var(--warn); }
+  textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-height: 90px; resize: vertical; width: 100%; }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Recorder">
+    <div class="head">
+      <div class="bankName" id="bankName">New voicebank</div>
+      <div class="bankMeta" id="bankMeta">note G3 · 0 of 102</div>
+    </div>
+    <div class="progress" id="progress" aria-hidden="true"></div>
+    <div class="card">
+      <button class="nav" id="prev" aria-label="Previous sound" title="Previous (left arrow)">&#8249;</button>
+      <div class="syll">
+        <div class="kana" id="kana" lang="ja">か</div>
+        <div class="romaji" id="romaji">ka</div>
+        <div class="say" id="say"></div>
+        <div class="hint" id="hint"></div>
+      </div>
+      <button class="nav" id="next" aria-label="Next sound" title="Next (right arrow)">&#8250;</button>
+    </div>
+    <div class="count" id="count" aria-hidden="true"><span></span><span></span><span></span><span class="sing"></span></div>
+    <div class="controls">
+      <button class="small" id="exampleBtn" title="Hear how the sound is said (E)">Hear an example</button>
+      <button class="small" id="guideBtn" title="Hear the note you sing every sound on (G)">Hear the note</button>
+      <button class="go" id="recBtn" title="Record (space)">Record</button>
+      <button class="small" id="playBtn" title="Play the take (P)" disabled>Play take</button>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="meterBar"></i></div>
+    <div class="meterLabel"><span id="micName">Microphone not on yet</span><span id="meterDb"></span></div>
+    <div class="result" id="result">
+      <p class="tip" id="resultTip">Press Record (or the space bar). You'll hear three clicks and the note, then sing on the fourth beat while the orange light is on.</p>
+      <ul class="checks" id="checks"></ul>
+      <canvas class="wave hidden" id="wave" aria-label="The take's waveform with its timing markers. Drag a marker to adjust it."></canvas>
+      <div class="legend hidden" id="legend">
+        <span><b style="background:#8a8580"></b>start / end</span>
+        <span><b style="background:#22c55e"></b>overlap</span>
+        <span><b style="background:#ff3b00"></b>note start (vowel)</span>
+        <span><b style="background:#3b82f6"></b>fixed part ends</span>
+      </div>
+      <div class="otoNums" id="otoNums"></div>
+    </div>
+    <div class="err hidden" id="err"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Voicebank">
+      <button role="tab" data-tab="list" class="on">Sounds</button>
+      <button role="tab" data-tab="setup">Setup</button>
+      <button role="tab" data-tab="export">Export</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="list" class="show">
+        <div class="summary" id="summary"></div>
+        <div id="grid"></div>
+        <h3>Extras</h3>
+        <p class="tip">Add your own sounds: a shout, a laugh, a honk. Each one becomes a lyric you can type in OpenUtau.</p>
+        <div class="row"><input type="text" id="extraName" placeholder="e.g. honk" aria-label="Name of the extra sound" maxlength="40"><button class="small" id="extraAdd" style="flex:none">Add</button></div>
+      </section>
+
+      <section data-tab="setup">
+        <h3>Voicebank</h3>
+        <ul class="banks" id="banks"></ul>
+        <div class="row"><button class="small" id="newBank">New voicebank</button><button class="small" id="delBank">Delete this one</button></div>
+        <div class="row" style="margin-top:10px">
+          <label>Name<input type="text" id="fName" maxlength="40"></label>
+          <label>Voice by<input type="text" id="fAuthor" maxlength="60" placeholder="Your name or stage name"></label>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <label>Sound list<select id="fList"></select></label>
+          <label>Note to sing on<select id="fNote"></select></label>
+        </div>
+        <p class="tip" id="listNote"></p>
+        <p class="tip">Pick a note in the middle of your comfortable range. Later you can record the list again on a higher or lower note: the voicebank uses whichever note is closest to what it's singing.</p>
+        <h3>Count-in</h3>
+        <div class="row">
+          <label>Tempo<select id="fTempo"><option value="80">80 BPM (slow)</option><option value="100" selected>100 BPM</option><option value="120">120 BPM (quick)</option></select></label>
+          <label class="toggle" style="align-self:end"><input type="checkbox" id="fAuto" checked> Go to the next sound after a good take</label>
+        </div>
+        <label class="toggle"><input type="checkbox" id="fGuideHold"> Keep the note playing while I sing (only with headphones)</label>
+        <h3>Microphone</h3>
+        <div class="row">
+          <label>Input<select id="fMic"><option value="">Default microphone</option></select></label>
+          <label>Channel<select id="fChan"><option value="-1">All channels mixed</option></select></label>
+        </div>
+        <div class="row" style="margin-top:8px"><button class="small" id="micOn">Turn the microphone on</button></div>
+        <div class="note warn hidden" id="micWarn"></div>
+      </section>
+
+      <section data-tab="export">
+        <div class="summary" id="exportSummary"></div>
+        <label>Terms of use (goes in readme.txt)<select id="fTerms">
+          <option value="open">Free to use, songs can be sold, credit required</option>
+          <option value="noncommercial">Personal, non-commercial use only</option>
+          <option value="private">Private: not for sharing</option>
+        </select></label>
+        <p class="tip" id="termsText"></p>
+        <div class="row" style="margin-top:8px">
+          <label>Website (optional)<input type="url" id="fWeb" placeholder="https://"></label>
+          <label>Icon (optional)<input type="file" id="fIcon" accept="image/*" style="font-size:13px"></label>
+        </div>
+        <label class="toggle" style="margin-top:10px"><input type="checkbox" id="fConsent"> This is my own voice, or I have the singer's written permission to make and share this voicebank.</label>
+        <div class="row" style="margin-top:10px"><button class="go" id="exportBtn" disabled>Download the voicebank (.zip)</button></div>
+        <p class="tip">The zip is ready for OpenUtau: drag it onto the OpenUtau window and it installs. Sounds you haven't recorded yet are left out. Takes with a red check are left out too.</p>
+        <div class="err hidden" id="exportErr"></div>
+      </section>
+
+      <section data-tab="help">
+        <h3>What this makes</h3>
+        <p>A voicebank: one short recording of every sound in a language, plus a timing file (oto.ini) that tells singing software where each sound starts. OpenUtau, the free singing program, stitches the sounds together to sing any melody and lyrics you type.</p>
+        <h3>Why the note never changes</h3>
+        <p>Every sound in the list is sung on the same note, on purpose. The singing software bends each recording to whatever melody it sings, and it sounds most natural when every sample starts from one steady pitch. To change the note, pick a different one in Setup. Recording the whole list again on a second note (a few steps higher or lower) makes the voice sound better across a wider range.</p>
+        <h3>Hearing an example</h3>
+        <p>"Hear an example" says the sound with your device&#39;s Japanese speaking voice, so you can copy how it&#39;s pronounced. Copy the sound, not its pitch: then sing it on your note. If your device has no Japanese voice the button is greyed out (Windows: Settings, Time &amp; language, Speech, add Japanese).</p>
+        <h3>Recording English</h3>
+        <p>Pick "English (ARPAsing)" under Sound list in Setup. Each English line is a short phrase like "bah boo beeb": sing one syllable on each beat, smoothly and all on the note, and the syllable you're on lights up orange. The recorder cuts every line into the joins between its sounds ("b" into "ah", "ah" into "b"), which is what OpenUtau's English mode stitches words from. The zip is set up so OpenUtau picks its English (Arpasing) phonemizer automatically: type normal English lyrics. "Hear an example" uses your device&#39;s English voice. You can record Japanese and English into the same voicebank.</p>
+        <h3>How a take works</h3>
+        <p>Press Record. You hear three clicks with the note playing, then the orange light comes on: sing the sound once, right on that beat, and hold the vowel steady until the light goes off. The recorder checks the take (volume, noise, timing, pitch, length) and sets the timing markers for you. You can drag a marker on the waveform if it's off.</p>
+        <h3>For the best voice</h3>
+        <ul class="tip" style="padding-left:18px;margin-top:0">
+          <li>Wear headphones so the clicks and the note don't get into the microphone.</li>
+          <li>Find the quietest room you can. Turn off fans and air conditioning.</li>
+          <li>Stay the same distance from the mic every time (about a hand's width).</li>
+          <li>Keep the same voice and energy for the whole list. Short breaks are fine; the list is saved as you go.</li>
+          <li>Wireless headphones add delay. Wired ones keep the count-in tight.</li>
+        </ul>
+        <h3>Keys</h3>
+        <div class="keys"><kbd>Space</kbd><span>Record</span><kbd>&larr; &rarr;</kbd><span>Previous / next sound</span><kbd>P</kbd><span>Play the take</span><kbd>G</kbd><span>Hear the note</span><kbd>E</kbd><span>Hear an example of the sound</span></div>
+        <h3>Your recordings</h3>
+        <p class="tip">Everything stays in this browser on this computer. Nothing is uploaded. Clearing the browser's site data deletes the takes, so download the zip when you're done. This tool is for ages 13 and up.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<script type="module" src="voicebank.js"></script>
+</body>
+</html>

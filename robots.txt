@@ -6,6 +6,7 @@ Disallow: /Quote/
 Disallow: /watson/
 Disallow: /clients/
 Disallow: /policy-builder/
+Disallow: /encore-playground/
 Disallow: /encore-voicebank/
 Disallow: /encore-vocal-synth/
 Disallow: /encore-studio-preview/

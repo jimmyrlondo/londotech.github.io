@@ -1,0 +1,18 @@
+{
+  "format": "beatpad",
+  "version": 1,
+  "name": "Acoustic",
+  "author": "Virtuosity Drums by Versilian Studios (CC0 1.0)",
+  "bpm": 90,
+  "pads": [
+    { "slot": 1, "name": "Kick", "file": "01-kick.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 0, "mode": "retrigger", "mute": false, "key": "KeyZ", "midi": 36 },
+    { "slot": 2, "name": "Snare", "file": "02-snare.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 0, "mode": "retrigger", "mute": false, "key": "KeyX", "midi": 38 },
+    { "slot": 3, "name": "Closed hat", "file": "03-closed-hat.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 1, "mode": "retrigger", "mute": false, "key": "KeyC", "midi": 42 },
+    { "slot": 4, "name": "Ride", "file": "09-ride.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 0, "mode": "layer", "mute": false, "key": "KeyA", "midi": 51 },
+    { "slot": 5, "name": "Cross-stick", "file": "05-rim.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 0, "mode": "retrigger", "mute": false, "key": "KeyS", "midi": 37 },
+    { "slot": 6, "name": "Open hat", "file": "04-open-hat.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 1, "mode": "retrigger", "mute": false, "key": "KeyD", "midi": 46 },
+    { "slot": 7, "name": "High tom", "file": "07-high-tom.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 0, "mode": "retrigger", "mute": false, "key": "KeyQ", "midi": 48 },
+    { "slot": 8, "name": "Low tom", "file": "06-low-tom.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 0, "mode": "retrigger", "mute": false, "key": "KeyW", "midi": 45 },
+    { "slot": 9, "name": "Crash", "file": "08-crash.flac", "volume": 1, "pitch": 0, "start": 0, "end": null, "fade": 0, "pan": 0, "choke": 0, "mode": "layer", "mute": false, "key": "KeyE", "midi": 49 }
+  ]
+}

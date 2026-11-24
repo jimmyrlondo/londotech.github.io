@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tune Book · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1400px; margin: 0 auto; padding: 14px 16px 16px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); min-width: 0; }
+  select, input[type=number], input[type=text], input[type=search] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 7px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 4px 0 0; min-height: 26px; }
+  textarea { font: 13px/1.45 var(--family-mono); color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; width: 100%; resize: vertical; tab-size: 2; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .row > label { flex: 1 1 120px; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; margin: 0; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 10px 24px; min-height: 44px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 7px 13px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  button.small.danger:hover { border-color: var(--red); color: var(--red); }
+  .tip { color: var(--dim); font-size: 13px; margin: 6px 0 0; }
+  .msg { font-size: 13px; color: var(--soft); min-height: 20px; margin-top: 6px; }
+  .msg.err { color: var(--red); }
+  h3 { font-size: 14px; margin: 14px 0 6px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 8px; }
+
+  /* the music panel */
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 12px 14px 12px; display: flex; flex-direction: column; min-width: 0; }
+  .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toolName { font-weight: 800; font-size: 17px; }
+  .pg { font-size: 10px; letter-spacing: .08em; font-weight: 700; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 2px 6px; vertical-align: 2px; }
+  .pgLink { color: var(--dim); font-size: 13px; text-decoration: none; margin-left: auto; }
+  .pgLink:hover { color: var(--text); }
+  .tuneHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 4px 0 8px; min-width: 0; }
+  .tuneTitle { font-size: 20px; font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
+  .tuneMeta { color: var(--soft); font-size: 13px; font-family: var(--family-mono); }
+  .paperWrap { position: relative; background: #f7f3ea; color: #1c1917; border-radius: 10px; overflow: auto; min-height: 260px; height: 52vh; }
+  #paper { padding: 4px 6px; }
+  #paper svg { display: block; }
+  #paper .abcjs-note, #paper .abcjs-rest { cursor: pointer; }
+  #paper .tbSel, #paper .tbSel path { fill: #c2410c; color: #c2410c; }
+  #paper .tbNow, #paper .tbNow path { fill: #ff3b00; color: #ff3b00; }
+  #paper .abcjs-note_selected { fill: inherit; }
+  .paperEmpty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: #57534e; padding: 20px; font-size: 15px; }
+  .transport { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .tRow { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .tRow > label { flex: 1 1 140px; }
+  .tRow .go { min-width: 112px; }
+  .tempo { flex: 2 1 200px !important; }
+  .tempo b { color: var(--text); font-family: var(--family-mono); font-weight: 700; }
+  .keyBox { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); }
+  .keyCtl { display: flex; align-items: center; gap: 6px; min-height: 40px; }
+  .keyCtl button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); font-size: 18px; line-height: 1; padding: 0; }
+  .keyCtl button:hover { border-color: var(--soft); }
+  .keyCtl b { min-width: 74px; text-align: center; font-family: var(--family-mono); font-size: 13px; color: var(--text); }
+  .status { font-size: 13px; color: var(--soft); min-height: 20px; margin-top: 6px; font-family: var(--family-mono); }
+
+  /* the tabs */
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; flex: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 12px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 14px 14px; min-height: 0; }
+  .tabBody > section { display: none; padding: 10px 0 0; }
+  .tabBody > section.show { display: block; }
+
+  .tuneList, .setList { list-style: none; margin: 8px 0; padding: 0; }
+  .tuneList li button { width: 100%; display: flex; align-items: baseline; gap: 8px; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--divider); color: var(--text); padding: 8px 4px; min-height: 42px; }
+  .tuneList li button:hover { background: var(--bg-surface-hover); }
+  .tuneList li button.on { color: #ff3b00; font-weight: 700; }
+  .tuneList .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tuneList .m { color: var(--dim); font-size: 12px; font-family: var(--family-mono); white-space: nowrap; }
+  .count { color: var(--dim); font-size: 12px; }
+  .setList li { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--divider); padding: 4px 0; }
+  .setList li .n { color: var(--dim); font-family: var(--family-mono); font-size: 12px; width: 18px; }
+  .setList li .t { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--text); text-align: left; padding: 8px 2px; min-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .setList li .t.on { color: #ff3b00; font-weight: 700; }
+  .ib { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); padding: 0; font-size: 14px; flex: none; }
+  .ib:hover { border-color: var(--soft); }
+  .ib:disabled { opacity: .35; cursor: default; }
+  .warnings { font-size: 12px; color: var(--warn); font-family: var(--family-mono); min-height: 18px; margin-top: 4px; overflow-wrap: anywhere; }
+  .warnings.ok { color: var(--green); }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  .note { background: var(--bg-subtle-default); border-radius: 8px; padding: 9px 11px; font-size: 13px; color: var(--soft); margin: 8px 0; }
+  .help p, .help li { font-size: 14px; color: var(--soft); }
+  .help ul { padding-left: 18px; margin: 0 0 8px; }
+
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(520px, 7fr) minmax(360px, 5fr); }
+    .panel, .tabsBox { height: calc(100vh - 92px); height: calc(100dvh - 92px); }
+    .paperWrap { flex: 1; height: auto; min-height: 0; }
+    .tabBody { flex: 1; overflow-y: auto; }
+    #abcText { height: calc(100dvh - 400px); min-height: 200px; }
+  }
+  @media (max-width: 999px) { #abcText { height: 300px; } .paperWrap { height: auto; max-height: 64vh; min-height: 180px; } }
+
+  #printBook { display: none; }
+  @media print {
+    @page { margin: 14mm; }
+    body { background: #fff; color: #000; }
+    body > *:not(#printBook) { display: none !important; }
+    #printBook { display: block; color: #000; font-family: Georgia, "Times New Roman", serif; }
+    #printBook .cover { page-break-after: always; break-after: page; }
+    #printBook h1 { font-size: 30px; margin: 30mm 0 6mm; }
+    #printBook .sub { color: #444; margin-bottom: 10mm; }
+    #printBook ol { font-size: 13px; columns: 2; column-gap: 10mm; padding-left: 20px; }
+    #printBook ol li { break-inside: avoid; margin-bottom: 2px; }
+    #printBook .printTune { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8mm; }
+    #printBook .printTune svg { max-width: 100%; height: auto; }
+    #printBook .foot { font-size: 10px; color: #666; margin-top: 8mm; }
+  }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Sheet music and playback">
+    <div class="head">
+      <div class="toolName">Tune Book <span class="pg">PLAYGROUND</span></div>
+      <a class="pgLink" href="playground.html">&#8249; All Playground tools</a>
+    </div>
+    <div class="tuneHead">
+      <div class="tuneTitle" id="tuneTitle">Tune Book</div>
+      <div class="tuneMeta" id="tuneMeta"></div>
+    </div>
+    <div class="paperWrap" id="paperWrap">
+      <div id="paper" aria-label="Sheet music. Click a note, then another, to pick bars to loop."></div>
+      <div class="paperEmpty hidden" id="paperEmpty">No tune open. Pick one in the Book tab, or press New tune and type some ABC.</div>
+    </div>
+    <div class="transport">
+      <div class="tRow">
+        <button class="go" id="playBtn" title="Play or stop (space bar)">Play</button>
+        <label>Play<select id="loopSel" aria-label="What to play"></select></label>
+        <label class="tempo"><span>Tempo: <b id="bpmVal">120</b> BPM <span id="bpmNote"></span></span><input type="range" id="bpm" min="30" max="320" step="1" value="120" aria-label="Tempo in beats per minute"></label>
+      </div>
+      <div class="tRow">
+        <label>Instrument<select id="instSel"></select></label>
+        <label>Backing (from the chords)<select id="backSel"></select></label>
+        <div class="keyBox"><span>Key</span><div class="keyCtl"><button id="tDown" title="Down a half step" aria-label="Transpose down">&minus;</button><b id="keyLbl">D</b><button id="tUp" title="Up a half step" aria-label="Transpose up">+</button></div></div>
+        <label class="toggle"><input type="checkbox" id="clickOn"> Click</label>
+      </div>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Tune Book">
+      <button role="tab" data-tab="book" class="on">Book</button>
+      <button role="tab" data-tab="edit">Edit ABC</button>
+      <button role="tab" data-tab="sets">Sets</button>
+      <button role="tab" data-tab="practice">Practice</button>
+      <button role="tab" data-tab="files">Files &amp; print</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="book" class="show">
+        <div class="row">
+          <label style="flex:2 1 160px">Search<input type="search" id="q" placeholder="Title, key, tag, place..." autocomplete="off"></label>
+          <label>Type<select id="typeSel"><option value="">All types</option></select></label>
+          <label>Tag<select id="tagSel"><option value="">All tags</option></select></label>
+        </div>
+        <div class="count" id="listCount" style="margin-top:6px"></div>
+        <ul class="tuneList" id="tuneList"></ul>
+        <div class="row"><button class="small" id="newTune">New tune</button><button class="small" id="addToSetBtn">Add the open tune to a set</button></div>
+      </section>
+
+      <section data-tab="edit">
+        <label>ABC notation (changes save as you type)<textarea id="abcText" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="ABC notation"></textarea></label>
+        <div class="warnings" id="warnings"></div>
+        <div class="row" style="margin-top:6px">
+          <label style="flex:2 1 180px">Tags (commas between)<input type="text" id="tagsIn" placeholder="session, beginner, Grandpa's tunes" maxlength="200"></label>
+          <label>Show for<select id="readAs"></select></label>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="small" id="undoBtn" disabled>Undo my changes</button>
+          <button class="small" id="keepKey" disabled title="Rewrite the ABC in the key shown, so it stays there">Keep this key</button>
+          <button class="small" id="dupBtn">Make a copy</button>
+          <button class="small danger" id="delBtn">Delete tune</button>
+        </div>
+        <p class="tip">Click a note in the music to jump to it here. New to ABC? See How it works.</p>
+      </section>
+
+      <section data-tab="sets">
+        <div class="row">
+          <label style="flex:2 1 180px">Set<select id="setSel"></select></label>
+          <button class="small" id="newSet">New set</button>
+          <button class="small danger" id="delSet">Delete set</button>
+        </div>
+        <div id="setBody">
+          <div class="row" style="margin-top:8px">
+            <label style="flex:2 1 180px">Name<input type="text" id="setName" maxlength="80"></label>
+            <label>Each tune<select id="setTimes"><option value="1">Once through</option><option value="2">Twice through</option><option value="3">Three times</option><option value="4">Four times</option></select></label>
+          </div>
+          <ol class="setList" id="setList"></ol>
+          <div class="row"><button class="small" id="setAddCur">Add the open tune</button><button class="go" id="playSet">Play the set</button></div>
+          <p class="tip">The tunes play back to back with no gap, like a session. Use the tempo and instrument above.</p>
+        </div>
+        <p class="tip hidden" id="noSets">No sets yet. Press New set to start one with the open tune.</p>
+      </section>
+
+      <section data-tab="practice">
+        <h3>Loop and speed up</h3>
+        <p class="tip" style="margin-top:0">Pick what to loop under Play: the whole tune, one part, or notes you picked. To pick notes, click one in the music, then click another: everything between is looped. Click the same note again to clear.</p>
+        <label class="toggle"><input type="checkbox" id="pOn"> Start slow and speed up while it loops</label>
+        <div class="row">
+          <label>Start at<select id="pFrom"></select></label>
+          <label>Up to<select id="pTo"></select></label>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <label>Faster by<select id="pStep"><option value="2">2%</option><option value="5">5%</option><option value="10">10%</option></select></label>
+          <label>Every<select id="pEvery"><option value="1">pass</option><option value="2">2 passes</option><option value="3">3 passes</option><option value="4">4 passes</option></select></label>
+        </div>
+        <p class="tip" id="pPlan"></p>
+        <h3>Feel</h3>
+        <label class="toggle"><input type="checkbox" id="countIn"> Count in one bar before it starts</label>
+        <label><span>Swing (hornpipes, polkas, schottisches): <span id="swingVal">straight</span></span><input type="range" id="swing" min="0" max="100" step="5" value="0"></label>
+        <p class="tip" id="swingNote"></p>
+      </section>
+
+      <section data-tab="files">
+        <h3>Bring tunes in</h3>
+        <div class="row"><label style="flex:2 1 200px">Open .abc files (one file can hold many tunes)<input type="file" id="fileIn" accept=".abc,.txt,text/plain,text/vnd.abc" multiple style="font-size:13px"></label></div>
+        <label style="margin-top:6px">Or paste ABC (from a tune site, an email, a friend)<textarea id="pasteIn" rows="3" spellcheck="false" placeholder="X:1&#10;T:...&#10;K:D&#10;..."></textarea></label>
+        <div class="row" style="margin-top:6px"><button class="small" id="pasteAdd">Add the pasted tunes</button><button class="small" id="restore">Put back the starter tunes</button></div>
+        <div class="msg" id="fileMsg" aria-live="polite"></div>
+        <h3>Save and print</h3>
+        <div class="row">
+          <label>Which tunes<select id="scope"><option value="tune">The open tune</option><option value="set">The open set</option><option value="list">The tunes listed in Book</option><option value="all">The whole book</option></select></label>
+          <label style="flex:2 1 160px">Book title (for printing)<input type="text" id="bookTitle" maxlength="80"></label>
+        </div>
+        <label class="toggle"><input type="checkbox" id="printKeys" checked> Print in the keys I'm showing them in</label>
+        <div class="row"><button class="small" id="exportBtn">Download .abc</button><button class="go" id="printBtn">Print or save as PDF</button></div>
+        <p class="tip">Print makes a tune book with a contents page. To get a PDF, choose "Save as PDF" in the print window.</p>
+      </section>
+
+      <section data-tab="help" class="help">
+        <h3>What this is</h3>
+        <p>A tune book for folk, trad, polka, old-time and bluegrass players. Tunes are written in ABC, the plain-text music notation session players share. Type or paste ABC and the sheet music appears as you type. Press Play to hear it, slow it down, loop the hard part, and print a book for the next session or band night.</p>
+        <h3>ABC in one minute</h3>
+        <ul>
+          <li>The top lines are the header: <code>T:</code> title, <code>R:</code> tune type (reel, jig, polka...), <code>M:</code> time signature, <code>L:</code> the length of a plain note, <code>K:</code> key (always last).</li>
+          <li>Notes are letters. <code>C D E F G A B</code> are the low octave, <code>c d e f g a b</code> one higher. A comma goes lower (<code>A,</code>), an apostrophe higher (<code>a'</code>).</li>
+          <li>Numbers make notes longer (<code>A2</code>), a slash shorter (<code>A/</code>). <code>A&gt;B</code> is dotted. <code>(3ABA</code> is a triplet.</li>
+          <li><code>|</code> is a bar line, <code>|:</code> and <code>:|</code> repeat a part, <code>|1</code> and <code>:|2</code> are first and second endings.</li>
+          <li>Chords go in quotes before a note: <code>"G"GABc</code>. Those are what the backing plays.</li>
+        </ul>
+        <h3>Practising</h3>
+        <p>Pick Loop part A (or B) under Play, or click two notes in the music to loop just those bars. In Practice, turn on speed-up: it starts slow and gets a little faster every pass or two until it reaches your tempo. The notes light up as they play.</p>
+        <h3>Backing and click</h3>
+        <p>The backing plays the chord symbols in the tune. Oom-pah band is a tuba on the beat and an accordion on the off-beat, like a polka band; there's also guitar and bass, piano, and banjo and bass. Tunes with no chord symbols play without backing. Click adds a metronome on every beat, and Practice has a one-bar count-in.</p>
+        <h3>Sets</h3>
+        <p>A set is tunes played back to back, like at a session or a polka dance. Make one in Sets, put the tunes in order, choose how many times through, and play it.</p>
+        <h3>Keys and transposing</h3>
+        <p>The &minus; and + by Key move the tune up or down a half step, chords too. "Show for" in Edit ABC writes it out for a B-flat clarinet or trumpet, an E-flat sax, or a horn. The ABC text stays as you typed it unless you press Keep this key.</p>
+        <h3>Keys on the keyboard</h3>
+        <div class="keys"><kbd>Space</kbd><span>Play or stop</span><kbd>&uarr; &darr;</kbd><span>Previous or next tune in the list</span><kbd>- =</kbd><span>Tempo down or up</span><kbd>Esc</kbd><span>Clear the picked notes</span></div>
+        <h3>Your tunes</h3>
+        <p>Everything stays in this browser on this device. Nothing is uploaded and there's no account. Clearing the browser's site data deletes your book, so download it as .abc now and then. The starter tunes are traditional and out of copyright.</p>
+        <h3>Credits</h3>
+        <p class="tip">Sheet music drawn by abcjs (MIT licence, Paul Rosen and Gregory Dyke). Instrument sounds: MuseScore General SoundFont (MIT) and VSCO 2 Community Edition (CC0), the same recordings as ENCORE. Compose.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<div id="printBook" aria-hidden="true"></div>
+<script src="vendor/abcjs-basic-min.js"></script>
+<script type="module" src="tunebook.js"></script>
+</body>
+</html>
