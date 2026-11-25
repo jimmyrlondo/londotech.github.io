@@ -107,6 +107,16 @@
   .ib { width: 30px; height: 30px; border-radius: 6px; border: 0; background: transparent; color: var(--soft); font-size: 14px; padding: 0; line-height: 30px; }
   .ib:hover { background: rgb(255 255 255 / .08); color: var(--text); }
   .empty { color: var(--dim); font-size: 13px; text-align: center; padding: 18px 8px; }
+  .song.loading { cursor: default; grid-template-columns: 18px minmax(0, 1fr) auto; row-gap: 3px; }
+  .song.loading .t { color: var(--soft); }
+  .song.loading .lbar { grid-column: 2 / 4; height: 4px; border-radius: 2px; background: var(--panel); overflow: hidden; }
+  .song.loading .lbar i { display: block; height: 100%; width: 0; background: #ff3b00; transition: width .2s; }
+  .song.loading.decoding .lbar i { width: 100% !important; animation: lpulse 1s ease-in-out infinite alternate; }
+  .song.loading.waiting .lbar i { width: 0 !important; }
+  .song.loading .lnote { grid-column: 2 / 4; font-size: 11px; color: var(--dim); white-space: normal; }
+  .song.loading .lnote:empty { display: none; }
+  @keyframes lpulse { from { opacity: .35; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .song.loading.decoding .lbar i { animation: none; } }
   .ghost { position: fixed; z-index: 50; pointer-events: none; background: var(--panel); border: 1px solid #ff3b00; border-radius: 7px; padding: 5px 10px; font-size: 13px; box-shadow: 0 6px 18px rgb(0 0 0 / .5); }
   .marker { height: 2px; background: #ff3b00; margin: 0 6px; border-radius: 1px; list-style: none; }
   .adviceBox { font-size: 13px; }

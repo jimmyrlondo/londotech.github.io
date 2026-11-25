@@ -67,14 +67,84 @@ async function load() {
 
 // ---- adding songs
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+// Songs still loading: shown as rows with a progress bar so a slow file never looks stuck.
+// Reading the bytes is the part that can be slow (a cloud folder that downloads on open, a USB
+// or network drive), so it gets a real percentage; decoding is quick and shows a pulse.
+const pending = [];
+const MB = (b) => (b / 1048576).toFixed(b < 10485760 ? 1 : 0);
+function pendingRow(p) {
+  const li = document.createElement("li");
+  li.className = "song loading"; li.dataset.pid = p.id;
+  li.innerHTML = `<span class="grip" aria-hidden="true">&#8987;</span><span class="t"></span><span class="d"></span><span class="lbar"><i></i></span><span class="lnote"></span>`;
+  li.querySelector(".t").textContent = p.title;
+  paintPending(p, li);
+  return li;
+}
+function paintPending(p, li = document.querySelector(`.song.loading[data-pid="${p.id}"]`)) {
+  if (!li) return;
+  const pct = p.size ? Math.min(100, Math.round((p.loaded / p.size) * 100)) : 0;
+  const secs = p.t0 ? Math.floor((performance.now() - p.t0) / 1000) : 0;
+  li.classList.toggle("waiting", p.stage === "wait");
+  li.classList.toggle("decoding", p.stage === "decode");
+  li.querySelector(".lbar i").style.width = pct + "%";
+  li.querySelector(".d").textContent = p.stage === "wait" ? "waiting" : p.stage === "decode" ? "decoding" : p.stage === "ready" ? "ready" : pct + "%";
+  let note = "";
+  if (p.stage === "read") {
+    note = `Reading ${MB(p.loaded)} of ${MB(p.size)} MB` + (secs >= 3 ? `, ${secs}s` : "");
+    const rate = secs ? p.loaded / ((performance.now() - p.t0) / 1000) : Infinity;
+    if (secs >= 5 && rate < 2 * 1048576) note += ". Reading slowly: if this file is in a cloud folder or on a USB or network drive, it's being copied over first.";
+  } else if (p.stage === "decode") {
+    const ds = Math.floor((performance.now() - p.td) / 1000);
+    note = ds >= 3 ? `Decoding, ${ds}s` : "";
+  }
+  li.querySelector(".lnote").textContent = note;
+  li.setAttribute("aria-label", `${p.title}, loading, ${li.querySelector(".d").textContent}`);
+}
+let pendTick = 0;
+function tickPending() {
+  for (const p of pending) paintPending(p);
+  if (pending.length && !pendTick) pendTick = setInterval(tickPending, 500);
+  if (!pending.length && pendTick) { clearInterval(pendTick); pendTick = 0; }
+}
+async function readWithProgress(f, p) {
+  p.stage = "read"; p.t0 = performance.now(); p.loaded = 0; paintPending(p);
+  if (!f.stream) { const b = await f.arrayBuffer(); p.loaded = p.size; p.stage = "ready"; paintPending(p); return b; }
+  const out = new Uint8Array(f.size);
+  const reader = f.stream().getReader();
+  let last = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (p.loaded + value.length > out.length) throw new Error("The file changed while it was being read.");
+    out.set(value, p.loaded); p.loaded += value.length;
+    const now = performance.now();
+    if (now - last > 100) { last = now; paintPending(p); }
+  }
+  p.stage = "ready"; paintPending(p);
+  return p.loaded === out.length ? out.buffer : out.slice(0, p.loaded).buffer;
+}
+const frame = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+
 async function addFiles(files) {
   const list = [...files];
+  if (!list.length) return;
+  const items = list.map((f) => ({ f, p: { id: uid(), title: f.name.replace(/\.[^.]+$/, "").replace(/_+/g, " ").trim() || "Untitled", size: f.size, loaded: 0, stage: "wait" } }));
+  pending.push(...items.map((x) => x.p));
+  renderSides(); tickPending();
+  // read up to two files ahead while the current one decodes
+  const reads = new Array(items.length);
+  let nextRead = 0;
+  const startRead = () => { if (nextRead < items.length) { const k = nextRead++; reads[k] = readWithProgress(items[k].f, items[k].p); reads[k].catch(() => {}); } };
+  startRead(); startRead();
   let added = 0;
-  for (let i = 0; i < list.length; i++) {
-    const f = list[i];
-    say(`Reading ${f.name} (${i + 1} of ${list.length})...`);
+  for (let i = 0; i < items.length; i++) {
+    const { f, p } = items[i];
+    say(`Loading ${i + 1} of ${list.length}: ${p.title}`);
     try {
-      const d = await decodeAudio(f);
+      const buf = await reads[i].finally(startRead);
+      p.stage = "decode"; p.td = performance.now(); paintPending(p);
+      await frame(); // let the bar paint before a decode that can hold the page for a moment
+      const d = await decodeAudio({ name: f.name, arrayBuffer: async () => buf });
       const frames = d.chans[0].length;
       if (!frames) throw new Error("empty");
       let pk = 0;
@@ -85,11 +155,16 @@ async function addFiles(files) {
       const fitsA = sideStatus([...durs("A"), s.duration], capacity(), S.gap, S.lead).left >= 0;
       (fitsA && !sides.B.length ? sides.A : sides.B).push(s.id);
       added++;
+      pending.splice(pending.indexOf(p), 1);
+      renderSides();
     } catch (e) {
+      pending.splice(pending.indexOf(p), 1);
+      renderSides();
       say(`Couldn't read ${f.name}. ${e.message && e.message.length < 120 ? e.message : ""}`, true);
       await new Promise((r) => setTimeout(r, 1200));
     }
   }
+  tickPending();
   if (added) {
     const hot = [...songs.values()].filter((s) => s.peak > 0.999).length;
     say(`Added ${added} song${added === 1 ? "" : "s"}.` + (hot ? ` ${hot} peak${hot === 1 ? "s" : ""} at 0 dB: tape likes a little headroom, so think about mastering to around -1 dB.` : ""));
@@ -119,7 +194,7 @@ function renderSides() {
   for (const k of SIDES) {
     const list = $("list" + k);
     list.textContent = "";
-    if (!sides[k].length) {
+    if (!sides[k].length && !(pending.length && k === "A")) {
       const li = document.createElement("li"); li.className = "empty";
       li.textContent = songs.size ? "Drag songs here" : k === "A" ? "Add songs to start" : "";
       list.append(li);
@@ -134,6 +209,7 @@ function renderSides() {
       li.setAttribute("aria-label", `${s.title}, ${fmt(s.duration)}, side ${k}`);
       list.append(li);
     }
+    if (pending.length && k === (sides.B.length ? "B" : "A")) for (const p of pending) list.append(pendingRow(p));
     const st = sideStatus(durs(k), cap, S.gap, S.lead);
     $("time" + k).textContent = `${fmt(st.length)} / ${fmt(cap)}`;
     const fill = $("fill" + k);
@@ -217,7 +293,7 @@ for (const k of SIDES) {
 // dragging songs (mouse anywhere on a row; touch from the grip so lists still scroll)
 let drag = null;
 document.addEventListener("pointerdown", (e) => {
-  const li = e.target.closest(".song");
+  const li = e.target.closest(".song:not(.loading)");
   if (!li || e.button > 0 || e.target.closest("button, input")) return;
   if (e.pointerType !== "mouse" && !e.target.closest(".grip")) return;
   drag = { id: li.dataset.id, li, x: e.clientX, y: e.clientY, on: false, pid: e.pointerId };
@@ -239,7 +315,7 @@ document.addEventListener("pointermove", (e) => {
   drag.target = null;
   if (side) {
     const k = side.dataset.side, list = $("list" + k);
-    const rows = [...list.querySelectorAll(".song")].filter((r) => r !== drag.li);
+    const rows = [...list.querySelectorAll(".song:not(.loading)")].filter((r) => r !== drag.li);
     let idx = rows.findIndex((r) => { const b = r.getBoundingClientRect(); return e.clientY < b.top + b.height / 2; });
     if (idx < 0) idx = rows.length;
     drag.target = { side: k, idx };
@@ -667,10 +743,12 @@ document.addEventListener("keydown", (e) => {
 window.addEventListener("resize", () => drawCardSoon());
 
 // for the flow test
+window.__cassetteAdd = (files) => addFiles(files); // test hook
 window.__cassette = () => ({
   songs: [...songs.values()].map((s) => ({ id: s.id, title: s.title, duration: s.duration })),
   A: sides.A.map((id) => songs.get(id).title), B: sides.B.map((id) => songs.get(id).title),
   playing: !!P, side: P?.side || null, pos: P ? posFrame() / ctx.sampleRate : 0, waiting: !!P?.waiting,
+  loading: pending.map((p) => ({ title: p.title, stage: p.stage, pct: p.size ? Math.round((p.loaded / p.size) * 100) : 0 })),
   busy, lastExport, lastCardPng, downloads: downloads.map((d) => d.name), card: { ...S.card }, fx: { ...S.fx }, age: S.age, tape: S.tape,
   advice: [...document.querySelectorAll("#advice li")].map((l) => l.textContent),
 });
