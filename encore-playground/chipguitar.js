@@ -3,7 +3,8 @@
 // and a recorder.
 import { DEFAULTS, PRESETS, CHORDS, ChipGuitarFX, pluck } from "./chipguitar-core.js";
 import { noteName, NOTE, writeWav, midiToHz, LEGAL_DUTIES, dutyLabel } from "./chip-core.js";
-import { decodeAudio, ACCEPT } from "./audio-decode.js";
+import { ACCEPT } from "./audio-decode.js";
+import { openAudio } from "./load-progress.js";
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -182,7 +183,7 @@ function finishTake() {
 async function loadFile(f) {
   err(""); stopFile();
   try {
-    const { chans, fs } = await decodeAudio(f);
+    const { chans, fs } = await openAudio(f);
     await ensureAudio();
     const n = chans[0].length, mono = new Float32Array(n);
     for (const c of chans) for (let i = 0; i < n; i++) mono[i] += c[i] / chans.length;

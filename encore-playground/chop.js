@@ -1,7 +1,8 @@
 // ENCORE. Chop: a beginner-friendly sample chopper. Slices by hits, equal parts or by hand,
 // 16 pads (mouse, touch, keyboard, MIDI), a step sequencer with swing, live recording,
 // lo-fi effects that sound the same live and in the export, and WAV/MP3/zip exports.
-import { decodeAudio, ACCEPT } from "./audio-decode.js";
+import { ACCEPT } from "./audio-decode.js";
+import { openAudio } from "./load-progress.js";
 import { TempoFinder, tapTempo } from "./bpm-core.js";
 import { parseMidi } from "./beatpad-core.js";
 import { zip } from "./zip.js";
@@ -236,7 +237,7 @@ function recordHit(pad, vel) {
 async function loadFile(f) {
   say(`Opening ${f.name}...`);
   try {
-    const d = await decodeAudio(f);
+    const d = await openAudio(f);
     let chans = d.chans.length === 1 ? [d.chans[0], d.chans[0]] : d.chans.slice(0, 2);
     const secs = chans[0].length / d.fs;
     if (secs > 600) throw new Error("That's longer than 10 minutes. Trim it to the part you want to chop first.");

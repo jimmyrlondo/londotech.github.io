@@ -1,6 +1,7 @@
 // Encore Convert: the page. Drop files, pick a preset, press Convert. Reading
 // and decoding happen here (decodeAudioData lives on the main thread); the
 // processing and encoding run in convert-worker.js, one file at a time.
+import { loadFile } from "./load-progress.js";
 import { readFileInfo, decodeWav, fmtTime } from "./lastcall-core.js";
 import { decodeCaf, decodeAu, decodeW64, decodeDsd, decodeWavCodec } from "./convert-read.js";
 import { PRESETS, FORMATS, plan, honesty, estimateSize, fmtBytes, outName, uniqueNames, NAME_PATTERNS, readTags, decodeAiff } from "./convert-core.js";
@@ -120,7 +121,7 @@ async function addFiles(list) {
     try {
       // the real format and the tags, from the file's own bytes (tags can sit
       // at the end: WAV's id3 chunk, an MP4's index)
-      const bytes = new Uint8Array(await file.arrayBuffer());
+      const bytes = new Uint8Array(await loadFile(file, null));
       f.info = readFileInfo(bytes, file.name);
       const t = readTags(bytes, f.info);
       f.meta = { ...t.tags };
@@ -261,7 +262,7 @@ function setupTags() {
 let alacMod = null;
 const alac = async () => (alacMod ||= await import("./convert-alac.js"));
 async function decode(f) {
-  let buf = await f.file.arrayBuffer();
+  let buf = await loadFile(f.file);
   const info = f.info, u8 = new Uint8Array(buf);
   if (info.container === "wav") {
     const d = decodeWav(buf) || decodeWavCodec(u8, info);

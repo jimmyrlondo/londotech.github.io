@@ -6,6 +6,7 @@
 import { STEPS, releaseKind, guessTitle, guessRelease, songMeta, masterTargets, releaseInfo, RELEASE_FORMATS, DEFAULT_FORMATS,
   releaseFolder, releasePath, stepStatus, checkKey } from "./journey-core.js";
 import { decodeAudio, AUDIO_EXT, ACCEPT } from "./audio-decode.js";
+import { loadFile } from "./load-progress.js";
 import { floatWavBlob, tracklistText } from "./album.js";
 import { STYLES, TARGETS } from "./master-core.js";
 import { readFileInfo, decodeWav, buildChecks, albumChecks, coverCheck, verdict, reportText, imageInfo, isSegue, STATUS, fmtTime } from "./lastcall-core.js";
@@ -123,13 +124,15 @@ async function prepare(s) {
   if (!state.songs.includes(s)) return;
   try {
     s.status = "Reading"; renderSongs();
-    const bytes = new Uint8Array(await s.file.arrayBuffer()), info = readFileInfo(bytes, s.name), t = readTags(bytes, info);
-    s.info = info; s.tags = t.tags || {};
-    s.title = guessTitle(s.name, s.tags);
-    if (s.tags.isrc) s.isrc = s.tags.isrc;
-    if (s.tags.composer) s.composer = s.tags.composer;
-    if (!state.art && t.art?.bytes?.length) setArt(t.art.bytes, t.art.mime || "image/jpeg", "from " + s.name);
-    const d = await decodeAudio(s.file, info, (m) => { s.status = m; renderSongs(); });
+    const d = await loadFile(s.file, (buf, st) => {
+      const bytes = new Uint8Array(buf), info = readFileInfo(bytes, s.name), t = readTags(bytes, info);
+      s.info = info; s.tags = t.tags || {};
+      s.title = guessTitle(s.name, s.tags);
+      if (s.tags.isrc) s.isrc = s.tags.isrc;
+      if (s.tags.composer) s.composer = s.tags.composer;
+      if (!state.art && t.art?.bytes?.length) setArt(t.art.bytes, t.art.mime || "image/jpeg", "from " + s.name);
+      return decodeAudio({ name: s.file.name, arrayBuffer: async () => buf }, info, (m) => { st(m); s.status = m; renderSongs(); });
+    }, { name: s.name });
     s.channels = d.chans.length;
     s.blob = floatWavBlob(d.chans.length === 1 ? [d.chans[0], d.chans[0]] : d.chans, d.fs);
     s.fs = d.fs; s.seconds = d.chans[0].length / d.fs;

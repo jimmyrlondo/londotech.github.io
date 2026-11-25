@@ -1,6 +1,7 @@
 // ENCORE. Practice: the page. Plays through the shared stretch player (an AudioWorklet) so speed, key,
 // loops and the sound tools all change live. Loops, markers and settings are saved per song.
-import { decodeAudio, ACCEPT, AUDIO_EXT } from "./audio-decode.js";
+import { ACCEPT, AUDIO_EXT } from "./audio-decode.js";
+import { openAudio } from "./load-progress.js";
 import { peaks, fmtTime, encodeWav, Limiter, pitchRatio } from "./stretch-core.js";
 import { makeDemoSong } from "./slowed-core.js";
 import { SPEED_MIN, SPEED_MAX, clamp, normLoop, halveLoop, doubleLoop, shiftLoop, trainerStart, trainerLoop, trainerTotal, trainerCfg,
@@ -75,7 +76,7 @@ async function loadFile(file, fromRecent = false) {
   $("songName").textContent = "Opening " + file.name + "...";
   try {
     await ensureAudio();
-    const d = await decodeAudio(file, null, (t) => { $("songName").textContent = t; });
+    const d = await openAudio(file, null, (t) => { $("songName").textContent = t; });
     const dur = d.chans[0].length / d.fs, key = songKey(file.name, file.size, dur);
     const saved = await store.loadSong(key).catch(() => null);
     setSong({ name: file.name, size: file.size, key, chans: d.chans, fs: d.fs, dur }, sanitizeSong(saved, dur));

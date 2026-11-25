@@ -1,6 +1,7 @@
 // ENCORE. Slowed + Reverb: the page. Live preview through the shared stretch player (an AudioWorklet)
 // and the Web Audio effect chain; export renders the whole song offline with the same engine.
-import { decodeAudio, ACCEPT, AUDIO_EXT } from "./audio-decode.js";
+import { ACCEPT, AUDIO_EXT } from "./audio-decode.js";
+import { openAudio } from "./load-progress.js";
 import { peaks, fmtTime, encodeWav, Limiter } from "./stretch-core.js";
 import { DEFAULTS, PRESETS, REVERBS, presetSettings, matchPreset, sanitize, rates, semitones, lowpassHz,
          makeDemoSong, exportName, trimTail, peakDb } from "./slowed-core.js";
@@ -52,7 +53,7 @@ async function loadFile(file) {
   $("songName").textContent = "Opening " + file.name + "...";
   try {
     await ensureAudio();
-    const d = await decodeAudio(file, null, (t) => { $("songName").textContent = t; });
+    const d = await openAudio(file, null, (t) => { $("songName").textContent = t; });
     setSong(file.name, d.chans, d.fs);
   } catch (e) {
     $("songName").textContent = song ? song.name : "No song yet";

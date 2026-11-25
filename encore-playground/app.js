@@ -1,3 +1,4 @@
+import { loadFile } from "./load-progress.js";
 import { STYLES, TARGETS } from "./master-core.js";
 import { PLATFORMS, DEVICES, platformGain } from "./streaming.js";
 import { wavFile, id3, fileName } from "./tags.js";
@@ -53,7 +54,7 @@ async function load(f) {
   await ensureAudio();
   status(`Opening ${f.name}...`);
   let buf;
-  try { buf = await ctx.decodeAudioData(await f.arrayBuffer()); }
+  try { buf = await loadFile(f, (ab) => ctx.decodeAudioData(ab)); }
   catch { status("Couldn't read that file. Try a WAV or MP3."); return; }
 
   state.buffer = buf; state.name = f.name; state.offset = 0; state.originalLufs = null;
@@ -439,7 +440,7 @@ function setupReference() {
 async function loadReference(f) {
   await ensureAudio();
   let buf;
-  try { buf = await ctx.decodeAudioData(await f.arrayBuffer()); } catch { $("refList").replaceChildren(note("Couldn't read that file.")); return; }
+  try { buf = await loadFile(f, (ab) => ctx.decodeAudioData(ab)); } catch { $("refList").replaceChildren(note("Couldn't read that file.")); return; }
   stopReference(); unmatch(false);
   state.ref = { name: f.name, buffer: buf };
   $("refEmpty").classList.add("hidden"); $("refLoaded").classList.remove("hidden");
