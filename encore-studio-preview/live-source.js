@@ -1,3 +1,4 @@
+import { loadFile } from "./load-progress.js";
 // Encore Live: audio sources that never need the whole recording in memory.
 //
 //   const src = await openSource(file, audioContext)
@@ -120,7 +121,7 @@ export async function openSource(file, ctx) {
   const h = await parseWavHeader(file);
   if (h) return new WavSource(file, h);
   // compressed formats: the browser decodes the whole thing (fine for typical sets)
-  const buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+  const buffer = await loadFile(file, (ab) => ctx.decodeAudioData(ab));
   return new BufferSource(Array.from({ length: buffer.numberOfChannels }, (_, c) => buffer.getChannelData(c)), buffer.sampleRate);
 }
 

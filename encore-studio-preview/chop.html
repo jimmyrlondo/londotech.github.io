@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chop · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 14px 16px 16px; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  .note { background: var(--bg-subtle-default); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--soft); margin: 8px 0; }
+  .note.warn { border-left: 3px solid var(--warn); }
+  textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-height: 90px; resize: vertical; width: 100%; }
+  /* Chop */
+  .panel { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  @media (min-width: 1000px) {
+    .panel { height: calc(100vh - 100px); height: calc(100dvh - 100px); }
+    .tabBody { max-height: calc(100vh - 160px); max-height: calc(100dvh - 160px); }
+  }
+  .toolHead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toolName { font-weight: 800; font-size: 19px; }
+  .pgChip { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .back { margin-left: auto; color: var(--dim); font-size: 13px; text-decoration: none; }
+  .back:hover { color: var(--text); }
+  .loadRow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .sampleName { font-size: 13px; color: var(--soft); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .sampleName b { color: var(--text); }
+  .loadRow .go { padding: 9px 18px; min-height: 40px; }
+  #wave { width: 100%; height: 118px; display: block; background: var(--bg-subtle-default); border-radius: 8px; cursor: pointer; touch-action: none; }
+  #wave.manual { cursor: crosshair; }
+  .waveTip { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--dim); margin-top: -4px; }
+  .padsWrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; flex: 1; min-height: 0; }
+  .pads { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(44px, 1fr)); gap: 8px; min-height: 0; }
+  .pad { position: relative; border-radius: 10px; border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); color: var(--text); font: inherit; text-align: left; padding: 6px 8px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; transition: background .06s, transform .04s; }
+  .pad .pn { font-weight: 800; font-size: 15px; position: relative; }
+  .pad .pk { position: absolute; right: 8px; top: 6px; font-family: var(--family-mono); font-size: 11px; color: var(--dim); text-transform: uppercase; }
+  .pad .pi { position: absolute; left: 8px; top: 27px; font-size: 11px; color: var(--soft); font-family: var(--family-mono); white-space: nowrap; }
+  .pad canvas { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 40%; opacity: .4; pointer-events: none; }
+  .pad.sel { border-color: #ff3b00; box-shadow: inset 0 0 0 1px #ff3b00; }
+  .pad.hit { background: #ff3b00; transform: scale(.97); }
+  .pad.hit .pk, .pad.hit .pi { color: #fff; }
+  .pad.empty { opacity: .45; }
+  .transport { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .transport .go { min-width: 92px; padding: 9px 18px; min-height: 40px; }
+  #recBtn.on { background: var(--red); }
+  .bpmBox { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--soft); }
+  .bpmBox input { width: 72px; min-height: 36px; padding: 5px 7px; }
+  .swingBox { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft); flex: 1; min-width: 180px; }
+  .swingBox input { margin: 0; min-height: 20px; }
+  .swingBox output { font-family: var(--family-mono); font-size: 12px; color: var(--text); min-width: 118px; white-space: nowrap; }
+  .stepsHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: var(--soft); flex-wrap: wrap; }
+  .barBtns { display: flex; gap: 4px; }
+  .barBtns button { min-height: 30px; min-width: 34px; padding: 2px 8px; font-size: 12px; border-radius: 6px; border: 1px solid var(--divider-strong); background: transparent; color: var(--soft); }
+  .barBtns button.on { border-color: #ff3b00; color: #ff3b00; }
+  .barBtns button.play { background: rgb(255 59 0 / .15); }
+  .steps { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
+  .step { height: 38px; border-radius: 6px; border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); padding: 0; }
+  .step:nth-child(4n+1) { background: rgb(255 255 255 / .09); }
+  .step.on { background: #ff3b00; border-color: #ff3b00; }
+  .step.now { outline: 2px solid var(--text); outline-offset: 1px; }
+  .status { font-size: 13px; color: var(--soft); min-height: 20px; }
+
+  /* tabs */
+  .seg2 { display: inline-flex; border: 1px solid var(--divider-strong); border-radius: 999px; overflow: hidden; flex-wrap: wrap; }
+  .seg2 button { border: 0; background: transparent; color: var(--soft); padding: 8px 14px; font-size: 13px; min-height: 38px; }
+  .seg2 button.on { background: #ff3b00; color: #fff; }
+  .slider { display: grid; grid-template-columns: 100px minmax(0, 1fr) 70px; align-items: center; gap: 8px; font-size: 13px; color: var(--soft); margin: 3px 0; }
+  .slider input { margin: 0; }
+  .slider output { font-family: var(--family-mono); font-size: 12px; color: var(--text); text-align: right; }
+  .macro { background: var(--bg-subtle-default); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .nudge { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft); margin: 4px 0; }
+  .nudge span:first-child { width: 100px; }
+  .nudge output { font-family: var(--family-mono); font-size: 12px; color: var(--text); min-width: 74px; }
+  .nudge button { min-height: 32px; min-width: 40px; padding: 2px 8px; }
+  #grid { width: 100%; aspect-ratio: 16 / 10; display: block; background: var(--bg-subtle-default); border-radius: 8px; cursor: pointer; touch-action: manipulation; }
+  .downloads { display: grid; gap: 6px; margin-top: 10px; }
+  .downloads a { display: flex; justify-content: space-between; gap: 8px; text-decoration: none; color: var(--text); border: 1px solid var(--divider-strong); border-radius: 8px; padding: 8px 11px; font-size: 13px; }
+  .downloads a:hover { border-color: #ff3b00; }
+  .downloads a small { color: var(--dim); font-family: var(--family-mono); }
+  .help p, .help li { font-size: 14px; color: var(--soft); }
+  .help ul { padding-left: 18px; margin: 0 0 10px; }
+  .bpmInfo { font-size: 13px; color: var(--soft); margin: 6px 0; }
+  .bpmInfo b { color: var(--text); }
+  @media (max-width: 640px) {
+    .pads { grid-template-rows: repeat(4, 72px); }
+    .steps { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+    .slider { grid-template-columns: 84px minmax(0, 1fr) 62px; }
+    .swingBox { min-width: 0; flex-basis: 100%; }
+    .grid3 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+<script type="module" src="gr-shell.js"></script>
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Sampler">
+    <div class="toolHead">
+      <span class="toolName">Chop</span><span class="pgChip">PLAYGROUND</span>
+      <a class="back" href="playground.html">Back to the Playground</a>
+    </div>
+    <div class="loadRow">
+      <button class="go" id="loadBtn" title="Load a sample (any audio file)">Load a sample</button>
+      <button class="small" id="demoBtn" title="A made-up loop to practise on">Try a demo loop</button>
+      <input type="file" id="fileIn" class="hidden">
+      <span class="sampleName" id="sampleName">No sample yet</span>
+    </div>
+    <canvas id="wave" aria-label="The sample with its cuts. Click a slice to hear and select it."></canvas>
+    <div class="waveTip"><span id="waveTip">Load a sample, or try the demo loop.</span><span id="waveInfo"></span></div>
+    <div class="padsWrap">
+      <div class="pads" id="pads" role="group" aria-label="Pads"></div>
+    </div>
+    <div class="transport">
+      <button class="go" id="playBtn" title="Play or stop the pattern (space)">Play</button>
+      <button class="small" id="recBtn" title="Record what you play on the pads into the pattern (Enter)">Record</button>
+      <label class="toggle" title="A click on every beat"><input type="checkbox" id="fClick"> Click</label>
+      <span class="bpmBox"><input type="number" id="fBpm" min="50" max="200" step="0.1" value="90" aria-label="Tempo in BPM"> BPM</span>
+      <span class="swingBox" title="Swing pushes every second 16th note later"><span>Swing</span><input type="range" id="fSwing" min="50" max="75" step="1" value="56" aria-label="Swing"><output id="oSwing"></output></span>
+    </div>
+    <div>
+      <div class="stepsHead">
+        <span id="stepsLabel">Steps for pad 1</span>
+        <span class="barBtns" id="barBtns"></span>
+      </div>
+      <div class="steps" id="steps" role="group" aria-label="Steps for the selected pad"></div>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Chop">
+      <button role="tab" data-tab="chop" class="on">Chop</button>
+      <button role="tab" data-tab="pad">Pad</button>
+      <button role="tab" data-tab="pattern">Pattern</button>
+      <button role="tab" data-tab="lofi">Lo-fi</button>
+      <button role="tab" data-tab="export">Export</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="chop" class="show">
+        <h3>How to cut it</h3>
+        <div class="seg2" role="group" aria-label="Cutting mode">
+          <button data-mode="hits" class="on">At each hit</button><button data-mode="equal">Equal parts</button><button data-mode="manual">By hand</button>
+        </div>
+        <div id="modeHits" style="margin-top:10px">
+          <div class="slider"><span>Sensitivity</span><input type="range" id="fSens" min="0" max="1" step="0.01" value="0.5"><output id="oSens"></output></div>
+          <p class="tip">Finds where each drum hit or note starts. More sensitivity finds quieter hits. Up to 16 slices, one per pad.</p>
+        </div>
+        <div id="modeEqual" class="hidden" style="margin-top:10px">
+          <div class="grid2">
+            <label>Parts<select id="fParts"><option value="4">4</option><option value="8">8</option><option value="16" selected>16</option></select></label>
+            <label class="toggle" style="align-self:end"><input type="checkbox" id="fFromHit" checked> Start at the first hit</label>
+          </div>
+          <p class="tip">Splits the sample into even pieces. On a loop of whole bars, 16 parts are 16th notes. "Start at the first hit" skips any silence before the downbeat.</p>
+        </div>
+        <div id="modeManual" class="hidden" style="margin-top:10px">
+          <p class="tip">Click the waveform to add a cut. Drag a cut to move it. Double-click a cut (or right-click) to remove it.</p>
+          <button class="small" id="clearCuts">Remove all cuts</button>
+        </div>
+        <h3>Tempo</h3>
+        <div class="bpmInfo" id="bpmInfo">Load a sample and the tempo is found for you.</div>
+        <div class="row" style="flex-wrap:wrap">
+          <button class="small" id="bpmHalf" title="Half the tempo">/2</button>
+          <button class="small" id="bpmDouble" title="Double the tempo">x2</button>
+          <button class="small" id="tapBtn" title="Tap along on the beat (T)">Tap tempo</button>
+        </div>
+        <p class="tip">If the tempo is twice or half what you feel, use x2 or /2. Or tap along with the beat a few times.</p>
+        <h3>Keys</h3>
+        <div class="keys"><kbd>Z X C V</kbd><span>Pads 1 to 4 (bottom row)</span><kbd>A S D F</kbd><span>Pads 5 to 8</span><kbd>Q W E R</kbd><span>Pads 9 to 12</span><kbd>1 2 3 4</kbd><span>Pads 13 to 16 (top row)</span><kbd>Space</kbd><span>Play or stop</span><kbd>Enter</kbd><span>Record</span><kbd>T</kbd><span>Tap tempo</span><kbd>Ctrl Z</kbd><span>Undo</span></div>
+        <div class="row" style="margin-top:10px"><button class="small" id="midiBtn">Use a MIDI pad controller</button></div>
+        <p class="tip" id="midiInfo"></p>
+      </section>
+
+      <section data-tab="pad">
+        <h3 id="padTitle">Pad 1</h3>
+        <div class="slider"><span>Pitch</span><input type="range" id="pPitch" min="-24" max="24" step="1" value="0"><output id="oPitch"></output></div>
+        <div class="slider"><span>Fine</span><input type="range" id="pFine" min="-50" max="50" step="1" value="0"><output id="oFine"></output></div>
+        <div class="slider"><span>Volume</span><input type="range" id="pGain" min="0" max="2" step="0.01" value="1"><output id="oGain"></output></div>
+        <div class="slider"><span>Fade</span><input type="range" id="pFade" min="0" max="50" step="1" value="5"><output id="oFade"></output></div>
+        <div class="nudge"><span>Start</span><button class="small" data-nudge="start" data-ms="-10">-10 ms</button><button class="small" data-nudge="start" data-ms="10">+10 ms</button><output id="oStart"></output></div>
+        <div class="nudge"><span>End</span><button class="small" data-nudge="end" data-ms="-10">-10 ms</button><button class="small" data-nudge="end" data-ms="10">+10 ms</button><output id="oEnd"></output></div>
+        <label class="toggle"><input type="checkbox" id="pReverse"> Reverse</label>
+        <label class="toggle"><input type="checkbox" id="pChoke"> Cut off the last pad (choke)</label>
+        <label class="toggle"><input type="checkbox" id="pHold"> Only play while held</label>
+        <div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="small" id="padPlay">Hear it</button><button class="small" id="padReset">Reset this pad</button></div>
+        <p class="tip">Pitch works like an old sampler: higher plays faster and shorter, lower plays slower and longer. Choke stops the slice before it, so a chopped phrase doesn't pile up.</p>
+      </section>
+
+      <section data-tab="pattern">
+        <div class="grid2">
+          <label>Length<select id="fBars"><option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option></select></label>
+          <label class="toggle" style="align-self:end"><input type="checkbox" id="fQuant" checked> Snap recorded hits to the grid</label>
+        </div>
+        <p class="tip" style="margin-bottom:6px">Click a square to add or remove a hit. Rows are pads (pad 1 at the bottom), columns are 16th notes of the bar shown under the pads.</p>
+        <canvas id="grid" aria-label="The whole pattern: pads by steps"></canvas>
+        <div class="row" style="margin-top:8px;flex-wrap:wrap">
+          <button class="small" id="clearPad">Clear this pad</button>
+          <button class="small" id="clearAll">Clear the pattern</button>
+          <button class="small" id="undoBtn" disabled>Undo</button>
+        </div>
+        <button class="small" id="starter" style="margin-top:8px">Start me off (a simple beat on pads 1 to 4)</button>
+      </section>
+
+      <section data-tab="lofi">
+        <label class="toggle" style="margin-top:0"><input type="checkbox" id="lOn" checked> Lo-fi on</label>
+        <div class="macro">
+          <div class="slider"><span><b>Dust</b></span><input type="range" id="lDust" min="0" max="1" step="0.01" value="0"><output id="oDust"></output></div>
+          <p class="tip" style="margin:4px 0 0">One slider for all of it. Then fine-tune below.</p>
+        </div>
+        <div class="slider"><span>Crackle</span><input type="range" id="lCrackle" min="0" max="1" step="0.01"><output id="oCrackle"></output></div>
+        <div class="slider"><span>Tape</span><input type="range" id="lTape" min="0" max="1" step="0.01"><output id="oTape"></output></div>
+        <div class="slider"><span>Bits</span><input type="range" id="lBits" min="4" max="16" step="1"><output id="oBits"></output></div>
+        <div class="slider"><span>Sample rate</span><input type="range" id="lRate" min="0" max="4" step="1"><output id="oRate"></output></div>
+        <div class="slider"><span>Low-pass</span><input type="range" id="lLow" min="1500" max="20000" step="100"><output id="oLow"></output></div>
+        <div class="slider"><span>Pump</span><input type="range" id="lPump" min="0" max="1" step="0.01"><output id="oPump"></output></div>
+        <p class="tip">Crackle is record surface noise. Tape adds a gentle wobble and warmth. Fewer bits and a lower sample rate add the grit of old samplers. Low-pass dulls the top. Pump ducks everything on each beat, like a sidechained kick.</p>
+      </section>
+
+      <section data-tab="export">
+        <h3>The pattern</h3>
+        <div class="grid3">
+          <label>Repeats<select id="eLoops"><option value="1">1 time</option><option value="2">2 times</option><option value="4" selected>4 times</option><option value="8">8 times</option></select></label>
+          <label>Format<select id="eFmt"><option value="wav16">WAV 16-bit</option><option value="wav24">WAV 24-bit</option><option value="mp3">MP3 320k</option></select></label>
+          <label class="toggle" style="align-self:end"><input type="checkbox" id="eLoop" checked> Loops cleanly</label>
+        </div>
+        <p class="tip">"Loops cleanly" folds the ringing tail of the last hits back onto the start, so the file repeats without a gap or a click. The lo-fi settings go in as you hear them.</p>
+        <div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="go" id="expPattern" disabled>Export the pattern</button></div>
+        <h3>The slices</h3>
+        <label class="toggle"><input type="checkbox" id="eSliceLofi"> Put the lo-fi on each slice too</label>
+        <div class="row" style="margin-top:6px;flex-wrap:wrap"><button class="small" id="expSlices" disabled>Download the slices (.zip of WAVs)</button></div>
+        <p class="tip">One WAV per pad, with its pitch, reverse, volume and fades. Handy for loading into any sampler or drum machine.</p>
+        <h3>Resample</h3>
+        <div class="row" style="flex-wrap:wrap"><button class="small" id="bounceBtn" disabled>Bounce the pattern into a new sample</button></div>
+        <p class="tip">Records the pattern, lo-fi and all, as a new sample and chops it again. A classic trick for layering. Undo brings the old one back.</p>
+        <p class="tip" id="expStatus"></p>
+        <div class="downloads" id="downloads"></div>
+      </section>
+
+      <section data-tab="help" class="help">
+        <h3>What this is</h3>
+        <p>A sampler for chopping. Load a short piece of audio (a drum loop, a few bars of a song you made, a field recording), cut it into up to 16 slices, and play the slices on pads. Then build a beat with the step sequencer, add lo-fi grit, and export it.</p>
+        <h3>Quick start</h3>
+        <ul>
+          <li>Press "Try a demo loop", or load your own sample.</li>
+          <li>Hit the pads (click, tap, or your keyboard: Z X C V for the bottom row). Each pad plays one slice.</li>
+          <li>Pick a pad, then click squares in the step row to make it play on those 16th notes. Press Play.</li>
+          <li>Or press Record and play the pads in time: what you play is added to the pattern, snapped to the grid.</li>
+          <li>Swing pushes every second 16th later. A little (54 to 62%) gives the laid-back feel. 67% is a full triplet shuffle.</li>
+        </ul>
+        <h3>Cutting tips</h3>
+        <ul>
+          <li>"At each hit" is best for drums. "Equal parts" is best for loops of whole bars. "By hand" lets you put cuts exactly where you want.</li>
+          <li>If a slice clicks at the start or end, raise its Fade a little in the Pad tab.</li>
+          <li>Moving a cut switches to "By hand", so your changes are kept.</li>
+        </ul>
+        <h3>Your samples</h3>
+        <p>Only use audio you made or have permission to use. Everything stays in this browser: nothing is uploaded. Your last sample, pads and pattern are kept here for next time.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<script type="module" src="chop.js"></script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 // your own sounds in a library kept on this device; kits you can save, share (.beatpad files) and bring in;
 // and a small loop recorder with note repeat. Every sound is decoded ahead of time and started straight from
 // the key, touch or MIDI event (not a click), so a hit is as quick as the device's audio allows. Nothing leaves the browser.
+import { loadFile } from "./load-progress.js";
 import { SLOTS, GRID_ORDER, presetKit, cleanKit, cleanPad, buildKitJson, parseKitJson, keyLabel, slotForKey, slotForNote, assignNote,
          resetNotes, velocityGain, parseMidi, midiLabel, gmNoteFor, guessTags, assignFiles, nameFromFile, safeFileName, isAudioName, autoTrimStart, hitPlan,
          chokeTargets, encodeWav, beatInLoop, quantizeBeat, loopHitsBetween, clicksBetween, nextGridTime, readZip, findKitJson, matchFile, QUANTIZE,
@@ -795,7 +796,7 @@ async function addFiles(files) {
   const bad = [];
   for (const f of files) {
     if (!isAudioName(f.name) && !/^audio\//.test(f.type || '')) { bad.push(f.name + ' isn\'t a sound file'); continue; }
-    try { await addSample(f.name, await f.arrayBuffer(), f.type); ok++; } catch (e) { bad.push(e.message); }
+    try { await loadFile(f, (ab) => addSample(f.name, ab, f.type), { label: 'Adding' }); ok++; } catch (e) { bad.push(e.message); }
   }
   renderLibrary();
   if (ok) toast('Added ' + ok + ' sound' + (ok === 1 ? '' : 's') + ' to your library');
@@ -811,7 +812,7 @@ function putOnPad(slot, meta) {
 }
 
 async function fileToPad(file, slot) {
-  try { const meta = await addSample(file.name, await file.arrayBuffer(), file.type); putOnPad(slot, meta); renderLibrary(); selectPad(slot); }
+  try { const meta = await loadFile(file, (ab) => addSample(file.name, ab, file.type), { label: 'Adding' }); putOnPad(slot, meta); renderLibrary(); selectPad(slot); }
   catch (e) { say(e.message, true, 9000); }
 }
 
@@ -1027,14 +1028,14 @@ async function importEntries(entries, fallbackName) {
 
 async function importFile(f) {
   try {
-    const data = new Uint8Array(await f.arrayBuffer());
+    const data = new Uint8Array(await loadFile(f));
     const entries = await readZip(data);
     await importEntries(entries, nameFromFile(f.name.replace(/\.(beatpad|zip)$/i, '')));
   } catch (e) { showImportError(e); }
 }
 async function importFolder(files) {
   try {
-    const list = await Promise.all(files.map(async f => ({ name: f.webkitRelativePath || f.relPath || f.name, data: new Uint8Array(await f.arrayBuffer()) })));
+    const list = await Promise.all(files.map(async f => ({ name: f.webkitRelativePath || f.relPath || f.name, data: new Uint8Array(await loadFile(f)) })));
     const top = (list[0]?.name || 'Kit').split('/')[0];
     await importEntries(list, nameFromFile(top.includes('.') ? 'Imported kit' : top));
   } catch (e) { showImportError(e); }

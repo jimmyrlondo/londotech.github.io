@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SFX · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+
+  /* SFX */
+  @media (min-width: 1000px) { .layout { grid-template-columns: minmax(520px, 6fr) minmax(0, 5fr); } }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 12px 16px 16px; min-width: 0; }
+  .toolHead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .toolHead h1 { font-size: 20px; margin: 0; font-weight: 800; }
+  .pg { font-size: 11px; letter-spacing: .08em; font-weight: 700; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .back { color: var(--dim); font-size: 13px; text-decoration: none; margin-left: auto; }
+  .back:hover { color: var(--text); }
+  .cats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .cats button { font-size: 14px; font-weight: 700; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 8px 4px; min-height: 48px; }
+  .cats button:hover { border-color: var(--soft); }
+  .cats button.on { border-color: #ff3b00; color: #ff3b00; }
+  .cats button small { display: block; font-size: 11px; font-weight: 400; color: var(--dim); }
+  .cur { margin-top: 12px; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+  .playBig { width: 84px; height: 84px; border-radius: 50%; border: 0; background: #ff3b00; color: #fff; font-weight: 800; font-size: 16px; }
+  .playBig:hover { background: #ff6c40; }
+  .curName { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .curName input { font-weight: 700; font-size: 16px; max-width: 220px; }
+  .curMeta { font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
+  .wave { width: 100%; height: 120px; display: block; background: var(--bg-subtle-default); border-radius: 8px; margin-top: 10px; cursor: pointer; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .actions .go { padding: 10px 20px; }
+  .exportRow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; margin-top: 10px; }
+  .exportRow > * { min-width: 0; }
+  .exportRow select { width: 100%; }
+  h3.small { margin: 12px 0 6px; }
+  .hist { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; min-height: 40px; }
+  .hist button { flex: none; font-size: 12px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 11px; min-height: 36px; }
+  .hist button.on { color: var(--text); border-color: #ff3b00; }
+  .status { color: var(--soft); font-size: 13px; min-height: 20px; margin-top: 8px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .chips button { font-size: 13px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 12px; min-height: 36px; }
+  .chips button.on { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .knobs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .knob { min-width: 0; }
+  .knob .top { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); }
+  .knob .top span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .knob .top b { font-family: var(--family-mono); font-weight: 400; color: var(--soft); font-size: 11px; }
+  .knob .lock { width: 16px; height: 16px; accent-color: #ff3b00; margin: 0; }
+  .knob input[type=range] { margin: 2px 0 4px; min-height: 26px; }
+  .waves { display: flex; flex-wrap: wrap; gap: 4px; grid-column: 1 / -1; margin-bottom: 6px; }
+  .waves button { font-size: 12px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 10px; min-height: 34px; }
+  .waves button.on { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .knobTools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .packList { list-style: none; margin: 0; padding: 0; }
+  .packList li { display: flex; gap: 6px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--divider); }
+  .packList li input { flex: 1; min-width: 0; min-height: 36px; padding: 5px 8px; }
+  .packList li button { min-height: 36px; padding: 5px 10px; }
+  .packList .empty { color: var(--dim); font-size: 13px; padding: 10px 0; }
+  .btnRow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+  .fileBtn { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 4px 12px; min-height: 40px; color: var(--text); font-size: 13px; cursor: pointer; }
+  .fileBtn input { width: 150px; font-size: 12px; color: var(--soft); }
+  textarea { font: inherit; font-family: var(--family-mono); font-size: 12px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-height: 64px; resize: vertical; width: 100%; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  @media (max-width: 600px) { .cats { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; } .cats button { font-size: 12px; padding: 6px 2px; min-height: 44px; } .cats button small { display: none; } .knobs { grid-template-columns: 1fr; } .exportRow { grid-template-columns: 1fr 1fr; } .exportRow .go { grid-column: 1 / -1; } .playBig { width: 70px; height: 70px; } }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+<script type="module" src="gr-shell.js"></script>
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Sound maker">
+    <div class="toolHead">
+      <h1>SFX</h1><span class="pg">PLAYGROUND</span>
+      <a class="back" href="playground.html">&larr; Back to the Playground</a>
+    </div>
+    <div class="cats" id="cats" role="group" aria-label="Make a sound of this kind"></div>
+    <div class="cur">
+      <button class="playBig" id="play" title="Play (space)">Play</button>
+      <div>
+        <div class="curName"><input type="text" id="name" maxlength="40" aria-label="Sound name"><span class="curMeta" id="meta"></span></div>
+        <div class="actions">
+          <button class="small" id="randomize" title="A new sound of the same kind (R)">Randomize</button>
+          <button class="small" id="mutate" title="Change it a little (M)">Mutate</button>
+          <button class="small" id="vary" title="Add 4 slightly different versions to the pack">Make 4 variations</button>
+          <button class="small" id="fav" title="Keep it in the pack (F)">Add to pack</button>
+        </div>
+      </div>
+    </div>
+    <canvas class="wave" id="wave" aria-label="The sound's waveform. Click to play."></canvas>
+    <div class="exportRow">
+      <label>Sample rate<select id="sr"><option value="22050">22,050 Hz (small, retro)</option><option value="44100" selected>44,100 Hz (games)</option><option value="48000">48,000 Hz (video)</option></select></label>
+      <label>Bit depth<select id="bits"><option value="8">8-bit (tiny, crunchy)</option><option value="16" selected>16-bit (standard)</option><option value="24">24-bit</option><option value="32">32-bit float (editing)</option></select></label>
+      <button class="go" id="download">Download WAV</button>
+    </div>
+    <h3 class="small">Recent sounds</h3>
+    <div class="hist" id="hist" aria-label="Recent sounds"></div>
+    <div class="status" id="status" role="status"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="SFX">
+      <button role="tab" data-tab="knobs" class="on">Knobs</button>
+      <button role="tab" data-tab="pack">Pack <span id="packCount"></span></button>
+      <button role="tab" data-tab="code">Sound code</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="knobs" class="show">
+        <div class="chips" id="groups"></div>
+        <div class="knobs" id="knobs"></div>
+        <p class="tip">Tick the box next to a knob to lock it: Randomize and Mutate leave locked knobs alone.</p>
+        <div class="knobTools"><button class="small" id="unlockAll">Unlock all</button><button class="small" id="resetKnobs">Reset to a plain beep</button></div>
+      </section>
+
+      <section data-tab="pack">
+        <p class="tip" style="margin-top:0">Your pack is the sounds you keep. Download them all as one zip of WAV files, ready for your game engine or video editor.</p>
+        <ul class="packList" id="packList"></ul>
+        <div class="btnRow"><button class="go" id="zipBtn">Download pack (.zip)</button><button class="small" id="clearPack">Empty the pack</button></div>
+        <div class="btnRow"><button class="small" id="savePack">Save pack file</button><label class="fileBtn">Open a pack<input type="file" id="openPack" accept=".json,application/json"></label></div>
+        <p class="tip">The pack file keeps every knob, so you can come back and change a sound later. It's tiny.</p>
+      </section>
+
+      <section data-tab="code">
+        <p class="tip" style="margin-top:0">Every sound has a short code with all its knobs in it. Copy it to share a sound or keep it in your notes, and paste one here to get the sound back.</p>
+        <textarea id="code" aria-label="Sound code" spellcheck="false"></textarea>
+        <div class="btnRow"><button class="small" id="copyCode">Copy the code</button><button class="small" id="useCode">Use a pasted code</button></div>
+      </section>
+
+      <section data-tab="help">
+        <h3>Quick start</h3>
+        <p>Pick a kind of sound at the top. Every click makes a new one. Like it? Add it to the pack. Almost? Mutate nudges it. Download a WAV, or the whole pack as a zip.</p>
+        <h3>The knobs</h3>
+        <p>Every sound is built from the same parts. Tone picks the waveform (square for 8-bit console style beeps, noise for explosions). Pitch moves the note: slides for jumps and lasers, arpeggio jumps for coins. Envelope shapes how it starts and fades. Filter makes it darker or thinner. Effects add flanger, crunch and lo-fi grit.</p>
+        <h3>Variations</h3>
+        <p>Games sound better when a repeated sound changes a little each time. "Make 4 variations" adds four close cousins of the sound to the pack, so your game can pick one at random.</p>
+        <h3>Which file settings?</h3>
+        <p>44,100 Hz, 16-bit works in every game engine. Use 48,000 Hz for video. 8-bit and 22,050 Hz make tiny files with a retro crunch. 32-bit float is best if you'll edit the sound further.</p>
+        <h3>Keys</h3>
+        <div class="keys"><kbd>Space</kbd><span>Play</span><kbd>R</kbd><span>Randomize</span><kbd>M</kbd><span>Mutate</span><kbd>F</kbd><span>Add to pack</span><kbd>1 to 0</kbd><span>Make a sound of each kind</span></div>
+        <p class="tip">Every sound is made from scratch in your browser, so it's yours to use in your games and videos, free. Nothing is uploaded. Your pack is saved on this computer.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<script type="module" src="sfx.js"></script>
+</body>
+</html>

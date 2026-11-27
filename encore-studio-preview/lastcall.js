@@ -2,6 +2,7 @@
 // decoded in the browser (nothing is uploaded), measured in a worker
 // (lastcall-worker.js), and shown as pass / note / warning / fail with how to
 // fix each problem. The checks themselves live in lastcall-core.js.
+import { loadFile } from "./load-progress.js";
 import { readFileInfo, decodeWav, imageInfo, buildChecks, coverCheck, albumChecks, verdict, reportText, STATUS, worst, fmtTime, fmtLength, isSegue } from "./lastcall-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -38,7 +39,7 @@ async function decode(file, info) {
   const rate = info.sampleRate >= 3000 && info.sampleRate <= 768000 ? info.sampleRate : 48000;
   try {
     const ctx = new OfflineAudioContext(1, 1, rate);
-    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+    const buf = await loadFile(file, (ab) => ctx.decodeAudioData(ab));
     const chans = [];
     for (let c = 0; c < buf.numberOfChannels; c++) { const a = new Float32Array(buf.length); buf.copyFromChannel(a, c); chans.push(a); }
     return { chans, fs: buf.sampleRate };
@@ -83,7 +84,7 @@ async function run(files) {
   const tracks = [];
   for (const file of files) {
     let info;
-    try { info = readFileInfo(new Uint8Array(await file.arrayBuffer()), file.name); }
+    try { info = await loadFile(file, (ab) => readFileInfo(new Uint8Array(ab), file.name), { label: "Reading tags" }); }
     catch { info = readFileInfo(new Uint8Array(0), file.name); }
     tracks.push({ file, name: file.name.replace(/\.[^.]+$/, ""), info, m: null, checks: [], error: "" });
   }

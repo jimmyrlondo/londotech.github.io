@@ -1,6 +1,7 @@
 // Encore Tag: the page. Drop tracks, edit their tags (one track or several at
 // once), save new copies. Reading, writing and the safety check all live in
 // tag-core.js; this file is the editor around them. Nothing is uploaded.
+import { loadFile } from "./load-progress.js";
 import { readTags, writeTags, verifyWrite, FIELDS, FIELD, canStore, imageInfo, isrcCheck, titleCase, tidy, fileNameFor, toCSV, toJSON, readSheet,
   genreSlots, setGenreSlot, initAlbumArtist, mirrorAlbumArtist, setAlbumArtistFollow, coverRule, NAME_PRESETS, presetFill, pickPreset, fillPreview } from "./tag-core.js";
 import { PICTURE_TYPES, FORMAT_NAME, SYSTEM } from "./tag-fields.js";
@@ -36,7 +37,8 @@ async function addFiles(list) {
   setStatus("busy", `Reading ${files.length} file${files.length > 1 ? "s" : ""}...`);
   const added = [];
   for (const file of files) {
-    const bytes = new Uint8Array(await file.arrayBuffer());
+    let bytes;
+    try { bytes = new Uint8Array(await loadFile(file)); } catch { continue; }
     let model;
     try { model = readTags(bytes, file.name); } catch (e) { model = { format: null, fields: {}, multi: {}, custom: [], pictures: [], other: [], notes: [], readOnly: e.message, info: { name: file.name, size: bytes.length } }; }
     if (!model.format && !AUDIO.test(file.name)) continue;

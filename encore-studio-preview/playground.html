@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playground · ENCORE. Green Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 860px; margin: 0 auto; padding: 18px 16px 48px; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .product { font-weight: 700; letter-spacing: -0.01em; }
+  .product .sep { color: var(--dim); margin: 0 8px; font-weight: 400; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
+  main { max-width: 1240px; padding: 34px 20px 48px; }
+  .kicker { font-size: 12px; letter-spacing: .12em; color: #34d399; font-weight: 800; }
+  .hero h1 { font-size: clamp(32px, 4.6vw, 54px); line-height: 1.05; letter-spacing: -0.03em; margin: 8px 0 12px; max-width: 900px; }
+  .lede { font-size: 18px; color: var(--soft); max-width: 780px; margin: 0 0 16px; }
+  .promise { display: inline-block; font-size: 14px; color: var(--soft); border: 1px solid rgb(52 211 153 / 0.35); background: rgb(52 211 153 / 0.06); border-radius: 12px; padding: 10px 14px; }
+  .promise b { color: var(--text); }
+  .group { margin-top: 30px; }
+  .group h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin: 0 0 10px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 12px; }
+  .card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 16px 18px;
+          transition: border-color .15s, transform .15s; }
+  .card:hover, .card:focus-visible { border-color: #ff3b00; transform: translateY(-2px); outline: none; }
+  .card .name { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+  .card .name::after { content: '→'; margin-left: auto; color: var(--dim); font-weight: 400; }
+  .card:hover .name::after { color: #ff3b00; }
+  .card .what { color: var(--soft); font-size: 14px; }
+  .card.wide { grid-column: span 2; }
+  .group .sub { color: var(--soft); font-size: 14px; margin: -4px 0 12px; }
+  .card.feature { border-color: rgb(255 59 0 / 0.55); background: linear-gradient(135deg, rgb(255 59 0 / 0.14), var(--surface, #171412) 60%); }
+  @media (max-width: 640px) { .card.wide { grid-column: auto; } }
+  .tag { font-size: 10px; letter-spacing: .08em; color: #fff; background: #ff3b00; border-radius: 4px; padding: 3px 6px; font-weight: 700; }
+  .kicker.pg { color: #f59e0b; }
+  .promise.pg { border-color: rgb(245 158 11 / 0.35); background: rgb(245 158 11 / 0.06); }
+  .tag.test { background: #f59e0b; color: #1a1208; }
+  .tag.soon { background: transparent; color: var(--dim); border: 1px solid var(--divider-strong); }
+  .card.off { opacity: .55; pointer-events: none; }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+<script type="module" src="gr-shell.js"></script>
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">GREEN ROOM</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+  <section class="hero">
+    <div class="kicker pg">ENCORE. PLAYGROUND</div>
+    <h1>New tools, still being tested.</h1>
+    <p class="lede">Everything here works, but it's new. Try it, break it, and tell us what's missing. When a tool is ready it moves into the Green Room.</p>
+    <div class="promise pg"><b>Same promise as the Green Room:</b> everything runs in your browser and nothing you open or make is uploaded.</div>
+  </section>
+
+  <section class="group">
+    <h2>Make & edit audio</h2>
+    <p class="sub">For the TikTok edit, the practice room and the tape deck.</p>
+    <div class="cards">
+      <a class="card" href="slowed.html" data-tool="slowed.html"><span class="name">Slowed + Reverb <span class="tag test">TESTING</span></span><span class="what">Make slowed + reverb, sped up, nightcore and 8D edits of any song with a live preview, then export the whole song as WAV or MP3. No uploads, no limits, no watermark.</span></a>
+      <a class="card" href="practice.html" data-tool="practice.html"><span class="name">Practice <span class="tag test">TESTING</span></span><span class="what">Learn songs by ear: slow any part down without changing the pitch, change the key, loop it seamlessly, speed it up bit by bit, and keep your loops and markers for every song.</span></a>
+      <a class="card" href="cassette.html" data-tool="cassette.html"><span class="name">Cassette <span class="tag test">TESTING</span></span><span class="what">Plan a tape release: fit songs onto side A and B, hear them with real tape character, export each side, and print the J-card.</span></a>
+      <a class="card" href="chop.html" data-tool="chop.html"><span class="name">Chop <span class="tag test">TESTING</span></span><span class="what">Chop a sample onto 16 pads, play it with your keys or a MIDI pad, sequence a beat with swing and lo-fi effects, and export it.</span></a>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>Write & learn</h2>
+    <p class="sub">For choirs, worship teams, sessions and anyone learning by ear.</p>
+    <div class="cards">
+      <a class="card" href="parts.html" data-tool="parts.html"><span class="name">Learning Tracks <span class="tag test">TESTING</span></span><span class="what">Turn a choir, barbershop or a cappella score into rehearsal tracks: every part loud, missing or alone, at any tempo, with count-in and pitch pipe, all in one zip.</span></a>
+      <a class="card" href="setlist.html" data-tool="setlist.html"><span class="name">Set List <span class="tag test">TESTING</span></span><span class="what">Chord charts and set lists for bands and worship teams: transpose, capo, numbers, a big stage view, a projector view and clean printouts.</span></a>
+      <a class="card" href="tunebook.html" data-tool="tunebook.html"><span class="name">Tune Book <span class="tag test">TESTING</span></span><span class="what">Folk, trad and polka tunes in ABC: see the sheet music, hear it on accordion, fiddle or whistle with oom-pah backing, loop the hard part, speed up slowly, build sets and print a tune book.</span></a>
+      <a class="card" href="tabs.html" data-tool="tabs.html"><span class="name">Tabs <span class="tag test">TESTING</span></span><span class="what">Write and print tabs for kalimba, handpan and tongue drum, hear them played back, and move a tune between instruments and tunings.</span></a>
+      <a class="card" href="ear.html" data-tool="ear.html"><span class="name">Ear <span class="tag test">TESTING</span></span><span class="what">An ear trainer that learns what you miss: intervals, chords, scale degrees, progressions and short melodies, answered by tapping or singing.</span></a>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>Beats, chips & games</h2>
+    <p class="sub">For drummers who don't own drums, chip musicians and game makers.</p>
+    <div class="cards">
+      <a class="card" href="drums.html" data-tool="drums.html"><span class="name">Drums <span class="tag test">TESTING</span></span><span class="what">Program drums by song section, from blast beats to shuffles, with fills, humanize and odd meters. Export MIDI for your drum plugin, or audio.</span></a>
+      <a class="card" href="chip.html" data-tool="chip.html"><span class="name">Chip <span class="tag test">TESTING</span></span><span class="what">Write chiptune in a friendly piano roll on real 2A03 and DMG chip voices. Chip mode keeps it hardware-legal and explains every limit. Export WAV, MP3, synced stems and MIDI.</span></a>
+      <a class="card" href="chipguitar.html" data-tool="chipguitar.html"><span class="name">Chip Guitar <span class="tag test">TESTING</span></span><span class="what">Turn your guitar into a sound chip. It tracks each note in milliseconds and plays it on chip voices, with arpeggios in your key, bit crush and a recorder. The test bed for an ENCORE. chip pedal.</span></a>
+      <a class="card" href="sfx.html" data-tool="sfx.html"><span class="name">SFX <span class="tag test">TESTING</span></span><span class="what">Sound effects for games and videos: coins, jumps, lasers, explosions. Randomize, tweak every knob and export a whole pack.</span></a>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>Voice</h2>
+    <p class="sub">Make your own singing voice.</p>
+    <div class="cards">
+      <a class="card" href="voicebank.html" data-tool="voicebank.html"><span class="name">Voicebank <span class="tag test">TESTING</span></span><span class="what">Record your own singing voicebank for OpenUtau, in Japanese or English. It plays the note, checks every take, sets the timing and packs the zip.</span></a>
+    </div>
+  </section>
+</main>
+</body>
+</html>

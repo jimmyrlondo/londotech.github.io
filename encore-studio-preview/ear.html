@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ear · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+
+
+  /* ENCORE. Ear */
+  main { padding-bottom: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 12px 16px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(520px, 7fr) minmax(0, 4fr); }
+    .layout > .panel { position: static; height: calc(100vh - 92px); height: calc(100dvh - 92px); overflow: hidden; }
+    .tabsBox { height: calc(100vh - 92px); height: calc(100dvh - 92px); display: flex; flex-direction: column; }
+    .tabBody { flex: 1; max-height: none; overflow-y: auto; }
+  }
+  .head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .toolName { font-weight: 800; font-size: 18px; }
+  .pgChip { font-size: 10px; font-weight: 800; letter-spacing: .08em; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 2px 6px; line-height: 1.2; }
+  .back { font-size: 13px; color: var(--dim); text-decoration: none; margin-left: auto; }
+  .back:hover { color: var(--text); }
+  .modes { display: flex; gap: 4px; flex-wrap: wrap; }
+  .modes button { font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 7px 14px; min-height: 38px; cursor: pointer; }
+  .modes button:hover { color: var(--text); }
+  .modes button.on { background: #ff3b00; border-color: #ff3b00; color: #fff; }
+  .stats { display: grid; grid-template-columns: 2fr 1fr 1fr 1.3fr; gap: 8px; }
+  .stat { background: var(--bg-subtle-default); border-radius: 10px; padding: 7px 10px; min-width: 0; }
+  .stat b { display: block; font-size: 18px; font-weight: 800; line-height: 1.2; font-family: var(--family-mono); }
+  .stat span { font-size: 11px; color: var(--dim); }
+  .goalBar { height: 5px; background: var(--divider); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .goalBar i { display: block; height: 100%; width: 0; background: var(--green); transition: width .3s; }
+  .card { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--divider); border-radius: 12px; padding: 14px; background: var(--bg-subtle-default); overflow: hidden; }
+  .prompt { font-size: clamp(20px, 2.2vw, 26px); font-weight: 800; line-height: 1.2; }
+  .sub { color: var(--soft); font-size: 14px; }
+  .qRow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .go2 { font-weight: 800; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 10px 22px; min-height: 44px; cursor: pointer; font-size: 15px; }
+  .go2:hover { background: #ff6c40; }
+  .pill { font: inherit; font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 13px; min-height: 40px; cursor: pointer; }
+  .pill:hover { border-color: var(--soft); }
+  .pill:disabled { opacity: .4; cursor: default; }
+  .pill.on { border-color: #ff3b00; color: #ff3b00; }
+  .answers { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+  .answers.seven { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .ans { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 8px 4px; min-height: 72px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; position: relative; }
+  .ans b { font-size: 22px; font-weight: 800; line-height: 1.1; }
+  .ans small { font-size: 11px; color: var(--dim); line-height: 1.2; text-align: center; }
+  .ans kbd { position: absolute; top: 3px; right: 5px; font-family: var(--family-mono); font-size: 9px; color: var(--dim); }
+  .ans:hover:not(:disabled) { border-color: #ff3b00; }
+  .ans:disabled { opacity: .3; cursor: default; }
+  .ans.ok { border-color: var(--green); background: rgb(34 197 94 / .14); opacity: 1; }
+  .ans.bad { border-color: var(--red); background: rgb(239 68 68 / .14); opacity: 1; }
+  .slots { display: flex; gap: 6px; flex-wrap: wrap; min-height: 34px; align-items: center; }
+  .slot { font-family: var(--family-mono); font-weight: 700; font-size: 15px; min-width: 40px; text-align: center; border-bottom: 2px solid var(--divider-strong); padding: 3px 6px; }
+  .slot.given { color: var(--dim); }
+  .slot.cur { border-color: #ff3b00; }
+  .slot.ok { color: var(--green); border-color: var(--green); } .slot.bad { color: var(--red); border-color: var(--red); }
+  .why { border-top: 1px solid var(--divider); padding-top: 10px; min-height: 0; overflow-y: auto; }
+  .why h4 { margin: 0 0 4px; font-size: 17px; }
+  .why h4.ok { color: var(--green); } .why h4.bad { color: var(--red); }
+  .why p { font-size: 14px; color: var(--soft); margin: 0 0 6px; }
+  .kb { height: 64px; width: 100%; display: block; margin-top: auto; }
+  .kb svg { width: 100%; height: 100%; display: block; border-radius: 6px; }
+  .heard { font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
+  .note { background: var(--bg-subtle-default); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--soft); margin: 8px 0; }
+  .note.unlock { border-left: 3px solid var(--green); color: var(--text); }
+  .bars { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+  .bars li { display: grid; grid-template-columns: 92px 1fr 44px; gap: 8px; align-items: center; padding: 3px 0; }
+  .bars li span:first-child { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bars .bar2 { height: 8px; border-radius: 4px; background: var(--divider); overflow: hidden; }
+  .bars .bar2 i { display: block; height: 100%; }
+  .bars li.empty { display: block; }
+  .bars li.empty span { font-family: inherit; }
+  .bars li span:last-child { font-family: var(--family-mono); color: var(--soft); text-align: right; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips label { flex-direction: row; align-items: center; gap: 5px; font-size: 13px; color: var(--text); border: 1px solid var(--divider-strong); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+  .chips input { accent-color: #ff3b00; }
+  .explore { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  .loading { font-size: 12px; color: var(--dim); }
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+    .answers.seven { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .back { display: none; }
+  }
+</style>
+
+<link rel="stylesheet" href="suite-nav.css">
+<script type="module" src="gr-shell.js"></script>
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Ear trainer">
+    <div class="head">
+      <span class="toolName">Ear</span><span class="pgChip">PLAYGROUND</span>
+      <span class="loading" id="loading"></span>
+      <a class="back" href="playground.html">&larr; Playground</a>
+    </div>
+    <div class="modes" id="modes" role="tablist" aria-label="What to train"></div>
+    <div class="stats">
+      <div class="stat"><b id="sToday">0 / 30</b><span>today's goal</span><div class="goalBar"><i id="sGoal"></i></div></div>
+      <div class="stat"><b id="sDays">0</b><span>day streak</span></div>
+      <div class="stat"><b id="sRow">0</b><span>in a row</span></div>
+      <div class="stat"><b id="sLevel">3 of 7</b><span id="sLevelLabel">in play</span></div>
+    </div>
+    <div class="card" id="card">
+      <div>
+        <div class="prompt" id="prompt">Ready when you are</div>
+        <div class="sub" id="sub">Press Start (or Enter). You'll hear the question, then pick the answer.</div>
+      </div>
+      <div class="qRow">
+        <button class="go2" id="startBtn">Start</button>
+        <button class="pill" id="replayBtn" title="Hear the question again (R)" disabled>Hear it again</button>
+        <button class="pill" id="keyBtn" title="Hear the key again (K)" disabled>Hear the key</button>
+        <button class="pill" id="singBtn" title="Sing your answer (M)">Sing it</button>
+        <span class="heard" id="heard"></span>
+      </div>
+      <div class="slots" id="slots"></div>
+      <div class="answers" id="answers"></div>
+      <div class="why" id="why" aria-live="polite"></div>
+      <div class="kb" id="kb" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Ear">
+      <button role="tab" data-tab="progress" class="on">Progress</button>
+      <button role="tab" data-tab="settings">Settings</button>
+      <button role="tab" data-tab="explore">Explore</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="progress" class="show">
+        <div id="unlock"></div>
+        <h3>This session</h3>
+        <p class="tip" style="margin-top:0" id="session">No answers yet.</p>
+        <h3 id="weakTitle">Weakest first</h3>
+        <ul class="bars" id="weak"></ul>
+        <h3>Mixed up most</h3>
+        <ul class="bars" id="confused"></ul>
+        <h3>Last 7 days</h3>
+        <ul class="bars" id="week"></ul>
+        <div class="row" style="margin-top:12px"><button class="small" id="easierBtn" style="flex:none">Make it easier</button><button class="small" id="resetBtn" style="flex:none">Reset my progress</button></div>
+      </section>
+
+      <section data-tab="settings">
+        <h3>Daily goal</h3>
+        <label>Questions a day<select id="fGoal"><option value="10">10 (a quick check)</option><option value="20">20</option><option value="30" selected>30 (about 5 minutes)</option><option value="50">50</option><option value="100">100</option></select></label>
+        <h3>Sound</h3>
+        <div class="row">
+          <label>Instrument<select id="fInst"><option>Piano</option><option value="Classical guitar">Guitar</option><option>Organ</option><option>Vibraphone</option><option value="synth">Synth (no download)</option></select></label>
+          <label>Speed<select id="fSpeed"><option value="0.8">Relaxed</option><option value="1" selected>Normal</option><option value="1.3">Quick</option></select></label>
+        </div>
+        <label class="toggle"><input type="checkbox" id="fAuto" checked> Go to the next question after a right answer</label>
+        <h3 id="setTitle">Scale degrees</h3>
+        <div id="modeSettings"></div>
+        <h3>Choose what's in play</h3>
+        <p class="tip" style="margin-top:0">Leave these alone and ENCORE. adds new ones as you get good. Tick two or more to pick them yourself.</p>
+        <div class="chips" id="chips"></div>
+        <div class="row" style="margin-top:8px"><button class="small" id="chipsClear" style="flex:none">Back to automatic</button></div>
+      </section>
+
+      <section data-tab="explore">
+        <p class="tip" style="margin-top:0">No score here. Click anything to hear it, as often as you like.</p>
+        <div class="explore" id="explore"></div>
+        <div class="note" id="exploreWhy">Pick one to hear it and read what to listen for.</div>
+      </section>
+
+      <section data-tab="help">
+        <h3>How it works</h3>
+        <p>Each question plays something, you answer with a button, a key or your voice, and you find out at once why it was right or wrong. On a miss you can hear your answer and the right one back to back.</p>
+        <h3>The five drills</h3>
+        <p><b>Scale degrees</b> (the best place to start): you hear the key, then one note, and name its number in the scale. After you answer, the note walks home so you feel its pull. This is how most musicians learn to hear melodies.</p>
+        <p><b>Intervals:</b> the distance between two notes, rising, falling or together. <b>Chords:</b> major, minor and more. <b>Progressions:</b> name the chords after I (home). <b>Melody:</b> write a short tune by its scale numbers.</p>
+        <h3>It adapts to you</h3>
+        <p>Every item (degree 7, a minor 6th, the IV chord) keeps its own score. Ones you miss come back sooner, ones you know come back less, and when you mix two up they come back as a pair. You start with a few; a new one joins once you're getting the others right about 9 times in 10.</p>
+        <h3>Singing an answer</h3>
+        <p>Press "Sing it" and sing the note you heard (any octave). Scale degrees and melodies: sing the note. Intervals: sing the second note. Hold it steady for a moment. Headphones help.</p>
+        <h3>Keys</h3>
+        <div class="keys"><kbd>1-9</kbd><span>Answer (the small number on each button)</span><kbd>R</kbd><span>Hear it again</span><kbd>K</kbd><span>Hear the key</span><kbd>Enter</kbd><span>Start / next question</span><kbd>M</kbd><span>Sing it</span></div>
+        <h3>Your progress</h3>
+        <p class="tip">Kept in this browser on this device. Nothing is uploaded. Instrument sounds load the first time you use them.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<script type="module" src="ear.js"></script>
+</body>
+</html>
