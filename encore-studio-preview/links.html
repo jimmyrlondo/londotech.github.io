@@ -151,6 +151,74 @@
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 16px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); max-width: min(560px, 92vw); width: max-content; text-align: center; }
   .mtabs { display: none; }
 
+  /* ---------- Green Room revamp (2026-11): one premium surface language ---------- */
+  .panel { border-radius: 16px; }
+  .head { min-height: 56px; padding: 10px 14px 10px 16px; }
+  .head h2 { font-size: 15.5px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+  .hIcon { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; flex: none; color: var(--gr-orange-2); background: var(--gr-raise-3); border: 1px solid var(--gr-line); box-shadow: var(--gr-hi); }
+  .hIcon .grIcon { width: 15px; height: 15px; }
+  .btn { min-height: 36px; padding: 0 15px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  .btn:hover:not(:disabled) { background: var(--gr-raise-3); border-color: rgb(255 59 0 / .45); }
+  .btn.sm { min-height: 30px; padding: 0 12px; }
+  .head .btn.go { min-height: 34px; padding: 0 16px; }
+  .seg button { min-height: 30px; }
+  .seg.full button { min-height: 32px; }
+  input.t, select.t { min-height: 38px; border-radius: 10px; padding: 0 12px; }
+  textarea.t { border-radius: 12px; padding: 9px 12px; }
+  .lbl { font-size: 11px; letter-spacing: .12em; color: var(--dim); margin: 20px 0 8px; }
+  .lbl .dim { font-size: 12px; opacity: .85; }
+  .fl { gap: 6px; }
+  .fl .flh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .fl .flh .dim { font-weight: 600; font-size: 12px; }
+  .help { line-height: 1.5; }
+  /* tabs: a pill track like the rest of Green Room */
+  .ttabs { margin: 10px 10px 0; padding: 4px; gap: 4px; border: 1px solid var(--gr-line); border-radius: 999px; background: var(--gr-raise-2); box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); }
+  .ttabs button { border-radius: 999px; min-height: 34px; padding: 0 6px; font-size: 13px; }
+  .ttabs button:hover:not(.on) { color: var(--text); }
+  .ttabs button.on { background: var(--gr-grad); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  .tbody { padding: 14px 16px 22px; }
+  /* releases */
+  #lib { padding: 8px !important; }
+  .rel { padding: 8px; border-radius: 12px; gap: 12px; margin-bottom: 2px; }
+  .rel img, .rel .noart { width: 44px; height: 44px; border-radius: 8px; box-shadow: 0 6px 14px -8px rgb(0 0 0 / .9), 0 0 0 1px rgb(255 255 255 / .06); }
+  .rel .noart { background: var(--gr-raise-3); }
+  .rel b { font-size: 14px; letter-spacing: -0.005em; }
+  .rel.on { background: rgb(255 59 0 / .1); box-shadow: inset 0 0 0 1px rgb(255 59 0 / .35); }
+  .chip { font-size: 10px; letter-spacing: .1em; padding: 2px 7px; background: var(--gr-raise-3); border-color: var(--gr-line-strong); font-style: normal; }
+  .chip.pre { background: rgb(255 59 0 / .12); border-color: rgb(255 59 0 / .5); }
+  #delPage { background: transparent; box-shadow: none; border-color: transparent; color: var(--dim); font-weight: 600; }
+  #delPage:hover { color: #ff8a8a; border-color: rgb(239 68 68 / .35); background: rgb(239 68 68 / .06); }
+  .libfoot { padding: 12px; border-top-color: var(--gr-line); }
+  /* editor cards and link rows */
+  .card { border-radius: 14px; padding: 14px; }
+  .find input { min-height: 40px; }
+  .find .btn.go { min-height: 40px; padding: 0 18px; }
+  .lrow { border-radius: 14px; padding: 10px 8px 10px 10px; gap: 10px; background: var(--gr-raise-2); border-color: var(--gr-line); box-shadow: var(--gr-hi); margin-bottom: 8px; }
+  .lrow:hover { border-color: var(--gr-line-strong); }
+  .lrow .lic { width: 34px; height: 34px; border-radius: 9px; margin-top: 0; box-shadow: 0 4px 10px -4px rgb(0 0 0 / .8); }
+  .lrow .lmain { gap: 6px; }
+  .lrow .lline input, .lrow .lurl { min-height: 32px; padding: 0 10px; border-radius: 9px; background: var(--gr-raise-1); }
+  .lrow .lline .lname { font-weight: 700; }
+  .lrow .lurl { color: var(--soft); font-size: 11.5px; }
+  .lrow .lbtns { align-self: center; }
+  .addrow select.t { border-style: dashed; background-color: transparent; color: var(--soft); }
+  .addrow select.t:hover { color: var(--text); border-color: rgb(255 59 0 / .5); }
+  details.more summary { padding: 4px 0; }
+  .th { border-radius: 14px; background: var(--gr-raise-2); border-color: var(--gr-line); box-shadow: var(--gr-hi); }
+  .th .sw { height: 62px; }
+  .qrbox canvas { width: 140px; height: 140px; border-radius: 12px; padding: 6px; box-shadow: 0 12px 30px -14px rgb(0 0 0 / .9); }
+  .qurl { font-size: 11.5px; line-height: 1.5; color: var(--soft); }
+  .steps li::marker { color: var(--gr-orange-2); font-weight: 800; }
+  #dlHtml { min-height: 44px; padding: 0 22px; font-size: 14px; }
+  #dlSize { font-family: var(--family-mono); font-variant-numeric: tabular-nums; }
+  /* the phone */
+  .stage { background: radial-gradient(55% 60% at 50% 45%, rgb(255 59 0 / .11), transparent 70%), radial-gradient(circle at 50% 100%, rgb(34 211 238 / .035), transparent 60%), #0d0b0a;
+           border-top: 1px solid var(--gr-line); border-bottom: 1px solid var(--gr-line); border-radius: 0; }
+  .phone { background: linear-gradient(160deg, #2a2522, #0d0b0a 45%, #1c1816); box-shadow: 0 0 0 1px #4a423c, inset 0 0 0 1.5px #000, inset 0 1px 0 rgb(255 255 255 / .12), 0 40px 90px -24px #000, 0 0 120px -40px rgb(255 59 0 / .5); }
+  .screen { box-shadow: 0 0 0 1px #000; }
+  .pvnote { padding: 0 14px 12px; }
+  @media (max-width: 1360px) { #previewPanel .hIcon { display: none; } .pvhead .seg button { padding: 4px 9px; } }
+
   @media (max-width: 1240px) { main { grid-template-columns: 200px 420px minmax(0, 1fr); } }
   @media (max-width: 1060px) { main { grid-template-columns: 170px 380px minmax(0, 1fr); } }
   /* a phone: one panel at a time, picked from the row at the top */
@@ -214,7 +282,7 @@
           <label class="fl">Title<input class="t" id="title" placeholder="Song or album title" autocomplete="off"></label>
           <label class="fl">Artist<input class="t" id="artist" placeholder="Your artist name" autocomplete="off"></label>
         </div>
-        <label class="fl" style="margin-top:8px">A line for fans <span class="dim" style="font-weight:600">(optional)</span><textarea class="t" id="blurb" rows="2" maxlength="200" placeholder="New single, out everywhere. Thank you for listening."></textarea></label>
+        <label class="fl" style="margin-top:10px"><span class="flh">A line for fans <span class="dim">optional</span></span><textarea class="t" id="blurb" rows="2" maxlength="200" placeholder="New single, out everywhere. Thank you for listening."></textarea></label>
 
         <div class="lbl">Cover art</div>
         <div class="cover">
@@ -276,7 +344,7 @@
             <label class="fl">Heading<input class="t" id="suHeading" placeholder="Get new music first"></label>
             <label class="fl">Button<input class="t" id="suButton" placeholder="Sign up"></label>
           </div>
-          <label class="fl" style="margin-top:8px">Small print <span class="dim" style="font-weight:600">(optional)</span><input class="t" id="suNote" placeholder="One email per release. No spam."></label>
+          <label class="fl" style="margin-top:10px"><span class="flh">Small print <span class="dim">optional</span></span><input class="t" id="suNote" placeholder="One email per release. No spam."></label>
           <details class="more" open>
             <summary>Where do I find this in Kit?</summary>
             <ol class="steps">

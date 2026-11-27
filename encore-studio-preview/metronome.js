@@ -293,8 +293,9 @@ function drawPoly(ev, frac) {
     g.beginPath(); g.arc(X(p), mid + 16, on ? 8 : 6, 0, 2 * Math.PI); g.fill();
   }
   if (at >= 0) { g.fillStyle = 'rgb(242 239 232 / 0.6)'; g.fillRect(X(at) - 1, 2, 2, h - 4); }
-  g.fillStyle = '#91887d'; g.font = '11px DM Sans, sans-serif';
-  g.fillText(`${n} over ${top}`, x0, h - 2);
+  g.fillStyle = '#91887d'; g.font = '700 10.5px "Space Mono", monospace'; g.textAlign = 'right';
+  g.fillText(`${n} OVER ${top}`, x1, h - 6);
+  g.textAlign = 'left';
 }
 
 // ---- tempo: the big number (drag, scroll, tap to type), the slider, steps, tap tempo

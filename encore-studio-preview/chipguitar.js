@@ -61,7 +61,14 @@ function drawHist() {
   const vals = hist.flatMap((p) => [p.raw, p.out]).filter((v) => v != null);
   let lo = vals.length ? Math.floor(Math.min(...vals)) - 3 : 38, hi = vals.length ? Math.ceil(Math.max(...vals)) + 3 : 66;
   if (hi - lo < 24) { const c = (hi + lo) / 2; lo = Math.round(c - 12); hi = lo + 24; }
-  const y = (m) => h - ((m - lo) / (hi - lo)) * h;
+  const y = (m) => h - 12 - ((m - lo) / (hi - lo)) * (h - 24);
+  if (!hist.length) { // first load: say what this lane will show
+    g.textBaseline = "middle"; g.textAlign = "center"; g.fillStyle = "rgba(242,239,232,0.55)"; g.font = "600 14px 'DM Sans', system-ui, sans-serif";
+    g.fillText("Your pitch history shows here", w / 2, h / 2 - 10);
+    g.fillStyle = "rgba(242,239,232,0.32)"; g.font = "12px 'DM Sans', system-ui, sans-serif";
+    g.fillText("Play a note: your pitch in grey, the chip's notes in orange", w / 2, h / 2 + 12);
+    g.textAlign = "start"; return;
+  }
   g.font = "10px 'Space Mono', monospace"; g.textBaseline = "middle";
   for (let m = lo; m <= hi; m++) {
     if (m % 12 === 0 || m % 12 === 4 || m % 12 === 7) { g.fillStyle = "rgba(255,255,255,0.07)"; g.fillRect(0, Math.round(y(m)), w, 1); g.fillStyle = "rgba(255,255,255,0.35)"; g.fillText(noteName(m), 4, y(m)); }
@@ -303,6 +310,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 renderControls(); renderPresets();
+requestAnimationFrame(() => drawHist());
+addEventListener("resize", () => drawHist());
 if (navigator.mediaDevices?.enumerateDevices) listDevices();
 
 window.__chipguitar = () => ({ source, mic: !!micStream, audio: !!node, recording, takes, meter: lastMeter, params: { ...params }, latency: { ...latency }, file: !!fileBuf, render: window.__cgRender || null });

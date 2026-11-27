@@ -26,44 +26,103 @@
   .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
   .tools::-webkit-scrollbar { display: none; }
   @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
-  main { max-width: 1240px; padding: 28px 20px 40px; }
-  .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: center; }
-  .hero:has(.shots) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
-  @media (max-width: 900px) { .hero:has(.shots) { grid-template-columns: minmax(0, 1fr); } }
-  .kicker { font-size: 12px; letter-spacing: .1em; color: var(--soft); font-weight: 700; }
-  .hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.03em; margin: 8px 0 14px; }
-  .lede { font-size: 18px; color: var(--soft); max-width: 640px; margin: 0 0 22px; }
+  /* product page (2026-11 revamp) */
+  main { max-width: 1280px; padding: 0 24px 64px; }
   [hidden] { display: none !important; }
+  .kicker { font-size: 11.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--gr-orange-2, #ff6a2b); }
+  .hero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; align-items: center; padding: 40px 0 48px; min-height: min(calc(100vh - 60px - 156px), 820px); }
+  body { overflow-x: clip; }
+  @media (min-width: 1200px) { .hero .stage { width: 116%; } }
+  @media (min-width: 980px) { .hero { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; } }
+  .hero h1 { font-size: clamp(40px, 4.3vw, 62px); line-height: 1; letter-spacing: -0.045em; margin: 14px 0 18px; font-weight: 800; }
+  .hero h1 .dim { display: block; color: var(--soft); }
+  .lede { font-size: 18.5px; line-height: 1.55; color: var(--soft); max-width: 560px; margin: 0 0 26px; }
   .dl { display: flex; gap: 10px; flex-wrap: wrap; }
-  .dl a { font-weight: 700; text-decoration: none; border-radius: 999px; padding: 13px 24px; font-size: 16px; }
-  .dl .go { color: #fff; background: #ff3b00; }
-  .dl .go:hover { background: #ff5520; }
-  .dl .ghost { color: var(--text); border: 1px solid var(--divider-strong); }
-  .dl .ghost:hover { border-color: var(--soft); }
-  .ver { color: var(--dim); font-size: 13px; margin-top: 12px; }
-  details.first { margin-top: 10px; font-size: 13px; color: var(--soft); }
-  details.first summary { cursor: pointer; color: var(--dim); }
-  details.first p { margin: 6px 0 0; }
-  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .shots figure:first-child { grid-column: 1 / -1; }
-  .shots img { cursor: zoom-in; }
-  .shots figure { margin: 0; }
-  .shots img { width: 100%; display: block; border-radius: 12px; border: 1px solid var(--divider); }
-  .shots figcaption { font-size: 12px; color: var(--dim); margin-top: 4px; }
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 34px; }
-  .feat { background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 16px 18px; }
-  .feat h3 { margin: 0 0 6px; font-size: 16px; }
-  .feat p { margin: 0; color: var(--soft); font-size: 14px; }
-  .linux { margin-top: 34px; background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 18px 20px; }
-  .linux h2 { margin: 0 0 6px; font-size: 20px; } .linux > p { margin: 0 0 12px; color: var(--soft); font-size: 14px; }
-  .lnx { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-  .lnx h3 { margin: 0 0 8px; font-size: 15px; }
-  .lnx .pill { display: inline-block; text-decoration: none; font-weight: 700; border-radius: 999px; padding: 10px 18px; margin: 0 8px 8px 0; color: #fff; background: #ff3b00; font-size: 14px; }
-  .lnx .pill.alt { background: transparent; color: var(--text); border: 1px solid var(--divider-strong); }
+  .dl a, .cta a { display: inline-flex; align-items: center; gap: 8px; height: 50px; padding: 0 26px; font-weight: 800; font-size: 16px; text-decoration: none; border-radius: 999px; transition: filter .15s, background .15s, border-color .15s; }
+  .dl .go, .cta .go { color: #fff; background: var(--gr-grad); border: 1px solid rgb(255 120 70 / .55); box-shadow: var(--gr-hi), var(--gr-glow); }
+  .dl .go:hover, .cta .go:hover { filter: brightness(1.08); }
+  .dl .ghost, .cta .ghost { color: var(--text); background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); font-weight: 700; }
+  .dl .ghost:hover, .cta .ghost:hover { background: var(--gr-raise-3); }
+  .cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .soon { display: flex; gap: 14px; align-items: flex-start; max-width: 560px; padding: 16px 18px; border-radius: 16px; color: var(--soft); font-size: 14.5px; line-height: 1.5;
+    background: linear-gradient(180deg, rgb(255 59 0 / .09), rgb(255 59 0 / .03)); border: 1px solid rgb(255 90 31 / .3); box-shadow: var(--gr-hi); }
+  .soon b { color: var(--text); display: block; font-size: 15.5px; margin-bottom: 2px; }
+  .soon .pulse { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--gr-orange); box-shadow: 0 0 0 4px rgb(255 59 0 / .18); }
+  .ver { color: var(--dim); font-size: 13.5px; margin-top: 18px; max-width: 560px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .chips span { font: 600 12px/1 var(--family-mono); color: var(--soft); padding: 7px 10px; border-radius: 999px; background: var(--gr-raise-2); border: 1px solid var(--gr-line); }
+  details.first { margin-top: 16px; font-size: 13.5px; color: var(--soft); max-width: 560px; }
+  details.first summary { cursor: pointer; color: var(--soft); font-weight: 600; }
+  details.first summary:hover { color: var(--text); }
+  details.first p { margin: 8px 0 0; line-height: 1.6; }
+
+  /* screenshots in a window frame, with the brand glow behind */
+  .stage { position: relative; }
+  .stage::before { content: ""; position: absolute; inset: 8% -4% -6% 6%; background: radial-gradient(closest-side, rgb(255 59 0 / .42), transparent 75%); filter: blur(34px); z-index: 0; pointer-events: none; }
+  .frame { position: relative; z-index: 1; margin: 0; border-radius: 16px; overflow: hidden; background: #0d0b0a; border: 1px solid var(--gr-line-strong);
+    box-shadow: 0 1px 0 rgb(255 255 255 / .06) inset, 0 40px 80px -30px rgb(0 0 0 / .9), 0 0 0 1px rgb(0 0 0 / .5); }
+  .frame img { display: block; width: 100%; height: auto; }
+  .frame a { display: block; cursor: zoom-in; }
+  .float { position: absolute; z-index: 2; width: 38%; left: -7%; bottom: -12%; border-radius: 14px; }
+  @media (max-width: 979px) { .float { display: none; } }
+  .caption { position: relative; z-index: 1; font-size: 12.5px; color: var(--dim); margin-top: 14px; text-align: center; }
+
+  /* the numbers */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; margin: 8px 0 88px; border-radius: 18px; overflow: hidden;
+    background: var(--gr-line); border: 1px solid var(--gr-line); box-shadow: var(--gr-shadow); }
+  .stat { background: var(--gr-raise-1); padding: 22px 24px; }
+  .stat b { display: block; font: 700 24px/1.15 var(--family-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--text); }
+  .stat b em { font-style: normal; color: var(--gr-orange-2); }
+  .stat span { display: block; margin-top: 6px; font-size: 14px; color: var(--soft); }
+
+  /* feature rows: picture one side, words the other */
+  .rows { display: grid; gap: 104px; margin: 0 0 96px; }
+  .stats + .rows { margin-top: 0; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; align-items: center; }
+  @media (min-width: 900px) { .row { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; } .row.flip { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } .row.flip .stage { order: 2; } }
+  .row h2 { font-size: clamp(28px, 3vw, 40px); line-height: 1.08; letter-spacing: -0.035em; margin: 10px 0 14px; }
+  .row p { color: var(--soft); font-size: 16.5px; line-height: 1.6; margin: 0 0 18px; }
+  .ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .ticks li { position: relative; padding-left: 30px; color: var(--text); font-size: 15px; line-height: 1.5; }
+  .ticks li::before { content: ""; position: absolute; left: 0; top: 2px; width: 18px; height: 18px; border-radius: 6px; background: rgb(255 59 0 / .14); box-shadow: inset 0 0 0 1px rgb(255 90 31 / .45); }
+  .ticks li::after { content: ""; position: absolute; left: 7px; top: 6px; width: 4px; height: 8px; border: solid var(--gr-orange-2); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .tag { font: 700 11px/1 var(--family-mono); letter-spacing: .08em; color: var(--soft); border: 1px solid var(--gr-line-strong); background: var(--gr-raise-2); border-radius: 999px; padding: 5px 9px; vertical-align: middle; }
+
+  /* everything else, as cards */
+  .sectionHead { text-align: center; max-width: 660px; margin: 0 auto 36px; }
+  .sectionHead h2 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.035em; line-height: 1.1; margin: 10px 0 10px; }
+  .sectionHead p { color: var(--soft); margin: 0; font-size: 16px; }
+  .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .feat { position: relative; background: var(--gr-raise-1); background-image: linear-gradient(180deg, rgb(255 255 255 / .02), transparent 120px); border: 1px solid var(--gr-line);
+    border-radius: 18px; padding: 22px 22px 20px; box-shadow: var(--gr-hi), var(--gr-shadow); }
+  .feat .ic { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; margin-bottom: 14px; color: var(--gr-orange-2);
+    background: var(--gr-raise-3); border: 1px solid var(--gr-line); box-shadow: var(--gr-hi); }
+  .feat .ic svg { width: 21px; height: 21px; }
+  .feat h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -0.01em; }
+  .feat p { margin: 0; color: var(--soft); font-size: 14.5px; line-height: 1.55; }
+  .panelBox { background: var(--gr-raise-1); border: 1px solid var(--gr-line); border-radius: 18px; padding: 24px 26px; box-shadow: var(--gr-hi), var(--gr-shadow); }
+  .foot { margin-top: 56px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: center; }
+  @media (max-width: 760px) { .foot { grid-template-columns: minmax(0, 1fr); } }
+  .foot h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.02em; }
+  .foot p { margin: 0; color: var(--soft); font-size: 14.5px; }
+  .foot p a { color: var(--text); }
+  .fine { margin-top: 20px; text-align: center; color: var(--dim); font-size: 13px; }
+  .fine a { color: var(--soft); }
+  @media (max-width: 640px) {
+    main { padding: 0 16px 48px; }
+    .hero { padding: 28px 0 24px; min-height: 0; gap: 28px; }
+    .lede { font-size: 16.5px; }
+    .rows { gap: 64px; }
+    .stats { margin-bottom: 56px; }
+  }
+  .linux { margin: 0 0 96px; }
+  .linux h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.02em; } .linux > p { margin: 0 0 16px; color: var(--soft); font-size: 14.5px; }
+  .lnx { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .lnx h3 { margin: 0 0 10px; font-size: 15px; }
+  .lnx .pill { display: inline-flex; align-items: center; height: 40px; text-decoration: none; font-weight: 700; border-radius: 999px; padding: 0 18px; margin: 0 8px 8px 0; color: #fff; background: var(--gr-grad); box-shadow: var(--gr-hi), var(--gr-glow); font-size: 14px; }
+  .lnx .pill.alt { background: var(--gr-raise-2); color: var(--text); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); }
   .lnx .pill.missing { opacity: .55; }
-  .linux code { font: 12.5px var(--family-mono, monospace); background: var(--bg-subtle-default, #110e0d); padding: 1px 5px; border-radius: 4px; }
-  .foot { margin-top: 26px; display: grid; gap: 6px; color: var(--soft); font-size: 14px; }
-  .foot a { color: var(--text); }
+  .linux code { font: 12.5px var(--family-mono, monospace); background: var(--gr-raise-2); padding: 1px 5px; border-radius: 4px; }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
 <script type="module" src="gr-shell.js"></script>
@@ -78,16 +137,17 @@
 <main>
   <section class="hero">
     <div class="heroText">
-      <div class="kicker">THE ENCORE DESKTOP APP</div>
-      <h1>ENCORE. Basement Studio</h1>
+      <div class="kicker">The ENCORE. desktop studio</div>
+      <h1>ENCORE.<span class="dim">Basement Studio</span></h1>
       <p class="lede">A free studio for bands and home recording. Record every input on your interface at once, edit, mix with the ENCORE. plugins built in, and send finished songs to ENCORE.</p>
-      <div class="ver" id="soon"><b>New downloads are on the way.</b> The next version is being prepared, so downloads are paused for now. Check back soon.</div>
+      <div class="soon" id="soon"><span class="pulse" aria-hidden="true"></span><div><b>New downloads are on the way.</b> The next version is being prepared, so downloads are paused for now. Check back soon.</div></div>
       <div class="dl" id="dl" hidden>
         <a class="go" id="dlWin" href="https://github.com/jimmyrlondo/encore-studio/releases">Download for Windows</a>
         <a class="ghost" id="dlMac" href="https://github.com/jimmyrlondo/encore-studio/releases">Download for Mac</a>
         <a class="ghost" id="dlLinuxBtn" href="#linux">Linux and Raspberry Pi</a>
       </div>
       <div class="ver" id="ver">Free. No account needed. Windows 10/11, macOS (Apple Silicon and Intel), Linux and Raspberry Pi.</div>
+      <div class="chips" aria-label="Runs on"><span>Windows</span><span>macOS</span><span>Linux</span><span>Raspberry Pi</span></div>
       <details class="first">
         <summary>The first time you open it</summary>
         <p><b>Windows:</b> it isn't code-signed yet, so SmartScreen may warn you. Click <b>More info</b>, then <b>Run anyway</b>.<br>
@@ -95,10 +155,36 @@
            <b>Linux and Raspberry Pi:</b> no warnings; see below for which file to pick.</p>
       </details>
     </div>
-    <div class="shots" id="shots" aria-label="Screenshots"></div>
+    <div class="stage" id="shots" aria-label="Screenshots">
+      <figure class="frame"><a href="shots/basement-tracks.jpg" target="_blank" rel="noopener"><img src="shots/basement-tracks.jpg" alt="A band recorded on every input: drums grouped, bass, guitars and vocals" width="1584" height="936"></a></figure>
+      <div class="caption">A band recorded on every input: drums grouped, bass, guitars and vocals</div>
+    </div>
   </section>
 
-  <section class="linux" id="linux" hidden>
+  <section class="stats" aria-label="At a glance">
+    <div class="stat"><b>Every <em>input</em></b><span>Its own track, all recording at once</span></div>
+    <div class="stat"><b><em>4</em> plugins</b><span>ENCORE. Vox, Verb, Equalize and Master, built in</span></div>
+    <div class="stat"><b><em>87</em> instruments</b><span>In the tuner, each with its own tunings</span></div>
+    <div class="stat"><b><em>2</em> min</b><span>Between automatic copies of your song</span></div>
+  </section>
+
+  <section class="rows">
+    <div class="row">
+      <div class="stage"><figure class="frame"><a href="shots/basement-mixer.jpg" target="_blank" rel="noopener"><img src="shots/basement-mixer.jpg" alt="The mixer: effects, groups, sends and the master strip" width="1584" height="936" loading="lazy"></a></figure></div>
+      <div>
+        <div class="kicker">Mix</div>
+        <h2>A real mixer, with the ENCORE. sound built in</h2>
+        <p>Channel strips, sends to shared reverb and delay, group tracks for the whole kit, automation drawn on the tracks, and a master strip.</p>
+        <ul class="ticks">
+          <li>ENCORE. Vox: a whole vocal chain with tune and harmony</li>
+          <li>ENCORE. Verb, Equalize and Master on any track or the mix</li>
+          <li>Your own VST3 plugins too, checked safely so a broken one can't crash it</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="linux panelBox" id="linux" hidden>
     <h2>Linux and Raspberry Pi</h2>
     <p>For 64-bit Raspberry Pi OS (Bookworm or newer) on a Pi 4, Pi 400, Pi 5 or Pi 500, and for Debian 12+ and Ubuntu 22.04+ on a PC. Recording needs a USB audio interface on a Pi (they have no mic input).</p>
     <div class="lnx">
@@ -111,22 +197,31 @@
          <b>Sound:</b> works with your interface through ALSA, JACK or PipeWire.</p></details>
   </section>
 
+  <div class="sectionHead">
+    <div class="kicker">Everything inside</div>
+    <h2>Built for the way bands work</h2>
+    <p>From the first take to a release-ready file, without leaving the basement.</p>
+  </div>
   <section class="features">
-    <div class="feat"><h3>Record the whole band</h3><p>Every input on your interface is its own track, all at once. Meters with clip lights, hear yourself through headphones, loop and punch in.</p></div>
-    <div class="feat"><h3>Low latency, set up for you</h3><p>On Windows it finds your interface's own ASIO driver and switches to it by itself. Templates sized for 2, 4 and 8-input interfaces.</p></div>
-    <div class="feat"><h3>Edit like you mean it</h3><p>Snap to the grid, trim, fades and crossfades, split, takes, clip gain, markers for every verse and chorus, and right-click any clip for the rest.</p></div>
-    <div class="feat"><h3>A real mixer</h3><p>Channel strips, sends to shared reverb and delay, group tracks for the whole kit, automation drawn on the tracks, and a master strip.</p></div>
-    <div class="feat"><h3>ENCORE. plugins, built in</h3><p>ENCORE. Vox (a whole vocal chain with tune and harmony), Verb, Equalize and Master. Your own VST3 plugins work too, checked safely so a broken one can't crash it.</p></div>
-    <div class="feat"><h3>Instruments and MIDI</h3><p>Play your instrument plugins or the built-in synth from a keyboard or pads, edit in a piano roll, quantize, and build beats in the drum grid.</p></div>
-    <div class="feat"><h3>Tuner, metronome, shortcuts</h3><p>A tuner with 87 instruments and their tunings, a metronome with sounds and accents, and every keyboard shortcut yours to change.</p></div>
-    <div class="feat"><h3>Release-ready exports</h3><p>The mix or every track as stems, WAV, FLAC or MP3 at any rate, loudness for streaming, and a release package for ENCORE. with your details and cover.</p></div>
-    <div class="feat"><h3>Safe with your songs</h3><p>Each song is its own folder, an automatic copy every two minutes, and it offers your work back if it ever closes unexpectedly.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4.5"/></svg></span><h3>Record the whole band</h3><p>Every input on your interface is its own track, all at once. Meters with clip lights, hear yourself through headphones, loop and punch in.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg></span><h3>Low latency, set up for you</h3><p>On Windows it finds your interface's own ASIO driver and switches to it by itself. Templates sized for 2, 4 and 8-input interfaces.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/></svg></span><h3>Edit like you mean it</h3><p>Snap to the grid, trim, fades and crossfades, split, takes, clip gain, markers for every verse and chorus, and right-click any clip for the rest.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18M12 3v18M18 3v18"/><rect x="4" y="13" width="4" height="3" rx="1" fill="currentColor"/><rect x="10" y="7" width="4" height="3" rx="1" fill="currentColor"/><rect x="16" y="15" width="4" height="3" rx="1" fill="currentColor"/></svg></span><h3>A real mixer</h3><p>Channel strips, sends to shared reverb and delay, group tracks for the whole kit, automation drawn on the tracks, and a master strip.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5V7M15 2.5V7M6.5 7h11v4a5.5 5.5 0 0 1-11 0zM12 16.5v5"/></svg></span><h3>ENCORE. plugins, built in</h3><p>ENCORE. Vox (a whole vocal chain with tune and harmony), Verb, Equalize and Master. Your own VST3 plugins work too, checked safely so a broken one can't crash it.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8.5 4v16M15.5 4v16"/><path d="M6.8 4v9h3.4V4M13.8 4v9h3.4V4" fill="currentColor"/></svg></span><h3>Instruments and MIDI</h3><p>Play your instrument plugins or the built-in synth from a keyboard or pads, edit in a piano roll, quantize, and build beats in the drum grid.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="m12 13 3.5-5"/><circle cx="12" cy="13" r="1.2" fill="currentColor"/></svg></span><h3>Tuner, metronome, shortcuts</h3><p>A tuner with 87 instruments and their tunings, a metronome with sounds and accents, and every keyboard shortcut yours to change.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 19h16"/></svg></span><h3>Release-ready exports</h3><p>The mix or every track as stems, WAV, FLAC or MP3 at any rate, loudness for streaming, and a release package for ENCORE. with your details and cover.</p></div>
+    <div class="feat"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8.2 7.5 9.5 4.3-1.3 7.5-5 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg></span><h3>Safe with your songs</h3><p>Each song is its own folder, an automatic copy every two minutes, and it offers your work back if it ever closes unexpectedly.</p></div>
   </section>
 
-  <section class="foot">
-    <div><b>Free, no account needed.</b> Powered by Tracktion Engine. Made with JUCE.</div>
-    <div>Pairs with these web tools: master in <a href="master.html">Master</a>, record shows in <a href="live.html">Live</a>, rescue old records in <a href="restore.html">Restore</a>.</div>
+  <section class="foot panelBox">
+    <div>
+      <h2>Free, no account needed.</h2>
+      <p>Pairs with these web tools: master in <a href="master.html">Master</a>, record shows in <a href="live.html">Live</a>, rescue old records in <a href="restore.html">Restore</a>.</p>
+    </div>
+    <div class="cta" style="margin:0"><a class="ghost" href="vst.html">ENCORE. VST for your DAW</a></div>
   </section>
+  <div class="fine">Powered by Tracktion Engine. Made with JUCE.</div>
 </main>
 <script type="module" src="basement.js"></script>
 </body>

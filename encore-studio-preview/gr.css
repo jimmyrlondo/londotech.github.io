@@ -152,12 +152,12 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--gr-orange); }
 input[type="range"]:not(.raw) { accent-color: var(--gr-orange); }
 
 /* drop zones */
-.drop, .dropzone, #drop, .dropZone {
+.drop:not(.side), .dropzone, #drop, .dropZone {
   border-color: rgb(255 106 43 / .35) !important;
   background-image: radial-gradient(600px 200px at 50% 0, rgb(255 59 0 / .07), transparent 70%) !important;
   transition: border-color .15s, background-color .15s;
 }
-.drop:hover, .dropzone:hover, #drop:hover, .dropZone:hover, .drop.over, .dropzone.over, #drop.over { border-color: var(--gr-orange) !important; }
+.drop:not(.side):hover, .dropzone:hover, #drop:hover, .dropZone:hover, .drop.over, .dropzone.over, #drop.over { border-color: var(--gr-orange) !important; }
 
 /* small labels and numbers read like hardware */
 .lbl, .label { letter-spacing: .02em; }

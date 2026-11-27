@@ -360,6 +360,123 @@
   }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<style id="grRevamp">
+/* 2026-11 Green Room revamp: loads after gr.css, so it refines the shared layer for this page */
+  .panel, .tabsBox { border-radius: 18px; }
+  button.small { min-height: 34px; padding: 6px 14px; font-weight: 600; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  button.small:hover:not(:disabled) { background: var(--gr-raise-3); border-color: rgb(242 239 232 / .26); }
+  button.small:disabled { box-shadow: none; }
+  button.danger { color: #f87171; border-color: rgb(239 68 68 / .45); }
+  select, input[type=number], input[type=text], input:not([type]), input[type=date], textarea { border-radius: 10px; padding: 7px 11px; }
+  select, input[type=number], input[type=text], input:not([type]), input[type=date] { min-height: 36px; }
+  label { font-size: 12px; font-weight: 600; color: var(--soft); gap: 6px; }
+  .toggle { font-weight: 500; }
+  .note { line-height: 1.5; }
+  .seg { border-radius: 999px; padding: 3px; background: var(--gr-raise-2); border-color: var(--gr-line); }
+  .seg button { min-height: 30px; padding: 0 13px; }
+  .seg button:hover:not(.on) { color: var(--text); background: var(--gr-raise-3); }
+  .paneSub { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gr-orange-2); margin: 20px 0 8px; }
+  .progress { height: 6px; background: var(--gr-raise-3); }
+  .progress > div { background: var(--gr-grad); box-shadow: 0 0 10px rgb(255 59 0 / .6); }
+
+  /* ---------- the start ---------- */
+  @media (min-width: 1000px) {
+    body:not(.working) main { min-height: calc(100vh - 60px); min-height: calc(100dvh - 60px); display: flex; flex-direction: column; justify-content: center; padding-top: 24px; padding-bottom: 40px; }
+    .startGrid { gap: 18px; align-items: stretch; }
+  }
+  .newBox { position: relative; overflow: hidden; padding: 32px 32px 28px;
+    background-image: radial-gradient(560px 300px at 100% 0%, rgb(255 59 0 / .1), transparent 70%), linear-gradient(180deg, rgb(255 255 255 / .02), transparent 160px); }
+  .newBox > * { position: relative; z-index: 1; }
+  /* a record, half out of its sleeve, behind the heading */
+  .newBox::after { content: ""; position: absolute; z-index: 0; top: -150px; right: -150px; width: 420px; height: 420px; border-radius: 50%; pointer-events: none; opacity: .7;
+    background:
+      radial-gradient(circle, #ff3b00 0 9%, #c42d00 9.5% 14%, transparent 14.5%),
+      repeating-radial-gradient(circle, rgb(255 255 255 / .07) 0 1px, transparent 1px 4px),
+      radial-gradient(circle, #1d1916 0 60%, #0c0a09 100%);
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / .9); }
+  .newKicker { margin-bottom: 10px; }
+  .newBox h1 { font-size: clamp(30px, 4.4vw, 46px); letter-spacing: -0.035em; margin: 0 0 12px; max-width: 70%; }
+  .lead { font-size: 15px; line-height: 1.6; margin-bottom: 22px; max-width: 640px; }
+  .fmtGrid { gap: 8px; }
+  .fmtGrid button { border-radius: 14px; padding: 12px 14px; background: var(--gr-raise-2); border-color: var(--gr-line); box-shadow: var(--gr-hi); transition: border-color .12s, background .12s; }
+  .fmtGrid button:hover { border-color: rgb(242 239 232 / .24); background: var(--gr-raise-3); }
+  .fmtGrid button b { font-size: 14.5px; margin-bottom: 2px; }
+  .fmtGrid button.on { border-color: rgb(255 59 0 / .8); background: linear-gradient(180deg, rgb(255 59 0 / .16), rgb(255 59 0 / .06)); box-shadow: var(--gr-hi), 0 0 0 1px rgb(255 59 0 / .35), 0 10px 24px -14px rgb(255 59 0 / .8); }
+  .newOpts { gap: 12px; margin-top: 18px; }
+  .newGo { margin-top: 18px; }
+  .newGo .go { min-height: 46px; padding: 0 34px; font-size: 15.5px; }
+  .startView #drop { margin-top: 20px; padding: 20px 18px; border-radius: 16px; }
+  .resumeBox { padding: 24px; }
+  .resumeBox h2 { font-size: 11.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gr-orange-2); }
+  .projList:has(> .note:only-child) { flex: 1; justify-content: center; align-items: center; text-align: center; border: 1px dashed var(--gr-line-strong); border-radius: 16px; padding: 28px 20px; margin: 16px 0 12px; }
+  .proj { border-radius: 14px; background: var(--gr-raise-2); border-color: var(--gr-line); box-shadow: var(--gr-hi); padding: 10px 12px; }
+  .proj:hover { border-color: rgb(242 239 232 / .22); }
+  #storageNote { font-size: 12px; color: var(--dim); }
+
+  /* ---------- the work view ---------- */
+  .filebar { padding: 14px 18px; gap: 10px 14px; margin-bottom: 16px; }
+  .fileId h2 { font-size: 17px; letter-spacing: -0.01em; }
+  .fileId .note { font-family: var(--family-mono); font-size: 11.5px; letter-spacing: .02em; }
+  .filebar .go { min-height: 44px; padding: 0 26px; }
+  .status { border-top-color: var(--gr-line); padding-top: 10px; font-size: 12.5px; }
+  .partBar { gap: 6px; }
+  .partBar button { min-height: 32px; padding: 0 13px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  .partBar button[aria-selected="true"] { background: var(--gr-grad); border-color: transparent; box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  .layout { gap: 16px; }
+  @media (min-width: 1000px) {
+    body.working .wavebox { max-height: none; min-height: 160px; }
+    body.working .capWave { max-height: none; }
+  }
+  .listen, .capture { padding: 18px 20px; }
+  .listen .head h2, .capture .head h2 { font-size: 11.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gr-orange-2); }
+  .listen .head, .capture .head { margin-bottom: 12px; }
+  #wave, #capWave, #wowGraph { border-radius: 12px; background: #0e0b0a; box-shadow: inset 0 1px 3px rgb(0 0 0 / .6), 0 0 0 1px var(--gr-line); }
+  .legend { gap: 6px 16px; margin-top: 10px; }
+  .legend i { border-radius: 3px; }
+  .transport { gap: 10px 12px; margin-top: 14px; }
+  #playBtn { width: 48px; height: 48px; background: var(--gr-grad); box-shadow: var(--gr-hi), var(--gr-glow); }
+  #capture .go.rec, button.go.rec { background: linear-gradient(180deg, #f25454, #dc2626) !important; border-color: #f87171 !important; box-shadow: var(--gr-hi), 0 8px 26px -8px rgb(239 68 68 / .7) !important; }
+  .time { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .tools2 { margin-top: 12px; gap: 8px 10px; }
+  .mbar { height: 8px; background: var(--gr-raise-3); }
+
+  .tabBar { margin: 12px 12px 0; padding: 4px; gap: 2px; border: 1px solid var(--gr-line); border-radius: 999px; background: var(--gr-raise-2); box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); }
+  .tabBar button { border-radius: 999px; padding: 0 13px; min-height: 32px; font-size: 13.5px; }
+  .tabBar button[aria-selected="false"]:hover { background: var(--gr-raise-3); }
+  .tabBar .count { font-family: var(--family-mono); font-size: 11.5px; }
+  .tabBody { padding: 14px 20px 20px; }
+  .paneHead { gap: 10px; margin-bottom: 12px; }
+  .trackTools { gap: 8px 10px; margin-bottom: 12px; }
+  table.tracks { font-size: 14px; }
+  table.tracks th { font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding-bottom: 8px; }
+  table.tracks td { padding: 7px 5px; border-top-color: var(--gr-line); }
+  table.tracks td.pos { color: #22d3ee; font-weight: 700; }
+  table.tracks input.t { font-variant-numeric: tabular-nums; }
+  table.tracks td.acts button { min-height: 30px; padding: 0 11px; }
+  table.ov th { font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  table.ov td, table.ov th { border-top-color: var(--gr-line); }
+  .mod { border-top-color: var(--gr-line); }
+  .modRow { min-height: 50px; }
+  .modName { font-size: 14.5px; }
+  .modBody .found { background: var(--gr-raise-2); border-radius: 10px; }
+  .switch span { background: var(--gr-raise-3); box-shadow: inset 0 1px 2px rgb(0 0 0 / .4); }
+  .switch input:checked + span { background: var(--gr-grad); box-shadow: 0 0 12px -2px rgb(255 59 0 / .7); }
+  .findings li { border-top-color: var(--gr-line); padding: 9px 0; }
+  .fmtChecks label { border-radius: 12px; background: var(--gr-raise-2); border-color: var(--gr-line); padding: 10px 12px; }
+  .fmtChecks label:has(input:checked) { border-color: rgb(255 59 0 / .7); background: rgb(255 59 0 / .07); }
+  .img { border-radius: 12px; }
+  nav.jump { gap: 6px; margin: 4px 0 6px; }
+  nav.jump a { padding: 5px 12px; border-radius: 999px; background: var(--gr-raise-2); border: 1px solid var(--gr-line); font-weight: 600; font-size: 12.5px; }
+  nav.jump a:hover { border-color: rgb(242 239 232 / .24); }
+  .banner { border-radius: 12px; }
+
+  @media (max-width: 999px) { .tabBar { margin: 0; border-radius: 18px 18px 0 0; } }
+  @media (max-width: 620px) { .newBox { padding: 20px 16px; } .newBox::after { width: 200px; height: 200px; top: -90px; right: -90px; } .newBox h1 { max-width: none; } }
+  .projList:has(> .note:only-child)::before { content: ""; width: 64px; height: 64px; border-radius: 50%; margin-bottom: 14px; opacity: .8;
+    background: radial-gradient(circle, #ff3b00 0 12%, #0c0a09 13% 16%, transparent 17%), repeating-radial-gradient(circle, rgb(255 255 255 / .07) 0 1px, transparent 1px 3px), radial-gradient(circle, #2a2421, #12100e);
+    box-shadow: 0 10px 24px -10px rgb(0 0 0 / .9); }
+  .projList:has(> .note:only-child) > .note { max-width: 280px; }
+</style>
 <script type="module" src="gr-shell.js"></script>
 </head>
 <body>
@@ -373,6 +490,7 @@
   <section id="startView" class="startView">
     <div class="startGrid">
       <div class="panel newBox">
+        <div class="gr-kicker newKicker">New release</div>
         <h1>Digitize a record.</h1>
         <p class="lead">LPs, 45s, 78s, cassettes, 8-tracks, reels and CDs, a side at a time: record it or open the file, find and name the tracks, fill in the release, restore it, and export a tagged archive. It all stays on this device.</p>
         <div class="fmtGrid" id="fmtGrid" role="radiogroup" aria-label="What are you digitizing?"></div>

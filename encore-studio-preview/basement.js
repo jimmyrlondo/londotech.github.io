@@ -4,15 +4,6 @@
 const $ = id => document.getElementById(id);
 const REPO = 'jimmyrlondo/encore-studio';
 
-// screenshots in shots/ (shown when there are any)
-const SHOTS = [
-  { file: 'basement-tracks.jpg', alt: 'A band recorded on every input: drums grouped, bass, guitars and vocals' },
-  { file: 'basement-mixer.jpg', alt: 'The mixer: effects, groups, sends and the master strip' },
-  { file: 'basement-tuner.jpg', alt: 'The tuner: 87 instruments and their tunings' },
-];
-if (SHOTS.length) $('shots').innerHTML = SHOTS.map(s => `<figure><a href="shots/${s.file}" target="_blank" rel="noopener"><img src="shots/${s.file}" alt="${s.alt}" loading="lazy"></a><figcaption>${s.alt}</figcaption></figure>`).join('');
-else $('shots').remove();
-
 function pick(assets, tests) {
   for (const t of tests) { const a = assets.find(x => t.test(x.name)); if (a) return a; }
   return null;

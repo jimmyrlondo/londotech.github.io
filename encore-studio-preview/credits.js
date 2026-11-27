@@ -2,6 +2,7 @@
 // credits, samples and registrations. The logic lives in credits-core.js; this file is
 // the editor around it. Everything stays in this browser (localStorage); nothing is sent.
 import { loadFile } from "./load-progress.js";
+import { icon } from "./gr-shell.js";
 import {
   esc, checkIsrc, checkIswc, checkUpc, checkIpi, parseDuration, formatDuration, CODE_HELP, PROS, PRO_LINKS, WRITER_ROLES, CREDIT_ROLES, SAMPLE_STATUS, STATUS, RELEASE_TYPES, EXPLICIT,
   SONG_CHECKLIST, RELEASE_CHECKLIST, COUNTRY_NOTE, regOf, emptyReg, progressOf, splitStatus, splitEvenly, toHundredths, fmtShare,
@@ -11,6 +12,8 @@ import {
 } from "./credits-core.js";
 
 const $ = (id) => document.getElementById(id);
+// the Green Room look: an icon on the catalog heading
+document.querySelector("#catPanel .head h2").insertAdjacentHTML("afterbegin", `<span class="hIcon">${icon("songbook")}</span>`);
 const K = { cat: STORAGE_PREFIX + "catalog", ui: STORAGE_PREFIX + "ui", backup: STORAGE_PREFIX + "backup" };
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } };
@@ -205,6 +208,8 @@ function renderMid() {
 function welcome() {
   const any = cat.songs.length || cat.releases.length;
   return `<div class="scroll"><div class="welcome">
+    <div class="wIcon">${icon("credits")}</div>
+    <span class="gr-kicker">${any ? "Your catalog" : "Codes, credits and splits"}</span>
     <h2>${any ? "Pick a song" : "Every song's paperwork, in one place"}</h2>
     <p>${any ? "Choose a song or release on the left, or look at what's missing on the right." : "Independent artists lose royalties when codes, credits and splits are scattered or missing. Credits keeps them together and tells you, in plain words, what each one is for and where to register it."}</p>
     <ol class="steps">
@@ -578,7 +583,7 @@ function todoView() {
   const fix = iss.filter((i) => i.kind === "fix"), todo = iss.filter((i) => i.kind === "todo");
   const issue = (i) => `<div><button class="iss ${i.kind}" data-jump="${i.id}"><span class="it">${esc(i.text)}<span class="go">${i.count > 1 ? "Next" : "Fix"} &#8250;</span></span></button>
     ${i.count > 1 ? `<div class="chips" style="margin:-2px 0 8px 16px">${i.items.slice(0, 6).map((x, n) => `<button class="chip" data-jump="${i.id}" data-n="${n}">${esc(x.name)}</button>`).join("")}${i.count > 6 ? `<span class="small dim">and ${i.count - 6} more</span>` : ""}</div>` : ""}</div>`;
-  return `<div class="sumbox"><div class="big">${sum.pct}%</div><div class="small muted">of registrations done across ${sum.songs} song${sum.songs === 1 ? "" : "s"} and ${sum.releases} release${sum.releases === 1 ? "" : "s"} (${sum.done} of ${sum.total})</div><div class="pbar"><i style="width:${sum.pct}%"></i></div></div>
+  return `<div class="sumbox"><span class="gr-kicker">Registrations</span><div class="big">${sum.pct}%</div><div class="small muted">of registrations done across ${sum.songs} song${sum.songs === 1 ? "" : "s"} and ${sum.releases} release${sum.releases === 1 ? "" : "s"} (${sum.done} of ${sum.total})</div><div class="pbar"><i style="width:${sum.pct}%"></i></div></div>
   ${backupNudge()}
   <div class="lbl">Needs fixing <span class="dim">${fix.length ? "" : "nothing"}</span></div>
   ${fix.map(issue).join("") || `<div class="allgood">No mistakes found.</div>`}

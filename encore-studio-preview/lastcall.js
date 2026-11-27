@@ -3,6 +3,8 @@
 // (lastcall-worker.js), and shown as pass / note / warning / fail with how to
 // fix each problem. The checks themselves live in lastcall-core.js.
 import { loadFile } from "./load-progress.js";
+import { icon } from "./gr-shell.js";
+for (const el of document.querySelectorAll("[data-icon]")) el.innerHTML = icon(el.dataset.icon);
 import { readFileInfo, decodeWav, imageInfo, buildChecks, coverCheck, albumChecks, verdict, reportText, STATUS, worst, fmtTime, fmtLength, isSegue } from "./lastcall-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -158,7 +160,7 @@ function timelineHtml(t) {
   const tl = t.m.timeline || [], dur = t.m.duration;
   if (tl.length < 2 || !dur) return "";
   const W = 600, H = 54, bw = W / tl.length;
-  const bars = tl.map((v, i) => { const h = Math.max(1, Math.min(1, (v + 45) / 45) * (H - 10)); return `<rect x="${(i * bw).toFixed(1)}" y="${(H - 4 - h).toFixed(1)}" width="${Math.max(0.6, bw - 0.6).toFixed(1)}" height="${h.toFixed(1)}" fill="var(--soft)" opacity="0.35"/>`; }).join("");
+  const bars = tl.map((v, i) => { const h = Math.max(1, Math.min(1, (v + 45) / 45) * (H - 10)); return `<rect x="${(i * bw).toFixed(1)}" y="${(H - 4 - h).toFixed(1)}" width="${Math.max(0.6, bw - 0.6).toFixed(1)}" height="${h.toFixed(1)}" fill="var(--soft)" opacity="0.5" rx="1"/>`; }).join("");
   const colors = { fail: "var(--red)", warn: "var(--warn)", note: "var(--blue)" };
   const marks = [];
   for (const c of t.checks) if (c.times?.length && colors[c.status]) for (const s of c.times.slice(0, 40)) {
@@ -184,6 +186,8 @@ function render() {
   $("vicon").textContent = v.key === "ready" ? "✓" : "!";
   $("vlabel").textContent = v.label;
   $("vsum").textContent = `${state.tracks.length > 1 ? `${state.tracks.length} tracks. ` : ""}${v.summary}`;
+  const count = (st) => all.filter((c) => c?.status === st).length;
+  $("vstats").innerHTML = ["fail", "warn", "note", "pass"].map((st) => `<div class="vstat s-${st}${count(st) ? "" : " zero"}"><b>${count(st)}</b><span>${{ fail: "To fix", warn: "Warnings", note: "Notes", pass: "Passed" }[st]}</span></div>`).join("");
 
   // album: a table of every track, then the album checks
   const album = $("albumBlock");

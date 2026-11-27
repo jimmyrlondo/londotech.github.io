@@ -181,6 +181,74 @@
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #ff3b00; color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 999px; z-index: 50; box-shadow: 0 8px 30px rgb(0 0 0 / .4); }
   .mtabs { display: none; }
 
+  /* ---- 2026-11 revamp: one premium surface language (gr.css tokens) ---- */
+  main { padding: 16px; gap: 16px; }
+  .panel { border-radius: 18px; overflow: hidden; }
+  .head { padding: 14px 14px 12px 18px; border-bottom-color: var(--gr-line); }
+  .head h2 { font-size: 16px; letter-spacing: -0.01em; }
+  .head .ib { width: 34px; height: 34px; border: 1px solid var(--gr-line-strong); background: var(--gr-raise-2); color: var(--soft); border-radius: 10px; box-shadow: var(--gr-hi); }
+  .head .ib:hover { background: var(--gr-raise-3); color: var(--text); }
+  .btn { background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); min-height: 34px; }
+  .btn:hover { background: var(--gr-raise-3); border-color: rgb(255 59 0 / .5); }
+  .btn.sm { min-height: 32px; padding: 0 14px; }
+  input.t, select.t { background-color: var(--gr-raise-2); border-color: var(--gr-line-strong); border-radius: 10px; height: 34px; padding: 0 10px; }
+  .search { height: 38px !important; margin: 12px 14px 6px; width: calc(100% - 28px); }
+  .hint { border-top-color: var(--gr-line); padding: 10px 18px; line-height: 1.5; }
+  .chead { padding: 10px 8px 4px; font-size: 11px; letter-spacing: .14em; }
+  .songrow { padding: 6px 10px 6px 14px; border-radius: 10px; }
+  .songrow.on { background: linear-gradient(90deg, rgb(255 59 0 / .22), rgb(255 59 0 / .08)); box-shadow: inset 2px 0 0 var(--gr-orange); }
+  .songrow .tn { color: #6f665e; }
+  .addcat { margin: 10px 8px 12px; }
+  /* the song */
+  .songHead { padding: 14px 18px 12px; gap: 10px; border-bottom-color: var(--gr-line); }
+  .songHead { grid-template-columns: minmax(0, 1fr); } .artistIn { width: auto; flex: 0 1 180px; min-width: 70px; }
+  .titleRow { gap: 12px; }
+  .titleIn { font-size: 24px; letter-spacing: -0.02em; }
+  .coverBtn { width: 44px; height: 44px; border-radius: 10px; box-shadow: 0 6px 16px -8px rgb(0 0 0 / .8); }
+  .artistIn { border-bottom-color: var(--gr-line-strong); }
+  .songHead .titleRow > .ib { width: 34px; height: 34px; border-radius: 10px; }
+  .tools2 { gap: 6px 8px; }
+  .tools2 label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); gap: 6px; }
+  .tools2 label + label { margin-left: 4px; }
+  #addInst { max-width: 170px; }
+  .parts select.t { max-width: 110px; height: 28px; }
+  .tools2 .seg button { min-height: 26px; }
+  .seg { padding: 3px; }
+  .seg button { min-height: 28px; padding: 0 12px; }
+  .parts { gap: 5px; }
+  .parts .pl { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
+  .pt { background: var(--gr-raise-2); border-color: var(--gr-line-strong); padding: 0 10px; height: 28px; }
+  .pt:hover { background: var(--gr-raise-3); }
+  .pt.rep { background: transparent; }
+  .write { padding: 18px 22px; font-size: 16.5px; line-height: 1.75; }
+  .sheet { padding: 18px 24px 40px; font-size: 16.5px; }
+  .sheet .sec { color: var(--gr-orange-2); font-size: 11.5px; letter-spacing: .16em; margin: 22px 0 6px; }
+  .sheet .sec::after { content: ""; flex: 1 1 auto; height: 1px; background: linear-gradient(90deg, rgb(255 106 43 / .35), transparent 60%); }
+  .seg2 .ch { color: #ff8a5c; font-size: 15.5px; letter-spacing: -0.005em; }
+  .sheet .ln .syl { color: #5d554e; }
+  /* the tools */
+  .ttabs { margin: 12px 12px 4px; padding: 4px; gap: 4px; border: 1px solid var(--gr-line); border-radius: 999px; background: var(--gr-raise-2); box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); }
+  .ttabs button { border-radius: 999px; min-height: 34px; padding: 0 6px; }
+  .ttabs button:hover { color: var(--text); }
+  .ttabs button.on { background: var(--gr-grad); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  .tbody { padding: 12px 16px 18px; }
+  .lbl { font-size: 11px; letter-spacing: .14em; color: var(--dim); margin: 16px 0 8px; }
+  .chips { gap: 6px; }
+  .cc { background: var(--gr-raise-2); border-color: var(--gr-line-strong); border-radius: 10px; padding: 4px 10px; min-width: 46px; box-shadow: var(--gr-hi); }
+  .cc:hover { background: var(--gr-raise-3); }
+  .cc.armed { background: var(--gr-grad); border-color: transparent; box-shadow: var(--gr-hi), var(--gr-glow); }
+  .diagrams { gap: 10px; }
+  .dg { background: var(--gr-raise-2); border-color: var(--gr-line); border-radius: 14px; padding: 10px 8px 8px; box-shadow: var(--gr-hi); transition: border-color .14s, background-color .14s; }
+  .dg:hover { background: var(--gr-raise-3); border-color: rgb(255 59 0 / .5); }
+  .dg b { font-size: 16px; margin-bottom: 4px; }
+  .copy { background: var(--gr-raise-2); border-color: var(--gr-line-strong); border-radius: 12px; padding: 10px 12px; }
+  .copy:hover { background: var(--gr-raise-3); }
+  .wsearch input { height: 40px; }
+  @media (max-width: 899px) {
+    main { padding: 8px; gap: 8px; }
+    .ttabs { margin: 8px 8px 2px; }
+    #songPanel[data-l="info"] #printBtn svg { display: none; }
+  }
   @media (max-width: 1100px) { main { grid-template-columns: 210px minmax(0, 1fr) 330px; } }
   /* a phone: one panel at a time, picked from the row at the top */
   @media (max-width: 899px) {
@@ -274,7 +342,7 @@
   <div class="mtabs" id="mtabs" role="tablist"><button data-m="lib">Songs</button><button data-m="song" class="on">Lyrics</button><button data-m="tools">Chords &amp; words</button></div>
 
   <section class="panel" id="libPanel" aria-label="Your songbook">
-    <div class="head"><h2>Songbook</h2><button class="btn sm go" id="newSong">+ Song</button><button class="ib" id="newFolder" title="New folder" aria-label="New folder">&#128193;</button></div>
+    <div class="head"><h2>Songbook</h2><button class="btn sm go" id="newSong">+ Song</button><button class="ib" id="newFolder" title="New folder" aria-label="New folder"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2.2h8.8A1.5 1.5 0 0 1 21 9.7v8.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M12 11.5v5M9.5 14h5"/></svg></button></div>
     <input class="t search" id="search" type="search" placeholder="Search your songs" aria-label="Search your songs">
     <div class="scroll lib" id="lib"></div>
     <div class="hint"><span>Drag songs to put them in order or into a folder. Drag a folder to another category.</span></div>
@@ -287,7 +355,7 @@
         <button class="coverBtn" id="coverBtn" aria-label="Cover and details"></button>
         <input class="titleIn" id="title" placeholder="Song title" aria-label="Song title" autocomplete="off">
         <input class="artistIn" id="artist" placeholder="Artist" aria-label="Artist" autocomplete="off">
-        <button class="ib" id="printBtn" title="Print or PDF (Ctrl+P): this song, the album, or your whole songbook" aria-label="Print">&#128438;</button>
+        <button class="ib" id="printBtn" title="Print or PDF (Ctrl+P): this song, the album, or your whole songbook" aria-label="Print"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg></button>
         <div class="seg" id="viewSeg" aria-label="View"><button data-v="write">Write</button><button data-v="sheet">Chords</button></div>
       </div>
       <div class="tools2">

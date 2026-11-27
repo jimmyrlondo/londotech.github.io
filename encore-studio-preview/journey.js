@@ -14,6 +14,7 @@ import { readTags, plan, FORMATS, PRESETS, fmtBytes } from "./convert-core.js";
 import { fillGenreSelect } from "./genres.js";
 import { zip } from "./zip.js";
 import { toLyrics } from "./songbook-core.js";
+import { icon } from "./gr-shell.js";
 
 // lyrics written in ENCORE. Songbook (same browser) can go into the files
 function songbookSongs() {
@@ -136,6 +137,7 @@ async function prepare(s) {
     s.channels = d.chans.length;
     s.blob = floatWavBlob(d.chans.length === 1 ? [d.chans[0], d.chans[0]] : d.chans, d.fs);
     s.fs = d.fs; s.seconds = d.chans[0].length / d.fs;
+    s.peaks = peaksOf(d.chans);
     s.status = "Measuring"; renderSongs();
     const m = await masterJob({ type: "measure", file: s.blob });
     s.origLufs = m.lufs; s.origPeakDb = m.peakDb; s.mix = m.mix;
@@ -149,6 +151,18 @@ async function prepare(s) {
   invalidate();
   render();
 }
+// a small picture of the song for the list: the loudest moment in each of 64 slices
+function peaksOf(chans, n = 64) {
+  const len = chans[0].length, step = Math.max(1, Math.floor(len / n)), out = [];
+  for (let b = 0; b < n; b++) {
+    let m = 0;
+    for (const c of chans) for (let i = b * step, e = Math.min(len, i + step); i < e; i += 16) { const v = Math.abs(c[i]); if (v > m) m = v; }
+    out.push(m);
+  }
+  const top = Math.max(...out, 1e-6);
+  return out.map((v) => v / top);
+}
+const waveSvg = (peaks) => peaks ? `<svg class="wave" viewBox="0 0 ${peaks.length * 4} 22" preserveAspectRatio="none" aria-hidden="true">${peaks.map((v, i) => { const h = Math.max(2, Math.round(v * 20)); return `<rect x="${i * 4}" y="${(22 - h) / 2}" width="2.4" height="${h}" rx="1.2"/>`; }).join("")}</svg>` : "";
 function moveSong(i, d) {
   const j = i + d;
   if (j < 0 || j >= state.songs.length) return;
@@ -178,19 +192,31 @@ function renderSongs() {
   const n = state.songs.length;
   $("kind").textContent = n ? `${n} song${n > 1 ? "s" : ""}, a${releaseKind(n) === "EP" ? "n" : ""} ${releaseKind(n)}` : "";
   drop.querySelector("b").textContent = n ? "Add more songs" : "Drop your finished mixes here";
+  drop.querySelector(".sub").textContent = n ? "WAV, FLAC, MP3, Apple Lossless and more." : "One song for a single, a few for an EP or a whole album. WAV, FLAC, MP3, Apple Lossless and more.";
+  $("songsPanel").classList.toggle("isEmpty", !n);
   songsEl.innerHTML = state.songs.map((s, i) => {
     let meta;
+    const m = s.master && s.master.key === masterKey(s) ? s.master : null;
     if (s.err) meta = `<span class="pill bad">Couldn't read it</span> ${esc(s.err)}`;
     else if (s.status) meta = `<span class="pill busy">${esc(s.status)}</span>`;
-    else {
-      const m = s.master && s.master.key === masterKey(s) ? s.master : null;
-      meta = `${fmtTime(s.seconds)} · ${esc(s.info?.label || "")} · ${m ? `${Number.isFinite(s.origLufs) ? s.origLufs.toFixed(1) : "?"} &#8594; <span class="ok">${m.lufs.toFixed(1)} LUFS</span>` : lufsText(s.origLufs)}`;
-    }
-    return `<li class="song${i === state.sel ? " sel" : ""}"><span class="n">${i + 1}</span><span class="t" title="${esc(s.name)}">${esc(s.title)}</span>
+    else meta = `${fmtTime(s.seconds)} · ${esc(s.info?.label || "")} · ${m ? `${Number.isFinite(s.origLufs) ? s.origLufs.toFixed(1) : "?"} &#8594; <span class="ok">${m.lufs.toFixed(1)} LUFS</span>` : lufsText(s.origLufs)}`;
+    return `<li class="song${i === state.sel ? " sel" : ""}${m ? " mastered" : ""}"><span class="n">${String(i + 1).padStart(2, "0")}</span><span class="t" title="${esc(s.name)}">${esc(s.title)}</span>
       <span class="acts"><button class="ib play" data-a="play" aria-label="Play ${esc(s.title)}" ${s.blob ? "" : "disabled"}>&#9654;</button>
       <button class="ib" data-a="up" aria-label="Move up" ${i ? "" : "disabled"}>&#9650;</button><button class="ib" data-a="down" aria-label="Move down" ${i < n - 1 ? "" : "disabled"}>&#9660;</button>
-      <button class="ib" data-a="rm" aria-label="Remove">&#10005;</button></span><span class="meta">${meta}</span></li>`;
+      <button class="ib" data-a="rm" aria-label="Remove">&#10005;</button></span><span class="meta">${meta}</span>${waveSvg(s.peaks)}</li>`;
   }).join("");
+  renderRelCard();
+}
+// the release at a glance, above the songs: cover, title, artist, how long
+function renderRelCard() {
+  const n = state.songs.length, el = $("relCard");
+  el.classList.toggle("hidden", !n);
+  if (!n) return;
+  const r = state.release, kind = releaseKind(n), title = r.title.trim() || (n === 1 ? state.songs[0].title : `Untitled ${kind}`);
+  const secs = state.songs.reduce((a, s) => a + (s.seconds || 0), 0);
+  el.innerHTML = `<div class="art">${state.art ? `<img alt="" src="${state.art.url}">` : icon("journey")}</div>
+    <div style="min-width:0"><b>${esc(title)}</b><div class="who">${r.artist.trim() ? esc(r.artist) : '<span class="dim">Add the artist in Details</span>'}</div>
+    <div class="facts">${kind} · ${n} song${n > 1 ? "s" : ""}${secs ? ` · ${fmtTime(secs)}` : ""}${r.year ? ` · ${esc(r.year)}` : ""}</div></div>`;
 }
 
 // ---------- listening: the mix or the master, at the same spot ----------
@@ -223,7 +249,7 @@ function renderPlayer() {
   const mastered = !!(s?.master && s.master.key === masterKey(s));
   $("playBtn").disabled = !s?.blob;
   $("playBtn").innerHTML = state.playing && !audio.paused ? "&#10074;&#10074;" : "&#9654;";
-  $("nowPlaying").innerHTML = s ? `<b>${esc(s.title)}</b> <span class="dim">${ab === "master" && mastered ? "mastered" : "your mix"}</span>` : `<span class="dim">Pick a song to listen</span>`;
+  $("nowPlaying").innerHTML = s ? `<b>${esc(s.title)}</b><span class="dim">${ab === "master" && mastered ? "The master" : "Your mix"}${s.seconds ? ` · ${fmtTime(s.seconds)}` : ""}</span>` : `<span class="dim">Pick a song to listen</span>`;
   const [o, m] = $("abSeg").children;
   m.disabled = !mastered; if (!mastered) ab = "orig";
   o.classList.toggle("on", ab === "orig"); m.classList.toggle("on", ab === "master");
@@ -286,31 +312,68 @@ $("nextBtn").onclick = () => {
 function go(step) { state.step = step; body.scrollTop = 0; render(); if (step === "check" && !state.busy && state.songs.length && stepStatus(state).check !== "done") runCheck(); }
 function startOver() { stopAudio(); for (const u of urls.values()) URL.revokeObjectURL(u); urls.clear(); state.songs = []; state.sel = -1; state.released = null; state.checked = false; newRelease(); go("songs"); }
 
+// the head of each step: which step, its name and one line on what it does
+const stepHead = (id, title, lede) => { const i = STEPS.findIndex((s) => s.id === id); return `<div class="gr-kicker">Step ${i + 1} of ${STEPS.length}</div><h3>${title}</h3>${lede ? `<p class="lede">${lede}</p>` : ""}`; };
+const STEP_ICON = { master: "master", details: "tag", check: "lastcall", release: "convert" };
+const flowCards = () => `<div class="flow">${STEPS.slice(1).map((s, i) => `<button class="flowStep" data-go="${s.id}"><span class="fn">0${i + 2}</span><span class="fi">${icon(STEP_ICON[s.id])}</span><b>${s.name}</b><span>${s.blurb}</span></button>`).join("")}</div>`;
+const LOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
+const stat = (label, value, unit, sub, cls = "") => `<div class="stat ${cls}"><div class="sl">${label}</div><div class="sv">${value}${unit ? `<small>${unit}</small>` : ""}</div>${sub ? `<div class="ss">${sub}</div>` : ""}</div>`;
+const f1 = (v) => (Number.isFinite(v) ? v.toFixed(1) : "?");
+const FILE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>`;
+const FOLDER = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`;
+const VERDICT_ICON = { ready: '<path d="m5 12.5 4.5 4.5L19 7.5"/>', notes: '<path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/>', fix: '<path d="M12 7v6M12 16.5v.5"/><path d="M10.3 3.6 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/>' };
+
 function renderBody() {
   const n = state.songs.length;
   if (state.step === "songs") {
-    body.innerHTML = `<h3>Your songs, in release order</h3>
-      <p class="lede">Drop in the finished mixes on the left, one for a single or several for an EP or album. Put them in the order they'll be released. From here, each step works on all of them at once: master them so they sound like one release, add the details, check everything, and download every format you need in one go.</p>
-      <div class="note">Everything happens on your device. Nothing is uploaded.</div>
-      ${n ? `<div class="label">What you have</div><p class="muted small">${n} song${n > 1 ? "s" : ""}, ${fmtTime(state.songs.reduce((a, s) => a + s.seconds, 0))} in all. Tap a song to listen; the arrows change the order.</p>` : ""}
-      ${state.songs.some((s) => s.mix?.problems) ? `<p class="note">Some mixes have things worth a look before mastering (they show in Check). You can still go ahead.</p>` : ""}`;
+    const secs = state.songs.reduce((a, s) => a + (s.seconds || 0), 0), louds = state.songs.map((s) => s.origLufs).filter(Number.isFinite);
+    const fmts = [...new Set(state.songs.map((s) => s.info?.label).filter(Boolean))];
+    body.innerHTML = n ? `<div class="hero">${stepHead("songs", "Your songs, in release order", "Put them in the order they'll be released (the arrows on each song move it). From here, every step works on all of them at once.")}
+        <div class="stats">${stat("Songs", n, "", `a${releaseKind(n) === "EP" ? "n" : ""} ${releaseKind(n)}`)}${stat("Running time", fmtTime(secs), "", "in all")}
+          ${stat("Loudest mix", louds.length ? f1(Math.max(...louds)) : "...", louds.length ? "LUFS" : "", louds.length > 1 ? `quietest ${f1(Math.min(...louds))} LUFS` : "measured on your device")}
+          ${stat("Files", esc(fmts.join(", ") || "..."), "", state.songs.some((s) => s.status) ? "still reading" : "ready to master")}</div>
+        ${flowCards()}
+        ${state.songs.some((s) => s.mix?.problems) ? `<p class="note">Some mixes have things worth a look before mastering (they show in Check). You can still go ahead.</p>` : ""}
+        <div class="note lock">${LOCK}Everything happens on your device. Nothing is uploaded.</div></div>`
+      : `<div class="hero"><div class="heroBadge">${icon("journey")}</div><div class="gr-kicker">ENCORE. Journey</div>
+        <h3>From finished mix to release, in one place.</h3>
+        <p class="lede">Drop in your finished mixes on the left, one for a single or several for an EP or album. Journey masters them so they sound like one release, puts your details and cover in every file, checks it all the way stores do and hands you every format in one download.</p>
+        ${flowCards()}
+        <div class="note lock">${LOCK}Everything happens on your device. Nothing is uploaded.</div></div>`;
+    body.querySelector(".flow").onclick = (e) => { const b = e.target.closest("[data-go]"); if (b && n) go(b.dataset.go); else if (b) $("files").click(); };
     return;
   }
   if (state.step === "master") {
     const tg = n ? targets() : [];
-    body.innerHTML = `<h3>Master</h3>
-      <p class="lede">One sound for the whole release. Every song gets the same style; the loudest lands on your loudness, and the rest keep a little of their difference so a ballad still sits under the single.</p>
+    // the loudness plan: each song's mix and where it lands, on one scale
+    const vals = state.songs.flatMap((s, i) => [s.origLufs, tg[i], s.master?.lufs]).filter(Number.isFinite);
+    let lo = Math.floor((Math.min(-16, ...vals) - 3) / 2) * 2, hi = Math.ceil((Math.max(-12, ...vals) + 3) / 2) * 2;
+    if (hi - lo < 12) { lo -= Math.ceil((12 - (hi - lo)) / 4) * 2; hi = lo + Math.max(12, hi - lo); }
+    const every = hi - lo > 16 ? 4 : 2, pos = (v) => `${(((v - lo) / (hi - lo)) * 100).toFixed(2)}%`;
+    const ticks = []; for (let v = lo; v <= hi; v += 2) ticks.push(v);
+    const plan = n ? `<div class="plan">${state.songs.map((s, i) => {
+        const a = s.origLufs, b = tg[i], done = s.master && s.master.key === masterKey(s);
+        const ok = Number.isFinite(a) && Number.isFinite(b);
+        return `<div class="planRow"><span class="pn" title="${esc(s.title)}">${esc(s.title)}</span><div class="track">${ticks.map((v) => `<i class="tick" style="left:${pos(v)}"></i>`).join("")}
+          ${ok ? `<i class="span" style="left:${pos(Math.min(a, b))};width:calc(${pos(Math.max(a, b))} - ${pos(Math.min(a, b))})"></i><i class="dot mix" style="left:${pos(a)}"></i><i class="dot tg" style="left:${pos(b)}"></i>` : ""}</div>
+          <span class="pv">${f1(a)} &#8594; ${done ? `<b>${f1(s.master.lufs)}</b>` : `<i>${f1(b)}</i>`}</span></div>`;
+      }).join("")}
+      <div class="planScale"><span></span><div class="sc">${ticks.filter((v) => v % every === 0).map((v) => `<span style="left:${pos(v)}">${v}</span>`).join("")}</div><span style="text-align:right">LUFS</span></div></div>
+      <div class="legend"><span><i class="mix"></i>Your mix</span><span><i class="tg"></i>${state.songs.some((s) => s.master && s.master.key === masterKey(s)) ? "Mastered (green numbers are measured)" : "Where it lands"}</span></div>` : `<p class="note">Add songs to see where each one lands.</p>`;
+    body.innerHTML = `${stepHead("master", "Master", "One sound for the whole release. Every song gets the same style; the loudest lands on your loudness, and the rest keep a little of their difference so a ballad still sits under the single.")}
       <label class="switch"><input type="checkbox" id="skipMaster" ${state.skipMaster ? "checked" : ""}><div><b>These are already mastered</b><span>Skip this step and release the files as they are.</span></div></label>
       <div id="masterOpts" class="${state.skipMaster ? "hidden" : ""}">
         <div class="label">Sound</div>
         <div class="chips" id="styles">${STYLES.map((s, i) => `<button class="chip${i === state.style ? " on" : ""}" data-i="${i}"><b>${esc(s.name)}</b><span>${esc(s.blurb)}</span></button>`).join("")}</div>
-        <div class="row" style="margin-top:6px">
-          <div><div class="label">Loudness</div><div class="seg" id="targets">${TARGETS.map((t, i) => `<button data-i="${i}" class="${i === state.target ? "on" : ""}">${esc(t.name)} ${t.lufs}</button>`).join("")}</div></div>
-          <div><div class="label">How much (${Math.round(state.intensity * 100)}%)</div><input type="range" id="intensity" min="0" max="1" step="0.05" value="${state.intensity}" aria-label="How much"></div>
-          ${n > 1 ? `<div><div class="label">Quiet songs stay quieter (${Math.round(state.flow * 100)}%)</div><input type="range" id="flow" min="0" max="1" step="0.25" value="${state.flow}" aria-label="Quiet songs stay quieter"></div>` : ""}
+        <div class="masterGrid">
+          <div class="card">
+            <div class="ctl"><div class="label">Loudness</div><div class="seg" id="targets">${TARGETS.map((t, i) => `<button data-i="${i}" class="${i === state.target ? "on" : ""}">${esc(t.name)} ${t.lufs}</button>`).join("")}</div></div>
+            <div class="ctl"><div class="label"><span>How much</span><span class="v">${Math.round(state.intensity * 100)}%</span></div><input type="range" id="intensity" min="0" max="1" step="0.05" value="${state.intensity}" aria-label="How much"></div>
+            ${n > 1 ? `<div class="ctl"><div class="label"><span>Quiet songs stay quieter</span><span class="v">${Math.round(state.flow * 100)}%</span></div><input type="range" id="flow" min="0" max="1" step="0.25" value="${state.flow}" aria-label="Quiet songs stay quieter"></div>` : ""}
+          </div>
+          <div class="card"><div class="label">Each song's loudness</div>${plan}</div>
         </div>
-        ${n ? `<p class="note">Each song's loudness: ${state.songs.map((s, i) => `${esc(s.title)} ${Number.isFinite(tg[i]) ? tg[i].toFixed(1) : "?"}`).join(", ")} LUFS.</p>` : ""}
-        <div class="row" style="margin-top:12px"><button class="btn go" id="masterBtn" ${n && !state.busy ? "" : "disabled"}>${state.songs.some((s) => s.master) ? "Master again with these settings" : `Master ${n > 1 ? `all ${n} songs` : "it"}`}</button>
+        <div class="actRow"><button class="btn go" id="masterBtn" ${n && !state.busy ? "" : "disabled"}>${state.songs.some((s) => s.master) ? "Master again with these settings" : `Master ${n > 1 ? `all ${n} songs` : "it"}`}</button>
         <span class="small muted">Then listen with <b>Mix / Master</b> under the songs.</span></div>
       </div>`;
     $("skipMaster").onchange = (e) => { state.skipMaster = e.target.checked; invalidate(); render(); };
@@ -326,8 +389,7 @@ function renderBody() {
     // a Songbook song with the same title brings its lyrics along
     for (const s of state.songs) if (s.lyricsFrom === undefined) { const m = sb.find((x) => x.title.trim().toLowerCase() === s.title.trim().toLowerCase()); s.lyricsFrom = m ? m.id : ""; }
     for (const s of state.songs) { const m = sb.find((x) => x.id === s.lyricsFrom); s.lyrics = m ? plainLyrics(m.body) : ""; }
-    body.innerHTML = `<h3>Details</h3>
-      <p class="lede">What goes into every file: the release, each song's credits and the cover. Filled in from your files' own tags where they had them.</p>
+    body.innerHTML = `${stepHead("details", "Details", "What goes into every file: the release, each song's credits and the cover. Filled in from your files' own tags where they had them.")}
       <div class="detailsGrid"><div class="grid2">
         <label class="f">Artist<input id="r_artist" value="${esc(r.artist)}" autocomplete="off"></label>
         <label class="f">${releaseKind(n) === "single" ? "Release title (the song's title if empty)" : `${releaseKind(n)} title`}<input id="r_title" value="${esc(r.title)}" autocomplete="off"></label>
@@ -337,20 +399,20 @@ function renderBody() {
         <label class="f">Copyright<input id="r_copyright" value="${esc(r.copyright)}" placeholder="${esc(`${r.year} ${r.artist}`.trim())}" autocomplete="off"></label>
         <label class="f">UPC (optional)<input id="r_upc" value="${esc(r.upc)}" inputmode="numeric" autocomplete="off"></label>
       </div>
-      <div><div class="cover" id="cover" tabindex="0" role="button" aria-label="Cover art">${state.art ? `<img alt="Cover art" src="${state.art.url}">` : "Drop the cover art here, or tap to choose (JPEG or PNG, 3000 px square is best)"}</div>
-        <input type="file" id="coverFile" accept="image/jpeg,image/png" hidden><div class="small dim" style="margin-top:4px">${state.art ? `${state.art.img.width}x${state.art.img.height} ${state.art.img.type.toUpperCase()}${state.art.source ? ", " + esc(state.art.source) : ""}` : ""}</div></div></div>
+      <div><div class="cover${state.art ? " has" : ""}" id="cover" tabindex="0" role="button" aria-label="Cover art">${state.art ? `<img alt="Cover art" src="${state.art.url}">` : `<div>${icon("tag")}Drop the cover art here, or tap to choose (JPEG or PNG, 3000 px square is best)</div>`}</div>
+        <input type="file" id="coverFile" accept="image/jpeg,image/png" hidden><div class="coverMeta">${state.art ? `<b>${state.art.img.width} x ${state.art.img.height} ${state.art.img.type.toUpperCase()}</b>${state.art.source ? "<br>" + esc(state.art.source) : ""}` : ""}</div></div></div>
       <div class="label">Songs</div>
-      <table class="tracks"><thead><tr><th></th><th>Title</th><th class="opt">Featuring</th><th class="opt">Written by</th><th>ISRC</th><th class="opt">Lyrics</th><th class="x">Explicit</th></tr></thead>
-      <tbody id="trackRows">${state.songs.map((s, i) => `<tr data-i="${i}"><td class="n">${i + 1}</td><td><input data-k="title" value="${esc(s.title)}" aria-label="Title of song ${i + 1}"></td>
+      <div class="tableCard"><table class="tracks"><thead><tr><th></th><th>Title</th><th class="opt">Featuring</th><th class="opt">Written by</th><th>ISRC</th><th class="opt">Lyrics</th><th class="x">Explicit</th></tr></thead>
+      <tbody id="trackRows">${state.songs.map((s, i) => `<tr data-i="${i}"><td class="n">${String(i + 1).padStart(2, "0")}</td><td><input data-k="title" value="${esc(s.title)}" aria-label="Title of song ${i + 1}"></td>
         <td class="opt"><input data-k="featuring" value="${esc(s.featuring)}" aria-label="Featuring"></td><td class="opt"><input data-k="composer" value="${esc(s.composer)}" aria-label="Written by"></td>
-        <td><input data-k="isrc" value="${esc(s.isrc)}" placeholder="US-AB1-26-00001" aria-label="ISRC"></td>
-        <td class="opt"><select data-k="lyricsFrom" aria-label="Lyrics from Songbook" class="lyr"><option value="">${sb.length ? "None" : "None (write them in Songbook)"}</option>${sb.map((x) => `<option value="${x.id}" ${s.lyricsFrom === x.id ? "selected" : ""}>${esc(x.title || "Untitled")}</option>`).join("")}</select></td><td class="x"><input type="checkbox" data-k="explicit" ${s.explicit ? "checked" : ""} aria-label="Explicit"></td></tr>`).join("")}</tbody></table>
+        <td><input data-k="isrc" value="${esc(s.isrc)}" placeholder="US-AB1-26-00001" aria-label="ISRC" class="mono"></td>
+        <td class="opt"><select data-k="lyricsFrom" aria-label="Lyrics from Songbook" class="lyr"><option value="">${sb.length ? "None" : "None yet"}</option>${sb.map((x) => `<option value="${x.id}" ${s.lyricsFrom === x.id ? "selected" : ""}>${esc(x.title || "Untitled")}</option>`).join("")}</select></td><td class="x"><input type="checkbox" data-k="explicit" ${s.explicit ? "checked" : ""} aria-label="Explicit"></td></tr>`).join("")}</tbody></table></div>
       <p class="note">ISRCs come from your distributor or your country's ISRC agency. Leave them empty if you don't have them yet. Lyrics come from <a href="songbook.html">Songbook</a> and go into the files (players like Apple Music and foobar show them).</p>`;
     $("r_genre").append(new Option("(none)", ""));
     fillGenreSelect($("r_genre"));
     $("r_genre").value = r.genre || "";
     for (const k of ["artist", "title", "year", "genre", "publisher", "copyright", "upc"]) {
-      $("r_" + k).addEventListener("input", (e) => { state.release[k] = e.target.value; state.typed.add(k); store.set("release", keepOnly(state.release)); invalidate(); renderSteps(); });
+      $("r_" + k).addEventListener("input", (e) => { state.release[k] = e.target.value; state.typed.add(k); store.set("release", keepOnly(state.release)); invalidate(); renderSteps(); renderRelCard(); });
     }
     $("trackRows").addEventListener("input", (e) => {
       const inp = e.target, i = +inp.closest("tr").dataset.i, s = state.songs[i];
@@ -369,10 +431,11 @@ function renderBody() {
   }
   if (state.step === "check") {
     const c = state.check, fresh = stepStatus(state).check === "done";
+    const lede = `Last Call listens to exactly what you're about to release (${state.skipMaster ? "your files" : "the masters"}, with the details you typed) and checks it against what Spotify, Apple Music and distributors expect.`;
     if (!c || state.busy === "check") {
-      body.innerHTML = `<h3>Check</h3><p class="lede">Last Call listens to exactly what you're about to release (${state.skipMaster ? "your files" : "the masters"}, with the details you typed) and checks it against what Spotify, Apple Music and distributors expect.</p>
-        <div class="bar2"><i id="checkBar"></i></div><p class="note" id="checkNote">${state.busy === "check" ? "Listening..." : ""}</p>
-        ${state.busy ? "" : `<button class="btn go" id="checkBtn" ${n ? "" : "disabled"}>Check the release</button>`}`;
+      body.innerHTML = `${stepHead("check", "Check", lede)}
+        <div class="card"><div class="label">${state.busy === "check" ? "Listening" : "Ready when you are"}</div><div class="bar2"><i id="checkBar"></i></div><p class="note" id="checkNote">${state.busy === "check" ? "Listening..." : "Loudness, peaks, format, tags and cover art, for every song and the release as a whole."}</p>
+        ${state.busy ? "" : `<div class="actRow"><button class="btn go" id="checkBtn" ${n ? "" : "disabled"}>Check the release</button></div>`}</div>`;
       $("checkBtn") && ($("checkBtn").onclick = runCheck);
       return;
     }
@@ -380,12 +443,22 @@ function renderBody() {
     const list = (checks) => [...checks].sort((a, b) => order[a.status] - order[b.status]).map((x) => `<div class="check"><span class="st ${x.status}">${STATUS[x.status]}</span>
       <div><b>${esc(x.title)}</b>: ${esc(x.value)}<div class="dim">${esc(x.detail || "")}</div>${x.fix && x.status !== "pass" ? `<div class="fix">How to fix: ${esc(x.fix)}</div>` : ""}</div></div>`).join("");
     const worstOf = (checks) => checks.reduce((w, x) => (order[x.status] < order[w] ? x.status : w), "pass");
-    body.innerHTML = `<h3>Check</h3>
+    const passed = (checks) => checks.filter((x) => x.status === "pass").length;
+    const all = [...c.album, c.cover, ...c.tracks.flatMap((t) => t.checks)].filter(Boolean);
+    const ms = c.tracks.map((t) => t.m).filter((m) => m && Number.isFinite(m.lufs) && m.lufs > -70);
+    const lu = ms.map((m) => m.lufs), tp = ms.map((m) => m.truePeakDb).filter(Number.isFinite);
+    const secs = state.songs.reduce((a, s) => a + (s.seconds || 0), 0);
+    const whole = [...c.album, c.cover].filter(Boolean);
+    body.innerHTML = `${stepHead("check", "Check", "")}
       ${fresh ? "" : `<p class="note"><b>Something changed since this check.</b> <button class="btn" id="checkBtn">Check again</button></p>`}
-      <div class="verdict ${v.key}"><b>${esc(v.label)}</b>${esc(v.summary)}</div>
-      ${c.album.length || c.cover ? `<details class="res" open><summary><span class="st ${worstOf([...c.album, c.cover])}">${STATUS[worstOf([...c.album, c.cover])]}</span>The whole ${releaseKind(n)}</summary>${list([...c.album, c.cover])}</details>` : ""}
-      ${c.tracks.map((t, i) => `<details class="res"${worstOf(t.checks) === "fail" || worstOf(t.checks) === "warn" ? " open" : ""}><summary><span class="st ${worstOf(t.checks)}">${STATUS[worstOf(t.checks)]}</span>${i + 1}. ${esc(t.name)}</summary>${list(t.checks)}</details>`).join("")}
-      <div class="row" style="margin-top:10px"><button class="btn" id="copyReport">Copy the report</button>${fresh ? `<button class="btn" id="checkBtn">Check again</button>` : ""}</div>`;
+      <div class="verdict ${v.key}"><span class="vi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${VERDICT_ICON[v.key] || VERDICT_ICON.notes}</svg></span><div><b>${esc(v.label)}</b><span class="vs">${esc(v.summary)}</span></div></div>
+      <div class="stats">${stat("Loudness", lu.length ? f1(lu.reduce((a, x) => a + x, 0) / lu.length) : "?", "LUFS", lu.length > 1 ? `${f1(Math.max(...lu) - Math.min(...lu))} LU between songs` : "integrated")}
+        ${stat("True peak", tp.length ? f1(Math.max(...tp)) : "?", "dBTP", "the highest of any song", tp.length && Math.max(...tp) <= -1 ? "good" : "")}
+        ${stat("Running time", fmtTime(secs), "", `${n} song${n > 1 ? "s" : ""}`)}
+        ${stat("Checks passed", `${passed(all)}<span class="dim">/${all.length}</span>`, "", `${all.filter((x) => x.status === "warn" || x.status === "fail").length || "nothing"} to look at`, passed(all) === all.length ? "good" : "")}</div>
+      <div class="resCols"><div>${whole.length ? `<details class="res" open><summary><span class="st ${worstOf(whole)}">${STATUS[worstOf(whole)]}</span><span class="rn">The whole ${releaseKind(n)}</span><span class="cnt">${passed(whole)}/${whole.length}</span></summary>${list(whole)}</details>` : ""}</div>
+      <div>${c.tracks.map((t, i) => `<details class="res"${worstOf(t.checks) === "fail" || worstOf(t.checks) === "warn" ? " open" : ""}><summary><span class="st ${worstOf(t.checks)}">${STATUS[worstOf(t.checks)]}</span><span class="rn">${i + 1}. ${esc(t.name)}</span><span class="cnt">${passed(t.checks)}/${t.checks.length}</span></summary>${list(t.checks)}</details>`).join("")}
+      <div class="actRow"><button class="btn" id="copyReport">Copy the report</button>${fresh ? `<button class="btn" id="checkBtn">Check again</button>` : ""}</div></div></div>`;
     $("checkBtn") && ($("checkBtn").onclick = runCheck);
     $("copyReport").onclick = () => navigator.clipboard?.writeText(c.text).then(() => toast("Report copied."), () => toast("Couldn't copy (your browser said no)."));
     return;
@@ -393,16 +466,26 @@ function renderBody() {
   if (state.step === "release") {
     const est = (id) => { const p = PRESETS.find((x) => x.id === id); return state.songs.reduce((a, s) => a + estimate(p, s), 0); };
     const total = [...state.formats].reduce((a, id) => a + est(id), 0);
-    body.innerHTML = `<h3>Release</h3>
-      <p class="lede">Pick every format you need. You get one zip: a folder per format with every song tagged and numbered, plus the cover, a tracklist and the check report.</p>
+    const picked = RELEASE_FORMATS.filter((p) => state.formats.has(p.id)), folder = releaseFolder(state.release, state.songs);
+    const checked = state.check && stepStatus(state).check === "done";
+    body.innerHTML = `${stepHead("release", "Release", "Pick every format you need. You get one zip: a folder per format with every song tagged and numbered, plus the cover, a tracklist and the check report.")}
+      <div class="relGrid"><div>
       <div class="formats" id="formats">${RELEASE_FORMATS.map((p) => `<button class="chip${state.formats.has(p.id) ? " on" : ""}" data-id="${p.id}" aria-pressed="${state.formats.has(p.id)}"><b>${esc(p.label)}</b><span>${esc(p.sub)}</span></button>`).join("")}</div>
       <p class="note">${state.formats.size ? `${state.formats.size} format${state.formats.size > 1 ? "s" : ""} for ${n} song${n > 1 ? "s" : ""}, about ${fmtBytes(total)}.` : "Pick at least one format."} Distributors usually want WAV (16 or 24-bit); MP3 is for sharing and your own site.</p>
-      <div class="row" style="margin-top:12px"><button class="btn go" id="makeBtn" ${state.formats.size && n && !state.busy ? "" : "disabled"}>Make the release</button>
+      <div class="actRow"><button class="btn go" id="makeBtn" ${state.formats.size && n && !state.busy ? "" : "disabled"}>Make the release</button>
         ${window.EncoreStudio?.createRelease ? `<button class="btn" id="sendBtn" ${state.released ? "" : "disabled"}>Send to ENCORE.</button>` : ""}
         ${state.released ? `<button class="btn" id="againBtn">Download again</button>` : ""}</div>
       <div class="bar2 ${state.busy === "release" ? "" : "hidden"}"><i id="relBar"></i></div>
       <p class="note" id="relNote">${state.released ? `Done: ${esc(state.released.name)}, ${fmtBytes(state.released.blob.size)}.` : ""}</p>
-      ${stepStatus(state).check !== "done" ? `<p class="note">Tip: run <b>Check</b> first so the report in the zip matches what you release.</p>` : ""}`;
+      ${checked ? "" : `<p class="note">Tip: run <b>Check</b> first so the report in the zip matches what you release.</p>`}
+      </div>
+      <div class="card zip"><div class="zh"><div class="label">What's in the zip</div><b>${esc(folder)}.zip</b><span class="mono">${n ? `about ${fmtBytes(total)}` : ""}</span></div>
+        <ul>${picked.map((p, k) => `<li class="dir">${FOLDER}<span class="zn">${esc(p.label)}</span><span class="zs">${n} file${n > 1 ? "s" : ""}, ${fmtBytes(est(p.id))}</span></li>` +
+            (k ? "" : state.songs.slice(0, 3).map((s, i) => `<li class="sub">${FILE}<span class="zn">${esc(releasePath(state.release, state.songs, i, p.id).split("/").pop())}</span><span class="zs"></span></li>`).join("") + (n > 3 ? `<li class="sub"><span></span><span class="zn dim">and ${n - 3} more</span><span></span></li>` : ""))).join("")}
+          ${state.art ? `<li>${FILE}<span class="zn">cover.${state.art.mime === "image/png" ? "png" : "jpg"}</span><span class="zs">${fmtBytes(state.art.bytes.length)}</span></li>` : ""}
+          <li>${FILE}<span class="zn">tracklist.txt</span><span class="zs"></span></li>
+          ${checked ? `<li>${FILE}<span class="zn">Last Call report.txt</span><span class="zs"></span></li>` : ""}</ul></div>
+      </div>`;
     $("formats").onclick = (e) => { const b = e.target.closest(".chip"); if (!b) return; const id = b.dataset.id; state.formats.has(id) ? state.formats.delete(id) : state.formats.add(id); saveSettings(); state.released = null; render(); };
     $("makeBtn").onclick = makeRelease;
     $("againBtn") && ($("againBtn").onclick = () => download(state.released));

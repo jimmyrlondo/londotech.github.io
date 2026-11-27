@@ -137,6 +137,39 @@
   .help ul { padding-left: 18px; margin: 0 0 10px; }
   .bpmInfo { font-size: 13px; color: var(--soft); margin: 6px 0; }
   .bpmInfo b { color: var(--text); }
+  /* 2026-11 revamp */
+  .panel { padding: 18px 20px 18px !important; gap: 12px; }
+  @media (min-width: 1000px) { .panel { height: calc(100vh - 104px); height: calc(100dvh - 104px); } .tabBody { max-height: calc(100vh - 168px); max-height: calc(100dvh - 168px); } }
+  .toolName { font-size: 20px; letter-spacing: -0.02em; }
+  #wave { background: linear-gradient(180deg, #0f0c0b, #151110); border: 1px solid var(--gr-line); border-radius: 14px; }
+  .waveTip { margin-top: -2px; }
+  .pad { border-radius: 14px; border-color: var(--gr-line-strong); background: linear-gradient(180deg, #221d1a, #1a1614); box-shadow: var(--gr-hi), 0 2px 0 rgb(0 0 0 / .35); padding: 8px 10px; }
+  .pad .pn { font-size: 18px; letter-spacing: -0.01em; }
+  .pad .pi { top: 9px; left: 10px; } .pad .pk { top: 9px; right: 10px; }
+  .pad:hover { border-color: rgb(255 59 0 / .45); }
+  .pad.sel { border-color: var(--gr-orange); box-shadow: var(--gr-hi), inset 0 0 0 1px var(--gr-orange), 0 0 22px -8px rgb(255 59 0 / .7); }
+  .pad.hit { background: var(--gr-grad); }
+  .pad canvas { opacity: .55; }
+  .transport { gap: 10px; }
+  .transport .go { min-height: 44px; }
+  .bpmBox input { font-family: var(--family-mono); font-variant-numeric: tabular-nums; text-align: center; }
+  .barBtns button { border-color: var(--gr-line-strong); background: var(--gr-raise-2); border-radius: 8px; }
+  .barBtns button.on { border-color: rgb(255 59 0 / .7); color: #ffb08f; }
+  .steps { gap: 5px; }
+  .step { height: 40px; border-radius: 8px; border-color: var(--gr-line-strong); background: var(--gr-raise-2); box-shadow: var(--gr-hi); }
+  .step:nth-child(4n+1) { background: var(--gr-raise-3); }
+  .step.on { background: var(--gr-grad); border-color: rgb(255 120 70 / .6); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .8); }
+  .stepsHead { font-weight: 600; }
+  .seg2 { border-color: var(--gr-line-strong); background: var(--gr-raise-2); }
+  .seg2 button.on { background: var(--gr-grad); }
+  .macro { background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 14px; padding: 12px 14px; }
+  #grid { background: linear-gradient(180deg, #0f0c0b, #151110); border: 1px solid var(--gr-line); border-radius: 14px; }
+  .downloads a { border-color: var(--gr-line-strong); border-radius: 12px; background: var(--gr-raise-2); padding: 10px 12px; }
+  .keys { gap: 8px 14px; }
+  .padsWrap { position: relative; }
+  .padsEmpty { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; pointer-events: none;
+    border-radius: 16px; background: radial-gradient(520px 240px at 50% 45%, rgb(16 13 12 / .96), rgb(16 13 12 / .82) 70%, rgb(16 13 12 / .55)); }
+  .padsWrap:not(:has(.pad:not(.empty))) .padsEmpty { display: flex; }
   @media (max-width: 640px) {
     .pads { grid-template-rows: repeat(4, 72px); }
     .steps { grid-template-columns: repeat(8, minmax(0, 1fr)); }
@@ -146,6 +179,7 @@
   }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<link rel="stylesheet" href="playground-tools.css">
 <script type="module" src="gr-shell.js"></script>
 </head>
 <body>
@@ -156,10 +190,10 @@
 </div>
 
 <main>
-<div class="layout">
+<div class="layout pgFill">
   <section class="panel" id="panel" aria-label="Sampler">
     <div class="toolHead">
-      <span class="toolName">Chop</span><span class="pgChip">PLAYGROUND</span>
+      <span class="toolName">Chop</span><span class="pgChip pgchip">PLAYGROUND</span>
       <a class="back" href="playground.html">Back to the Playground</a>
     </div>
     <div class="loadRow">
@@ -172,6 +206,11 @@
     <div class="waveTip"><span id="waveTip">Load a sample, or try the demo loop.</span><span id="waveInfo"></span></div>
     <div class="padsWrap">
       <div class="pads" id="pads" role="group" aria-label="Pads"></div>
+      <div class="padsEmpty" aria-hidden="true">
+        <span class="emptyIc" data-icon="chop"></span>
+        <h2 class="emptyH">Chop a sample into a beat</h2>
+        <p class="emptyP">Load any loop or song and it's cut at every hit, one slice per pad. Play them with your keys, then sequence a beat with swing and lo-fi.</p>
+      </div>
     </div>
     <div class="transport">
       <button class="go" id="playBtn" title="Play or stop the pattern (space)">Play</button>
@@ -324,5 +363,6 @@
 </div>
 </main>
 <script type="module" src="chop.js"></script>
+<script type="module">import { icon } from "./gr-shell.js"; for (const el of document.querySelectorAll(".emptyIc[data-icon]")) el.innerHTML = icon(el.dataset.icon);</script>
 </body>
 </html>

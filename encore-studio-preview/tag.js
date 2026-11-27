@@ -154,10 +154,12 @@ function control(f, idSuffix = "") {
 }
 // the main fields whose name alone isn't enough
 const MAIN_HINTS = new Set(["featured", "isrc", "explicit", "phonographic", "copyright"]);
+// tag-fields.js (shared) still gives the old brand as its example label; show a neutral one here
+const hintOf = (f) => String(f.hint || "").replace(/Sick & Sad Records/g, "Northside Records");
 function fieldCell(f, { removable = false, cls = "" } = {}) {
-  const why = whyNot(f.key);
-  return `<label class="${cls}" ${f.hint ? `title="${esc(f.hint)}"` : ""}><span class="lbl"><span>${esc(f.label)}</span>${removable ? `<button class="x" data-remove="${f.key}" title="Remove this field" aria-label="Remove ${esc(f.label)}">×</button>` : ""}</span>${control(f)}
-    ${why ? `<span class="why">${esc(why)}</span>` : f.hint && (!f.main || MAIN_HINTS.has(f.key)) ? `<span class="hint">${esc(f.hint)}</span>` : ""}${f.key === "isrc" ? '<span class="why hidden" id="isrcBad">That doesn\'t look like an ISRC: 12 characters, like US-ABC-26-00001.</span>' : ""}</label>`;
+  const why = whyNot(f.key), hint = hintOf(f);
+  return `<label class="${cls}" ${hint ? `title="${esc(hint)}"` : ""}><span class="lbl"><span>${esc(f.label)}</span>${removable ? `<button class="x" data-remove="${f.key}" title="Remove this field" aria-label="Remove ${esc(f.label)}">×</button>` : ""}</span>${control(f)}
+    ${why ? `<span class="why">${esc(why)}</span>` : hint && (!f.main || MAIN_HINTS.has(f.key)) ? `<span class="hint">${esc(hint)}</span>` : ""}${f.key === "isrc" ? '<span class="why hidden" id="isrcBad">That doesn\'t look like an ISRC: 12 characters, like US-ABC-26-00001.</span>' : ""}</label>`;
 }
 function pairCell(a, b, label, cls = "") {
   const fa = FIELD[a], fb = FIELD[b], why = whyNot(a);
@@ -248,10 +250,11 @@ function renderMain() {
   $("batchNote").classList.toggle("hidden", t.length < 2);
   $("batchNote").textContent = t.length > 1 ? `Editing ${t.length} tracks at once. "(different)" means each keeps its own value unless you type a new one. Titles and numbers per track: Album tools.` : "";
   const F = (k, o) => fieldCell(FIELD[k], o);
+  const sec = (t) => `<div class="sec">${t}</div>`;
   $("mainGrid").innerHTML = (targets().length && !t.length) ? `<div class="wide why">${esc(targets()[0].model.readOnly)}</div>` : [
-    F("title", { cls: "wideOnPhone" }), F("artist", { cls: "wideOnPhone" }), F("featured", { cls: "wideOnPhone" }), F("album", { cls: "wideOnPhone" }), albumArtistCell(),
-    pairCell("track", "trackTotal", "Track number"), F("date"), genreCell(0), genreCell(1), F("composer", { cls: "wideOnPhone" }), F("isrc"), F("barcode"),
-    F("label", { cls: "wideOnPhone" }), F("phonographic", { cls: "wideOnPhone" }), F("copyright", { cls: "wideOnPhone" }), F("explicit"), F("language"), coverCell(),
+    sec("The song"), F("title", { cls: "wideOnPhone" }), F("artist", { cls: "wideOnPhone" }), F("featured", { cls: "wideOnPhone" }), F("composer", { cls: "wideOnPhone" }),
+    sec("The release"), F("album", { cls: "wideOnPhone" }), albumArtistCell(), pairCell("track", "trackTotal", "Track number"), F("date"), genreCell(0), genreCell(1), F("explicit"), F("language"),
+    sec("Codes and rights"), F("isrc"), F("barcode"), F("label", { cls: "wideOnPhone" }), F("phonographic", { cls: "wideOnPhone" }), F("copyright", { cls: "wideOnPhone" }), coverCell(),
   ].join("") + `<datalist id="genres">${genreList.map((g) => `<option value="${esc(g)}">`).join("")}</datalist><datalist id="langs">${LANGS.map(([c, n]) => `<option value="${c}">${esc(n)}</option>`).join("")}</datalist>`;
   $("f_language")?.setAttribute("list", "langs");
   $("f_language")?.setAttribute("spellcheck", "false");

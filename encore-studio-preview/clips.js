@@ -9,8 +9,12 @@ import { recordVideo, clipBuffer, pickMime, canRecord, inspectVideo } from "./cl
 import { ACCEPT } from "./audio-decode.js";
 import { openAudio } from "./load-progress.js";
 import { toLyrics } from "./songbook-core.js";
+import { icon } from "./gr-shell.js";
 
 const $ = (id) => document.getElementById(id);
+// the Green Room look: an icon on the empty drop zone and on the panel heading
+$("audioDrop").insertAdjacentHTML("afterbegin", `<span class="dIcon">${icon("clips")}</span>`);
+document.querySelector("#songPanel .head h2").insertAdjacentHTML("afterbegin", `<span class="hIcon">${icon("master")}</span>`);
 const SETTINGS_KEY = "encore-clips-settings";
 
 // ---------- state ----------

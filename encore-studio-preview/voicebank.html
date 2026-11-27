@@ -122,6 +122,54 @@
   .note.warn { border-left: 3px solid var(--warn); }
   textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-height: 90px; resize: vertical; width: 100%; }
 </style>
+<style id="grPolish">
+  /* Green Room revamp polish (2026-11): premium surfaces, pill tabs, kicker labels, even controls */
+  html body .panel, html body .tabsBox { border-radius: 18px; }
+  html body .tabBar { gap: 4px; padding: 8px; border-bottom-color: var(--gr-line); }
+  html body .tabBar button { border-radius: 999px; min-height: 36px; padding: 8px 15px; font-size: 13.5px; letter-spacing: -0.005em; }
+  html body .tabBar button:not(.on):hover { background: var(--gr-raise-2); }
+  html body .tabBody h3, html body .tabBody h4.k { font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: var(--gr-orange-2); }
+  html body .tabBody label { font-size: 12px; color: var(--soft); }
+  html body button.small, html body button.pill, html body button.iconBtn {
+    background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); color: var(--text);
+    min-height: 36px; border-radius: 999px; font-weight: 600; }
+  html body button.small:hover:not(:disabled), html body button.pill:hover:not(:disabled), html body button.iconBtn:hover:not(:disabled) { background: var(--gr-raise-3); border-color: rgb(242 239 232 / .26); }
+  html body button.small:disabled, html body button.pill:disabled, html body button.iconBtn:disabled { opacity: .38; box-shadow: none; }
+  html body select, html body input[type=text], html body input[type=number] { border-radius: 10px; min-height: 38px; }
+  html body .pg, html body .pgChip { font-size: 9.5px; font-weight: 800; letter-spacing: .14em; color: var(--gr-orange-2); background: rgb(255 59 0 / .09);
+    border: 1px solid rgb(255 106 43 / .38); border-radius: 999px; padding: 3px 8px; line-height: 1.2; vertical-align: middle; }
+  html body .toolName, html body .toolHead h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.015em; }
+  html body .back, html body .pgLink { color: var(--dim); font-size: 12.5px; }
+  html body .back:hover, html body .pgLink:hover { color: var(--text); }
+  /* voicebank revamp */
+  html body .card { background: radial-gradient(520px 240px at 50% 40%, rgb(255 59 0 / .09), transparent 70%), var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 18px; box-shadow: var(--gr-hi); padding: 18px 14px; }
+  html body .nav { background: var(--gr-raise-1); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  html body .nav:hover { background: var(--gr-raise-3); }
+  html body .bankName { font-size: 19px; letter-spacing: -0.015em; }
+  html body .progress { height: 6px; background: var(--gr-raise-3); margin: 8px 0 12px; }
+  html body .count span { background: var(--gr-raise-2); border-color: var(--gr-line-strong); }
+  html body .count span.lit { background: var(--soft); }
+  html body .count span.sing.lit { background: var(--gr-orange); border-color: var(--gr-orange); }
+  html body .meter { background: var(--gr-raise-3); }
+  html body .result { border-top-color: var(--gr-line); }
+  html body .wave { background: #100d0c; border: 1px solid var(--gr-line); border-radius: 14px; }
+  html body .cell { background: var(--gr-raise-2); border-color: var(--gr-line-strong); border-radius: 12px; box-shadow: var(--gr-hi); }
+  html body .cell.ok { border-color: rgb(34 197 94 / .7); background: rgb(34 197 94 / .12); }
+  html body .cell.warn { border-color: rgb(245 158 11 / .7); background: rgb(245 158 11 / .12); }
+  html body .cell.fail { border-color: rgb(239 68 68 / .7); background: rgb(239 68 68 / .12); }
+  html body .cell.cur { outline: 2px solid var(--gr-orange); outline-offset: 2px; }
+  html body .groupTitle { font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: var(--gr-orange-2); }
+  @media (min-width: 1000px) and (min-height: 760px) {
+    html body .layout { align-items: stretch; }
+    html body #panel { display: flex; flex-direction: column; height: calc(100vh - 100px); height: calc(100dvh - 100px); }
+    html body #panel .card { flex: 1 1 auto; min-height: 220px; }
+    html body #panel .kana { font-size: clamp(72px, 13vh, 140px); }
+    html body #panel .kana.line { font-size: clamp(30px, 4.4vh, 52px); }
+    html body #panel .romaji { font-size: 24px; }
+    html body #panel .say { font-size: 16px; margin-top: 8px; }
+    html body #panel .wave { height: 120px; }
+  }
+</style>
 <link rel="stylesheet" href="suite-nav.css">
 <script type="module" src="gr-shell.js"></script>
 </head>

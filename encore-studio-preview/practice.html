@@ -142,9 +142,31 @@
   .help ul { padding-left: 18px; margin: 0 0 10px; }
   .bar2 { height: 6px; border-radius: 3px; background: var(--bg-subtle-default); overflow: hidden; margin: 8px 0 4px; }
   .bar2 i { display: block; height: 100%; width: 0; background: #ff3b00; }
+  /* 2026-11 revamp */
+  .ov, .wave { background: linear-gradient(180deg, #0f0c0b, #151110); border: 1px solid var(--gr-line); }
+  .ov { border-radius: 10px; height: 40px; } .wave { border-radius: 14px; margin-top: 8px; }
+  .zb, .ab button, .btns button, .list .mini { background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); color: var(--text); min-height: 36px; border-radius: 999px; padding: 0 14px; font-weight: 600; }
+  .zb { min-height: 30px; padding: 0 12px; font-weight: 500; }
+  .ab button { width: 38px; padding: 0; border-radius: 10px; }
+  .zb:hover, .ab button:hover, .btns button:hover, .list .mini:hover { border-color: rgb(255 59 0 / .45); background: var(--gr-raise-3); }
+  .clock { margin-top: 14px; } .clock b { font-size: 30px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .qs { background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 14px; padding: 6px; box-shadow: var(--gr-hi); }
+  .qs button { background: var(--gr-raise-3); border-color: var(--gr-line-strong); border-radius: 10px; }
+  .qs button:hover { border-color: rgb(255 59 0 / .5); }
+  .qs small { letter-spacing: .1em; text-transform: uppercase; font-size: 10px; font-weight: 700; }
+  .qs.toggleQs.on { border-color: rgb(255 59 0 / .7); color: #ffb08f; background: rgb(255 59 0 / .12); }
+  .trBar { height: 8px; border-radius: 99px; background: var(--gr-raise-2); } .trBar i { background: var(--gr-grad); }
+  .seg button { border-color: var(--gr-line-strong); border-radius: 10px; }
+  .list li { border-bottom-color: var(--gr-line); }
+  .recent li { border-top-color: var(--gr-line); }
+  @media (min-width: 1000px) {
+    .layout.pgFill #player:not(.hidden) { flex: 1; display: flex; flex-direction: column; }
+    .layout.pgFill #player .wave { flex: 1; height: auto; min-height: 190px; }
+  }
   @media (max-width: 600px) { .quickStrip { grid-template-columns: 1fr 1fr; } .qs.toggleQs { grid-column: 1 / -1; min-height: 40px; } .wave { height: 130px; } .tr { grid-template-columns: 1fr 1fr; } .clock b { font-size: 22px; } }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<link rel="stylesheet" href="playground-tools.css">
 <script type="module" src="gr-shell.js"></script>
 </head>
 <body>
@@ -155,7 +177,7 @@
 </div>
 
 <main>
-<div class="layout">
+<div class="layout pgFill">
   <section class="panel" aria-label="Practice">
     <div class="toolName"><b>Practice</b><span class="pgchip">PLAYGROUND</span><a class="back" href="playground.html">&larr; Playground</a></div>
     <div class="song">
@@ -163,11 +185,14 @@
       <button class="small hidden" id="swapBtn" title="Open another song">Open</button>
     </div>
     <div class="drop" id="drop">
+      <span class="emptyIc" data-icon="practice" aria-hidden="true"></span>
+      <h2 class="emptyH">Learn any song by ear</h2>
+      <p class="emptyP">Slow the hard part down without changing its pitch, loop it seamlessly, and speed it up a little at a time.</p>
       <div class="row">
         <button class="go" id="openBtn">Choose a song</button>
         <button class="small" id="demoBtn">Try a demo song</button>
       </div>
-      <p>Or drop an audio file here. It stays on your device, with your loops and markers.</p>
+      <p class="fine">Or drop an audio file here. It stays on your device, with your loops and markers.</p>
       <ul class="recent" id="recent"></ul>
       <input type="file" id="file" class="hidden" aria-label="Choose a song">
     </div>
@@ -294,5 +319,6 @@
 </div>
 </main>
 <script type="module" src="practice.js"></script>
+<script type="module">import { icon } from "./gr-shell.js"; for (const el of document.querySelectorAll(".emptyIc[data-icon]")) el.innerHTML = icon(el.dataset.icon);</script>
 </body>
 </html>

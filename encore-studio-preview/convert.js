@@ -39,7 +39,11 @@ const presetUsable = (p) => (p.kind === "m4a" ? !!state.caps.m4a : p.kind === "o
 function renderPresets() {
   const box = $("presets");
   box.innerHTML = "";
+  const GROUP = { mp3: "MP3", wav: "Lossless and uncompressed", flac: "Lossless and uncompressed", aiff: "Lossless and uncompressed", alac: "Lossless and uncompressed", m4a: "More formats", opus: "More formats", vorbis: "More formats" };
+  let group = "";
   for (const p of PRESETS) {
+    const g = GROUP[p.kind] || "More formats";
+    if (g !== group && !(p.id === "voice" && group)) { group = g; const h = document.createElement("div"); h.className = "pgroup"; h.textContent = g; box.appendChild(h); }
     const b = document.createElement("button");
     b.type = "button"; b.className = "preset" + (p.id === state.preset ? " on" : ""); b.setAttribute("role", "radio");
     b.setAttribute("aria-checked", String(p.id === state.preset)); b.dataset.id = p.id;
@@ -171,6 +175,13 @@ function renderAll() {
     renderItem(f, el);
   }
   const n = state.files.length, done = state.files.filter((f) => f.result).length;
+  document.body.classList.toggle("hasFiles", n > 0);
+  // the summary by the Convert button: what you get and about how big
+  const preset = PRESETS.find((p) => p.id === state.preset), first = state.files[0];
+  $("sumWhat").textContent = preset.label;
+  const bytes = state.files.reduce((a, f) => a + (f.src.duration ? estimateSize(planFor(f), f.src.duration) : 0), 0);
+  const detail = first ? planText(planFor(first)).replace(/^.*? (?=\d+(-bit| kbps)|quality)/, "") : preset.sub;
+  $("sumSize").textContent = n ? `${detail}. ${n} ${n === 1 ? "file" : "files"}${bytes ? `, about ${fmtBytes(bytes)}` : ""}.` : `${preset.sub}. Add a track to start.`;
   $("listCount").textContent = n ? `${n} ${n === 1 ? "file" : "files"}${done ? `, ${done} converted` : ""}` : "No files yet";
   $("clearBtn").classList.toggle("hidden", !n || state.running);
   $("convertBtn").disabled = !n || state.running || !presetUsable(PRESETS.find((p) => p.id === state.preset));
@@ -179,6 +190,7 @@ function renderAll() {
 }
 function renderItem(f, el) {
   el.classList.toggle("sel", f.id === state.sel);
+  el.classList.toggle("isDone", !!f.result);
   el.querySelector(".name").textContent = f.name; el.querySelector(".name").title = f.name;
   el.querySelector(".src").textContent = srcText(f);
   const p = planFor(f), o = options();
@@ -186,6 +198,11 @@ function renderItem(f, el) {
   if (secs) { const end = o.end > 0 ? Math.min(o.end, secs) : secs; secs = Math.max(0, end - Math.min(o.start || 0, end)); }
   el.querySelector(".out").innerHTML = `To <b></b>${secs ? `, about ${fmtBytes(estimateSize(p, secs))}` : ""}`;
   el.querySelector(".out b").textContent = planText(p);
+  let fmt = el.querySelector(".fmt");
+  if (!fmt) { fmt = document.createElement("span"); fmt.className = "fmt"; el.querySelector(".x").before(fmt); }
+  fmt.innerHTML = `<i></i><span>&#8594;</span><i class="to"></i>`;
+  fmt.firstChild.textContent = (f.info.container === "unknown" ? "Audio" : f.info.label || "Audio").split(" ")[0];
+  fmt.lastChild.textContent = FORMATS[p.kind].ext.toUpperCase();
   const notes = [...honesty(f.src, p), ...p.notes];
   const warn = el.querySelector(".warn");
   warn.textContent = notes.join(" "); warn.classList.toggle("hidden", !notes.length);

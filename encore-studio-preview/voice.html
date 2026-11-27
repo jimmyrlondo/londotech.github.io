@@ -123,6 +123,83 @@
   .care { color: var(--dim); font-size: 13px; margin-top: 22px; border-top: 1px solid var(--divider); padding-top: 12px; }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<style>
+  /* 2026-11 revamp: this page's layer, after gr.css */
+  main { padding-top: 16px; }
+  label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); gap: 6px; }
+  label.toggle { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 14px; color: var(--text); }
+  select, input[type=number], input[type=text] { border-radius: 10px; background-color: var(--gr-raise-2); min-height: 38px; }
+  button.go { min-height: 46px; padding: 0 26px; font-size: 15px; }
+  button.small { min-height: 36px; padding: 0 15px; font-weight: 600; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  button.small:hover { background: var(--gr-raise-3); }
+
+  /* the welcome card */
+  .start { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 22px; padding: 22px 24px; margin: 0 0 16px; border-radius: 18px; border-color: var(--gr-line);
+    background: radial-gradient(700px 220px at 0 0, rgb(255 59 0 / .12), transparent 70%), var(--gr-raise-1); box-shadow: var(--gr-hi), var(--gr-shadow); }
+  .start .startIcon { grid-column: 1; grid-row: 1 / span 2; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 18px; color: #fff; background: var(--gr-grad); box-shadow: var(--gr-hi), var(--gr-glow); }
+  .start .startIcon .grIcon { width: 32px; height: 32px; }
+  .start h1 { grid-column: 2; font-size: 26px; letter-spacing: -0.025em; }
+  .start p { grid-column: 2; font-size: 14px; max-width: 820px; }
+  .start .go { grid-column: 3; grid-row: 1 / span 2; min-height: 50px; padding: 0 30px; font-size: 16px; }
+  .start .err, .start .safety { grid-column: 2 / -1; }
+  @media (max-width: 640px) {
+    .start { grid-template-columns: auto minmax(0, 1fr); padding: 18px; }
+    .start .startIcon { width: 48px; height: 48px; border-radius: 14px; grid-row: 1; }
+    .start .startIcon .grIcon { width: 24px; height: 24px; }
+    .start h1 { font-size: 21px; align-self: center; }
+    .start p, .start .go, .start .err, .start .safety { grid-column: 1 / -1; }
+    .start .go { grid-row: auto; width: 100%; }
+  }
+
+  /* mode tabs and the settings strip on one line on wide screens */
+  .tabs { width: fit-content; max-width: 100%; background: var(--gr-raise-2); border: 1px solid var(--gr-line) !important; box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); margin: 0 0 14px; }
+  .tabs button { height: 34px; padding: 0 16px; }
+  .tabs button.on { background: var(--gr-grad); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  .settings { align-items: end; }
+  .settings .toggle { padding-top: 0; min-height: 38px; }
+
+  /* the pitch view */
+  .panel { border-radius: 18px; padding: 18px 20px; border-color: var(--gr-line); }
+  .readout { gap: 18px; margin-bottom: 14px; align-items: center; }
+  .big { font-size: clamp(44px, 8vw, 68px); letter-spacing: -0.04em; }
+  .big .idle { display: inline-block; font-size: 26px; letter-spacing: -0.02em; font-weight: 700; color: var(--dim); padding: 14px 0 12px; }
+  .big sub { font-family: var(--family-mono); font-size: 0.34em; color: var(--gr-orange-2); margin-left: 4px; }
+  .cents { font-size: 17px; }
+  .hz { font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .phase { height: 30px; display: inline-flex; align-items: center; padding: 0 14px; }
+  #roll { border-radius: 14px; background: #0f0c0b; box-shadow: inset 0 0 0 1px var(--gr-line), inset 0 2px 14px rgb(0 0 0 / .5); }
+  .legend { margin-top: 12px; }
+  .legend i { border-radius: 50%; }
+
+  /* the exercise side */
+  .mode h2 { font-size: 24px; letter-spacing: -0.025em; }
+  .mode .lede { font-size: 15px; }
+  .card, .stat, .steps li, .banner, .dot { border-color: var(--gr-line-strong); }
+  .card { border-radius: 16px; background: var(--gr-raise-1); box-shadow: var(--gr-hi), var(--gr-shadow); }
+  .steps li { border-radius: 12px; background: var(--gr-raise-1); box-shadow: var(--gr-hi); }
+  .steps li.now { border-color: rgb(255 90 31 / .8); }
+  .stat { border-radius: 12px; background: var(--gr-raise-1); box-shadow: var(--gr-hi); }
+  .stat .v { font-variant-numeric: tabular-nums; }
+  .care { border-top-color: var(--gr-line); }
+
+  @media (min-width: 1100px) {
+    main { max-width: 1440px; }
+    .tabsRow { display: flex; align-items: end; gap: 12px 20px; flex-wrap: wrap; margin: 0 0 14px; }
+    .tabsRow .tabs { margin: 0; flex: none; }
+    .tabsRow .tabs button { padding: 0 13px; }
+    .tabsRow .settings { flex: 1 1 560px; margin: 0; grid-template-columns: minmax(170px, 1.3fr) minmax(110px, .9fr) minmax(100px, 1fr) auto; gap: 10px 14px; }
+    .settings input[type=range] { margin: 0; height: 38px; }
+    .work { align-items: stretch; }
+    .work { gap: 20px; }
+    .workR { padding: 20px 22px; border-radius: 18px; background: var(--gr-raise-1); border: 1px solid var(--gr-line); box-shadow: var(--gr-hi), var(--gr-shadow); }
+  }
+  @media (min-width: 1100px) and (min-height: 760px) {
+    #roll { height: calc(100dvh - 60px - 16px - 62px - 196px); max-height: 640px; min-height: 300px; }
+    .start:not(.hidden) ~ .work #roll { height: calc(100dvh - 60px - 16px - 62px - 196px - 190px); }
+    .workR { max-height: calc(100dvh - 60px - 16px - 62px - 24px); }
+    .start:not(.hidden) ~ .work .workR { max-height: calc(100dvh - 60px - 16px - 62px - 24px - 190px); }
+  }
+</style>
 <script type="module" src="gr-shell.js"></script>
 </head>
 <body>
@@ -134,6 +211,7 @@
 
 <main>
   <section class="start" id="startView">
+    <span class="startIcon" id="startIcon" aria-hidden="true"></span>
     <h1>Become a better singer.</h1>
     <p>A voice coach that listens. Find your range and your comfortable notes, warm up with the exercises voice teachers use, match pitches, hold long notes and hear how steady they are, sing back short tunes, and find the right key for any song. Every exercise is built around your own voice, and your progress is kept on this device.</p>
     <button class="go" id="startBtn">Start listening</button>
@@ -141,6 +219,7 @@
     <div class="safety">Headphones help: then the microphone hears only you. Singing should never hurt. If anything feels scratchy, tight or sore, stop and rest.</div>
   </section>
 
+  <div class="tabsRow">
   <div class="tabs" role="tablist" id="tabs">
     <button data-mode="live" class="on" role="tab">Live</button>
     <button data-mode="range" role="tab">Range</button>
@@ -158,12 +237,13 @@
     <label>Guide volume <input id="volume" type="range" min="0" max="100" value="60"></label>
     <label class="toggle" title="With headphones on, the guide plays while you sing (sing along). Without them, you listen first and then sing, so the microphone doesn't hear the guide."><input type="checkbox" id="phones"> I'm wearing headphones</label>
   </div>
+  </div>
 
   <div class="work">
   <div class="workL">
   <section class="panel" id="graphPanel">
     <div class="readout">
-      <div class="big" id="big">--</div>
+      <div class="big" id="big"><span class="idle">Sing a note</span></div>
       <div><div class="cents" id="cents"></div><div class="hz" id="hz"></div></div>
       <div class="phase hidden" id="phase"></div>
     </div>

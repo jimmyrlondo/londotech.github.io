@@ -3,8 +3,10 @@
 // you're playing and how far off it is.
 import { estimatePitch, downsample, reading, noteName, noteHz, pillsFor, drumPeak, rodSpread, tomSteps } from './tune-core.js';
 import { TUNINGS } from './tunings.js';
+import { icon } from './gr-shell.js';
 
 const $ = id => document.getElementById(id);
+$('startIcon').innerHTML = icon('tune');
 const store = {
   get: (k, d) => { try { const v = localStorage.getItem('encoreTune.' + k); return v === null ? d : v; } catch { return d; } },
   set: (k, v) => { try { localStorage.setItem('encoreTune.' + k, v); } catch {} },
@@ -110,7 +112,7 @@ $('temperament').onchange = () => { store.set('temperament', $('temperament').va
 $('root').onchange = () => store.set('root', $('root').value);
 $('root').disabled = $('temperament').value === '0';
 const strobeHint = () => $('strobeHint').classList.toggle('hidden', !$('strobe').checked);
-$('strobe').onchange = () => { store.set('strobe', $('strobe').checked ? '1' : '0'); strobeHint(); };
+$('strobe').onchange = () => { store.set('strobe', $('strobe').checked ? '1' : '0'); strobeHint(); drawMeter(); };
 strobeHint();
 const replay = () => { if (playing) { const { key, hz } = playing; stopTone(); playTone(key, typeof key === 'number' ? toneHz(key) : hz); } };
 $('tone').onchange = () => { store.set('tone', $('tone').value); replay(); };
@@ -281,7 +283,11 @@ const playPrompt = () => strings.length && instrument.part === 'string' ? 'Play 
 function show() {
   const r = last, have = r && r.note >= 0, t = instrument.transpose || 0;
   $('big').innerHTML = have ? noteName(r.note + t, false) + '<sub>' + (Math.floor((r.note + t) / 12) - 1) + '</sub>' : '--';
-  $('big').style.color = have ? '' : '#91887d';
+  $('big').style.color = '';
+  $('big').classList.toggle('idle', !have);
+  $('cents').textContent = have ? (r.cents >= 0 ? '+' : '−') + Math.abs(r.cents).toFixed(1) + ' cents' : '';
+  $('cents').style.color = have ? colourFor(r) : '';
+  $('panel').classList.toggle('inTune', !!have && Math.abs(r.cents) <= 3);
   $('concert').textContent = have && t ? 'sounds ' + noteName(r.note) + ' (concert)' : '';
   const status = $('status');
   status.style.color = colourFor(r);
@@ -292,35 +298,75 @@ function show() {
   drawStrings(r);
 }
 
-function drawMeter() {
-  const c = $('meter'), dpr = window.devicePixelRatio || 1;
-  const w = c.clientWidth, h = c.clientHeight;
-  if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
+// the dial: an arc from 50 cents flat to 50 cents sharp, a lit trail from the centre to the reading
+// and a pointer on the arc (eased, so it glides instead of jumping between readings)
+const needles = new Map();
+function drawGauge(c, cents, colour, { zone = 3, strobe = null } = {}) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (!w || !h) return;
+  if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
   const g = c.getContext('2d');
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.fillStyle = '#2c2723';
-  g.fillRect(0, 0, w, h);
-  const r = last, have = r && r.note >= 0, colour = colourFor(r);
-  if ($('strobe').checked) {
-    g.fillStyle = have ? colour : '#91887d55';
-    const stripe = 18;
-    for (let x = -stripe * 2 + (strobePhase % (stripe * 2) + stripe * 2) % (stripe * 2); x < w; x += stripe * 2) g.fillRect(x, 0, stripe, h);
+  g.clearRect(0, 0, w, h);
+  const SWEEP = 75 * Math.PI / 180, R = Math.max(40, Math.min((w / 2 - 34) / Math.sin(SWEEP), h - 44)), cx = w / 2, cy = h - 10;
+  const ang = v => -Math.PI / 2 + Math.max(-1, Math.min(1, v / 50)) * SWEEP;
+  const at = (v, r) => [cx + r * Math.cos(ang(v)), cy + r * Math.sin(ang(v))];
+  const arc = (a, b, r, width, style) => { g.beginPath(); g.arc(cx, cy, r, ang(a), ang(b)); g.lineWidth = width; g.strokeStyle = style; g.lineCap = 'round'; g.stroke(); };
+  const band = Math.max(10, Math.min(16, R * 0.05));
+  // the track and the zones
+  arc(-50, 50, R, band, '#231e1b');
+  arc(-15, 15, R, band, 'rgb(234 179 8 / .10)');
+  arc(-zone, zone, R, band, 'rgb(34 197 94 / .28)');
+  // ticks every 5 cents, longer every 10, labels outside
+  for (let v = -50; v <= 50; v += 5) {
+    const major = v % 10 === 0, centre = v === 0, r0 = R - band / 2 - 6, r1 = r0 - (centre ? 18 : major ? 12 : 6);
+    const [x0, y0] = at(v, r0), [x1, y1] = at(v, r1);
+    g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1);
+    g.lineWidth = centre ? 2.5 : major ? 1.5 : 1; g.strokeStyle = centre ? '#f2efe8' : major ? '#6f665e' : '#463f39'; g.lineCap = 'round'; g.stroke();
+  }
+  g.font = '700 11px "Space Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (const v of [-50, -25, 0, 25, 50]) {
+    const [x, y] = at(v, R + band / 2 + 14);
+    g.fillStyle = v === 0 ? '#f2efe8' : '#6f665e';
+    g.fillText(v > 0 ? '+' + v : v < 0 ? '−' + -v : '0', x, y);
+  }
+  if (strobe !== null) {
+    // strobe: stripes round the arc that drift with the pitch error and stand still in tune
+    g.save();
+    g.beginPath(); g.arc(cx, cy, R + band, ang(-50), ang(50)); g.arc(cx, cy, R - band, ang(50), ang(-50), true); g.closePath(); g.clip();
+    g.fillStyle = cents === null ? 'rgb(145 136 125 / .3)' : colour;
+    const n = 36, step = 2 * SWEEP / n, off = ((strobe / 18) % 2) * step;
+    for (let k = -2; k < n + 2; k += 2) {
+      const a0 = -Math.PI / 2 - SWEEP + k * step + off;
+      g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, R + band, a0, a0 + step); g.closePath(); g.fill();
+    }
+    g.restore();
     return;
   }
-  for (let cents = -50; cents <= 50; cents += 10) {
-    const x = (cents + 50) / 100 * w;
-    g.fillStyle = cents === 0 ? '#f2efe8' : '#91887d';
-    g.fillRect(x - (cents === 0 ? 1 : 0.5), 6, cents === 0 ? 2 : 1, h - 12);
-  }
-  if (have) {
-    const x = (Math.max(-50, Math.min(50, r.cents)) + 50) / 100 * w;
-    g.fillStyle = colour;
-    g.beginPath();
-    g.roundRect ? g.roundRect(x - 4, 2, 8, h - 4, 3) : g.rect(x - 4, 2, 8, h - 4);
-    g.fill();
-  }
+  // the reading, eased toward the latest value
+  let n = needles.get(c);
+  if (!n) { n = { v: 0, a: 0 }; needles.set(c, n); }
+  if (cents !== null) { n.v += (Math.max(-50, Math.min(50, cents)) - n.v) * 0.25; n.a = Math.min(1, n.a + 0.2); }
+  else n.a = Math.max(0, n.a - 0.08);
+  if (n.a <= 0) return;
+  g.globalAlpha = n.a;
+  if (Math.abs(n.v) > 0.4) arc(Math.min(0, n.v), Math.max(0, n.v), R, band, colour);
+  const [px, py] = at(n.v, R), [ix, iy] = at(n.v, R - band / 2 - 30);
+  g.shadowColor = colour; g.shadowBlur = 18;
+  g.beginPath(); g.moveTo(ix, iy); g.lineTo(...at(n.v, R + band / 2 + 2)); g.lineWidth = 3; g.strokeStyle = colour; g.lineCap = 'round'; g.stroke();
+  g.beginPath(); g.arc(px, py, band * 0.75, 0, Math.PI * 2); g.fillStyle = colour; g.fill();
+  g.shadowBlur = 0;
+  g.beginPath(); g.arc(px, py, band * 0.32, 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill();
+  g.globalAlpha = 1;
+}
+
+function drawMeter() {
+  const r = last, have = r && r.note >= 0;
+  drawGauge($('meter'), have ? r.cents : null, colourFor(r), { strobe: $('strobe').checked ? strobePhase : null });
 }
 drawMeter();
+requestAnimationFrame(drawMeter);
+document.fonts?.ready.then(drawMeter);
 
 // ---- drums: catch each hit and measure it
 const DRUMS = [['Snare 13"', 8], ['Snare 14"', 10], ['Rack tom 8"', 6], ['Rack tom 10"', 6], ['Rack tom 12"', 6], ['Rack tom 13"', 6],
@@ -454,6 +500,7 @@ function showDrum() {
   const cents = 1200 * Math.log2(d.hz / noteHz(target, a4(), new Array(12).fill(0), 0));
   d.cents = cents;
   $('drumBig').innerHTML = noteName(d.note, false) + '<sub>' + (Math.floor(d.note / 12) - 1) + '</sub>';
+  $('drumBig').classList.remove('idle');
   const status = $('drumStatus');
   status.style.color = centsColour(cents);
   status.textContent = Math.abs(cents) <= 8 ? `On ${noteName(target)}` : `${Math.abs(cents).toFixed(0)} cents ${cents < 0 ? 'flat' : 'sharp'} of ${noteName(target)}: ${cents < 0 ? 'tighten' : 'loosen'} every rod evenly`;
@@ -462,25 +509,8 @@ function showDrum() {
 }
 
 function drawDrumMeter() {
-  const c = $('drumMeter'), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-  if (!w) return;
-  if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
-  const g = c.getContext('2d');
-  g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.fillStyle = '#2c2723';
-  g.fillRect(0, 0, w, h);
-  for (let cents = -50; cents <= 50; cents += 10) {
-    const x = (cents + 50) / 100 * w;
-    g.fillStyle = cents === 0 ? '#f2efe8' : '#91887d';
-    g.fillRect(x - (cents === 0 ? 1 : 0.5), 6, cents === 0 ? 2 : 1, h - 12);
-  }
-  if (drumLast && drumLast.cents !== undefined) {
-    const x = (Math.max(-50, Math.min(50, drumLast.cents)) + 50) / 100 * w;
-    g.fillStyle = centsColour(drumLast.cents);
-    g.beginPath();
-    g.roundRect ? g.roundRect(x - 4, 2, 8, h - 4, 3) : g.rect(x - 4, 2, 8, h - 4);
-    g.fill();
-  }
+  const d = drumLast && drumLast.cents !== undefined ? drumLast.cents : null;
+  drawGauge($('drumMeter'), d, centsColour(d), { zone: 8 });
 }
 
 function drawTomNotes() {
@@ -514,3 +544,4 @@ resetRods();
 drawTomNotes();
 setSeg(store.get('drumSeg', 'rods'));
 setMode(store.get('mode', 'pitch'));
+window.addEventListener('resize', () => { drawMeter(); if (mode === 'drums') drawDrumMeter(); });

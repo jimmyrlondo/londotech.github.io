@@ -121,6 +121,26 @@
   .fileBtn { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; }
   .fileBtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
   .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #2a2523; border: 1px solid var(--divider-strong); border-radius: 10px; padding: 10px 16px; font-size: 14px; z-index: 30; max-width: calc(100vw - 32px); }
+  /* 2026-11 revamp */
+  @media (min-width: 1000px) { .layout { height: calc(100vh - 60px - 36px); height: calc(100dvh - 60px - 36px); } }
+  .panel { padding: 16px 20px 18px !important; gap: 12px; }
+  .songTitle { font-size: 20px; letter-spacing: -0.02em; }
+  .chip { background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); min-height: 36px; }
+  .chip:hover:not(:disabled) { border-color: rgb(255 59 0 / .45); }
+  .chip.on { background: var(--gr-grad); border-color: rgb(255 120 70 / .6); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .8); }
+  .lbl { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .rollWrap { background: linear-gradient(180deg, #0f0c0b, #141110); border: 1px solid var(--gr-line); border-radius: 14px; }
+  .empty { gap: 4px; background: radial-gradient(600px 280px at 50% 40%, rgb(255 59 0 / .07), transparent 70%); }
+  .empty .emptyP { max-width: 470px; }
+  .empty.drag { outline-color: var(--gr-orange); }
+  .transport .go { min-height: 44px; }
+  .pos { font-variant-numeric: tabular-nums; }
+  .prow { border-bottom-color: var(--gr-line); padding: 8px 0; }
+  .mini { background: var(--gr-raise-2); border-color: var(--gr-line-strong); border-radius: 10px; }
+  .mini:hover:not(:disabled) { border-color: rgb(255 59 0 / .45); }
+  .files { background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 12px; }
+  .progress { height: 8px; border-radius: 99px; background: var(--gr-raise-2); } .progress i { background: var(--gr-grad); }
+  .busy { background: rgb(20 17 16 / .94); border-color: var(--gr-line-strong); border-radius: 12px; box-shadow: var(--gr-shadow); }
   @media (max-width: 999px) {
     .rollWrap { height: 250px; }
     .tempo input { width: 110px; }
@@ -134,6 +154,7 @@
   }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<link rel="stylesheet" href="playground-tools.css">
 <script type="module" src="gr-shell.js"></script>
 </head>
 <body>
@@ -147,7 +168,7 @@
 <div class="layout">
   <section class="panel" id="panel" aria-label="Learning track player">
     <div class="head">
-      <span class="songTitle" id="songTitle">Learning Tracks</span><span class="pg" title="A new tool, still in testing">PLAYGROUND</span>
+      <span class="songTitle" id="songTitle">Learning Tracks</span><span class="pg pgchip" title="A new tool, still in testing">PLAYGROUND</span>
       <span class="songMeta" id="songMeta">No score open yet</span>
       <a class="back" href="playground.html">Back to the Playground</a>
     </div>
@@ -166,8 +187,9 @@
     <div class="rollWrap" id="rollWrap">
       <canvas class="roll" id="roll" aria-label="The parts as a piano roll. Click a bar number to jump there, drag across bar numbers to loop them, click a note to pick that part."></canvas>
       <div class="empty" id="empty">
-        <b>Open a score to make learning tracks</b>
-        <span class="tip" style="margin:0">MusicXML (.musicxml, .xml, .mxl) or MIDI (.mid). Drop it here, or:</span>
+        <span class="emptyIc" data-icon="parts" aria-hidden="true"></span>
+        <b class="emptyH">Open a score to make learning tracks</b>
+        <span class="emptyP">Every part loud, missing or alone, at any tempo, with a count-in and a pitch pipe. Drop a MusicXML (.musicxml, .xml, .mxl) or MIDI (.mid) file here, or:</span>
         <div class="row">
           <span class="go fileBtn" role="button">Open a score<input type="file" id="fileEmpty" accept=".musicxml,.xml,.mxl,.mid,.midi,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml,audio/midi" aria-label="Open a score"></span>
           <button class="small" id="sampleEmpty">Try the sample hymn</button>
@@ -283,5 +305,6 @@
 </main>
 <div class="toast hidden" id="toast" role="status"></div>
 <script type="module" src="parts.js"></script>
+<script type="module">import { icon } from "./gr-shell.js"; for (const el of document.querySelectorAll(".emptyIc[data-icon]")) el.innerHTML = icon(el.dataset.icon);</script>
 </body>
 </html>

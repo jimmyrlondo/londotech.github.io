@@ -3,6 +3,8 @@ import { STYLES, TARGETS } from "./master-core.js";
 import { PLATFORMS, DEVICES, platformGain } from "./streaming.js";
 import { wavFile, id3, fileName } from "./tags.js";
 import { fillGenreSelect } from "./genres.js";
+import { icon } from "./gr-shell.js";
+for (const el of document.querySelectorAll("[data-icon]")) el.innerHTML = icon(el.dataset.icon);
 
 const $ = (id) => document.getElementById(id);
 const savedView = (() => { try { return localStorage.getItem("encore-master-view"); } catch { return null; } })();
@@ -58,8 +60,9 @@ async function load(f) {
   catch { status("Couldn't read that file. Try a WAV or MP3."); return; }
 
   state.buffer = buf; state.name = f.name; state.offset = 0; state.originalLufs = null;
-  drop.classList.add("hidden"); $("hero").classList.add("hidden"); $("app").classList.remove("hidden");
+  drop.classList.add("hidden"); $("hero").classList.add("hidden"); $("feats").classList.add("hidden"); $("app").classList.remove("hidden");
   $("songName").textContent = f.name;
+  $("songTitle").textContent = f.name.replace(/\.[^.]+$/, ""); $("songTitle").title = f.name;
   $("another").classList.remove("hidden");
   $("scrub").max = buf.duration.toFixed(2);
   $("result").textContent = "";
@@ -636,7 +639,7 @@ function drawSpectrum() {
   const c = $("spectrum"), dpr = window.devicePixelRatio || 1;
   const w = c.clientWidth, h = c.clientHeight;
   if (!w) return;
-  if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
   const g = c.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, w, h);
@@ -661,8 +664,10 @@ function drawSpectrum() {
     if (x === 0) g.moveTo(x, y); else g.lineTo(x, y);
   }
   g.lineTo(w, h - 12); g.lineTo(0, h - 12); g.closePath();
-  g.fillStyle = cssVar("--accent"); g.globalAlpha = 0.25; g.fill();
-  g.globalAlpha = 1; g.strokeStyle = cssVar("--accent"); g.lineWidth = 1.5; g.stroke();
+  const fill = g.createLinearGradient(0, 0, 0, h - 12);
+  fill.addColorStop(0, "rgb(255 106 43 / 0.55)"); fill.addColorStop(1, "rgb(255 59 0 / 0.02)");
+  g.fillStyle = fill; g.globalAlpha = 1; g.fill();
+  g.strokeStyle = cssVar("--accent"); g.lineWidth = 1.5; g.lineJoin = "round"; g.stroke();
 }
 
 // ---------- meters ----------

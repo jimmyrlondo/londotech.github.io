@@ -224,6 +224,123 @@
     #scrub { order: 10; flex-basis: 100%; }
     #songName, .bar .note { display: none; }
   }
+  /* Green Room revamp (2026-11) */
+  /* ---------- 2026-11 revamp: first load ---------- */
+  body:has(#app.hidden) main { min-height: calc(100dvh - 60px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 24px; padding-bottom: 40px; }
+  .hero { padding: 0 16px 28px; }
+  .heroIcon { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 18px; color: #fff; background: var(--gr-grad); box-shadow: var(--gr-hi), var(--gr-glow); margin-bottom: 18px; }
+  .heroIcon .grIcon { width: 32px; height: 32px; }
+  .hero .eyebrow { color: var(--gr-orange-2); font-size: 11.5px; font-weight: 800; letter-spacing: .16em; margin-bottom: 12px; }
+  .hero h1 { font-size: clamp(32px, 3.4vw, 50px); letter-spacing: -0.03em; margin-bottom: 14px; }
+  .hero p { max-width: 600px; }
+  main #drop { width: 100%; max-width: 960px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 36px 16px 34px; border-radius: 18px; border-width: 1.5px;
+    background-color: var(--gr-raise-1); box-shadow: var(--gr-hi), var(--gr-shadow); }
+  .dropIcon { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: var(--gr-orange-2); background: rgb(255 59 0 / .1); border: 1px solid rgb(255 106 43 / .3); margin-bottom: 10px; }
+  .dropIcon svg { width: 24px; height: 24px; }
+  #drop strong { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  #drop span.dropBtn { margin-top: 16px; display: inline-flex; align-items: center; height: 46px; padding: 0 28px; border-radius: 999px; background: var(--gr-grad); color: #fff; font-weight: 800; font-size: 15px;
+    border: 1px solid rgb(255 120 70 / .55); box-shadow: var(--gr-hi), var(--gr-glow); }
+  #drop:hover span.dropBtn { filter: brightness(1.07); }
+  .feats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 960px; margin: 16px auto 0; }
+  .feat { background: var(--gr-raise-1); border: 1px solid var(--gr-line); border-radius: 16px; padding: 16px; box-shadow: var(--gr-hi); display: flex; flex-direction: column; gap: 4px; }
+  .fIc { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--gr-raise-3); border: 1px solid var(--gr-line); color: var(--gr-orange-2); margin-bottom: 8px; }
+  .fIc svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .feat b { font-size: 14.5px; letter-spacing: -0.005em; }
+  .feat small { color: var(--dim); font-size: 12.5px; line-height: 1.45; }
+  @media (max-width: 900px) { .feats { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) {
+    body:has(#app.hidden) main { justify-content: flex-start; }
+    .hero h1 { font-size: 30px; }
+    main #drop { padding: 26px 16px; }
+    .feats { grid-template-columns: 1fr; gap: 8px; }
+    .feat { display: grid; grid-template-columns: 36px 1fr; gap: 0 12px; padding: 12px 14px; }
+    .fIc { grid-row: span 2; margin: 0; }
+  }
+
+  /* ---------- 2026-11 revamp: the app ---------- */
+  #app .panel { border-radius: 18px; padding: 16px 18px; }
+  .waveBar { gap: 10px 16px; margin-bottom: 12px; flex-wrap: nowrap; }
+  .nowTitle { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 0 1 300px; line-height: 1.15; }
+  .nowTitle .gr-kicker { font-size: 10.5px; }
+  #songTitle { font-size: 18px; font-weight: 800; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #app .views { flex: none; background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 999px; padding: 3px; gap: 2px; box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); }
+  #app .views button { border: 0; height: 30px; padding: 0 14px; font-size: 12.5px; font-weight: 700; color: var(--soft); background: transparent; box-shadow: none; }
+  #app .views button.on { background: var(--gr-grad); color: #fff; box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  .waveBar .legend { gap: 6px 12px; flex-wrap: wrap; min-width: 0; }
+  #app .chip { height: 28px; padding: 0 11px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); font-weight: 600; }
+  #wave { background: radial-gradient(120% 90% at 50% 50%, #120f0d, #080606); border: 1px solid var(--gr-line); border-radius: 12px; }
+  #app .transport { gap: 10px; margin-top: 14px; }
+  #app .transport button { background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  #app .transport button:hover:not(:disabled) { background: var(--gr-raise-3); }
+  #app .transport #play { background: var(--gr-grad); border-color: rgb(255 120 70 / .55); color: #fff; box-shadow: var(--gr-hi), var(--gr-glow); }
+  #time { font-variant-numeric: tabular-nums; color: var(--text); }
+  #status { font-size: 12.5px; color: var(--dim); }
+  #app #status:empty { display: none; }
+
+  #app .label { color: var(--soft); font-size: 10.5px; font-weight: 800; letter-spacing: .14em; margin-bottom: 10px; align-items: baseline; }
+  #app .label span { font-size: 12px; letter-spacing: 0; font-weight: 500; }
+  #ctlPanel .section + .section { margin-top: 20px; }
+  #app .styles button, #app .targets button, #app .ab button, #app .devices button, #app .refButtons button, #refLoad {
+    background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  #app .styles button { height: 44px; padding: 0 8px; border-radius: 12px; font-size: 14.5px; }
+  #app .targets button { min-height: 48px; }
+  #app .ab button { height: 40px; padding: 0 10px; font-weight: 700; }
+  #app .styles button:hover:not(.on), #app .targets button:hover:not(.on), #app .ab button:hover:not(.on) { background: var(--gr-raise-3); }
+  #app button.on { background: var(--gr-grad); border-color: rgb(255 120 70 / .55); color: #fff; box-shadow: var(--gr-hi), 0 6px 18px -8px rgb(255 59 0 / .75); }
+  #app button.on:hover:not(:disabled) { background: var(--gr-grad); filter: brightness(1.07); }
+  #app .targets button.on small { opacity: .9; }
+  #blurb { color: var(--soft); }
+  .eq output { font-variant-numeric: tabular-nums; }
+
+  /* Mix check | Reference | Streaming: a pill tab bar with a count badge */
+  #app .tabs { background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 999px; padding: 4px; gap: 2px; margin-bottom: 14px; box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); flex: none; }
+  #app .tabs button { flex: 1 1 auto; min-width: 0; height: 34px; padding: 0 10px; border: 0; font-size: 13px; font-weight: 700; text-transform: none; letter-spacing: 0; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px; color: var(--soft); background: transparent; box-shadow: none; }
+  #app .tabs button:hover:not(.on) { color: var(--text); background: rgb(255 255 255 / .05); }
+  #app .tabs button.on { color: #fff; background: var(--gr-grad); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  #app .tabs button span { margin: 0; font: 700 10.5px/1 var(--family-mono); padding: 4px 7px; border-radius: 999px; background: rgb(255 255 255 / .08); color: var(--soft); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  #app .tabs button span:empty { display: none; }
+  #app .tabs button.on span { background: rgb(0 0 0 / .24); color: #fff !important; }
+  #app .tabs button span.ok { color: var(--green); } #app .tabs button span.bad { color: #ff8a80; }
+  #mixList { gap: 8px; }
+  .finding { padding: 11px 12px; border-radius: 12px; background: rgb(255 255 255 / .018); border: 1px solid var(--gr-line); gap: 3px 10px; }
+  .finding b { font-size: 14px; }
+  .finding p { font-size: 12.5px; line-height: 1.5; }
+  .finding .dot { box-shadow: 0 0 10px currentColor; }
+  .dot.problem { color: var(--red); } .dot.warn { color: var(--warn); } .dot.good { color: var(--green); } .dot.info { color: var(--blue); }
+
+  /* loudness + spectrum + export */
+  #meterPanel .big { font-family: var(--family-mono); font-size: 40px; letter-spacing: -0.04em; }
+  #meterPanel .kv { padding: 2px 0; }
+  #meterPanel .kv b { font-variant-numeric: tabular-nums; }
+  #app .meter { height: 6px; background: var(--gr-raise-3); }
+  #app .meter > div { background: var(--gr-grad); }
+  #spectrum { background: radial-gradient(120% 100% at 50% 100%, #15100d, #080606); border: 1px solid var(--gr-line); border-radius: 12px; }
+  #meterPanel .legend { margin-top: 8px; }
+  #app #export { height: 48px; padding: 0 16px; border-radius: 999px; font-size: 15px; }
+  @media (min-width: 1000px) and (min-height: 600px) {
+    #wave { height: clamp(110px, calc(44dvh - 140px), 300px); }
+    #ctlPanel .section + .section { margin-top: 26px; }
+    #meterPanel #spectrum { flex: 1 1 0; height: auto; min-height: 64px; max-height: 300px; }
+    #app #export { margin-top: 10px; }
+  }
+  @media (max-width: 1200px) and (min-width: 681px) { .nowTitle { flex-basis: 200px; } .waveBar .legend #showing { display: none; } }
+  @media (max-width: 680px) {
+    .waveBar { flex-wrap: wrap; }
+    .nowTitle { flex: 1 1 100%; }
+    #app .tabs button { font-size: 12.5px; padding: 0 8px; }
+  }
+  @media (min-width: 681px) and (max-height: 960px) {
+    .heroIcon { width: 52px; height: 52px; border-radius: 15px; margin-bottom: 12px; }
+    .heroIcon .grIcon { width: 26px; height: 26px; }
+  }
+  @media (min-width: 681px) and (max-height: 860px) {
+    .feat { flex-direction: row; align-items: center; gap: 10px; padding: 10px 12px; }
+    .feat small { display: none; }
+    .fIc { margin: 0; width: 30px; height: 30px; }
+    .hero p { font-size: 15.5px; }
+  }
+/* end of the Green Room revamp */
 </style>
 <link rel="stylesheet" href="suite-nav.css">
 <script type="module" src="gr-shell.js"></script>
@@ -239,21 +356,31 @@
 
 <main>
   <div class="hero" id="hero">
-    <div class="eyebrow">ENCORE. Studio</div>
+    <span class="heroIcon" data-icon="master" aria-hidden="true"></span>
+    <div class="eyebrow">ENCORE. Master</div>
     <h1>Master your song.<br>Hear exactly what changed.</h1>
     <p>Pick a sound, check your mix, compare it with a song you love, hear it the way Spotify and Apple will play it, then export tagged, release-ready files.</p>
-    <div class="tagline">one more<span class="cursor"></span></div>
   </div>
 
   <div id="drop" role="button" tabindex="0" aria-label="Choose a song to master">
+    <span class="dropIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
     <strong>Drop your mixed song here</strong>
     <span>or click to choose a file (WAV, MP3, FLAC, AAC...)</span>
+    <span class="dropBtn" aria-hidden="true">Choose a song</span>
     <input id="file" type="file" accept="audio/*" class="hidden">
+  </div>
+
+  <div class="feats" id="feats" aria-label="What Master does">
+    <div class="feat"><span class="fIc"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1.5 14h5M9.5 8h5M17.5 16h5"/></svg></span><b>Pick a sound</b><small>Balanced, Heavy, Bright or Warm, with intensity, EQ and a loudness target.</small></div>
+    <div class="feat"><span class="fIc"><svg viewBox="0 0 24 24"><path d="M9 11.5 11 13.5l4-4.5"/><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8.2 7.5 9.5 4.3-1.3 7.5-5 7.5-9.5V6z"/></svg></span><b>Check your mix</b><small>Boomy lows, muddy mids, clipping and mono problems, each with a fix.</small></div>
+    <div class="feat"><span class="fIc"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0v5"/><rect x="2.5" y="13" width="4" height="7" rx="1.5"/><rect x="17.5" y="13" width="4" height="7" rx="1.5"/></svg></span><b>Hear it everywhere</b><small>How Spotify, Apple Music and YouTube will play it, on earbuds, a car or a phone.</small></div>
+    <div class="feat"><span class="fIc"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4 19h16"/></svg></span><b>Export release-ready</b><small>Tagged WAV and MP3 files with cover art, named the way distributors like.</small></div>
   </div>
 
   <section id="app" class="hidden">
     <div class="panel">
       <div class="waveBar">
+        <div class="nowTitle"><span class="gr-kicker">Now mastering</span><b id="songTitle"></b></div>
         <div class="views" id="views" role="group" aria-label="Waveform view">
           <button data-view="colours" title="Lows, mids and highs in color">Colors</button>
           <button data-view="plain" title="Classic one-color waveform">Plain</button>

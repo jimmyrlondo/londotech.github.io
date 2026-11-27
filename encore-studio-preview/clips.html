@@ -60,7 +60,7 @@
   .drop b { color: var(--text); font-size: 15px; }
   .drop:hover, .drop.over { border-color: #ff3b00; color: var(--text); }
   .drop.loaded { padding: 9px 12px; text-align: left; grid-template-columns: 1fr auto; align-items: center; border-style: solid; }
-  .drop.loaded b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drop.loaded b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
   .status { font-size: 12.5px; color: var(--soft); margin-top: 6px; min-height: 18px; }
   .status.err { color: #ff8a8a; }
   .coverRow { display: flex; gap: 12px; align-items: center; }
@@ -162,8 +162,89 @@
   .dlgEnd { display: flex; gap: 8px; justify-content: flex-end; }
   .mtabs { display: none; }
 
-  @media (max-width: 1280px) { main { grid-template-columns: 270px minmax(0, 1fr) 320px; } .lookBtn .th { height: 88px; } }
-  @media (max-height: 760px) { .lookBtn .th { height: 80px; } .lookBtn span { display: none; } #wave { height: 64px; } }
+  /* ---------- Green Room revamp (2026-11): one premium surface language ---------- */
+  .panel { border-radius: 16px; }
+  .head { min-height: 56px; padding: 10px 14px 10px 16px; }
+  .head h2 { font-size: 15.5px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+  .hIcon { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; flex: none; color: var(--gr-orange-2); background: var(--gr-raise-3); border: 1px solid var(--gr-line); box-shadow: var(--gr-hi); }
+  .hIcon .grIcon { width: 15px; height: 15px; }
+  .btn { min-height: 36px; padding: 0 15px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn:hover:not(:disabled) { background: var(--gr-raise-3); border-color: rgb(255 59 0 / .45); }
+  .btn.sm { min-height: 30px; padding: 0 12px; }
+  .seg button { min-height: 30px; }
+  input.t, select.t { min-height: 38px; border-radius: 10px; padding: 0 12px; }
+  textarea.t { border-radius: 12px; padding: 10px 12px; }
+  .lbl { font-size: 11px; letter-spacing: .12em; color: var(--dim); margin: 18px 0 8px; }
+  .lbl .dim { font-size: 12px; color: var(--dim); opacity: .85; }
+  .fl { margin-top: 12px; font-size: 12.5px; gap: 6px; }
+  .fl .flh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .fl .flh .dim { font-weight: 600; font-size: 12px; }
+  .body { padding: 14px 16px 16px; }
+  /* tabs: a pill track like the rest of Green Room */
+  .ttabs { margin: 10px 10px 0; padding: 4px; gap: 4px; border: 1px solid var(--gr-line); border-bottom: 1px solid var(--gr-line); border-radius: 999px; background: var(--gr-raise-2); box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); }
+  .ttabs button { border-radius: 999px; min-height: 34px; padding: 0 8px; font-size: 13px; }
+  .ttabs button:hover:not(.on) { color: var(--text); }
+  .ttabs button.on { background: var(--gr-grad); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  /* your song: the words box takes the room that's left */
+  #songPanel .body { display: flex; flex-direction: column; }
+  #songPanel .body > * { flex: none; }
+  textarea.lyr { flex: 1 1 140px !important; min-height: 140px; line-height: 1.6; }
+  .drop { padding: 18px 14px 16px; gap: 6px; border-radius: 14px; border-color: rgb(242 239 232 / .16);
+          background: radial-gradient(120% 90% at 50% 0%, rgb(255 59 0 / .09), transparent 70%), var(--gr-raise-2); transition: border-color .15s, background-color .15s; }
+  .drop .dIcon { width: 40px; height: 40px; margin: 0 auto 4px; border-radius: 13px; display: grid; place-items: center; color: #fff; background: var(--gr-grad); box-shadow: var(--gr-hi), var(--gr-glow); }
+  .drop .dIcon .grIcon { width: 22px; height: 22px; }
+  .drop b { font-size: 15.5px; letter-spacing: -0.01em; }
+  .drop > span { font-size: 12.5px; color: var(--dim); }
+  .drop.loaded { padding: 10px 10px 10px 14px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  .drop.loaded .small { font-family: var(--family-mono); font-size: 11.5px; margin-top: 2px; }
+  .coverRow { gap: 14px; }
+  .coverBtn { width: 84px; height: 84px; border-radius: 12px; background: var(--gr-raise-2); box-shadow: var(--gr-hi); }
+  .coverBtn:has(img), .coverBtn:has(canvas) { border-style: solid; border-color: var(--gr-line-strong); box-shadow: 0 10px 24px -12px rgb(0 0 0 / .8); }
+  .status:empty { display: none; }
+  .coverRow .txt { align-self: center; }
+  .coverRow:has(.coverBtn img, .coverBtn canvas) .txt > span { display: none; } /* the tip is for picking art; once it's in, the buttons are enough */
+  /* long lists fade out at the bottom edge instead of being cut */
+  #tabLook, #tabWords { -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - 28px), transparent); padding-bottom: 28px; }
+  @media (max-height: 920px) { textarea.lyr { flex-basis: 96px !important; min-height: 96px; } .lbl { margin-top: 14px; } }
+  /* the video */
+  .stage { background: radial-gradient(60% 70% at 50% 42%, rgb(255 59 0 / .10), transparent 70%), radial-gradient(circle at 50% 40%, rgb(255 255 255 / .03), transparent 70%), #0d0b0a;
+           border-top: 1px solid var(--gr-line); border-bottom: 1px solid var(--gr-line); }
+  .stage canvas { border-radius: 14px; box-shadow: 0 30px 70px -20px rgb(0 0 0 / .9), 0 0 0 1px rgb(255 255 255 / .08), 0 0 80px -30px rgb(255 59 0 / .45); }
+  .stage .empty span { background: rgb(20 17 16 / .9); padding: 7px 14px; border-color: var(--gr-line-strong); box-shadow: var(--gr-shadow); backdrop-filter: blur(8px); }
+  .transport { border-top: 0; padding: 12px 14px 8px; gap: 12px; }
+  .transport .time { font-variant-numeric: tabular-nums; color: var(--text); }
+  .playBtn { min-height: 40px; min-width: 124px; }
+  #lenLabel { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .hooks { padding: 2px 14px 10px; gap: 8px; }
+  .hooks .lead { font-size: 11px; letter-spacing: .12em; color: var(--dim); margin-right: 2px; }
+  .hook { min-height: 32px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  .hook b { font-variant-numeric: tabular-nums; }
+  .waveWrap { padding: 0 14px 14px; }
+  #wave { border-radius: 12px; background: #0e0c0b; border-color: var(--gr-line); box-shadow: inset 0 1px 3px rgb(0 0 0 / .5); }
+  /* looks and export */
+  .looks { gap: 10px; }
+  .lookBtn { border-radius: 14px; padding: 8px; background: var(--gr-raise-2); border-color: var(--gr-line); box-shadow: var(--gr-hi); gap: 4px; }
+  .lookBtn:hover { background: var(--gr-raise-3); }
+  .lookBtn.on { box-shadow: 0 0 0 1px #ff3b00 inset, 0 10px 28px -14px rgb(255 59 0 / .6); }
+  .lookBtn .th { height: 84px; border-radius: 10px; background: #070605; margin-bottom: 4px; }
+  .lookBtn canvas { height: 84px; }
+  .lookBtn b { font-size: 13.5px; letter-spacing: -0.005em; padding: 0 2px; }
+  .lookBtn span { padding: 0 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  #textOpts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+  .ck { min-height: 30px; }
+  .ck.locked { align-items: flex-start; margin-top: 4px; line-height: 1.3; }
+  .ck.locked .lockTx .dim { display: block; font-size: 12px; }
+  .sw { width: 24px; height: 24px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1); }
+  .sw.auto { height: 26px; }
+  .swatches { gap: 7px; }
+  .exportBox { border-top: 1px solid var(--gr-line); padding: 14px 14px 14px; gap: 10px; background: linear-gradient(180deg, rgb(255 255 255 / .015), transparent); border-radius: 0 0 16px 16px; }
+  .exportBox .btns .btn { min-height: 44px; font-size: 14px; }
+  .exportBox .note { margin: 0; }
+  .job { border-radius: 12px; background: var(--gr-raise-2); border-color: var(--gr-line); }
+  .meter { height: 5px; } .meter i { background: var(--gr-grad); }
+
+  @media (max-width: 1280px) { main { grid-template-columns: 270px minmax(0, 1fr) 320px; } .lookBtn .th, .lookBtn canvas { height: 78px; } }
+  @media (max-height: 760px) { .lookBtn .th, .lookBtn canvas { height: 72px; } .lookBtn span { display: none; } #wave { height: 64px; } }
   @media (max-width: 1100px) { main { grid-template-columns: 250px minmax(0, 1fr) 300px; } }
   /* a phone: one panel at a time, picked from the row at the top */
   @media (max-width: 899px) {
@@ -216,7 +297,7 @@
         </select>
       </label>
       <input class="t hidden" id="ctaCustom" style="margin-top:6px" autocomplete="off" placeholder="Your own words, short is best" maxlength="40" aria-label="Your own call to action">
-      <label class="fl">Release date <span class="dim" style="font-weight:600">(optional, shown as you type it)</span><input class="t" id="date" autocomplete="off" placeholder="e.g. Dec 5 or This Friday" maxlength="32"></label>
+      <label class="fl"><span class="flh">Release date <span class="dim">optional, shown as typed</span></span><input class="t" id="date" autocomplete="off" placeholder="e.g. Dec 5 or This Friday" maxlength="32"></label>
 
       <div class="lbl">Lyrics <span class="dim">(optional)</span></div>
       <textarea class="t lyr" id="lyrics" spellcheck="true" placeholder="Paste the words sung in your clip, one line per line on screen.&#10;&#10;Chords like [G] and part names like [Chorus] are taken out for you."></textarea>
@@ -261,7 +342,7 @@
         <label class="ck"><input type="checkbox" id="canvasText"> Title and artist on the Canvas</label>
         <p class="note">Spotify suggests no text on a Canvas (the app already shows your song's name under it) and a loop of 3 to 8 seconds that runs smoothly. It plays without sound. Spotify for Artists takes MP4 files.</p>
       </div>
-      <label class="ck locked" title="Removing the mark comes with an ENCORE. membership"><input type="checkbox" id="showMark" checked disabled> ENCORE. mark in the corner <span class="dim small">Members can remove it</span></label>
+      <label class="ck locked" title="Removing the mark comes with an ENCORE. membership"><input type="checkbox" id="showMark" checked disabled> <span class="lockTx">ENCORE. mark in the corner <span class="dim small">Members can remove it</span></span></label>
       <div class="lbl">Accent colour <span class="dim">Auto picks from your cover</span></div>
       <div class="swatches" id="swatches"></div>
       <div class="lbl">Background</div>
