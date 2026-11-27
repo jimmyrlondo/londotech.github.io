@@ -6,7 +6,8 @@ import { FORMATS, FORMAT_ORDER, CLIP_LENGTHS, CANVAS_MIN, CANVAS_MAX, ACCENTS, B
   formatTime, parseTime, clampClip, fileName, paletteFrom, safeRects, pickSettings, mergeSettings } from "./clips-core.js";
 import { drawFrame, placeholderCover } from "./clips-draw.js";
 import { recordVideo, clipBuffer, pickMime, canRecord, inspectVideo } from "./clips-export.js";
-import { decodeAudio, ACCEPT } from "./audio-decode.js";
+import { ACCEPT } from "./audio-decode.js";
+import { openAudio } from "./load-progress.js";
 import { toLyrics } from "./songbook-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -126,7 +127,7 @@ async function loadAudio(file) {
   status(`Opening ${file.name}...`);
   $("audioDrop").classList.remove("over");
   try {
-    const d = await decodeAudio(file, null, (m) => status(m));
+    const d = await openAudio(file, null, (m) => status(m));
     const info = d.info;
     song.name = file.name; song.chans = d.chans; song.fs = d.fs; song.duration = d.chans[0].length / d.fs; song.buffer = null;
     // the file's own title, artist and art fill in anything still empty

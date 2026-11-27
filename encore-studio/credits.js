@@ -1,6 +1,7 @@
 // ENCORE. Credits: the page. A catalog of releases and songs with their codes, splits,
 // credits, samples and registrations. The logic lives in credits-core.js; this file is
 // the editor around it. Everything stays in this browser (localStorage); nothing is sent.
+import { loadFile } from "./load-progress.js";
 import {
   esc, checkIsrc, checkIswc, checkUpc, checkIpi, parseDuration, formatDuration, CODE_HELP, PROS, PRO_LINKS, WRITER_ROLES, CREDIT_ROLES, SAMPLE_STATUS, STATUS, RELEASE_TYPES, EXPLICIT,
   SONG_CHECKLIST, RELEASE_CHECKLIST, COUNTRY_NOTE, regOf, emptyReg, progressOf, splitStatus, splitEvenly, toHundredths, fmtShare,
@@ -162,7 +163,7 @@ async function addAudio(list) {
   const made = [], skipped = [];
   for (const f of files) {
     let model;
-    try { model = readTags(new Uint8Array(await f.arrayBuffer()), f.name); } catch { model = null; }
+    try { model = await loadFile(f, (ab) => readTags(new Uint8Array(ab), f.name), { label: "Reading tags" }); } catch { model = null; }
     if (!model || !model.format) { skipped.push(f.name); continue; }
     const { song: s, release: r } = songFromTags(model, f.name);
     if (r) {

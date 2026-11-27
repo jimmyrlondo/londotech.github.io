@@ -3,6 +3,7 @@
 // the controls, the beat display (lined up with what you hear, not with when
 // the click was sent), the setlist, stage view, and Time check: it listens to
 // you play and measures every note against the grid. Nothing leaves the browser.
+import { loadFile } from "./load-progress.js";
 import { clampBpm, SUBDIVISIONS, subFractions, groupingOptions, defaultGroups, parseGroups, defaultAccents, groupMap, groupsLabel,
          unitOptions, noteValueName, tempoName, TapTempo, cleanSettings, SOUND_SETS, makeSounds, sliderGain,
          OnsetDetector, measureLatency, TimeCheck, summarize } from './metronome-core.js';
@@ -966,7 +967,7 @@ $('findFileInput').onchange = async () => {
   try {
     await audio();
     showFound(null, `Reading ${file.name}...`);
-    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+    const buf = await loadFile(file, (ab) => ctx.decodeAudioData(ab));
     // mono, then through the finder a slice at a time so the page stays responsive
     const n = buf.length, mono = new Float32Array(n), chans = buf.numberOfChannels;
     for (let c = 0; c < chans; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) mono[i] += d[i] / chans; }

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Practice · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 0 16px 14px; min-width: 0; }
+  .toolName { display: flex; align-items: center; gap: 8px; padding: 12px 0 6px; }
+  .toolName b { font-size: 17px; font-weight: 800; }
+  .pgchip { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 2px 5px; line-height: 1.2; }
+  .back { margin-left: auto; color: var(--dim); font-size: 12px; text-decoration: none; }
+  .back:hover { color: var(--text); }
+  .song { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+  .songName { font-weight: 800; font-size: 16px; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .song .small { flex: none; }
+  .drop { border: 2px dashed var(--divider-strong); border-radius: 12px; padding: 16px 14px; text-align: center; margin: 8px 0; }
+  .drop.over { border-color: #ff3b00; background: rgb(255 59 0 / .06); }
+  .drop p { color: var(--soft); font-size: 14px; margin: 8px 0 0; }
+  .drop .row { justify-content: center; flex-wrap: wrap; }
+  .drop .row > * { flex: none; }
+  .recent { list-style: none; padding: 0; margin: 10px auto 0; max-width: 460px; text-align: left; }
+  .recent li { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--divider); }
+  .recent button.open { flex: 1; min-width: 0; text-align: left; background: transparent; border: 0; color: var(--text); padding: 8px 4px; min-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+  .recent button.open:hover { color: #ff6c40; }
+  .recent small { color: var(--dim); font-family: var(--family-mono); font-size: 12px; }
+  .x { background: transparent; border: 0; color: var(--dim); font-size: 18px; width: 36px; min-height: 36px; border-radius: 6px; flex: none; }
+  .x:hover { color: var(--text); background: var(--bg-subtle-default); }
+  .ov { display: block; width: 100%; height: 34px; background: var(--bg-subtle-default); border-radius: 6px; margin-top: 6px; cursor: pointer; touch-action: none; }
+  .wave { display: block; width: 100%; height: 150px; background: var(--bg-subtle-default); border-radius: 8px; margin-top: 6px; cursor: crosshair; touch-action: none; }
+  @media (min-width: 1000px) { .wave { height: 190px; } }
+  .zoomRow { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-family: var(--family-mono); font-size: 12px; color: var(--dim); }
+  .zoomRow span { flex: 1; }
+  .zoomRow span:last-of-type { text-align: right; }
+  .zb { font-size: 12px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 4px 10px; min-height: 32px; font-family: var(--family-primary); }
+  .zb:hover { color: var(--text); }
+  .zb { white-space: nowrap; }
+  @media (max-width: 600px) { .zoomRow span { display: none; } .zoomRow { justify-content: center; } }
+  .transport { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 0; }
+  .transport .go { min-width: 120px; min-height: 50px; font-size: 17px; }
+  button.small.on { border-color: #ff3b00; color: #ff3b00; }
+  .clock { display: flex; justify-content: center; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-family: var(--family-mono); }
+  .clock b { font-size: 26px; font-weight: 700; color: var(--text); }
+  .clock span { color: var(--soft); font-size: 13px; }
+  .quickStrip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .qs { display: flex; align-items: center; justify-content: space-between; gap: 4px; background: var(--bg-subtle-default); border-radius: 10px; padding: 4px; min-width: 0; }
+  .qs button { width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--divider-strong); background: transparent; color: var(--text); font-size: 18px; flex: none; }
+  .qs button:hover { border-color: var(--soft); }
+  .qs div { text-align: center; min-width: 0; line-height: 1.15; }
+  .qs small { display: block; font-size: 11px; color: var(--dim); }
+  .qs b { font-family: var(--family-mono); font-size: 15px; }
+  .qs.toggleQs { justify-content: center; cursor: pointer; border: 1px solid transparent; font-size: 13px; font-weight: 700; color: var(--soft); }
+  .qs.toggleQs.on { border-color: #ff3b00; color: #ff3b00; }
+  .sl { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 0 10px; margin: 8px 0 2px; }
+  .sl > span { font-size: 13px; color: var(--soft); }
+  .sl > output { font-family: var(--family-mono); font-size: 13px; color: var(--text); }
+  .sl > input { grid-column: 1 / -1; }
+  .quick { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
+  .quick button { font-size: 12px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 11px; min-height: 34px; }
+  .quick button:hover { color: var(--text); }
+  .quick button.on { color: #ff3b00; border-color: #ff3b00; }
+  .seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .seg button { font-size: 13px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 8px; padding: 8px 2px; min-height: 40px; }
+  .seg button.on { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .ab { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px; align-items: center; margin: 4px 0; }
+  .ab b { font-family: var(--family-mono); width: 18px; color: #ff3b00; }
+  .ab input { font-family: var(--family-mono); }
+  .ab button, .btns button { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 8px; min-height: 40px; padding: 6px 10px; }
+  .ab button:hover, .btns button:hover { border-color: var(--soft); }
+  .btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+  .list { list-style: none; padding: 0; margin: 6px 0 0; }
+  .list li { display: flex; align-items: center; gap: 6px; padding: 3px 0; border-bottom: 1px solid var(--divider); }
+  .list li.on { box-shadow: inset 3px 0 0 #ff3b00; padding-left: 6px; }
+  .list .go2 { flex: 1; min-width: 0; text-align: left; background: transparent; border: 0; color: var(--text); padding: 6px 2px; min-height: 38px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list .go2:hover { color: #ff6c40; }
+  .list input[type=text] { flex: 1; min-height: 36px; padding: 5px 8px; font-size: 13px; }
+  .list small, .list .t { color: var(--dim); font-family: var(--family-mono); font-size: 12px; background: transparent; border: 0; padding: 4px; min-height: 36px; }
+  .list .t:hover { color: var(--text); }
+  .list .mini { font-size: 12px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 4px 10px; min-height: 32px; flex: none; }
+  .tr { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .trStatus { font-family: var(--family-mono); font-size: 13px; color: var(--soft); margin: 8px 0 0; min-height: 20px; }
+  .trBar { height: 6px; border-radius: 3px; background: var(--bg-subtle-default); overflow: hidden; margin-top: 6px; }
+  .trBar i { display: block; height: 100%; width: 0; background: #ff3b00; transition: width .2s; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  .help p, .help li { font-size: 14px; color: var(--soft); }
+  .help ul { padding-left: 18px; margin: 0 0 10px; }
+  .bar2 { height: 6px; border-radius: 3px; background: var(--bg-subtle-default); overflow: hidden; margin: 8px 0 4px; }
+  .bar2 i { display: block; height: 100%; width: 0; background: #ff3b00; }
+  @media (max-width: 600px) { .quickStrip { grid-template-columns: 1fr 1fr; } .qs.toggleQs { grid-column: 1 / -1; min-height: 40px; } .wave { height: 130px; } .tr { grid-template-columns: 1fr 1fr; } .clock b { font-size: 22px; } }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" aria-label="Practice">
+    <div class="toolName"><b>Practice</b><span class="pgchip">PLAYGROUND</span><a class="back" href="playground.html">&larr; Playground</a></div>
+    <div class="song">
+      <div class="songName" id="songName">No song yet</div>
+      <button class="small hidden" id="swapBtn" title="Open another song">Open</button>
+    </div>
+    <div class="drop" id="drop">
+      <div class="row">
+        <button class="go" id="openBtn">Choose a song</button>
+        <button class="small" id="demoBtn">Try a demo song</button>
+      </div>
+      <p>Or drop an audio file here. It stays on your device, with your loops and markers.</p>
+      <ul class="recent" id="recent"></ul>
+      <input type="file" id="file" class="hidden" aria-label="Choose a song">
+    </div>
+    <div id="player" class="hidden">
+      <canvas class="ov" id="over" aria-label="The whole song. Click to jump, the box shows the zoomed part."></canvas>
+      <canvas class="wave" id="wave" aria-label="Zoomed waveform. Click to jump, drag to make a loop, drag a loop edge to move it."></canvas>
+      <div class="zoomRow">
+        <span id="vStart">0:00</span>
+        <button class="zb" id="zoomOut" title="Zoom out">&minus;</button>
+        <button class="zb" id="zoomIn" title="Zoom in">+</button>
+        <button class="zb" id="zoomFit" title="Show the whole song">Whole song</button>
+        <button class="zb" id="zoomLoop" title="Zoom to the loop">Loop</button>
+        <span id="vEnd">0:00</span>
+      </div>
+      <div class="transport">
+        <button class="small" id="restartBtn" title="Back to the loop start or the song start (R)">&#9198;</button>
+        <button class="small" id="back5" title="Back 5 seconds (left arrow)">&minus;5s</button>
+        <button class="go" id="playBtn" title="Play / pause (space)">Play</button>
+        <button class="small" id="fwd5" title="Forward 5 seconds (right arrow)">+5s</button>
+        <button class="small" id="loopBtn" title="Loop on / off (L)">Loop</button>
+        <button class="small" id="setA" title="Loop starts here ([)">[ A</button>
+        <button class="small" id="setB" title="Loop ends here (])">B ]</button>
+      </div>
+      <div class="clock"><b id="tNow">0:00.0</b><span id="tLen">/ 0:00</span><span id="loopTxt"></span></div>
+      <div class="quickStrip">
+        <div class="qs"><button id="slower" aria-label="Slower" title="Slower (down arrow)">&minus;</button><div><small>Speed</small><b id="qSpeed">100%</b></div><button id="faster" aria-label="Faster" title="Faster (up arrow)">+</button></div>
+        <div class="qs"><button id="keyDown" aria-label="Key down" title="Down a semitone (-)">&minus;</button><div><small>Key</small><b id="qKey">0</b></div><button id="keyUp" aria-label="Key up" title="Up a semitone (=)">+</button></div>
+        <button class="qs toggleQs" id="qVocal" title="Vocal reduce (V)">Vocal reduce</button>
+      </div>
+    </div>
+    <div class="err hidden" id="err"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Practice">
+      <button role="tab" data-tab="loop" class="on">Loop</button>
+      <button role="tab" data-tab="sound">Sound</button>
+      <button role="tab" data-tab="markers">Markers</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="loop" class="show">
+        <div class="ab"><b>A</b><input type="text" id="aIn" aria-label="Loop start" inputmode="decimal" placeholder="drag on the waveform, or press ["><button id="aMinus" aria-label="Loop start earlier">&minus;</button><button id="aPlus" aria-label="Loop start later">+</button></div>
+        <div class="ab"><b>B</b><input type="text" id="bIn" aria-label="Loop end" inputmode="decimal" placeholder="or press ] while it plays"><button id="bMinus" aria-label="Loop end earlier">&minus;</button><button id="bPlus" aria-label="Loop end later">+</button></div>
+        <div class="btns">
+          <button id="halve" title="Half as long">Halve</button><button id="double" title="Twice as long">Double</button>
+          <button id="prevLen" title="Move the loop back by its own length">&larr; Move</button><button id="nextLen" title="Move the loop on by its own length">Move &rarr;</button>
+        </div>
+        <label>Between repeats<select id="gap"><option value="0">No gap (seamless)</option><option value="1">1 second rest</option><option value="2">2 second rest</option><option value="4">4 second rest</option></select></label>
+        <h3>Get faster</h3>
+        <div class="tr">
+          <label>Start<select id="trStart"></select></label>
+          <label>Add<select id="trStep"><option value="0.02">2%</option><option value="0.05" selected>5%</option><option value="0.1">10%</option></select></label>
+          <label>Every<select id="trEvery"><option value="1">loop</option><option value="2" selected>2 loops</option><option value="3">3 loops</option><option value="4">4 loops</option></select></label>
+          <label>Up to<select id="trTarget"></select></label>
+        </div>
+        <div class="btns"><button id="trBtn" title="Start or stop the trainer (T)">Start the trainer</button></div>
+        <div class="trBar"><i id="trFill"></i></div>
+        <p class="trStatus" id="trStatus">Plays the loop slowly, then a little faster every few repeats.</p>
+        <h3>Saved loops</h3>
+        <div class="row"><input type="text" id="loopName" placeholder="Name this loop (e.g. solo, bar 9)" maxlength="40" aria-label="Loop name"><button class="small" id="saveLoop" style="flex:none">Save</button></div>
+        <ul class="list" id="loops"></ul>
+      </section>
+
+      <section data-tab="sound">
+        <label class="sl"><span>Speed (the pitch stays put)</span><output id="speedOut">100%</output><input type="range" id="speed" min="0.25" max="1.5" step="0.01" value="1"></label>
+        <div class="quick" id="speedQuick"></div>
+        <label class="sl"><span>Key (semitones, the speed stays put)</span><output id="semisOut">0</output><input type="range" id="semis" min="-12" max="12" step="1" value="0"></label>
+        <label class="sl"><span>Fine tune (cents, to match a detuned record)</span><output id="centsOut">0</output><input type="range" id="cents" min="-50" max="50" step="1" value="0"></label>
+        <div class="btns"><button id="resetKey">Reset speed and key</button></div>
+        <label class="sl"><span>Vocal reduce (quiets what's in the middle)</span><output id="vocalOut">off</output><input type="range" id="vocal" min="0" max="1" step="0.05" value="0"></label>
+        <h3>Focus on</h3>
+        <div class="seg" id="focus" role="group" aria-label="Focus EQ"><button data-f="off" class="on">Everything</button><button data-f="bass">Bass</button><button data-f="vocal">Vocals</button><button data-f="guitar">Guitar, keys</button></div>
+        <label class="sl"><span>Volume</span><output id="volOut">100%</output><input type="range" id="vol" min="0" max="1.5" step="0.05" value="1"></label>
+        <h3>Take it with you</h3>
+        <p class="tip" style="margin-top:0">Download the loop or the whole song as you hear it now (speed, key and sound settings), as a WAV.</p>
+        <div class="btns"><button id="dlLoop">Download the loop</button><button id="dlSong">Download the whole song</button></div>
+        <div class="bar2 hidden" id="dlBar"><i id="dlFill"></i></div>
+        <p class="tip" id="dlStatus"></p>
+      </section>
+
+      <section data-tab="markers">
+        <div class="btns"><button id="addMarker" title="Add a marker at the playhead (M)">Add a marker here</button></div>
+        <p class="tip" id="markTip">Mark the parts of the song (intro, verse, chorus) while it plays. Press a number key to jump to a marker, or "Loop" to loop that part.</p>
+        <ul class="list" id="markers"></ul>
+        <h3>Keep your loops and markers</h3>
+        <p class="tip" style="margin-top:0">They're saved in this browser for this song. Download them as a file to keep a copy or move them to another device.</p>
+        <div class="btns"><button id="exportData">Download loops and markers</button><button id="importData">Load from a file</button></div>
+        <input type="file" id="importFile" class="hidden" accept=".json,application/json" aria-label="Loops file">
+      </section>
+
+      <section data-tab="help" class="help">
+        <h3>What it's for</h3>
+        <p>Learning a song by ear. Slow the tricky part down without changing its pitch, loop it until your hands know it, then bring it back up to speed.</p>
+        <h3>Loops</h3>
+        <p>Drag across the waveform to make a loop, or press <b>[</b> and <b>]</b> while it plays to set the start and end. Drag an orange edge to fine-tune it. Loops are seamless: a tiny crossfade at the loop point stops it from clicking. Pick a rest between repeats if you need a moment to reset your hands.</p>
+        <h3>Get faster</h3>
+        <p>The trainer starts the loop slow and speeds it up a little every few repeats, until it reaches your goal. It's the classic way to get a fast lick clean.</p>
+        <h3>Speed and key</h3>
+        <p>ENCORE.'s own time-stretch changes the speed without changing the pitch, and the key without changing the speed. Use the key to match a song to your tuning or your voice, and fine tune to match records that are a little sharp or flat.</p>
+        <h3>Hearing the parts</h3>
+        <p>Vocal reduce takes out what's in the middle of the stereo mix (usually the lead vocal), but keeps the bass and kick. The focus buttons lift one part of the sound: bass, vocals, or guitar and keys. Results depend on how the song was mixed.</p>
+        <h3>Keys</h3>
+        <div class="keys">
+          <kbd>Space</kbd><span>Play / pause</span>
+          <kbd>[ ]</kbd><span>Set loop start / end at the playhead</span>
+          <kbd>L</kbd><span>Loop on / off</span>
+          <kbd>R</kbd><span>Back to the loop start (or the song start)</span>
+          <kbd>&larr; &rarr;</kbd><span>Back / forward 5 seconds (Shift: 1 second)</span>
+          <kbd>&uarr; &darr;</kbd><span>Faster / slower by 5%</span>
+          <kbd>0</kbd><span>Back to 100% speed</span>
+          <kbd>- =</kbd><span>Key down / up a semitone</span>
+          <kbd>M</kbd><span>Add a marker</span>
+          <kbd>1</kbd><span>to 9: jump to a marker</span>
+          <kbd>, .</kbd><span>Previous / next marker</span>
+          <kbd>V</kbd><span>Vocal reduce on / off</span>
+          <kbd>T</kbd><span>Start / stop the trainer</span>
+        </div>
+        <h3>Your songs</h3>
+        <p class="tip">Songs, loops and markers stay in this browser. Nothing is uploaded. Clearing the browser's site data forgets them, so download your loops if they matter.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<script type="module" src="practice.js"></script>
+</body>
+</html>

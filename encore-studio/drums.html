@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Drums · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+
+  /* Drums */
+  @media (min-width: 1000px) { .layout { grid-template-columns: minmax(560px, 7fr) minmax(0, 4fr); } }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 12px 14px 14px; min-width: 0; }
+  .toolHead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .toolHead h1 { font-size: 20px; margin: 0; font-weight: 800; }
+  .pg { font-size: 11px; letter-spacing: .08em; font-weight: 700; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .back { color: var(--dim); font-size: 13px; text-decoration: none; margin-left: auto; }
+  .back:hover { color: var(--text); }
+  .transport { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.small.on { border-color: #ff3b00; color: #ff3b00; }
+  .transport .go { padding: 10px 20px; min-height: 44px; }
+  .transport select { min-height: 40px; }
+  .pos { font-family: var(--family-mono); font-size: 13px; color: var(--soft); margin-left: auto; white-space: nowrap; }
+  .vol { display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); }
+  .vol input { width: 90px; margin: 0; }
+  .songName { font: inherit; font-weight: 700; font-size: 15px; background: transparent; border: 1px solid transparent; color: var(--text); border-radius: 6px; padding: 4px 6px; min-width: 0; width: 180px; }
+  .songName:hover, .songName:focus { border-color: var(--divider-strong); }
+
+  /* the song strip */
+  .stripWrap { margin: 10px 0 6px; position: relative; }
+  .strip { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; position: relative; }
+  .block { flex: none; min-width: 56px; height: 50px; border-radius: 8px; border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); color: var(--text); text-align: left; padding: 4px 8px; position: relative; overflow: hidden; line-height: 1.2; }
+  .block b { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .block small { font-family: var(--family-mono); font-size: 11px; color: var(--soft); white-space: nowrap; }
+  .block i { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .block.on { outline: 2px solid #ff3b00; outline-offset: 1px; }
+  .block .ph { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; display: none; }
+  .block.playing .ph { display: block; }
+  .stripTools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .stripTools button.small { padding: 6px 11px; min-height: 36px; }
+  .stripTools select { min-height: 36px; padding: 4px 8px; font-size: 13px; }
+
+  /* the grid */
+  .gridHead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 0 6px; }
+  .gridHead .secTitle { font-weight: 800; font-size: 15px; }
+  .gridHead .secMeta { font-family: var(--family-mono); font-size: 12px; color: var(--soft); }
+  .seg { display: inline-flex; border: 1px solid var(--divider-strong); border-radius: 999px; overflow: hidden; }
+  .seg button { font-size: 13px; background: transparent; color: var(--soft); border: 0; padding: 7px 12px; min-height: 36px; }
+  .seg button.on { background: #ff3b00; color: #fff; }
+  .seg button:disabled { opacity: .4; cursor: default; }
+  .brush { margin-left: auto; }
+  .brush button[data-vel="124"].on { background: #ff3b00; }
+  .gridBox { overflow-x: auto; overflow-y: hidden; border-radius: 8px; background: var(--bg-subtle-default); border: 1px solid var(--divider); }
+  #grid { display: block; touch-action: none; cursor: pointer; }
+  #grid:focus-visible { outline: 2px solid #ff3b00; outline-offset: -2px; }
+  .gridTip { color: var(--dim); font-size: 12px; margin-top: 6px; }
+
+  /* tabs */
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .chips button { font-size: 13px; color: var(--soft); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 6px 12px; min-height: 36px; }
+  .chips button.on { color: #fff; background: #ff3b00; border-color: #ff3b00; }
+  .lib { list-style: none; margin: 0; padding: 0; }
+  .lib li { display: flex; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--divider); }
+  .lib li div { flex: 1; min-width: 0; }
+  .lib li b { font-size: 14px; display: block; }
+  .lib li small { display: block; color: var(--dim); font-size: 12px; line-height: 1.35; }
+  .lib li .m { font-family: var(--family-mono); color: var(--soft); font-size: 11px; }
+  .lib li.cur b { color: #ff3b00; }
+  .val { font-family: var(--family-mono); color: var(--soft); font-size: 12px; }
+  .mapTable { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; margin-top: 8px; }
+  .mapTable label { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--soft); }
+  .mapTable input { width: 70px; }
+  .status { color: var(--soft); font-size: 13px; min-height: 20px; margin-top: 8px; }
+  .btnRow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; color: var(--soft); }
+  .keys kbd { font-family: var(--family-mono); font-size: 12px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+  input[type=file] { font-size: 13px; color: var(--soft); max-width: 100%; }
+  @media (max-width: 600px) { .grid3 { grid-template-columns: 1fr 1fr; } .pos { margin-left: 0; } .brush { margin-left: 0; } .mapTable { grid-template-columns: 1fr; } }
+</style>
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Song and drum grid">
+    <div class="toolHead">
+      <h1>Drums</h1><span class="pg">PLAYGROUND</span>
+      <input class="songName" id="songName" aria-label="Song name" maxlength="60">
+      <a class="back" href="playground.html">&larr; Back to the Playground</a>
+    </div>
+    <div class="transport">
+      <button class="go" id="playSong" title="Play the whole song (space)">Play song</button>
+      <button class="small" id="playSec" title="Loop the section you're editing (L)">Loop section</button>
+      <button class="small" id="stop" title="Stop (space)" disabled>Stop</button>
+      <select id="kit" aria-label="Drum kit"></select>
+      <label class="vol">Volume<input type="range" id="vol" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"></label>
+      <button class="small" id="undo" title="Undo (Ctrl+Z)" disabled>Undo</button>
+      <button class="small" id="redo" title="Redo (Ctrl+Y)" disabled>Redo</button>
+      <span class="pos" id="pos">0:00 / 0:00</span>
+    </div>
+    <div class="stripWrap">
+      <div class="strip" id="strip" aria-label="The song, section by section"></div>
+      <div class="stripTools">
+        <select id="addPick" aria-label="Section to add"></select>
+        <button class="small" id="addBtn">Add to song</button>
+        <button class="small" id="moveL" title="Move the selected block earlier">&larr; Earlier</button>
+        <button class="small" id="moveR" title="Move the selected block later">Later &rarr;</button>
+        <button class="small" id="removeBtn" title="Take the selected block out of the song (the section stays in the list)">Take out</button>
+      </div>
+    </div>
+    <div class="gridHead">
+      <span class="secTitle" id="secTitle">Verse</span>
+      <span class="secMeta" id="secMeta">4/4 · 170 BPM</span>
+      <div class="seg" id="view" role="group" aria-label="What the grid shows">
+        <button data-view="groove" class="on">Groove</button>
+        <button data-view="fill">Fill</button>
+      </div>
+      <div class="seg brush" id="brush" role="group" aria-label="How hard a click hits">
+        <button data-vel="124">Accent</button>
+        <button data-vel="100" class="on">Normal</button>
+        <button data-vel="80">Soft</button>
+        <button data-vel="40">Ghost</button>
+      </div>
+    </div>
+    <div class="gridBox" id="gridBox"><canvas id="grid" tabindex="0" aria-label="Drum grid. Click or drag to add hits, click a hit to remove it. Arrow keys move, Enter toggles."></canvas></div>
+    <p class="gridTip" id="gridTip">Click or drag to paint hits with the brush. Click a hit again to remove it. Brighter means harder.</p>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Drums">
+      <button role="tab" data-tab="section" class="on">Section</button>
+      <button role="tab" data-tab="library">Grooves</button>
+      <button role="tab" data-tab="feel">Feel</button>
+      <button role="tab" data-tab="export">Export</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="section" class="show">
+        <div class="grid2">
+          <label>Section name<input type="text" id="fName" maxlength="40"></label>
+          <label>Edit section<select id="fPick"></select></label>
+        </div>
+        <h3>Tempo and meter</h3>
+        <div class="grid3">
+          <label>Tempo (BPM)<input type="number" id="fBpm" min="20" max="400" step="1"></label>
+          <label>Ramp to (BPM)<input type="number" id="fBpmEnd" min="20" max="400" step="1" placeholder="no ramp"></label>
+          <label>Grid<select id="fDiv"></select></label>
+        </div>
+        <div class="grid3" style="margin-top:8px">
+          <label>Beats per bar<input type="number" id="fNum" min="1" max="32" step="1"></label>
+          <label>Beat note<select id="fDen"><option value="2">2 (half)</option><option value="4">4 (quarter)</option><option value="8">8 (eighth)</option><option value="16">16</option></select></label>
+          <label>Pattern bars<select id="fPatBars"><option>1</option><option>2</option><option>4</option><option>8</option></select></label>
+        </div>
+        <div class="grid3" style="margin-top:8px">
+          <label>Length (bars)<input type="number" id="fBars" min="1" max="256" step="1"></label>
+          <label>Fill at the end<select id="fFill"><option value="0">No fill</option><option value="1">Last beat</option><option value="2">Last 2 beats</option><option value="4">Last 4 beats</option><option value="all">Whole last bar</option></select></label>
+          <label>Fill style<select id="fFillStyle"></select></label>
+        </div>
+        <div class="btnRow"><button class="small" id="newFill">New fill</button><button class="small" id="clearGrid">Clear the groove</button></div>
+        <label class="toggle"><input type="checkbox" id="fCrash"> Crash and kick on the first beat</label>
+        <label>Ghost notes (quiet snares in the gaps) <span class="val" id="ghostVal"></span><input type="range" id="fGhosts" min="0" max="1" step="0.05"></label>
+        <h3>Sections</h3>
+        <div class="grid2">
+          <label>New section<select id="newType"></select></label>
+          <div style="display:flex;align-items:end;gap:6px"><button class="small" id="newSec">Make it</button><button class="small" id="dupSec">Copy this one</button></div>
+        </div>
+        <div class="btnRow"><button class="small" id="delSec">Delete this section</button></div>
+        <p class="tip">A section can play many times in the song, and editing it changes every place it plays. "Copy this one" puts a copy in the selected spot of the song, so you can make a variation just there.</p>
+      </section>
+
+      <section data-tab="library">
+        <div class="chips" id="styleChips"></div>
+        <label class="toggle"><input type="checkbox" id="libTempo" checked> Use the groove's tempo too</label>
+        <ul class="lib" id="lib"></ul>
+      </section>
+
+      <section data-tab="feel">
+        <p class="tip" style="margin-top:0">A programmed part sounds like a machine when every hit is perfect. These make it feel played. They change the playback and every export the same way, every time.</p>
+        <label>Timing: how far hits can push or drag <span class="val" id="timingVal"></span><input type="range" id="fTiming" min="0" max="30" step="1"></label>
+        <label>Velocity: how much each hit's strength varies <span class="val" id="velVal"></span><input type="range" id="fVel" min="0" max="30" step="1"></label>
+        <label>Swing (on 8th and 16th grids) <span class="val" id="swingVal"></span><input type="range" id="fSwing" min="0" max="1" step="0.05"></label>
+        <label class="toggle"><input type="checkbox" id="fSoftFast"> Fast strokes hit softer (blasts and rolls sound like a real drummer)</label>
+        <label class="toggle"><input type="checkbox" id="fKickTight"> Keep the kick tight (double kick stays locked)</label>
+        <div class="btnRow"><button class="small" id="reroll">New take of the same feel</button><button class="small" id="feelOff">Perfect timing (feel off)</button></div>
+      </section>
+
+      <section data-tab="export">
+        <h3>MIDI for your drum plugin</h3>
+        <label>Note map<select id="fMap"></select></label>
+        <div class="mapTable hidden" id="mapTable"></div>
+        <p class="tip">The file has the drums on channel 10, every tempo and meter change, and a marker at each section. Drag it onto a track with EZdrummer, Superior Drummer, Addictive Drums (GM map), GetGood Drums or any General MIDI kit. If a drum plays the wrong sound, pick "My own map" and type the notes your plugin uses.</p>
+        <div class="btnRow"><button class="go" id="midiSong">MIDI: whole song</button><button class="small" id="midiSec">MIDI: this section</button></div>
+        <h3>Audio</h3>
+        <div class="grid2">
+          <label>Format<select id="fAudio"><option value="wav16">WAV, 16-bit</option><option value="wav24">WAV, 24-bit</option><option value="mp3">MP3, 320 kbps</option></select></label>
+          <label>What<select id="fAudioWhat"><option value="song">Whole song</option><option value="section">This section</option></select></label>
+        </div>
+        <div class="btnRow"><button class="go" id="audioBtn">Download audio</button></div>
+        <h3>Song file</h3>
+        <p class="tip" style="margin-top:0">Save the song to keep a copy or move it to another computer. Open a saved song, or a MIDI drum file (from Guitar Pro, your DAW or a groove pack) to edit it here.</p>
+        <div class="btnRow"><button class="small" id="saveSong">Save song file</button><label class="small" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;border:1px solid var(--divider-strong);border-radius:999px;padding:4px 12px;min-height:40px;color:var(--text);font-size:13px;cursor:pointer">Open a file<input type="file" id="openFile" accept=".json,.mid,.midi,application/json,audio/midi" style="width:150px"></label></div>
+        <div class="btnRow"><button class="small" id="demoSong">Start over with the demo song</button><button class="small" id="blankSong">Start a blank song</button></div>
+        <div class="status" id="status" role="status"></div>
+      </section>
+
+      <section data-tab="help">
+        <h3>The idea</h3>
+        <p>Write the drums for a whole song, section by section. Each section (intro, verse, chorus, breakdown) has its own groove, tempo and meter. Put sections in order on the strip to build the song. A section can play several times.</p>
+        <h3>Making a groove</h3>
+        <p>Pick a groove in the Grooves tab to start from: blast beats, gallops, double kick, d-beat, shuffles, odd meters. Then change it on the grid. The brush sets how hard a click hits. Ghost notes are the quiet snare taps between the big hits.</p>
+        <h3>Fills</h3>
+        <p>Set "Fill at the end" and the last beats of the section become a fill. "New fill" makes another one. Switch the grid to Fill to change it by hand. The next section starts with a crash.</p>
+        <h3>Feel</h3>
+        <p>Humanize moves hits a few milliseconds and varies how hard they land, like a real drummer. Fast parts get less movement so they stay tight. The same song always comes out the same way. "New take" rolls a different one.</p>
+        <h3>Tempo and odd meters</h3>
+        <p>Any meter works: 7/8, 5/4, 11/8, 12/8. Tempo is in quarter notes per minute. "Ramp to" speeds up or slows down across the section. All of it goes into the MIDI file, so your DAW follows.</p>
+        <h3>Keys</h3>
+        <div class="keys"><kbd>Space</kbd><span>Play the song or stop</span><kbd>L</kbd><span>Loop the section</span><kbd>Ctrl Z</kbd><span>Undo</span><kbd>Ctrl Y</kbd><span>Redo</span><kbd>&larr; &uarr; &rarr; &darr;</kbd><span>Move around the grid (click it first)</span><kbd>Enter</kbd><span>Add or remove a hit</span></div>
+        <p class="tip">Everything runs in your browser. Your song is saved on this computer as you go. Nothing is uploaded.</p>
+        <p class="tip" id="credit"></p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<script type="module" src="drums.js"></script>
+</body>
+</html>

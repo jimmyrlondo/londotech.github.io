@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<title>Projector · ENCORE. Set List</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: #000; color: #fff; font-family: var(--family-primary); display: flex; flex-direction: column; cursor: default; overflow: hidden; }
+  #slide { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4vh 5vw; gap: .25em; font-size: min(6.4vw, 9vh); font-weight: 700; line-height: 1.25; }
+  #slide.black { visibility: hidden; }
+  #slide .ttl { font-size: .5em; color: #bbb; font-weight: 600; }
+  .foot { display: flex; justify-content: space-between; padding: 6px 14px; font-size: 13px; color: #555; flex: none; }
+  .foot button { font: inherit; color: #777; background: transparent; border: 1px solid #333; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  body.idle .foot { opacity: 0; transition: opacity .6s; }
+</style>
+</head>
+<body>
+<div id="slide" aria-live="polite"><div class="ttl">ENCORE. Set List</div><div>Waiting for the stage view...</div></div>
+<div class="foot"><span id="where"></span><span><button id="full">Full screen</button></span></div>
+<script type="module" src="setlist-projector.js"></script>
+</body>
+</html>

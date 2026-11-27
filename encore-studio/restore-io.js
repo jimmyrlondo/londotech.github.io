@@ -7,6 +7,7 @@
 // page and the worker share one without copying it.
 //
 //   src.fs, src.frames, src.channels;  const { l, r } = await src.read(start, count)
+import { loadFile } from "./load-progress.js";
 import { parseWavHeader } from "./live-source.js";
 
 export class WavReader {
@@ -54,7 +55,7 @@ export function interleave(l, r) {
 export async function openAudio(file, decode) {
   const h = await parseWavHeader(file);
   if (h) return new WavReader(file, h);
-  const buf = await decode(await file.arrayBuffer());
+  const buf = await loadFile(file, decode);
   const n = buf.length, step = 1 << 18, parts = [];
   const L = new Float32Array(step), R = new Float32Array(step);
   for (let at = 0; at < n; at += step) {

@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="brand/encore-icon.svg" type="image/svg+xml"><link rel="icon" href="brand/encore-icon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/encore-icon-180.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tabs · ENCORE. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="encore-tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px 16px 24px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(420px, 6fr) minmax(0, 5fr); }
+    .layout > .panel { position: sticky; top: 76px; }
+    .tabBody { max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px); overflow-y: auto; }
+  }
+  .tabsBox { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; overflow: hidden; }
+  .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; }
+  .tabBar::-webkit-scrollbar { display: none; }
+  .tabBar button { flex: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; min-height: 40px; cursor: pointer; white-space: nowrap; }
+  .tabBar button:hover { color: var(--text); }
+  .tabBar button.on { color: #fff; background: #ff3b00; }
+  .tabBody { padding: 4px 16px 16px; }
+  .tabBody > section { display: none; padding: 12px 0 0; }
+  .tabBody > section.show { display: block; }
+  .hidden { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
+         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
+  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
+  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
+  .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
+  .navlink:hover { color: var(--text); }
+  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tools::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+  select, input[type=number], input[type=text], input[type=url] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 8px 9px; min-width: 0; min-height: 40px; }
+  input[type=range] { accent-color: #ff3b00; width: 100%; margin: 6px 0 0; min-height: 28px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  .toggle { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); min-height: 40px; cursor: pointer; }
+  .toggle input { width: 20px; height: 20px; accent-color: #ff3b00; flex: none; }
+  button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.go { font-weight: 700; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 26px; }
+  button.go:hover { background: #ff6c40; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+  button.small:hover { border-color: var(--soft); }
+  button.small:disabled { opacity: .4; cursor: default; }
+  .tip { color: var(--dim); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--red); font-size: 14px; margin-top: 8px; }
+  h3 { font-size: 14px; margin: 16px 0 8px; color: var(--soft); font-weight: 700; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 0 0 10px; }
+
+
+  /* ENCORE. Tabs */
+  main { padding-bottom: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; padding: 12px 14px 12px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(520px, 7fr) minmax(0, 4fr); }
+    .layout > .panel { position: static; height: calc(100vh - 92px); height: calc(100dvh - 92px); }
+    .tabsBox { height: calc(100vh - 92px); height: calc(100dvh - 92px); display: flex; flex-direction: column; }
+    .tabBody { flex: 1; max-height: none; overflow-y: auto; }
+  }
+  .head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .toolName { font-weight: 800; font-size: 18px; }
+  .pgChip { font-size: 10px; font-weight: 800; letter-spacing: .08em; color: #ff3b00; border: 1px solid #ff3b00; border-radius: 4px; padding: 2px 6px; line-height: 1.2; }
+  .back { font-size: 13px; color: var(--dim); text-decoration: none; margin-left: auto; }
+  .back:hover { color: var(--text); }
+  .tuneTitle { font: inherit; font-weight: 800; font-size: 16px; color: var(--text); background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; min-width: 0; flex: 1 1 220px; }
+  .tuneTitle:hover, .tuneTitle:focus { border-color: var(--divider-strong); outline: none; }
+  .meta { color: var(--soft); font-size: 12px; font-family: var(--family-mono); }
+  .diagram { width: 100%; max-width: 760px; margin: 0 auto; aspect-ratio: 760 / 300; max-height: 34vh; display: block; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+  .diagram svg { width: 100%; height: 100%; display: block; }
+  .diagram .key { cursor: pointer; }
+  .diagram .key:hover rect, .diagram .key:hover path, .diagram .key:hover ellipse:first-of-type, .diagram .key:hover circle:first-of-type { filter: brightness(1.15); }
+  .tools2 { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .seg { display: inline-flex; border: 1px solid var(--divider-strong); border-radius: 999px; overflow: hidden; }
+  .seg button { font: inherit; font-size: 13px; color: var(--soft); background: transparent; border: 0; padding: 7px 11px; min-height: 36px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--divider-strong); }
+  .seg button.on { background: #ff3b00; color: #fff; }
+  .seg button:hover:not(.on) { color: var(--text); }
+  .durIcon { font-family: var(--family-mono); font-weight: 700; }
+  .iconBtn { font: inherit; font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 7px 12px; min-height: 36px; cursor: pointer; }
+  .iconBtn:hover { border-color: var(--soft); }
+  .iconBtn:disabled { opacity: .4; cursor: default; }
+  .iconBtn.on { border-color: #ff3b00; color: #ff3b00; }
+  .play { font-weight: 800; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 8px 20px; min-height: 40px; min-width: 92px; cursor: pointer; }
+  .play:hover { background: #ff6c40; }
+  .tempo { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); }
+  .tempo input { width: 64px; min-height: 36px; padding: 6px; }
+  .grow { flex: 1; }
+  .stripBox { flex: 1; min-height: 120px; overflow-y: auto; overflow-x: hidden; background: var(--bg-subtle-default); border-radius: 10px; border: 1px solid var(--divider); cursor: text; }
+  .stripBox:focus { outline: 2px solid #ff3b0055; }
+  .stripBox .tn { cursor: pointer; }
+  .stripEmpty { color: var(--dim); font-size: 14px; padding: 18px; }
+  .status { font-size: 13px; color: var(--soft); min-height: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status .warn { color: var(--warn); }
+  .status kbd, .keys kbd { font-family: var(--family-mono); font-size: 11px; border: 1px solid var(--divider-strong); border-radius: 4px; padding: 0 5px; color: var(--text); }
+  .songs { list-style: none; padding: 0; margin: 0; }
+  .songs li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--divider); }
+  .songs li > span:first-child { flex: 1; min-width: 0; }
+  .songs li small { display: block; color: var(--dim); font-size: 12px; }
+  .fit { font-family: var(--family-mono); font-size: 11px; border-radius: 4px; padding: 2px 6px; white-space: nowrap; }
+  .fit.ok { color: var(--green); border: 1px solid var(--green); }
+  .fit.part { color: var(--warn); border: 1px solid var(--warn); }
+  .fit.bad { color: var(--red); border: 1px solid var(--red); }
+  .shifts { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .shifts button { font: inherit; font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 8px; padding: 6px 10px; cursor: pointer; text-align: left; }
+  .shifts button.on { border-color: #ff3b00; background: rgb(255 59 0 / .12); }
+  .shifts small { display: block; color: var(--dim); font-size: 11px; }
+  .warnList { list-style: none; padding: 0; margin: 6px 0; font-size: 13px; }
+  .warnList li { padding: 3px 0 3px 18px; position: relative; color: var(--soft); }
+  .warnList li::before { content: ""; position: absolute; left: 3px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .warnList li.warn::before { background: var(--warn); } .warnList li.bad::before { background: var(--red); }
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .btnGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btnGrid button { width: 100%; }
+  .heard { font-family: var(--family-mono); font-size: 13px; color: var(--soft); }
+  .meterMini { height: 6px; border-radius: 3px; background: var(--bg-subtle-default); overflow: hidden; margin-top: 4px; }
+  .meterMini i { display: block; height: 100%; width: 0; background: var(--green); transition: width .05s linear; }
+  .recDot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--red); margin-right: 6px; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .textOut { font-family: var(--family-mono); font-size: 12px; white-space: pre; overflow: auto; max-height: 180px; background: var(--bg-subtle-default); border-radius: 8px; padding: 8px; margin: 6px 0 0; }
+  #printArea { display: none; }
+  @media (max-width: 999px) {
+    .stripBox { max-height: 50vh; }
+  }
+  @media (max-width: 520px) {
+    .seg button { padding: 7px 9px; }
+    .durName { display: none; }
+    .back { display: none; }
+  }
+  @media print {
+    @page { size: letter; margin: 0; }
+    body { background: #fff !important; }
+    body > *:not(#printArea) { display: none !important; }
+    #printArea { display: block !important; }
+    #printArea .page { width: 8.5in; height: 11in; page-break-after: always; break-after: page; overflow: hidden; }
+    #printArea .page:last-child { page-break-after: auto; break-after: auto; }
+    #printArea svg { width: 100%; height: 100%; display: block; }
+  }
+</style>
+
+<link rel="stylesheet" href="suite-nav.css">
+</head>
+<body>
+<div class="bar">
+  <a class="home" href="index.html" aria-label="ENCORE. Green Room: every tool" title="Green Room: every tool"><svg class="wordmark" viewBox="408.308 330.5 706.176 201.6" role="img" aria-label="ENCORE." fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M408.308,330.5L494.708,330.5L494.708,359.3L439.988,359.3L439.988,412.58L483.476,412.58L483.476,441.38L439.988,441.38L439.988,503.3L494.708,503.3L494.708,532.1L408.308,532.1L408.308,330.5Z" fill="currentColor"/><path d="M512.852,330.5L552.596,330.5L583.412,451.172L583.988,451.172L583.988,330.5L612.212,330.5L612.212,532.1L579.668,532.1L541.652,384.932L541.076,384.932L541.076,532.1L512.852,532.1L512.852,330.5Z" fill="currentColor"/><path d="M680.468,534.98C665.3,534.98 653.732,530.66 645.764,522.02C637.796,513.38 633.812,501.188 633.812,485.444L633.812,377.156C633.812,361.412 637.796,349.22 645.764,340.58C653.732,331.94 665.3,327.62 680.468,327.62C695.636,327.62 707.204,331.94 715.172,340.58C723.14,349.22 727.124,361.412 727.124,377.156L727.124,398.468L697.172,398.468L697.172,375.14C697.172,362.66 691.892,356.42 681.332,356.42C670.772,356.42 665.492,362.66 665.492,375.14L665.492,487.748C665.492,500.036 670.772,506.18 681.332,506.18C691.892,506.18 697.172,500.036 697.172,487.748L697.172,456.932L727.124,456.932L727.124,485.444C727.124,501.188 723.14,513.38 715.172,522.02C707.204,530.66 695.636,534.98 680.468,534.98Z" fill="currentColor"/><path d="M792.5,534.98C776.948,534.98 765.044,530.564 756.788,521.732C748.532,512.9 744.404,500.42 744.404,484.292L744.404,378.308C744.404,362.18 748.532,349.7 756.788,340.868C765.044,332.036 776.948,327.62 792.5,327.62C808.052,327.62 819.956,332.036 828.212,340.868C836.468,349.7 840.596,362.18 840.596,378.308L840.596,484.292C840.596,500.42 836.468,512.9 828.212,521.732C819.956,530.564 808.052,534.98 792.5,534.98ZM792.5,506.18C803.444,506.18 808.916,499.556 808.916,486.308L808.916,376.292C808.916,363.044 803.444,356.42 792.5,356.42C781.556,356.42 776.084,363.044 776.084,376.292L776.084,486.308C776.084,499.556 781.556,506.18 792.5,506.18Z" fill="currentColor"/><path d="M861.908,330.5L908.852,330.5C925.172,330.5 937.076,334.292 944.564,341.876C952.052,349.46 955.796,361.124 955.796,376.868L955.796,389.252C955.796,410.18 948.884,423.428 935.06,428.996L935.06,429.572C942.74,431.876 948.164,436.58 951.332,443.684C954.5,450.788 956.084,460.292 956.084,472.196L956.084,507.62C956.084,513.38 956.276,518.036 956.66,521.588C957.044,525.14 958.004,528.644 959.54,532.1L927.284,532.1C926.132,528.836 925.364,525.764 924.98,522.884C924.596,520.004 924.404,514.82 924.404,507.332L924.404,470.468C924.404,461.252 922.916,454.82 919.94,451.172C916.964,447.524 911.828,445.7 904.532,445.7L893.588,445.7L893.588,532.1L861.908,532.1L861.908,330.5ZM905.108,416.9C911.444,416.9 916.196,415.268 919.364,412.004C922.532,408.74 924.116,403.268 924.116,395.588L924.116,380.036C924.116,372.74 922.82,367.46 920.228,364.196C917.636,360.932 913.556,359.3 907.988,359.3L893.588,359.3L893.588,416.9L905.108,416.9Z" fill="currentColor"/><path d="M977.972,330.5L1064.372,330.5L1064.372,359.3L1009.652,359.3L1009.652,412.58L1053.14,412.58L1053.14,441.38L1009.652,441.38L1009.652,503.3L1064.372,503.3L1064.372,532.1L977.972,532.1L977.972,330.5Z" fill="currentColor"/><rect x="1083.956" y="501.572" width="30.528" height="30.528" fill="#ff3b00"/></svg><span class="chip-label">STUDIO</span></a>
+  <nav class="tools" aria-label="ENCORE. Studio tools"><a class="navlink" href="journey.html">Journey</a><a class="navlink" href="master.html">Master</a><a class="navlink" href="live.html">Live</a><a class="navlink" href="lastcall.html">Last Call</a><a class="navlink" href="convert.html">Convert</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="clips.html">Clips</a><a class="navlink" href="links.html">Links</a><a class="navlink" href="credits.html">Credits</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="songbook.html">Songbook</a><a class="navlink" href="compose.html">Compose</a><a class="navlink" href="tune.html">Tune</a><a class="navlink" href="metronome.html">Metronome</a><a class="navlink" href="beatpad.html">Beatpad</a><a class="navlink" href="restore.html">Restore</a><a class="navlink" href="tag.html">Tag</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="chords.html">Chords</a><a class="navlink" href="scales.html">Scales</a><a class="navlink" href="voice.html">Voice</a><span class="navsep" aria-hidden="true"></span><a class="navlink on" href="playground.html" aria-current="page">Playground</a><span class="navsep" aria-hidden="true"></span><a class="navlink" href="basement.html">Basement Studio</a><a class="navlink" href="vst.html">VST</a></nav>
+  <select class="toolPick" aria-label="Choose a tool" onchange="location.href=this.value"><optgroup label="ENCORE. Journey"><option value="journey.html">Journey</option><option value="master.html">Master</option><option value="live.html">Live</option><option value="lastcall.html">Last Call</option><option value="convert.html">Convert</option></optgroup><optgroup label="ENCORE. Release"><option value="clips.html">Clips</option><option value="links.html">Links</option><option value="credits.html">Credits</option></optgroup><optgroup label="ENCORE. Tools"><option value="songbook.html">Songbook</option><option value="compose.html">Compose</option><option value="tune.html">Tune</option><option value="metronome.html">Metronome</option><option value="beatpad.html">Beatpad</option><option value="restore.html">Restore</option><option value="tag.html">Tag</option></optgroup><optgroup label="ENCORE. Learn"><option value="chords.html">Chords</option><option value="scales.html">Scales</option><option value="voice.html">Voice</option></optgroup><optgroup label="ENCORE. Playground"><option value="playground.html" selected>Playground (in testing)</option></optgroup><optgroup label="Desktop"><option value="basement.html">Basement Studio</option><option value="vst.html">VST plugins</option></optgroup></select>
+</div>
+
+
+<main>
+<div class="layout">
+  <section class="panel" id="panel" aria-label="Tab editor">
+    <div class="head">
+      <span class="toolName">Tabs</span><span class="pgChip">PLAYGROUND</span>
+      <input class="tuneTitle" id="title" type="text" maxlength="120" aria-label="Tune title" value="Untitled tune">
+      <span class="meta" id="meta"></span>
+      <a class="back" href="playground.html">&larr; Playground</a>
+    </div>
+    <div class="diagram" id="diagram" aria-label="The instrument. Click a tine or field to write that note; hold Shift to add it to a chord."></div>
+    <div class="tools2" role="toolbar" aria-label="Note length and editing">
+      <div class="seg" id="durs" aria-label="Note length"></div>
+      <button class="iconBtn" id="dotBtn" title="Dotted: one and a half times as long (N)" aria-pressed="false">Dot</button>
+      <button class="iconBtn" id="restBtn" title="Add a rest (R or 0)">Rest</button>
+      <button class="iconBtn" id="delBtn" title="Delete the selected note (Backspace)">Delete</button>
+      <button class="iconBtn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>Undo</button>
+      <button class="iconBtn" id="redoBtn" title="Redo (Ctrl+Y)" disabled>Redo</button>
+    </div>
+    <div class="tools2">
+      <button class="play" id="playBtn" title="Play from the selected note (Space)">Play</button>
+      <label class="tempo">Tempo<input type="number" id="tempo" min="30" max="260" value="90" aria-label="Tempo in beats a minute"></label>
+      <button class="iconBtn" id="loopBtn" aria-pressed="false" title="Play it over and over">Loop</button>
+      <button class="iconBtn" id="recBtn" title="Record with a count-in: play notes in time and they're written with their rhythm">Record in time</button>
+      <span class="grow"></span>
+      <div class="seg" id="views" aria-label="Show">
+        <button data-view="number">Numbers</button><button data-view="letter">Letters</button><button data-view="both" class="on">Both</button>
+      </div>
+    </div>
+    <div class="stripBox" id="stripBox" tabindex="0" aria-label="The tab. Click a note to select it."></div>
+    <div class="status" id="status"></div>
+  </section>
+
+  <div class="tabsBox">
+    <div class="tabBar" role="tablist" aria-label="Tabs">
+      <button role="tab" data-tab="write" class="on">Write</button>
+      <button role="tab" data-tab="songs">Songs</button>
+      <button role="tab" data-tab="convert">Convert</button>
+      <button role="tab" data-tab="export">Export</button>
+      <button role="tab" data-tab="help">How it works</button>
+    </div>
+    <div class="tabBody">
+      <section data-tab="write" class="show">
+        <h3>Instrument</h3>
+        <div class="row">
+          <label>Type<select id="fKind"><option value="kalimba">Kalimba</option><option value="handpan">Handpan</option><option value="drum">Tongue drum</option></select></label>
+          <label>Tuning<select id="fTuning"></select></label>
+          <label id="keyWrap">Key<select id="fShift"></select></label>
+        </div>
+        <details style="margin-top:8px"><summary class="tip" style="cursor:pointer">Edit the notes (for a retuned or unusual instrument)</summary>
+          <p class="tip" id="tuneHint"></p>
+          <div class="row"><input type="text" id="fCustom" aria-label="Notes of the instrument, in order" spellcheck="false"><button class="small" id="customApply" style="flex:none">Use these</button></div>
+          <div class="err hidden" id="customErr"></div>
+        </details>
+        <h3>Play notes in</h3>
+        <p class="tip" style="margin-top:0">Click the instrument, or type: <kbd>1</kbd>-<kbd>7</kbd> for numbers (<kbd>[</kbd> <kbd>]</kbd> change octave), or the piano keys <kbd>A</kbd> <kbd>W</kbd> <kbd>S</kbd> <kbd>E</kbd> <kbd>D</kbd>... Hold <kbd>Shift</kbd> to stack a chord.</p>
+        <div class="btnGrid">
+          <button class="small" id="midiBtn">Use a MIDI keyboard</button>
+          <button class="small" id="micBtn">Listen with the mic</button>
+        </div>
+        <div class="heard" id="heard"></div>
+        <div class="meterMini hidden" id="micMeter"><i id="micBar"></i></div>
+        <h3>Words</h3>
+        <label>Lyric for the selected note<input type="text" id="fLyric" maxlength="40" placeholder="Click a note first"></label>
+        <label style="margin-top:8px">All the words (a hyphen splits a word over two notes, _ skips one)<textarea id="fWords" rows="3" placeholder="Twin-kle twin-kle lit-tle star"></textarea></label>
+        <div class="row" style="margin-top:6px"><button class="small" id="wordsApply" style="flex:none">Put the words on the notes</button></div>
+        <h3>Tune</h3>
+        <div class="row">
+          <label>By<input type="text" id="fBy" maxlength="120" placeholder="Composer or Traditional"></label>
+          <label>Beats a bar<select id="fBeats"><option>2</option><option>3</option><option selected>4</option><option>6</option></select></label>
+        </div>
+        <div class="row" style="margin-top:8px"><button class="small" id="newBtn" style="flex:none">New tune</button><button class="small" id="saveBtn" style="flex:none">Save to my tunes</button></div>
+      </section>
+
+      <section data-tab="songs">
+        <h3>Starter songs</h3>
+        <p class="tip" style="margin-top:0">Public domain tunes to learn on. The tag shows how much fits your instrument as it is. Loading one moves it onto your instrument.</p>
+        <ul class="songs" id="starter"></ul>
+        <h3>Bring a melody in</h3>
+        <label>MusicXML, MIDI or ENCORE. Tabs file<input type="file" id="fImport" accept=".musicxml,.xml,.mid,.midi,.encoretab,.json" style="font-size:13px"></label>
+        <p class="tip">The top line of the first part comes in, with its words, moved to fit your instrument.</p>
+        <div class="err hidden" id="importErr"></div>
+        <h3>My tunes</h3>
+        <ul class="songs" id="mine"></ul>
+      </section>
+
+      <section data-tab="convert">
+        <p class="tip" style="margin-top:0">Move this tune onto another instrument or tuning. ENCORE. finds the key where the most notes land, and tells you about any that don't.</p>
+        <div class="row">
+          <label>Type<select id="cKind"><option value="kalimba">Kalimba</option><option value="handpan">Handpan</option><option value="drum">Tongue drum</option></select></label>
+          <label>Tuning<select id="cTuning"></select></label>
+          <label>Key<select id="cShift"></select></label>
+        </div>
+        <h3>Best fits</h3>
+        <div class="shifts" id="shifts"></div>
+        <label class="toggle"><input type="checkbox" id="cFold" checked> Move notes the instrument doesn't reach to another octave</label>
+        <ul class="warnList" id="cWarn"></ul>
+        <div class="row"><button class="go" id="convertBtn">Convert</button></div>
+        <h3>Just transpose</h3>
+        <div class="row"><button class="small" id="tDown" style="flex:none">Down a semitone</button><button class="small" id="tUp" style="flex:none">Up a semitone</button><button class="small" id="tOctDown" style="flex:none">Octave down</button><button class="small" id="tOctUp" style="flex:none">Octave up</button></div>
+      </section>
+
+      <section data-tab="export">
+        <h3>Print or share</h3>
+        <div class="row"><label>Sheet shows<select id="eView"><option value="both">Numbers and letters</option><option value="number">Numbers</option><option value="letter">Letters</option></select></label></div>
+        <div class="btnGrid" style="margin-top:8px">
+          <button class="small" id="printBtn">Print or save as PDF</button>
+          <button class="small" id="pngBtn">Download picture (PNG)</button>
+          <button class="small" id="fileBtn">Download tab file</button>
+          <button class="small" id="linkBtn">Copy a share link</button>
+          <button class="small" id="textBtn">Copy as text</button>
+          <button class="small" id="wavBtn">Download audio (WAV)</button>
+          <button class="small" id="midiOutBtn">Download MIDI</button>
+          <button class="small" id="xmlBtn">Download MusicXML</button>
+        </div>
+        <p class="tip">The tab file (.encoretab) opens in ENCORE. Tabs on any device: send it to a friend and they load it under Songs. The share link holds the whole tune inside it; nothing is uploaded.</p>
+        <div class="tip hidden" id="exportMsg"></div>
+        <pre class="textOut hidden" id="textOut"></pre>
+      </section>
+
+      <section data-tab="help">
+        <h3>What this is</h3>
+        <p>A tab maker for kalimba, handpan and steel tongue drum. Write a tune by clicking the instrument, typing, playing a MIDI keyboard or playing into the mic, and it's shown three ways at once: number tab, letter names and the instrument with the notes lit up.</p>
+        <h3>Reading the tab</h3>
+        <p><b>Kalimba and tongue drum:</b> 1 to 7 are the notes of the instrument's scale (on a C kalimba, 1 is C). A dot above means one octave up, a dot below one octave down. Numbers stacked on top of each other are played together.</p>
+        <p><b>Handpan:</b> D is the ding in the middle, then 1, 2, 3 are the fields from the lowest note up. They zigzag around the pan, just like on the drawing.</p>
+        <p><b>Rhythm:</b> a plain number is one beat. A line under it halves it (two lines, a quarter). Each dash after it holds one more beat. A dot after it makes it one and a half times as long. 0 is a rest.</p>
+        <h3>Writing</h3>
+        <p>Pick a length, then click notes. Click a note in the tab to select it: the next note you play replaces it, and the length buttons change it. Hold Shift to stack a chord. "Record in time" counts you in and writes what you play with its rhythm.</p>
+        <h3>Converting</h3>
+        <p>Tabs for a 17-key kalimba don't fit an 8-key, and a song in C won't sit on a D Kurd handpan. Convert tries every key and picks the one where most notes land. Notes that still don't fit are moved an octave if the instrument has that letter somewhere, or marked with a red ? so you can rewrite them.</p>
+        <h3>Keys</h3>
+        <div class="keys" style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;color:var(--soft)">
+          <kbd>1-7</kbd><span>Number notes (handpan: 0 is the ding, 1-9 the fields)</span>
+          <kbd>[ ]</kbd><span>Octave down / up for number keys</span>
+          <kbd>A W S E D...</kbd><span>Piano keys</span>
+          <kbd>Z X C V B</kbd><span>Whole, half, quarter, eighth, sixteenth</span>
+          <kbd>N</kbd><span>Dotted</span>
+          <kbd>R</kbd><span>Rest</span>
+          <kbd>&larr; &rarr;</kbd><span>Select the note before or after</span>
+          <kbd>Backspace</kbd><span>Delete</span>
+          <kbd>Space</kbd><span>Play / stop</span>
+          <kbd>Ctrl+Z</kbd><span>Undo</span>
+        </div>
+        <h3>Your tunes</h3>
+        <p class="tip">Everything stays in this browser on this device. The sounds are made right here by ENCORE. (no recordings). Nothing is uploaded.</p>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<div id="printArea" aria-hidden="true"></div>
+<script type="module" src="tabs.js"></script>
+</body>
+</html>
