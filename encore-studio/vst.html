@@ -145,24 +145,23 @@
     <div class="heroText">
       <div class="kicker">ENCORE. plugins</div>
       <h1>ENCORE.<span class="dim">VST</span></h1>
-      <p class="lede">Five free plugins for any DAW that runs VST3: a whole vocal chain, reverb, EQ, one-click mastering and an acoustic guitar fixer. One installer, and you tick the ones you want.</p>
-      <div class="soon" id="soon"><span class="pulse" aria-hidden="true"></span><div><b>New downloads are on the way.</b> The next version is being prepared, so downloads are paused for now. Check back soon.</div></div>
-      <div class="dl" id="dl" hidden>
+      <p class="lede">Five free plugins for your DAW: a whole vocal chain, reverb, EQ, one-click mastering and an acoustic guitar fixer. On Windows, Mac, Linux and Raspberry Pi, in VST3, Audio Units and LV2.</p>
+      <div class="dl" id="dl">
         <a class="go" id="dlWin" href="https://github.com/jimmyrlondo/encore-vst/releases">Download for Windows</a>
-        <a class="ghost" id="dlMac" href="https://github.com/jimmyrlondo/encore-vst/releases" hidden>Download for Mac</a>
-        <a class="ghost" href="#plugins">See the plugins</a>
+        <a class="ghost" id="dlMac" href="https://github.com/jimmyrlondo/encore-vst/releases">Download for Mac</a>
       </div>
-      <div class="ver" id="ver">Free. No account needed. Windows and Mac, VST3.</div>
+      <div class="ver" id="ver">Free, no account needed. Windows 10 and 11 (64-bit), macOS 11 or newer (Apple Silicon and Intel), Linux and Raspberry Pi 4 and 5.</div>
       <details class="first">
         <summary>Installing, updating and removing</summary>
-        <p><b>First run:</b> the installer isn't code-signed yet, so SmartScreen may warn you. Click <b>More info</b>, then <b>Run anyway</b>. On a Mac, if it says the installer can't be opened, right-click it and choose <b>Open</b>.<br>
-           <b>Then:</b> open your DAW and scan for new plugins. In Cubase: Studio &gt; VST Plug-in Manager, then Rescan.<br>
-           <b>Change your mind:</b> run the installer again, or use <b>Modify</b> on ENCORE. VST in Windows Settings &gt; Apps, to add or remove any plugin. <b>Uninstall</b> there removes them all. Your presets in Documents\Encore are never touched.</p>
+        <p><b>Windows:</b> run the installer and tick the plugins you want. It isn't code-signed yet, so if SmartScreen warns you, click <b>More info</b>, then <b>Run anyway</b>. To add or remove plugins later, run it again, or use <b>Modify</b> on ENCORE. VST in Windows Settings &gt; Apps. <b>Uninstall</b> there removes them all.<br>
+           <b>Mac:</b> the installer adds VST3 and Audio Units (for Logic and GarageBand). It isn't signed yet, so the first time macOS says it was "Not Opened". Click <b>Done</b>, go to System Settings &gt; Privacy &amp; Security, click <b>Open Anyway</b>, then open the installer again.<br>
+           <b>Linux and Raspberry Pi:</b> on the <a href="https://github.com/jimmyrlondo/encore-vst/releases/latest">downloads page</a>, take the x64 file for a PC or the arm64 file for a Raspberry Pi 4 or 5. Copy the .vst3 folders to ~/.vst3 and the .lv2 folders to ~/.lv2.<br>
+           <b>Then:</b> open your DAW and rescan for new plugins. Your presets are never touched by an update or uninstall.</p>
       </details>
     </div>
     <div class="stage">
-      <figure class="frame setupShot"><img src="shots/vst-setup.png" alt="The ENCORE. VST installer: a card for each plugin with a checkbox" width="1000" height="680"></figure>
-      <div class="caption">The installer: tick the plugins you want</div>
+      <figure class="frame setupShot"><img src="shots/vst-setup.png" alt="ENCORE. VST Setup on Windows: a card for each plugin with a checkbox" width="1000" height="680"></figure>
+      <div class="caption">The Windows installer: tick the plugins you want</div>
     </div>
   </section>
 
@@ -205,7 +204,7 @@
   <section class="foot panelBox">
     <div>
       <h2>Free. The same plugins are built into ENCORE. Basement Studio.</h2>
-      <p>Presets: each plugin has factory presets, and saves yours in Documents\Encore\&lt;Plugin&gt;\Presets.</p>
+      <p>Presets: each plugin has factory presets, and saves yours in your Documents folder, under ENCORE\&lt;Plugin&gt;\Presets.</p>
     </div>
     <div class="cta" style="margin:0"><a class="ghost" href="basement.html">See Basement Studio</a></div>
   </section>
