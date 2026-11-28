@@ -174,6 +174,60 @@
 
   .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #1c1917; border: 1px solid var(--divider-strong); color: var(--text); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 300; max-width: calc(100vw - 32px); box-shadow: 0 8px 30px rgb(0 0 0 / .5); }
 
+  /* 2026-11 revamp */
+  .app { gap: 16px; padding: 20px 20px 20px !important; }
+  @media (min-width: 1100px) { .app { grid-template-columns: 304px minmax(0, 1fr) 352px; } }
+  .panel { padding: 0 !important; }
+  #lib .toolName { padding: 16px 14px 10px !important; gap: 8px !important; }
+  #lib .toolName b { font-size: 18px !important; }
+  #lib .back { height: 26px; padding: 0 9px; font-size: 12px !important; }
+  #lib .tabBar { padding: 8px 12px !important; }
+  .libTools { padding: 12px 12px 8px; gap: 8px; }
+  .libTools input { flex: 1; }
+  .list { padding: 0 8px 10px; }
+  .item { border-radius: 12px; margin-bottom: 2px; }
+  .item .main { min-height: 48px; padding: 8px 10px; border-radius: 12px; }
+  .item:hover { background: var(--gr-raise-2); }
+  .item.on { background: linear-gradient(90deg, rgb(255 59 0 / .16), rgb(255 59 0 / .05)); box-shadow: inset 2px 0 0 var(--gr-orange); }
+  .item .t { font-weight: 600; } .item .t small { font-weight: 400; margin-top: 1px; }
+  .kb { border-color: var(--gr-line-strong); border-radius: 6px; padding: 1px 6px; background: var(--gr-raise-2); }
+  .head { padding: 18px 22px 14px; border-bottom-color: var(--gr-line); background: linear-gradient(180deg, rgb(255 255 255 / .02), transparent); }
+  .songTitle { font-size: 26px; letter-spacing: -0.025em; }
+  .setHead { grid-template-columns: minmax(0, 1fr) 170px; gap: 12px; }
+  .setHead input#setName { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; min-height: 44px; }
+  .setHead input#setDate { min-height: 44px; }
+  .total { gap: 18px; margin-top: 12px; }
+  .total b { font-size: 28px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tb { gap: 8px; margin-top: 12px; }
+  .tb .go, .addRow .go { min-height: 40px !important; padding: 0 20px !important; font-size: 14px; }
+  .body { padding: 16px 22px 28px; }
+  .addRow { margin: 4px 0 14px; gap: 10px; }
+  .addRow select { min-height: 40px; }
+  .rows { gap: 6px; }
+  .srow { grid-template-columns: 22px 26px 52px minmax(0, 1fr) 76px 92px 64px auto; gap: 8px; padding: 10px 10px; border: 1px solid var(--gr-line); border-radius: 14px;
+    background: var(--gr-raise-2); box-shadow: var(--gr-hi); }
+  .srow:hover { border-color: var(--gr-line-strong); }
+  .srow.gapRow { background: transparent; border-style: dashed; }
+  .srow .nm button { font-size: 15px; }
+  .srow .n { color: var(--gr-orange-2); font-weight: 700; }
+  .srow select, .srow input.dur { min-height: 32px !important; font-size: 13px; }
+  .srow .nm input { min-height: 30px !important; background: var(--gr-raise-1); }
+  .flow { padding: 2px 10px 2px 64px; }
+  .chart .sec { color: var(--gr-orange-2); letter-spacing: .12em; font-size: 12px; margin: 18px 0 6px; }
+  .chart .pc b { color: #ffa278; }
+  .capoList li { border-bottom-color: var(--gr-line); padding: 8px 0; }
+  .tabBody { padding: 14px 18px 18px !important; }
+  #side .tabBar { padding: 10px 10px !important; gap: 2px !important; }
+  #side .tabBar button { padding: 0 11px !important; font-size: 13px !important; }
+  @media (max-width: 700px) { .srow { grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1fr) 72px; } }
+  @media (min-width: 1100px) and (max-width: 1499px) {
+    .app { grid-template-columns: 250px minmax(0, 1fr) 318px; gap: 12px; padding: 16px !important; }
+    #lib .toolName { flex-wrap: wrap; row-gap: 6px !important; }
+    #lib .back { margin-left: 0; }
+    #side .tabBar button { padding: 0 9px !important; font-size: 12.5px !important; }
+    .head, .body { padding-left: 18px; padding-right: 18px; }
+    .srow { grid-template-columns: 18px 22px 48px minmax(0, 1fr) 70px 88px 60px auto; gap: 6px; padding: 9px 8px; }
+  }
   /* stage */
   #stage { position: fixed; inset: 0; z-index: 200; background: #000; color: #fff; display: flex; flex-direction: column; }
   .stTop { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #222; flex: none; flex-wrap: wrap; }
@@ -224,6 +278,8 @@
   }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<link rel="stylesheet" href="playground-tools.css">
+<script type="module" src="gr-shell.js"></script>
 </head>
 <body>
 <div class="bar">

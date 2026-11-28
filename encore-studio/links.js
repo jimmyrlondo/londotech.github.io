@@ -5,8 +5,12 @@ import {
   moveItem, safeUrl, esc, slug, fileNameFor, makeBackup, readBackup, buildExportHtml, formatWhen, linkName, actionLabel,
 } from './links-core.js';
 import { encodeQR, qrToSvg } from './links-qr.js';
+import { icon } from './gr-shell.js';
 
 const $ = (id) => document.getElementById(id);
+// the Green Room look: icons on the panel headings
+document.querySelector('#libPanel .head h2').insertAdjacentHTML('afterbegin', `<span class="hIcon">${icon('songbook')}</span>`);
+document.querySelector('#previewPanel .head h2').insertAdjacentHTML('afterbegin', `<span class="hIcon">${icon('clips')}</span>`);
 const P = 'encore-links-';
 const store = {
   get(k, d = null) { try { const v = localStorage.getItem(P + k); return v == null ? d : JSON.parse(v); } catch { return d; } },

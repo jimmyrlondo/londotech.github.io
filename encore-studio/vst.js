@@ -15,6 +15,11 @@ try {
     $('dlWin').href = win.browser_download_url;
     $('dlWin').title = `${win.name} (${size(win.size)})`;
     const when = new Date(rel.published_at || rel.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-    $('ver').textContent = `Version ${rel.tag_name.replace(/^v/, '')}${rel.prerelease ? ' (preview)' : ''}, ${when}, ${size(win.size)}. Free, no account needed. Windows 10 and 11, 64-bit, VST3. Mac is coming.`;
+    const mac = rel.assets.find(a => /macos.*\.pkg$/i.test(a.name)) || rel.assets.find(a => /mac.*\.(pkg|dmg|zip)$/i.test(a.name));
+    if (mac) { $('dlMac').hidden = false; $('dlMac').href = mac.browser_download_url; $('dlMac').title = `${mac.name} (${size(mac.size)})`; }
+    const linux = rel.assets.some(a => /linux/i.test(a.name));
+    const os = ['Windows 10 and 11 (64-bit)', mac && 'macOS', linux && 'Linux'].filter(Boolean);
+    const list = os.length > 1 ? os.slice(0, -1).join(', ') + ' and ' + os.at(-1) : os[0];
+    $('ver').textContent = `Version ${rel.tag_name.replace(/^v/, '')}${rel.prerelease ? ' (preview)' : ''}, ${when}. Free, no account needed. ${list}, VST3.`;
   }
 } catch { /* the button already leads to the releases page */ }

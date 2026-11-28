@@ -6,6 +6,8 @@ import { LiveRecorder, listInputs, buildGainTrack, savedRecordings, openSaved, u
 import { fillGenreSelect } from "./genres.js";
 import { wavFile, id3 } from "./tags.js";
 import { zip } from "./zip.js";
+import { icon } from "./gr-shell.js";
+for (const el of document.querySelectorAll("[data-icon]")) el.innerHTML = icon(el.dataset.icon);
 
 const $ = (id) => document.getElementById(id);
 const COLORS = ["#ff3b00", "#22d3ee", "#e8b04b", "#7bd3a4", "#c084fc", "#f472b6", "#60a5fa", "#a3e635", "#fb923c", "#2dd4bf"];
@@ -780,7 +782,10 @@ function drawTimeline() {
   g.fillStyle = "#91887d"; g.textBaseline = "bottom";
   for (let i = 0; i <= state.songs.length; i++) { // label what's in each cut
     const from = i ? regions[i - 1].end : 0, to = i < regions.length ? regions[i].start : dur;
-    if (X(to) - X(from) > 70) { const k = gapKind(from, to); g.fillText(`${GAP_NAMES[k] ?? k} ${fmt(to - from)}`, X(from) + 4, H - 1); }
+    if (X(to) - X(from) > 40) { // centred in the cut, only when it fits
+      const k = gapKind(from, to), txt = `${GAP_NAMES[k] ?? k} ${fmt(to - from)}`, tw = g.measureText(txt).width;
+      if (tw + 12 <= X(to) - X(from)) g.fillText(txt, (X(from) + X(to) - tw) / 2, H - 1);
+    }
   }
   g.fillStyle = "#e8b04b";
   for (const m of state.markers) g.fillRect(Math.round(X(m)), top, 1, H - top - 14);

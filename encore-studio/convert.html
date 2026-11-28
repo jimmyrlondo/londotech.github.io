@@ -29,108 +29,143 @@
   .bar .note { white-space: nowrap; margin-left: auto; }
   @media (max-width: 1180px) { .bar .note { display: none; } }
   @media (max-width: 480px) { .bar { gap: 10px; } .bar .chip-label { display: none; } .wordmark { height: 20px; } }
+  .mono { font-family: var(--family-mono); font-variant-numeric: tabular-nums; }
 
-  /* one screen: two columns on desktop (inner boxes scroll), stacked on phones */
-  main { max-width: 1320px; margin: 0 auto; padding: 14px 16px 16px; }
+  /* one screen: the files on the left, the format and the button on the right (inner boxes scroll); stacked on phones */
+  main { max-width: 1480px; margin: 0 auto; padding: 16px 20px 20px; }
   .layout { display: flex; flex-direction: column; gap: 12px; }
-  .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
   @media (min-width: 900px) {
     main { height: calc(100vh - 60px); height: calc(100dvh - 60px); }
-    .layout { display: grid; grid-template-columns: minmax(0, 6fr) minmax(360px, 5fr); gap: 14px; height: 100%; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(400px, 560px); gap: 16px; height: 100%; }
     .col { min-height: 0; }
     .listBox { flex: 1 1 auto; min-height: 0; }
-    .tabsBox { min-height: 0; display: flex; flex-direction: column; max-height: 100%; }
-    .tabBody { overflow-y: auto; min-height: 0; }
+    .tabsBox { min-height: 0; display: flex; flex-direction: column; flex: 1 1 auto; }
+    .tabBody { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+    /* nothing added yet: the drop zone is the page */
+    body:not(.hasFiles) .drop { flex: 1 1 auto; flex-direction: column; justify-content: center; text-align: center; gap: 16px; padding: 32px; }
+    body:not(.hasFiles) .drop .dIcon { width: 76px; height: 76px; border-radius: 22px; background: var(--gr-grad); color: #fff; box-shadow: var(--gr-hi), var(--gr-glow); }
+    body:not(.hasFiles) .drop .dIcon svg { width: 34px; height: 34px; }
+    body:not(.hasFiles) .drop .big { font-size: 26px; letter-spacing: -0.02em; }
+    body:not(.hasFiles) .drop .hint { font-size: 14px; max-width: 42ch; margin: 6px auto 0; }
+    body:not(.hasFiles) .drop .dropBtn { display: inline-flex; }
+    body:not(.hasFiles) .listBox { display: none; }
   }
   /* phones: drop zone, formats, Convert, then the list */
   @media (max-width: 899px) {
     .col { display: contents; }
-    .drop { order: 1; padding: 12px 14px; gap: 12px; } .drop .big { font-size: 16px; } .drop svg { width: 28px; height: 28px; }
-    .tabsBox { order: 2; } .actions { order: 3; } .listBox { order: 4; }
-    .presets .preset span { display: none; } .presets .preset { min-height: 34px; padding: 6px 10px; }
-    .tabBody { padding: 10px 12px 12px; }
-    main { padding-top: 12px; } .empty { padding: 10px 14px; font-size: 13px; } .listHead { padding: 7px 14px; } .help { margin-top: 8px; }
+    .drop { order: 1; padding: 12px 14px; gap: 12px; } .drop .big { font-size: 16px; } .drop .dIcon { width: 40px; height: 40px; }
+    .tabsBox { order: 2; } .listBox { order: 4; }
+    .presets .preset span { display: none; } .presets .preset { min-height: 38px; padding: 6px 10px; }
+    .tabBody { padding: 12px 14px; }
+    main { padding: 12px 12px 16px; } .empty { padding: 12px 14px; font-size: 13px; } .listHead { padding: 10px 14px; } .help { margin-top: 8px; }
     .list { max-height: 40vh; }
+    .fmtHead { display: none; }
   }
-  .panel { background: var(--panel); border: 1px solid var(--divider); border-radius: 14px; min-width: 0; }
+  .panel { background: var(--gr-raise-1); border: 1px solid var(--gr-line); border-radius: 18px; min-width: 0; }
 
-  .drop { display: flex; align-items: center; gap: 14px; cursor: pointer; border: 1.5px dashed var(--divider-strong); border-radius: 14px; padding: 16px; background: var(--panel); transition: border-color .15s, background .15s; }
-  .drop.over { border-color: #ff3b00; background: var(--bg-surface-hover); }
-  .drop .big { font-size: 18px; font-weight: 700; line-height: 1.25; }
+  .drop { display: flex; align-items: center; gap: 14px; cursor: pointer; border: 1.5px dashed var(--divider-strong); border-radius: 18px; padding: 14px 16px; background-color: var(--gr-raise-1); transition: border-color .15s, background .15s; }
+  .drop.over { border-color: #ff3b00; background-color: var(--bg-surface-hover); }
+  .drop .dIcon { flex: none; width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; color: var(--gr-orange-2); background: rgb(255 59 0 / .1); box-shadow: inset 0 0 0 1px rgb(255 106 43 / .25); }
+  .drop .dIcon svg { width: 22px; height: 22px; }
+  .drop .dText { display: flex; flex-direction: column; min-width: 0; }
+  .drop .big { font-size: 17px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; }
   .drop .hint { color: var(--dim); font-size: 13px; }
-  .drop svg { flex: none; color: #ff3b00; }
+  .drop .dropBtn { display: none; align-items: center; height: 42px; padding: 0 22px; border-radius: 999px; font-weight: 700; font-size: 14px; background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); }
   .linkish { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
   .listBox { display: flex; flex-direction: column; overflow: hidden; }
-  .listHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--divider); font-size: 13px; color: var(--dim); }
-  .list { list-style: none; margin: 0; padding: 0; overflow-y: auto; min-height: 0; }
+  .listHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 18px 12px; border-bottom: 1px solid var(--gr-line); font-size: 13px; color: var(--dim); }
+  .listHead .gr-kicker { display: block; font-size: 10.5px; margin-bottom: 2px; }
+  #listCount { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+  .list { list-style: none; margin: 0; padding: 8px; overflow-y: auto; min-height: 0; }
   @media (max-width: 899px) { .list { max-height: 46vh; } }
   .empty { padding: 20px 14px; color: var(--dim); font-size: 14px; text-align: center; }
-  .item { padding: 10px 14px; border-bottom: 1px solid var(--divider); cursor: pointer; }
-  .item:last-child { border-bottom: 0; }
-  .item.sel { background: var(--bg-surface-hover); box-shadow: inset 3px 0 0 #ff3b00; }
-  .item .top { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-  .item .name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .item .x { flex: none; background: none; border: 0; color: var(--dim); font-size: 20px; line-height: 1; padding: 0 4px; }
-  .item .x:hover { color: var(--text); }
-  .item .src, .item .out { font-size: 12.5px; color: var(--dim); overflow-wrap: anywhere; }
-  .item .out b { color: var(--soft); font-weight: 600; }
-  .item .warn { font-size: 12.5px; color: var(--warn); margin-top: 3px; }
-  .item .err { font-size: 12.5px; color: var(--red); margin-top: 3px; }
-  .item .done { font-size: 12.5px; color: var(--green); margin-top: 3px; overflow-wrap: anywhere; }
-  .item .done a { color: var(--text); font-weight: 700; margin-left: 6px; }
-  .prog { height: 4px; border-radius: 2px; background: var(--track); margin-top: 6px; overflow: hidden; }
-  .prog > i { display: block; height: 100%; width: 0; background: #ff3b00; transition: width .15s; }
+  .item { position: relative; padding: 12px 14px 12px 62px; border: 1px solid transparent; border-radius: 14px; cursor: pointer; transition: background .12s, border-color .12s; }
+  .item + .item { margin-top: 4px; }
+  .item:hover { background: var(--gr-raise-2); }
+  .item.sel { background: linear-gradient(180deg, rgb(255 59 0 / .1), rgb(255 59 0 / .03)); border-color: rgb(255 59 0 / .3); }
+  .item::before { content: ""; position: absolute; left: 14px; top: 13px; width: 36px; height: 36px; border-radius: 10px; background: var(--gr-raise-3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff6a2b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5.5l10-2V16'/%3E%3Ccircle cx='6.5' cy='18' r='2.5'/%3E%3Ccircle cx='16.5' cy='16' r='2.5'/%3E%3C/svg%3E") center / 17px no-repeat; box-shadow: var(--gr-hi); }
+  .item.isDone::before { background: #2f7a52 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.5 12.5 4 4 9-9.5'/%3E%3C/svg%3E") center / 17px no-repeat; }
+  .item .top { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .item .name { font-weight: 700; font-size: 14.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .fmt { flex: none; display: inline-flex; align-items: center; gap: 6px; font: 700 10.5px/1 var(--family-mono); letter-spacing: .06em; text-transform: uppercase; }
+  .item .fmt i { font-style: normal; padding: 4px 7px; border-radius: 6px; border: 1px solid var(--gr-line-strong); color: var(--soft); }
+  .item .fmt i.to { color: #fff; background: rgb(255 59 0 / .2); border-color: rgb(255 106 43 / .5); }
+  .item .fmt span { color: var(--dim); }
+  .item .x { flex: none; width: 28px; height: 28px; border-radius: 8px; background: none; border: 0; color: var(--dim); font-size: 18px; line-height: 1; padding: 0; }
+  .item .x:hover { color: var(--text); background: rgb(255 255 255 / .06); }
+  .item .src, .item .out { font-size: 12px; color: var(--dim); overflow-wrap: anywhere; font-family: var(--family-mono); font-variant-numeric: tabular-nums; }
+  .item .src { margin-top: 2px; }
+  .item .out b { color: var(--soft); font-weight: 700; }
+  .item .warn { font-size: 12.5px; color: var(--warn); margin-top: 4px; }
+  .item .err { font-size: 12.5px; color: var(--red); margin-top: 4px; }
+  .item .done { font-size: 12.5px; color: var(--green); margin-top: 6px; overflow-wrap: anywhere; }
+  .item .done a { display: inline-flex; align-items: center; height: 26px; padding: 0 11px; margin-left: 8px; border-radius: 999px; color: var(--text); font-weight: 700; text-decoration: none; font-size: 12px;
+                  background: var(--gr-raise-3); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  .item .done a:hover { border-color: rgb(255 106 43 / .6); }
+  .prog { height: 4px; border-radius: 2px; background: var(--gr-raise-3); margin-top: 8px; overflow: hidden; }
+  .prog > i { display: block; height: 100%; width: 0; background: var(--gr-grad); transition: width .15s; }
 
-  .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  /* the main action, at the foot of the format panel */
+  .actions { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "sum sum" "status btns"; align-items: center; gap: 12px 16px; padding: 16px 18px; border-top: 1px solid var(--gr-line); background: rgb(0 0 0 / .16); border-radius: 0 0 18px 18px; }
+  .actions .sum { grid-area: sum; display: flex; flex-direction: column; min-width: 0; }
+  .actions .sum .gr-kicker { font-size: 10px; }
+  .actions .sum b { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .actions .sum .mono { font-size: 12px; color: var(--dim); line-height: 1.45; }
+  .actBtns { grid-area: btns; display: flex; align-items: center; gap: 8px; }
   button { font: inherit; cursor: pointer; touch-action: manipulation; }
-  button.go { font-size: 17px; font-weight: 800; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 12px 34px; min-height: 48px; }
+  button.go { font-size: 16px; font-weight: 800; color: #fff; background: #ff3b00; border: 0; border-radius: 999px; padding: 0 30px; height: 48px; white-space: nowrap; }
   button.go:hover { background: #ff6c40; }
   button.go:disabled { opacity: .45; cursor: default; background: #ff3b00; }
-  button.small { font-size: 13px; color: var(--text); background: transparent; border: 1px solid var(--divider-strong); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
-  button.small:hover { border-color: var(--soft); }
-  .status { font-size: 13px; color: var(--soft); flex: 1 1 180px; min-width: 0; }
+  button.small { font-size: 13px; font-weight: 700; color: var(--text); background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); border-radius: 999px; padding: 0 16px; height: 40px; white-space: nowrap; }
+  button.small:hover { border-color: rgb(242 239 232 / .24); background: var(--gr-raise-3); }
+  .status { grid-area: status; font-size: 12.5px; color: var(--dim); min-width: 0; line-height: 1.45; }
 
   .tabsBox { overflow: hidden; }
   .tabBar { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--divider); overflow-x: auto; scrollbar-width: none; flex: none; }
   .tabBar::-webkit-scrollbar { display: none; }
-  .tabBar button { flex: none; font-size: 14px; font-weight: 700; color: var(--soft); background: transparent; border: 0; border-radius: 9px; padding: 8px 13px; min-height: 38px; white-space: nowrap; }
-  .tabBar button:hover { color: var(--text); }
-  .tabBar button.on { color: #fff; background: #ff3b00; }
-  .tabBar button .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b00; margin-left: 6px; vertical-align: middle; }
-  .tabBar button.on .dot { background: #fff; }
-  .tabBody { padding: 12px 14px 14px; }
+  .tabBody { padding: 20px 20px 18px; }
   .tabBody > section { display: none; }
   .tabBody > section.show { display: block; }
+  .tabBody .gr-kicker { font-size: 10.5px; }
+  .fmtHead { margin: 3px 0 14px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
 
-  .presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-  @media (max-width: 480px) { .presets { grid-template-columns: 1fr 1fr; gap: 5px; } }
-  .preset { text-align: left; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 7px 11px; min-height: 50px; min-width: 0; }
-  .preset:hover { border-color: var(--soft); }
-  .preset b { display: block; font-size: 14.5px; line-height: 1.25; }
-  .preset span { display: block; font-size: 12px; color: var(--dim); line-height: 1.3; }
-  .preset.on { border-color: #ff3b00; background: rgb(255 59 0 / 0.12); box-shadow: inset 0 0 0 1px #ff3b00; }
+  .presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .presets .pgroup { grid-column: 1 / -1; font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin: 8px 0 0 2px; }
+  .presets .pgroup:first-child { margin-top: 0; }
+  @media (max-width: 480px) { .presets { grid-template-columns: 1fr 1fr; gap: 6px; } }
+  .preset { position: relative; text-align: left; color: var(--text); background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); border-radius: 12px; padding: 9px 12px; min-height: 56px; min-width: 0; }
+  .preset:hover { background: var(--gr-raise-3); }
+  .preset b { display: block; font-size: 14px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preset span { display: block; font-size: 11.5px; color: var(--dim); line-height: 1.3; margin-top: 1px; }
+  .preset.on { border-color: var(--gr-orange); background: linear-gradient(180deg, rgb(255 59 0 / .18), rgb(255 59 0 / .06)); box-shadow: inset 0 0 0 1px var(--gr-orange), 0 10px 26px -14px rgb(255 59 0 / .7); }
+  .preset.on span { color: var(--soft); }
   .preset:disabled { opacity: .4; cursor: not-allowed; }
-  .help { font-size: 12.5px; color: var(--dim); margin: 10px 0 0; }
-  .help b { color: var(--soft); font-weight: 600; }
+  .help { font-size: 12.5px; color: var(--dim); margin: 14px 0 0; }
+  .help b { color: var(--soft); font-weight: 700; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 12px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
   .grid .wide { grid-column: 1 / -1; }
-  label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); min-width: 0; }
-  select, input[type=text], input[type=number] { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 6px; padding: 6px 9px; min-width: 0; min-height: 38px; width: 100%; }
+  label { display: flex; flex-direction: column; gap: 5px; font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); min-width: 0; }
+  select, input[type=text], input[type=number] { font: inherit; font-size: 14px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text); background-color: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); border-radius: 10px; padding: 0 10px; min-width: 0; height: 38px; width: 100%; }
   h3 { font-size: 13px; margin: 14px 0 8px; color: var(--soft); font-weight: 700; }
   h3:first-child { margin-top: 0; }
-  .cover { display: flex; align-items: center; gap: 12px; }
-  .cover img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--divider-strong); background: var(--bg-subtle-default); display: block; }
-  .cover .none { width: 64px; height: 64px; border-radius: 6px; border: 1px dashed var(--divider-strong); display: grid; place-items: center; font-size: 11px; color: var(--dim); text-align: center; }
-  details.fine { margin-top: 14px; border-top: 1px solid var(--divider); padding-top: 12px; }
-  details.fine > summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--soft); }
+  details.fine { margin-top: 16px; border: 1px solid var(--gr-line); border-radius: 14px; background: var(--gr-raise-2); box-shadow: var(--gr-hi); padding: 0; }
+  details.fine > summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--soft); padding: 12px 14px; list-style: none; display: flex; align-items: center; gap: 8px; }
+  details.fine > summary::-webkit-details-marker { display: none; }
+  details.fine > summary::after { content: ""; margin-left: auto; width: 7px; height: 7px; border-right: 2px solid var(--dim); border-bottom: 2px solid var(--dim); transform: rotate(45deg); margin-top: -4px; transition: transform .15s; }
+  details.fine[open] > summary::after { transform: rotate(225deg); margin-top: 3px; }
   details.fine > summary:hover { color: var(--text); }
-  details.fine .grid { margin-top: 10px; }
-  details.fine .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b00; margin-left: 6px; vertical-align: middle; }
+  details.fine .grid { margin: 0; padding: 0 14px; }
+  details.fine .help { padding: 0 14px 14px; }
+  details.fine select { background-color: var(--gr-raise-1); }
+  details.fine .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b00; vertical-align: middle; }
   details.fine .dot.hidden { display: none; }
+  @media (max-width: 899px) { .actions { order: 3; border-radius: 0 0 18px 18px; } }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<script type="module" src="gr-shell.js"></script>
 </head>
 <body>
 <div class="bar">
@@ -143,24 +178,18 @@
   <div class="layout">
     <div class="col">
       <div class="drop" id="drop" role="button" tabindex="0" aria-label="Choose audio files to convert">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"/></svg>
-        <span>
-          <span class="big">Drop tracks here, or choose files</span><br>
+        <span class="dIcon"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"/></svg></span>
+        <span class="dText">
+          <span class="big">Drop tracks here, or choose files</span>
           <span class="hint">WAV, FLAC, MP3, Apple Lossless, DSD and more. One file, or a whole <button class="linkish" id="folderBtn" type="button">folder</button>.</span>
         </span>
+        <span class="dropBtn">Choose files</span>
       </div>
       <input type="file" id="files" multiple accept="audio/*,.wav,.flac,.aif,.aiff,.aifc,.mp3,.m4a,.mp4,.aac,.ogg,.oga,.opus,.webm,.caf,.au,.snd,.w64,.dsf,.dff" hidden>
       <input type="file" id="folder" webkitdirectory multiple hidden>
 
-      <div class="actions">
-        <button class="go" id="convertBtn" disabled>Convert</button>
-        <button class="small hidden" id="cancelBtn">Cancel</button>
-        <button class="small hidden" id="zipBtn">Download all (.zip)</button>
-        <span class="status" id="status" aria-live="polite">Add a track to start. MP3 320 is ready to go.</span>
-      </div>
-
       <section class="panel listBox">
-        <div class="listHead"><span id="listCount">No files yet</span><button class="linkish hidden" id="clearBtn" type="button">Clear list</button></div>
+        <div class="listHead"><span><span class="gr-kicker">Your files</span><span id="listCount">No files yet</span></span><button class="linkish hidden" id="clearBtn" type="button">Clear list</button></div>
         <ul class="list" id="list"><li class="empty" id="empty">Your files show up here, with what they are and what they'll become.</li></ul>
       </section>
     </div>
@@ -169,7 +198,8 @@
       <section class="panel tabsBox">
         <div class="tabBody">
           <section class="show" data-tab="format">
-            <h3 style="margin-top:0">Convert to</h3>
+            <div class="gr-kicker">Convert to</div>
+            <h2 class="fmtHead">Pick a format</h2>
             <div class="presets" id="presets" role="radiogroup" aria-label="Output format"></div>
             <p class="help" id="presetHelp"></p>
             <p class="help hidden" id="capsHelp"></p>
@@ -187,6 +217,15 @@
               <p class="help">Most of the time the preset is all you need. Tags and cover art come along from the original automatically (edit them in <a href="tag.html">Tag</a>). <button class="linkish" id="resetOpts" type="button">Back to the preset</button></p>
             </details>
           </section>
+        </div>
+        <div class="actions">
+          <div class="sum"><span class="gr-kicker">You get</span><b id="sumWhat">MP3 320 kbps</b><span class="mono" id="sumSize">Add a track to start</span></div>
+          <div class="actBtns">
+            <button class="small hidden" id="cancelBtn">Cancel</button>
+            <button class="small hidden" id="zipBtn">Download all (.zip)</button>
+            <button class="go" id="convertBtn" disabled>Convert</button>
+          </div>
+          <span class="status" id="status" aria-live="polite">Add a track to start. MP3 320 is ready to go.</span>
         </div>
       </section>
     </div>

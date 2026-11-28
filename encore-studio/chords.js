@@ -8,6 +8,7 @@ import { MAJOR_KEYS, MINOR_KEYS, makeKey, keyName, keyPalette, numeralOf, relate
          transposeChord, keyInterval, keyBySemis, chartText, signature, scaleNotes, numeralChord } from './chords-keys.js';
 import { GLOSSARY, quizQuestion } from './chords-teach.js';
 import { TUNINGS } from './tunings.js';
+import { icon } from './gr-shell.js';
 
 const $ = id => document.getElementById(id);
 const store = {
@@ -386,9 +387,11 @@ function renderName() {
   const on = new Map();
   for (const m of notes) on.set(m, { label: dotLabel(mod12(m)), root: isRoot(mod12(m)) });
   drawPiano($('piano'), 36, 84, on);
+  drawPiano($('miniPiano'), 36, 84, on, true);
   for (const id of ['strumBtn', 'blockBtn']) $(id).disabled = !notes.length;
   $('toProg').disabled = $('toShapes').disabled = !(r && r.kind === 'chord');
   renderSide(r);
+  $('answer').classList.toggle('isEmpty', !r);
   if (!r) {
     $('bigName').textContent = '--';
     $('bigText').textContent = 'Tap some notes and the name shows up here.';
@@ -433,6 +436,7 @@ function whyFirst(list) {
   if (!a.chord.bass) return 'its root (' + esc(noteText(a.chord.root)) + ') is in the bass, and it is the simplest name that fits.';
   return 'it is the simplest name that fits with this bass note.';
 }
+$('emptyIcon').innerHTML = icon('chords');
 $('alts').onclick = e => { const b = e.target.closest('.alt'); if (!b) return; pick = +b.dataset.i; renderName(); };
 $('piano').addEventListener('click', e => {
   const k = e.target.closest('.key');

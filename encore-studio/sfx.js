@@ -179,13 +179,16 @@ function drawWave() {
   g.clearRect(0, 0, w, h);
   const { x } = samples(), mid = h / 2;
   g.strokeStyle = 'rgba(242,239,232,0.12)'; g.beginPath(); g.moveTo(0, mid + 0.5); g.lineTo(w, mid + 0.5); g.stroke();
-  g.fillStyle = '#ff3b00';
+  // a soft gradient so tall waves read as a shape, not a block; the amplitude leaves breathing room
+  const amp = mid * (h > 200 ? 0.8 : 0.95), grad = g.createLinearGradient(0, mid - amp, 0, mid + amp);
+  grad.addColorStop(0, '#ff7a3d'); grad.addColorStop(0.5, '#ff3b00'); grad.addColorStop(1, '#c42d00');
+  g.fillStyle = grad;
   const per = x.length / w;
   for (let px = 0; px < w; px++) {
     let lo = 0, hi = 0;
     const a = Math.floor(px * per), b = Math.max(a + 1, Math.floor((px + 1) * per));
     for (let i = a; i < b && i < x.length; i++) { if (x[i] < lo) lo = x[i]; if (x[i] > hi) hi = x[i]; }
-    g.fillRect(px, mid - hi * mid * 0.95, 1, Math.max(1, (hi - lo) * mid * 0.95));
+    g.fillRect(px, mid - hi * amp, 1, Math.max(1, (hi - lo) * amp));
   }
   if (ctx && src && ctx.currentTime - playStart < playLen) {
     const at = (ctx.currentTime - playStart) / playLen * w;

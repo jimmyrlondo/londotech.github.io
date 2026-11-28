@@ -184,6 +184,42 @@
     .slider { grid-template-columns: 78px minmax(0, 1fr) 58px; }
   }
 
+  /* 2026-11 revamp */
+  .panel { padding: 18px 20px 18px !important; gap: 14px; }
+  .toolName { font-size: 20px; letter-spacing: -0.02em; }
+  .side { background: var(--gr-raise-2); border-color: var(--gr-line) !important; border-radius: 14px; box-shadow: var(--gr-hi); overflow: hidden; }
+  .side.drop { border-color: var(--gr-orange) !important; }
+  .sideHead { padding: 12px 14px 10px; border-bottom-color: var(--gr-line); background: linear-gradient(180deg, rgb(255 255 255 / .02), transparent); }
+  .sideTop b { font-size: 16px; letter-spacing: -0.01em; }
+  .sideTop b::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gr-orange); margin-right: 8px; vertical-align: 2px; box-shadow: 0 0 10px rgb(255 59 0 / .7); }
+  .side[data-side="B"] .sideTop b::before { background: #67e8f9; box-shadow: 0 0 10px rgb(103 232 249 / .6); }
+  .fill { height: 8px; border-radius: 99px; background: var(--gr-raise-1); margin: 8px 0 5px; }
+  .fill i { background: linear-gradient(90deg, #2fbf7f, #5fe0a3); border-radius: 99px; }
+  .fill i.tight { background: linear-gradient(90deg, #e8a33b, #f6c46a); } .fill i.over { background: linear-gradient(90deg, #e5484d, #ff6b6b); }
+  .list { padding: 6px; }
+  .song { padding: 6px 6px; border-radius: 9px; min-height: 40px; }
+  .song:hover { background: rgb(255 255 255 / .045); }
+  .song .t { font-size: 13.5px; font-weight: 600; }
+  .song.playing { background: rgb(255 59 0 / .1); }
+  .transport { border-top-color: var(--gr-line); padding-top: 14px; grid-template-columns: 132px minmax(0, 1fr); }
+  #reels { width: 132px; height: 84px; }
+  .scrub { height: 30px; border-radius: 10px; background: var(--gr-raise-2); border: 1px solid var(--gr-line); }
+  .presets button.on { color: #ffb08f; }
+  .ageBox { background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 14px; padding: 12px 14px; }
+  .choice label { border-color: var(--gr-line-strong); border-radius: 14px; padding: 12px 14px; background: var(--gr-raise-2); }
+  .choice label:has(input:checked) { border-color: rgb(255 59 0 / .7); background: rgb(255 59 0 / .07); }
+  .downloads a { border-color: var(--gr-line-strong); border-radius: 12px; background: var(--gr-raise-2); padding: 10px 12px; }
+  .seg2 { border-color: var(--gr-line-strong); background: var(--gr-raise-2); }
+  .cardStage { border-radius: 14px; border: 1px solid var(--gr-line); }
+  @media (min-width: 1000px) { .panel { height: calc(100vh - 104px); height: calc(100dvh - 104px); } .tabBody { max-height: calc(100vh - 168px); max-height: calc(100dvh - 168px); } }
+  .panel:has(.tapeEmpty) .tapeRow #addBtn { transition: opacity .2s; }
+  #sidesView:has(#listA > .empty:only-child):has(#listB > .empty:only-child) #addBtn { visibility: hidden; }
+  .sides { position: relative; }
+  .tapeEmpty { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px;
+    border-radius: 14px; border: 1.5px dashed rgb(255 106 43 / .32); background: radial-gradient(600px 260px at 50% 30%, rgb(255 59 0 / .08), transparent 70%), rgb(16 13 12 / .9); }
+  .sides:has(#listA > .empty:only-child):has(#listB > .empty:only-child) .tapeEmpty { display: flex; }
+  @media (max-width: 999px) { .sides:has(#listA > .empty:only-child):has(#listB > .empty:only-child) { min-height: 420px; } }
+  .sides:has(#listA > .empty:only-child):has(#listB > :only-child.empty) .side { opacity: .5; }
   /* printing the J-card: only the sheet, at its true size */
   #printSheet { display: none; }
   @media print {
@@ -196,6 +232,8 @@
   }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<link rel="stylesheet" href="playground-tools.css">
+<script type="module" src="gr-shell.js"></script>
 </head>
 <body>
 <div class="bar">
@@ -205,10 +243,10 @@
 </div>
 
 <main>
-<div class="layout">
+<div class="layout pgFill">
   <section class="panel" id="panel" aria-label="Your tape">
     <div class="toolHead">
-      <span class="toolName">Cassette</span><span class="pgChip">PLAYGROUND</span>
+      <span class="toolName">Cassette</span><span class="pgChip pgchip">PLAYGROUND</span>
       <a class="back" href="playground.html">Back to the Playground</a>
     </div>
 
@@ -246,6 +284,13 @@
             <div class="left" id="leftB">30:00 left</div>
           </div>
           <ul class="list" id="listB" aria-label="Side B songs"></ul>
+        </div>
+        <div class="tapeEmpty" aria-hidden="true">
+          <span class="emptyIc" data-icon="cassette"></span>
+          <h2 class="emptyH">Plan your tape release</h2>
+          <p class="emptyP">Add your songs and they land on side A and B, timed to the tape. Hear them with real tape character, export each side and print the J-card.</p>
+          <button type="button" class="go" tabindex="-1" onclick="document.getElementById('addBtn').click()">Add songs</button>
+          <p class="fine">Or drop audio files anywhere on the page. They never leave your device.</p>
         </div>
       </div>
 
@@ -414,5 +459,6 @@
 </main>
 <div id="printSheet" aria-hidden="true"></div>
 <script type="module" src="cassette.js"></script>
+<script type="module">import { icon } from "./gr-shell.js"; for (const el of document.querySelectorAll(".emptyIc[data-icon]")) el.innerHTML = icon(el.dataset.icon);</script>
 </body>
 </html>

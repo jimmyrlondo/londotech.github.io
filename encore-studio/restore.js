@@ -748,14 +748,18 @@ function draw() {
   if (!r || !dur || !W) return;
   const css = getComputedStyle(document.documentElement);
   const rest = state.view === "rest" && state.restored, ov = rest ? state.restored.overview : r.overview;
-  const mid = H / 2;
+  const mid = H / 2, X0 = (t) => (t / dur) * W;
+  // every other track gets a faint band, so the songs read as blocks
+  g.fillStyle = "rgb(242 239 232 / 0.03)";
+  state.tracks.forEach((t, i) => { if (i % 2 && t.start != null) g.fillRect(X0(t.start), 0, X0(t.end ?? dur) - X0(t.start), H); });
+  g.fillStyle = "rgb(242 239 232 / 0.08)"; g.fillRect(0, Math.round(mid), W, Math.max(1, dpr / 2));
   for (let x = 0; x < W; x++) {
     let t0 = (x / W) * dur, t1 = ((x + 1) / W) * dur;
     if (rest) { t0 = toRestoredTime(t0, cents()); t1 = toRestoredTime(t1, cents()); }
     const c0 = Math.max(0, Math.floor(t0 * state.src.fs / ov.per)), c1 = Math.min(ov.cols - 1, Math.max(c0, Math.ceil(t1 * state.src.fs / ov.per) - 1));
     let pk = 0, rm = 0;
     for (let c = c0; c <= c1; c++) { pk = Math.max(pk, ov.peakL[c], ov.peakR[c]); rm = Math.max(rm, ov.rms[c]); }
-    g.fillStyle = rest ? "rgb(123 211 164 / 0.55)" : "rgb(255 59 0 / 0.45)";
+    g.fillStyle = rest ? "rgb(123 211 164 / 0.4)" : "rgb(255 59 0 / 0.36)";
     g.fillRect(x, mid - pk * mid * 0.95, 1, Math.max(1, 2 * pk * mid * 0.95));
     g.fillStyle = rest ? "rgb(123 211 164 / 0.95)" : "rgb(255 110 40 / 0.95)";
     g.fillRect(x, mid - rm * mid * 0.95, 1, Math.max(1, 2 * rm * mid * 0.95));
@@ -776,7 +780,17 @@ function draw() {
     if (t.start == null) return;
     const x = X(t.start);
     g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
-    g.fillText(posOf(state.part, i), x + 3 * dpr, 20 * dpr);
+    // a tag with the position (and the title when there's room before the next split)
+    const pos = posOf(state.part, i), room = X(t.end ?? dur) - x - 14 * dpr;
+    let label = pos;
+    if (t.title) {
+      let title = t.title, full = `${pos}  ${title}`;
+      while (title.length > 4 && g.measureText(full).width > room) { title = title.slice(0, -1); full = `${pos}  ${title.trimEnd()}...`; }
+      if (g.measureText(full).width <= room) label = full;
+    }
+    const tw = g.measureText(label).width, ty = 14 * dpr;
+    g.fillStyle = "rgb(14 11 10 / 0.82)"; g.fillRect(x, ty, tw + 10 * dpr, 17 * dpr);
+    g.fillStyle = "#22d3ee"; g.fillText(label, x + 5 * dpr, ty + 12 * dpr);
   });
   if (placed.length) { const x = X(placed[placed.length - 1].end); g.setLineDash([4 * dpr, 4 * dpr]); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); g.setLineDash([]); }
   g.fillStyle = "#f2efe8"; g.fillRect(X(state.playhead) - dpr / 2, 0, Math.max(1, dpr), H);

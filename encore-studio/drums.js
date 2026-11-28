@@ -249,7 +249,10 @@ function gridData() {
 function drawGrid() {
   const { s, grid, n, offset } = gridData();
   const box = $('gridBox'), phone = innerWidth < 600;
-  const labelW = phone ? 76 : 84, rowH = phone ? 21 : 22, headH = 18, minCell = phone ? 16 : 13;
+  const labelW = phone ? 76 : 84, headH = 18, minCell = phone ? 16 : 13;
+  // desktop: rows grow to use the screen's height (22 to 40 px) so the grid fills the panel
+  let rowH = phone ? 21 : 22;
+  if (innerWidth >= 1000) { const top = box.getBoundingClientRect().top + scrollY; rowH = Math.max(22, Math.min(40, Math.floor((innerHeight - top - 74 - headH) / D.LANES.length))); }
   const avail = Math.max(120, box.clientWidth - labelW - 2);
   const cellW = Math.max(minCell, Math.min(64, avail / n));
   const w = Math.ceil(labelW + cellW * n), h = headH + rowH * D.LANES.length, dpr = devicePixelRatio || 1;

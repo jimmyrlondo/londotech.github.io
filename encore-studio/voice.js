@@ -6,6 +6,7 @@ import { VoiceTracker, TRACK_WINDOW, midiToHz, noteName, analyzeRange, tessitura
          closeness, analyzeSustain, sustainFeedback, scoreSingBack, intervalName, nextMatchNote, adaptLevel, buildSingBack, buildWarmup,
          warmupSeconds, patternSeconds, glideAt, scorePattern, scoreSiren, notesFeedback, suggestKeys, shiftWords, capoFor, KEY_NAMES,
          safeRange, streak, dayOf, validateImport, median } from './voice-core.js';
+import { icon } from './gr-shell.js';
 
 const $ = id => document.getElementById(id);
 const store = {
@@ -153,6 +154,7 @@ function showError(e) {
 }
 $('input').onchange = () => listen($('input').value).catch(showError);
 $('startBtn').onclick = () => ensureMic();
+$('startIcon').innerHTML = icon('voice');
 
 // ---- the exercise runner: a generator yields steps (listen, sing, wait) and gets each sung step back with its frames
 let job = null, targets = [];
@@ -259,7 +261,7 @@ function judge(t, midi) {
 
 function readout(t) {
   const v = lastVoice && t - lastVoice.t < 0.35 ? lastVoice : null;
-  if (!v) { $('big').innerHTML = '--'; $('big').style.color = '#91887d'; $('cents').textContent = ''; $('hz').textContent = ''; return; }
+  if (!v) { $('big').innerHTML = '<span class="idle">Sing a note</span>'; $('big').style.color = '#91887d'; $('cents').textContent = ''; $('hz').textContent = ''; return; }
   const near = hist.filter(f => f.midi !== null && f.t > v.t - 0.2).map(f => f.midi);
   const j = judge(v.t, near.length ? near.reduce((a, b) => a + b, 0) / near.length : v.midi), shown = j.target !== null ? Math.round(j.target) + Math.round(j.cents / 100) : Math.round(v.midi);
   $('big').innerHTML = noteName(shown, false) + '<sub>' + (Math.floor(shown / 12) - 1) + '</sub>';

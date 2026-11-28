@@ -331,7 +331,7 @@ function drawNeck() {
 /** Shrinks a drawing to fit its box on a wide screen; on a narrow one it keeps a readable size and scrolls */
 function fitSvg(svg, box, minScale) {
   const W = +svg.dataset.w, H = +svg.dataset.h, avail = box.clientWidth || W;
-  const k = Math.max(minScale, Math.min(1, avail / W));
+  const k = Math.max(minScale, Math.min(innerWidth >= 1000 ? 1.3 : 1, avail / W));
   svg.style.width = (W * k) + 'px';
   svg.style.height = (H * k) + 'px';
 }
@@ -570,7 +570,21 @@ function renderChords() {
     for (const x of inside.slice(0, 40)) rows += `<div class="crow"><span class="rn">${esc(x.numeral)}</span><span class="nm"><b>${esc(x.symbol)}</b><small>${x.notes.map(nt).map(esc).join(' ')} &middot; ${esc(x.type.name)}</small></span><button class="small" data-notes="${esc(x.notes.map(nt).join(','))}">Play</button>${shapesLink(x)}</div>`;
   }
   $('chordRows').innerHTML = rows;
+  renderChordStrip();
 }
+/** The chords of the scale as a strip of cards under the neck (tap one to hear it) */
+function renderChordStrip() {
+  const list = scale.hepta
+    ? scaleChords(scale, root).map(c => chordSize === 3 ? c.triad : c.seventh)
+    : chordsInside(scale, root).slice(0, 8);
+  $('stripTitle').textContent = 'Chords in ' + nt(root) + ' ' + scale.name;
+  $('chordStrip').innerHTML = list.length ? list.map(x => `<button class="sChord${x.type ? '' : ' odd'}${pcOf(x.notes[0]) === pcOf(root) ? ' home' : ''}" data-notes="${esc(x.notes.map(nt).join(','))}" title="${esc(x.notes.map(nt).join(' '))}"><span class="rn">${esc(x.numeral)}</span><b>${esc(x.symbol)}</b><small>${esc(x.type ? x.type.name : 'unusual stack')}</small></button>`).join('')
+    : '<p class="sub">No common chord fits entirely inside this scale.</p>';
+}
+$('chordStrip').onclick = e => {
+  const b = e.target.closest('[data-notes]');
+  if (b) hearChord(chordMidis(b.dataset.notes.split(',').map(parseNote)));
+};
 $('chordRows').onclick = e => {
   const b = e.target.closest('[data-notes]');
   if (b) hearChord(chordMidis(b.dataset.notes.split(',').map(parseNote)));

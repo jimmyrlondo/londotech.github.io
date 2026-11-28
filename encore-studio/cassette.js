@@ -466,7 +466,7 @@ function drawScrub() {
   const el = $("scrub"), side = P ? P.side : lastSide;
   el.querySelectorAll(".seg").forEach((s) => s.remove());
   if (!sides[side].length) { $("head").style.left = "0"; if (!P) $("nowTime").textContent = "0:00 / 0:00"; return; }
-  const { parts, frames } = P ? P : sideParts(side);
+  const { parts, frames } = P ? { parts: P.parts, frames: P.total } : sideParts(side);
   for (const p of parts) if (p.kind === "song") {
     const d = document.createElement("div"); d.className = "seg";
     d.style.left = (p.start / frames) * 100 + "%"; d.style.width = (p.frames / frames) * 100 + "%";

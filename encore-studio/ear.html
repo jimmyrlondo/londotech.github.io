@@ -141,7 +141,48 @@
   }
 </style>
 
+<style id="grPolish">
+  /* Green Room revamp polish (2026-11): premium surfaces, pill tabs, kicker labels, even controls */
+  html body .panel, html body .tabsBox { border-radius: 18px; }
+  html body .tabBar { gap: 4px; padding: 8px; border-bottom-color: var(--gr-line); }
+  html body .tabBar button { border-radius: 999px; min-height: 36px; padding: 8px 15px; font-size: 13.5px; letter-spacing: -0.005em; }
+  html body .tabBar button:not(.on):hover { background: var(--gr-raise-2); }
+  html body .tabBody h3, html body .tabBody h4.k { font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: var(--gr-orange-2); }
+  html body .tabBody label { font-size: 12px; color: var(--soft); }
+  html body button.small, html body button.pill, html body button.iconBtn {
+    background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); color: var(--text);
+    min-height: 36px; border-radius: 999px; font-weight: 600; }
+  html body button.small:hover:not(:disabled), html body button.pill:hover:not(:disabled), html body button.iconBtn:hover:not(:disabled) { background: var(--gr-raise-3); border-color: rgb(242 239 232 / .26); }
+  html body button.small:disabled, html body button.pill:disabled, html body button.iconBtn:disabled { opacity: .38; box-shadow: none; }
+  html body select, html body input[type=text], html body input[type=number] { border-radius: 10px; min-height: 38px; }
+  html body .pg, html body .pgChip { font-size: 9.5px; font-weight: 800; letter-spacing: .14em; color: var(--gr-orange-2); background: rgb(255 59 0 / .09);
+    border: 1px solid rgb(255 106 43 / .38); border-radius: 999px; padding: 3px 8px; line-height: 1.2; vertical-align: middle; }
+  html body .toolName, html body .toolHead h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.015em; }
+  html body .back, html body .pgLink { color: var(--dim); font-size: 12.5px; }
+  html body .back:hover, html body .pgLink:hover { color: var(--text); }
+  /* ear revamp */
+  html body .stat { background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 12px; padding: 10px 12px; box-shadow: var(--gr-hi); }
+  html body .stat b { font-size: 21px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  html body .stat span { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  html body .card { background: radial-gradient(700px 260px at 50% 0, rgb(255 59 0 / .06), transparent 70%), var(--gr-raise-2); border-color: var(--gr-line); border-radius: 16px; padding: 18px; box-shadow: var(--gr-hi); gap: 14px; }
+  html body .prompt { font-size: clamp(22px, 2.4vw, 30px); letter-spacing: -0.02em; }
+  html body .modes button { min-height: 36px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  html body .modes button.on { background: var(--gr-grad); border-color: rgb(255 120 70 / .55); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  html body .go2 { background: var(--gr-grad); box-shadow: var(--gr-hi), var(--gr-glow); min-height: 44px; padding: 10px 26px; }
+  html body .ans { background: var(--gr-raise-1); border-color: var(--gr-line-strong); border-radius: 14px; box-shadow: var(--gr-hi), 0 6px 16px -10px rgb(0 0 0 / .8); }
+  @media (min-width: 1000px) and (min-height: 760px) {
+    html body .ans { min-height: clamp(72px, 11vh, 112px); }
+    html body .ans b { font-size: clamp(22px, 3.2vh, 32px); }
+    html body .kb { height: clamp(64px, 13vh, 132px); }
+  }
+  html body .ans.ok { border-color: var(--green); background: rgb(34 197 94 / .14); }
+  html body .ans.bad { border-color: var(--red); background: rgb(239 68 68 / .14); }
+  html body .why { border-top-color: var(--gr-line); }
+  html body .bars .bar2 { height: 8px; background: var(--gr-raise-3); }
+  html body .note { background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 12px; }
+</style>
 <link rel="stylesheet" href="suite-nav.css">
+<script type="module" src="gr-shell.js"></script>
 </head>
 <body>
 <div class="bar">

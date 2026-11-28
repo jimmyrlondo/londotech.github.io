@@ -1,3 +1,4 @@
+@import url("gr.css");
 /* ENCORE. Studio, the bar every tool shares: every tool as a tab stretched across the top
    (the one you're on lit), or a drop-down on a phone. Loaded after each page's own styles. */
 .bar .tools { flex: 1 1 auto; display: flex; gap: 2px; min-width: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; padding: 0; }

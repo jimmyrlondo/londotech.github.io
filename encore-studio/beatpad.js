@@ -587,6 +587,8 @@ function setBars(n) {
 
 // the lane: every hit in the loop, one row per pad (kick at the bottom), and where it's playing
 const laneRow = slot => [9, 8, 7, 6, 5, 4, 3, 2, 1].indexOf(slot);
+// one colour per row of pads, the same as the pads' own lights: bottom row orange, middle amber, top cyan
+const ROW_COLOR = ['#ff3b00', '#ff3b00', '#ff3b00', '#ffb020', '#ffb020', '#ffb020', '#22d3ee', '#22d3ee', '#22d3ee'];
 function drawLane() {
   const cv = $('lane'), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
   if (!w || !h) return;
@@ -594,19 +596,28 @@ function drawLane() {
   const g = cv.getContext('2d'), L = loopBeats(), rh = h / SLOTS;
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, w, h);
-  for (let b = 0; b <= L; b++) { g.fillStyle = b % 4 === 0 ? 'rgb(242 239 232 / 0.22)' : 'rgb(242 239 232 / 0.07)'; g.fillRect(Math.round(b / L * w), 0, 1, h); }
+  for (let r = 1; r < SLOTS; r += 2) { g.fillStyle = 'rgb(242 239 232 / 0.025)'; g.fillRect(0, r * rh, w, rh); }
+  for (let b = 0; b <= L * 4; b++) {
+    g.fillStyle = b % 16 === 0 ? 'rgb(242 239 232 / 0.24)' : b % 4 === 0 ? 'rgb(242 239 232 / 0.09)' : 'rgb(242 239 232 / 0.03)';
+    g.fillRect(Math.round(b / (L * 4) * w), 0, 1, h);
+  }
+  const nw = Math.max(3, w / L / 4 - 2), rad = Math.min(3, (rh - 2) / 2);
   for (const ev of events) {
     if (ev.beat >= L) continue;
-    g.fillStyle = ev.take === T.take && T.recording ? '#ff6c40' : '#ff3b00';
-    g.globalAlpha = 0.45 + 0.55 * ev.vel;
-    g.fillRect(ev.beat / L * w, laneRow(ev.slot) * rh + 0.5, Math.max(2, w / L / 8), Math.max(1, rh - 1));
+    const fresh = ev.take === T.take && T.recording;
+    g.fillStyle = fresh ? '#f2efe8' : ROW_COLOR[ev.slot - 1] || '#ff3b00';
+    g.globalAlpha = 0.5 + 0.5 * ev.vel;
+    const x = ev.beat / L * w + 1, y = laneRow(ev.slot) * rh + 1, hh = Math.max(1, rh - 2);
+    g.beginPath();
+    if (g.roundRect) g.roundRect(x, y, nw, hh, rad); else g.rect(x, y, nw, hh);
+    g.fill();
   }
   g.globalAlpha = 1;
   if (T.playing && ctx) {
     const b = (ctx.currentTime - (ctx.outputLatency || 0) - T.start) / spb();
-    if (b >= 0) { g.fillStyle = '#f2efe8'; g.fillRect((b % L) / L * w, 0, 2, h); }
+    if (b >= 0) { const x = (b % L) / L * w; g.fillStyle = 'rgb(242 239 232 / 0.08)'; g.fillRect(x - 24, 0, 24, h); g.fillStyle = '#f2efe8'; g.fillRect(x, 0, 2, h); }
   }
-  if (!events.length && !T.playing) { g.fillStyle = 'rgb(242 239 232 / 0.4)'; g.font = '12px "DM Sans", sans-serif'; g.fillText('Press Rec to record a loop (one bar of count-in first)', 10, h / 2 + 4); }
+  if (!events.length && !T.playing) { g.fillStyle = 'rgb(242 239 232 / 0.45)'; g.font = '13px "DM Sans", sans-serif'; g.textAlign = 'center'; g.fillText('Press Rec to record a loop (one bar of count-in first)', w / 2, h / 2 + 4); g.textAlign = 'left'; }
 }
 function animateLane() { drawLane(); loopInfo(); if (T.playing) requestAnimationFrame(animateLane); }
 
@@ -694,8 +705,8 @@ function drawWave() {
     let pk = 0;
     for (const c of chans) for (let i = a; i < e; i += Math.max(1, (e - a) >> 6)) pk = Math.max(pk, Math.abs(c[i]));
     const y = Math.min(1, pk) * (h / 2 - 2);
-    g.fillStyle = x >= x0 && x <= x1 ? '#ff6c40' : 'rgb(242 239 232 / 0.25)';
-    g.fillRect(x, h / 2 - y, 1, Math.max(1, 2 * y));
+    g.fillStyle = x >= x0 && x <= x1 ? '#ff6a2b' : 'rgb(242 239 232 / 0.22)';
+    if (x % 2 === 0) g.fillRect(x, h / 2 - y, 1.4, Math.max(1, 2 * y));
   }
   g.fillStyle = '#f2efe8';
   g.fillRect(x0, 0, 2, h); g.fillRect(x1 - 2, 0, 2, h);

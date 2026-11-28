@@ -179,7 +179,7 @@ export class PianoRoll {
       if (ci === s.ci || !isMelodic(c2.kind)) return;
       const pi = proj.order[s.row]?.[ci], pat = pi >= 0 ? proj.patterns[ci][pi] : null;
       if (!pat) return;
-      g.fillStyle = CH_COLORS[ci % CH_COLORS.length] + "33";
+      g.fillStyle = CH_COLORS[ci % CH_COLORS.length] + "4d";
       for (const n of pat.notes) { const y = yOf(n.p); if (y != null) g.fillRect(KW + n.s * cw + 1, y + 2, n.l * cw - 2, rh - 4); }
     });
     const pat = this.api.pattern(false), col = CH_COLORS[s.ci % CH_COLORS.length];

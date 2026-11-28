@@ -12,43 +12,85 @@
 <link rel="stylesheet" href="encore-tokens.css">
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
-  main { max-width: 860px; margin: 0 auto; padding: 18px 16px 48px; }
+  body { margin: 0; color: var(--text); font: 15px/1.5 var(--family-primary); -webkit-font-smoothing: antialiased; }
   .hidden { display: none !important; }
-  .bar { position: sticky; top: 0; z-index: 10; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 clamp(16px, 2.5vw, 32px);
-         background: rgb(12 10 9 / 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--divider); }
-  .wordmark { height: 24px; width: auto; color: var(--text); display: block; }
-  .chip-label { font-size: 11px; letter-spacing: .06em; color: var(--soft); border: 1px solid var(--divider-strong); border-radius: 4px; padding: 3px 6px; line-height: 1; }
-  .product { font-weight: 700; letter-spacing: -0.01em; }
-  .product .sep { color: var(--dim); margin: 0 8px; font-weight: 400; }
+  .bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; padding: 0 clamp(16px, 2.5vw, 32px); }
+  .wordmark { width: auto; color: var(--text); display: block; }
+  .chip-label { line-height: 1; }
   .navlink { color: var(--dim); font-size: 14px; text-decoration: none; }
-  .navlink:hover { color: var(--text); }
-  .tools { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
-  .tools::-webkit-scrollbar { display: none; }
-  @media (max-width: 640px) { .tools { -webkit-mask-image: linear-gradient(to right, #000 78%, transparent); mask-image: linear-gradient(to right, #000 78%, transparent); padding-right: 24px; } }
-  main { max-width: 1240px; padding: 34px 20px 48px; }
-  .kicker { font-size: 12px; letter-spacing: .12em; color: #34d399; font-weight: 800; }
-  .hero h1 { font-size: clamp(32px, 4.6vw, 54px); line-height: 1.05; letter-spacing: -0.03em; margin: 8px 0 12px; max-width: 900px; }
-  .lede { font-size: 18px; color: var(--soft); max-width: 780px; margin: 0 0 16px; }
-  .promise { display: inline-block; font-size: 14px; color: var(--soft); border: 1px solid rgb(52 211 153 / 0.35); background: rgb(52 211 153 / 0.06); border-radius: 12px; padding: 10px 14px; }
+  .tools { display: flex; gap: 14px; }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 0 20px 72px; }
+  .hero { position: relative; padding: 64px 0 44px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; }
+  .hero .kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 800; letter-spacing: .16em; color: #7bd3a4; text-transform: uppercase; }
+  .hero .kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #7bd3a4; box-shadow: 0 0 12px #7bd3a4; }
+  .hero h1 { font-size: clamp(40px, 5.4vw, 74px); line-height: .98; letter-spacing: -0.045em; margin: 16px 0 18px; font-weight: 800; }
+  .hero h1 em { font-style: normal; background: linear-gradient(100deg, #ff8a4d, #ff3b00 65%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: 18.5px; line-height: 1.55; color: var(--soft); max-width: 540px; margin: 0 0 28px; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .cta { display: inline-flex; align-items: center; gap: 10px; height: 50px; padding: 0 24px; border-radius: 999px; font: 800 15.5px/1 var(--family-primary); text-decoration: none; cursor: pointer; }
+  .cta.main { color: #fff; background: var(--gr-grad); border: 1px solid rgb(255 120 70 / .6); box-shadow: var(--gr-hi), var(--gr-glow); }
+  .cta.main:hover { filter: brightness(1.07); }
+  .cta.alt { color: var(--text); background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  .cta.alt:hover { border-color: rgb(255 59 0 / .5); }
+  .cta kbd { font: 600 11px/1 var(--family-mono); color: var(--dim); border: 1px solid var(--gr-line-strong); border-radius: 6px; padding: 4px 6px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; color: var(--dim); font-size: 13.5px; }
+  .facts > span { display: inline-flex; align-items: center; gap: 8px; }
+  .facts b { color: var(--text); font-weight: 700; }
+  .facts svg { width: 16px; height: 16px; color: #7bd3a4; }
+
+  /* the hero's showcase: real tool shots in window frames (a drawn icon until the shots exist) */
+  .show { position: relative; aspect-ratio: 16 / 11.5; }
+  .show .glow { position: absolute; inset: 12% 8%; background: radial-gradient(closest-side, rgb(255 59 0 / .32), transparent); filter: blur(34px); z-index: 0; }
+  .show .frame { position: absolute; border-radius: 14px; overflow: hidden; background: #141110; border: 1px solid var(--gr-line-strong);
+                 box-shadow: 0 40px 80px -30px rgb(0 0 0 / .95), var(--gr-hi); }
+  .show .frame::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; background: linear-gradient(#1f1a17, #181412); border-bottom: 1px solid var(--gr-line); z-index: 1; }
+  .show .frame::after { content: ""; position: absolute; top: 8px; left: 11px; width: 8px; height: 8px; border-radius: 50%; background: #4a403a; box-shadow: 13px 0 #4a403a, 26px 0 #4a403a; z-index: 2; }
+  .show .frame img { position: absolute; left: 0; top: 24px; width: 100%; height: calc(100% - 24px); object-fit: cover; object-position: top left; display: block; }
+  .show .art { position: absolute; inset: 24px 0 0; display: grid; place-items: center; color: var(--gr-orange-2); }
+  .show .art svg { width: 26%; height: auto; opacity: .85; }
+  .show .f1 { inset: 0 14% 22% 0; z-index: 2; }
+  .show .f2 { inset: 30% 0 0 30%; z-index: 3; }
+  .show .f3 { inset: 6% 0 40% 44%; z-index: 1; opacity: .6; }
+
+  .promise { display: flex; align-items: center; gap: 14px; margin: 4px 0 0; padding: 16px 20px; border-radius: 16px; border: 1px solid rgb(123 211 164 / .22);
+             background: linear-gradient(90deg, rgb(123 211 164 / .08), rgb(123 211 164 / .015)); color: var(--soft); font-size: 15px; }
+  .promise svg { flex: none; width: 26px; height: 26px; color: #7bd3a4; }
   .promise b { color: var(--text); }
-  .group { margin-top: 30px; }
-  .group h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin: 0 0 10px; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 12px; }
-  .card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; background: var(--surface, #171412); border: 1px solid var(--divider); border-radius: 14px; padding: 16px 18px;
-          transition: border-color .15s, transform .15s; }
-  .card:hover, .card:focus-visible { border-color: #ff3b00; transform: translateY(-2px); outline: none; }
-  .card .name { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
-  .card .name::after { content: '→'; margin-left: auto; color: var(--dim); font-weight: 400; }
-  .card:hover .name::after { color: #ff3b00; }
-  .card .what { color: var(--soft); font-size: 14px; }
+
+  .group { margin-top: 60px; }
+  .ghead { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  .group h2 { font-size: clamp(24px, 2.4vw, 32px); letter-spacing: -0.03em; line-height: 1.1; margin: 6px 0 0; }
+  .group .sub { color: var(--soft); font-size: 15.5px; margin: 6px 0 0; max-width: 620px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+  .card { position: relative; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; border: 1px solid var(--gr-line); border-radius: 18px;
+          padding: 20px; transition: border-color .18s var(--gr-ease), transform .18s var(--gr-ease), background-color .18s; overflow: hidden; }
+  .card:hover, .card:focus-visible { border-color: rgb(255 59 0 / .55) !important; transform: translateY(-3px); outline: none; background-color: #181412; }
+  .card .top { display: flex; align-items: center; gap: 12px; }
+  .card .ic { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: var(--gr-raise-3); color: var(--gr-orange-2);
+              border: 1px solid var(--gr-line); box-shadow: var(--gr-hi); transition: background .18s, color .18s; }
+  .card .ic svg { width: 22px; height: 22px; }
+  .card:hover .ic { background: var(--gr-grad); color: #fff; border-color: transparent; }
+  .card .name { font-size: 19px; font-weight: 800; letter-spacing: -0.015em; display: flex; align-items: center; gap: 8px; }
+  .card .go { margin-left: auto; color: var(--dim); transition: transform .18s var(--gr-ease), color .18s; }
+  .card:hover .go { color: var(--gr-orange-2); transform: translateX(3px); }
+  .card .what { color: var(--soft); font-size: 14.5px; line-height: 1.5; }
+  .card .thumb { margin: -20px -20px 6px; aspect-ratio: 16 / 9; background: #100d0c; border-bottom: 1px solid var(--gr-line); overflow: hidden; position: relative; }
+  .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; transition: transform .5s var(--gr-ease); }
+  .card:hover .thumb img { transform: scale(1.025); }
+  .card .thumb.none { display: none; }
   .card.wide { grid-column: span 2; }
-  .group .sub { color: var(--soft); font-size: 14px; margin: -4px 0 12px; }
-  .card.feature { border-color: rgb(255 59 0 / 0.55); background: linear-gradient(135deg, rgb(255 59 0 / 0.14), var(--surface, #171412) 60%); }
-  @media (max-width: 640px) { .card.wide { grid-column: auto; } }
-  .tag { font-size: 10px; letter-spacing: .08em; color: #fff; background: #ff3b00; border-radius: 4px; padding: 3px 6px; font-weight: 700; }
+  .card.wide .thumb { aspect-ratio: 32 / 9; }
+  @media (max-width: 640px) { .card.wide { grid-column: auto; } .card.wide .thumb { aspect-ratio: 16 / 9; } }
+  .tag { font-size: 10px; letter-spacing: .1em; color: #fff; background: var(--gr-orange); border-radius: 999px; padding: 4px 8px; font-weight: 800; }
+  .tag.test { background: #e8b04b; color: #1a1208; }
+  .tag.desk { background: rgb(34 211 238 / .12); color: #67e8f9; border: 1px solid rgb(34 211 238 / .35); }
+  .foot { margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--gr-line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; color: var(--dim); font-size: 13.5px; }
+  @media (max-width: 960px) { .hero { grid-template-columns: 1fr; padding-top: 44px; gap: 36px; } .show { max-width: 640px; } }
+  @media (max-width: 520px) { .hero h1 { font-size: 40px; } .lede { font-size: 16.5px; } .cta { height: 46px; padding: 0 18px; } }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<script type="module" src="gr-shell.js"></script>
 </head>
 <body>
 <div class="bar">
@@ -58,68 +100,39 @@
 </div>
 
 <main>
-  <section class="hero">
-    <div class="kicker">ENCORE. GREEN ROOM</div>
-    <h1>Everything you need before you go on.</h1>
-    <p class="lede">Free tools for musicians: tune up, warm up, practice, write, record a show, master it, rescue an old record, get your release ready and get it heard. Pick one and go.</p>
-    <div class="promise"><b>Everything stays on your device.</b> Nothing you record, open or make is uploaded. The tools run right here in your browser.</div>
-  </section>
-
-  <section class="group">
-    <h2>ENCORE. Journey</h2>
-    <p class="sub">From finished mix to release. Take the whole journey in one place, or use any step on its own.</p>
-    <div class="cards">
-      <a class="card wide feature" href="journey.html"><span class="name">Journey <span class="tag">NEW</span></span><span class="what">Drop your songs once and take them all the way: master them so they sound like one release, add titles, credits and cover art, check everything with Last Call, and download every format you need in one zip.</span></a>
-      <a class="card" href="master.html"><span class="name">Master</span><span class="what">Master a finished mix: pick a sound, check your mix, compare with a song you love, hear it the way Spotify and Apple will play it, and export tagged, release-ready files.</span></a>
-      <a class="card" href="live.html"><span class="name">Live</span><span class="what">Record a show or drop in the recording. It finds the songs, masters them all evenly, and gets the live album ready to sell.</span></a>
-      <a class="card" href="lastcall.html"><span class="name">Last Call</span><span class="what">The check before you release: loudness on every streaming service, clipping, mono, clicks at the start and end, format, tags and cover art, with plain fixes.</span></a>
-      <a class="card" href="convert.html"><span class="name">Convert</span><span class="what">Drop a file, get an MP3, WAV, FLAC, Apple Lossless, AAC or Opus with its tags and cover kept. Reads DSD and old formats too. One song or a whole folder.</span></a>
+<section class="hero">
+  <div>
+    <div class="kicker">ENCORE. Green Room</div>
+    <h1>Everything you need <em>before you go on.</em></h1>
+    <p class="lede">Free tools for musicians: tune up, warm up, practice, write, record a show, master it, rescue an old record, get your release ready and get it heard.</p>
+    <div class="ctas"><a class="cta main" href="journey.html">Start with Journey <span aria-hidden="true">&rarr;</span></a><button type="button" class="cta alt" id="allTools">Browse every tool <kbd>Ctrl K</kbd></button></div>
+    <div class="facts">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span><b>Free</b>, no account</span></span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span><b>Private</b>, nothing uploaded</span></span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span><b>Any device</b>, right in your browser</span></span>
     </div>
-  </section>
-
-  <section class="group">
-    <h2>ENCORE. Release</h2>
-    <p class="sub">Your song is finished. Now get it heard, and get paid for it.</p>
-    <div class="cards">
-      <a class="card" href="clips.html"><span class="name">Clips <span class="tag">NEW</span></span><span class="what">Drop in your song and cover. It finds the hook and makes vertical videos for TikTok, Reels and Shorts, a Spotify Canvas loop and more, with your lyrics on screen.</span></a>
-      <a class="card" href="links.html"><span class="name">Links <span class="tag">NEW</span></span><span class="what">Paste one link and get a release page with every streaming service, a countdown and pre-save buttons, an email sign-up for your own list and a QR code. Free, no monthly fee.</span></a>
-      <a class="card" href="credits.html"><span class="name">Credits <span class="tag">NEW</span></span><span class="what">Every song's codes, credits and splits in one place, with split sheets to sign and a checklist of where to register so no royalty gets left behind.</span></a>
-    </div>
-  </section>
-
-  <section class="group">
-    <h2>ENCORE. Tools</h2>
-    <p class="sub">For the practice room, the stage and the studio.</p>
-    <div class="cards">
-      <a class="card wide feature" href="songbook.html"><span class="name">Songbook <span class="tag">NEW</span></span><span class="what">Write lyrics with chords and keep them in project folders. Tap a chord to drop it in, paste any chord sheet and tidy it in one tap, see how to play every chord on any instrument, find rhymes and the right word, and copy it anywhere.</span></a>
-      <a class="card wide feature" href="compose.html"><span class="name">Compose <span class="tag">NEW</span></span><span class="what">Write sheet music: click the staff, type note names, or play a MIDI keyboard. Record with a click and it writes out what you played. Chords, lyrics, any instrument, playback, and MusicXML, MIDI and PDF out.</span></a>
-      <a class="card" href="tune.html"><span class="name">Tune</span><span class="what">A tuner for 87 instruments and 229 tunings, from guitar to bouzouki and timpani to kalimba, with reference tones and a drum tuner.</span></a>
-      <a class="card" href="metronome.html"><span class="name">Metronome</span><span class="what">Sample-accurate click with odd meters, accents, swing, polyrhythms and setlists, with a swinging pendulum, conductor and more to watch. It listens while you play and tells you which beats you rush or drag.</span></a>
-      <a class="card" href="beatpad.html"><span class="name">Beatpad</span><span class="what">Nine drum pads to play with your keys, fingers or a MIDI pad: built-in kits (including a real acoustic kit), your own samples, a loop recorder and kits you can share.</span></a>
-      <a class="card" href="restore.html"><span class="name">Restore</span><span class="what">Digitize records and tapes side by side: record from your turntable or deck, split the tracks, fix clicks, hum, hiss and speed, fill in the release and export the album.</span></a>
-      <a class="card" href="tag.html"><span class="name">Tag</span><span class="what">Fill in everything distributors ask for (titles, credits, ISRC, UPC, cover art) without touching the audio, one song or a whole album, with a player so you can listen as you go.</span></a>
-      <a class="card wide" href="basement.html"><span class="name">Basement Studio <span class="tag">DESKTOP APP</span></span><span class="what">The free ENCORE. studio for your computer: record the whole band, edit, mix with the ENCORE. plugins built in, and send finished songs to ENCORE.</span></a>
-      <a class="card wide" href="vst.html"><span class="name">ENCORE. VST <span class="tag">PLUGINS</span></span><span class="what">Vox, Verb, Equalize, Master and Strum for any DAW that runs VST3 plugins. One installer: tick the ones you want.</span></a>
-    </div>
-  </section>
-
-  <section class="group">
-    <h2>ENCORE. Learn</h2>
-    <p class="sub">Understand what you play, and get better at it.</p>
-    <div class="cards">
-      <a class="card" href="chords.html"><span class="name">Chords</span><span class="what">Put notes on a guitar neck or piano and it names the chord, sharp or flat. Then build progressions with every move explained, so you learn why it works.</span></a>
-      <a class="card" href="scales.html"><span class="name">Scales</span><span class="what">47 scales on any neck or piano, which ones fit your chords, how the modes relate, and practice with the mic following along.</span></a>
-      <a class="card" href="voice.html"><span class="name">Voice</span><span class="what">A voice coach that listens: find your range, warm up, match pitches, hold steady notes, sing back tunes and find the right key for any song.</span></a>
-    </div>
-  </section>
-
-  <section class="group">
-    <h2>ENCORE. Playground</h2>
-    <p class="sub">New tools we're still testing. Try them early and tell us what's missing.</p>
-    <div class="cards">
-      <a class="card wide" href="playground.html"><span class="name">Playground <span class="tag" style="background:#f59e0b;color:#1a1208">TESTING</span></span><span class="what">Slowed + reverb edits, a practice slow-downer, choir learning tracks, set lists, folk tune books, kalimba tabs, an ear trainer, a drum programmer, chiptune, sound effects, cassette planning, a sample chopper and your own singing voicebank.</span></a>
-    </div>
-  </section>
+  </div>
+  <div class="show" aria-hidden="true">
+    <div class="glow"></div>
+    <div class="frame f3"><span class="art" data-icon="songbook"></span><img src="shots/home/songbook.jpg" alt="" onerror="this.remove()"></div>
+    <div class="frame f1"><span class="art" data-icon="master"></span><img src="shots/home/master.jpg" alt="" onerror="this.remove()"></div>
+    <div class="frame f2"><span class="art" data-icon="metronome"></span><img src="shots/home/metronome.jpg" alt="" onerror="this.remove()"></div>
+  </div>
+</section>
+<div class="promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg><span><b>Everything stays on your device.</b> Nothing you record, open or make is uploaded. The tools run right here in your browser.</span></div>
+<section class="group"><div class="ghead"><div><div class="gr-kicker">ENCORE.</div><h2>Release your music</h2><p class="sub">From finished mix to release. Take the whole journey in one place, or use any step on its own.</p></div></div><div class="cards"><a class="card wide" href="journey.html"><span class="thumb"><img src="shots/home/journey.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="journey"></span><span class="name">Journey <span class="tag ">NEW</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Drop your songs once and take them all the way: master them so they sound like one release, add titles, credits and cover art, check everything with Last Call, and download every format you need in one zip.</span></a><a class="card" href="master.html"><span class="thumb"><img src="shots/home/master.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="master"></span><span class="name">Master</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Master a finished mix: pick a sound, check your mix, compare with a song you love, hear it the way Spotify and Apple will play it, and export tagged, release-ready files.</span></a><a class="card" href="live.html"><span class="thumb"><img src="shots/home/live.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="live"></span><span class="name">Live</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Record a show or drop in the recording. It finds the songs, masters them all evenly, and gets the live album ready to sell.</span></a><a class="card" href="lastcall.html"><span class="thumb"><img src="shots/home/lastcall.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="lastcall"></span><span class="name">Last Call</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">The check before you release: loudness on every streaming service, clipping, mono, clicks at the start and end, format, tags and cover art, with plain fixes.</span></a><a class="card" href="convert.html"><span class="thumb"><img src="shots/home/convert.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="convert"></span><span class="name">Convert</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Drop a file, get an MP3, WAV, FLAC, Apple Lossless, AAC or Opus with its tags and cover kept. Reads DSD and old formats too. One song or a whole folder.</span></a></div></section>
+<section class="group"><div class="ghead"><div><div class="gr-kicker">ENCORE.</div><h2>Get it heard</h2><p class="sub">Your song is finished. Now get it heard, and get paid for it.</p></div></div><div class="cards"><a class="card" href="clips.html"><span class="thumb"><img src="shots/home/clips.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="clips"></span><span class="name">Clips <span class="tag ">NEW</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Drop in your song and cover. It finds the hook and makes vertical videos for TikTok, Reels and Shorts, a Spotify Canvas loop and more, with your lyrics on screen.</span></a><a class="card" href="links.html"><span class="thumb"><img src="shots/home/links.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="links"></span><span class="name">Links <span class="tag ">NEW</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Paste one link and get a release page with every streaming service, a countdown and pre-save buttons, an email sign-up for your own list and a QR code. Free, no monthly fee.</span></a><a class="card" href="credits.html"><span class="thumb"><img src="shots/home/credits.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="credits"></span><span class="name">Credits <span class="tag ">NEW</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Every song's codes, credits and splits in one place, with split sheets to sign and a checklist of where to register so no royalty gets left behind.</span></a></div></section>
+<section class="group"><div class="ghead"><div><div class="gr-kicker">ENCORE.</div><h2>Write and play</h2><p class="sub">For the practice room, the stage and the studio.</p></div></div><div class="cards"><a class="card wide" href="songbook.html"><span class="thumb"><img src="shots/home/songbook.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="songbook"></span><span class="name">Songbook <span class="tag ">NEW</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Write lyrics with chords and keep them in project folders. Tap a chord to drop it in, paste any chord sheet and tidy it in one tap, see how to play every chord on any instrument, find rhymes and the right word, and copy it anywhere.</span></a><a class="card wide" href="compose.html"><span class="thumb"><img src="shots/home/compose.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="compose"></span><span class="name">Compose <span class="tag ">NEW</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Write sheet music: click the staff, type note names, or play a MIDI keyboard. Record with a click and it writes out what you played. Chords, lyrics, any instrument, playback, and MusicXML, MIDI and PDF out.</span></a><a class="card" href="tune.html"><span class="thumb"><img src="shots/home/tune.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="tune"></span><span class="name">Tune</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">A tuner for 87 instruments and 229 tunings, from guitar to bouzouki and timpani to kalimba, with reference tones and a drum tuner.</span></a><a class="card" href="metronome.html"><span class="thumb"><img src="shots/home/metronome.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="metronome"></span><span class="name">Metronome</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Sample-accurate click with odd meters, accents, swing, polyrhythms and setlists, with a swinging pendulum, conductor and more to watch. It listens while you play and tells you which beats you rush or drag.</span></a><a class="card" href="beatpad.html"><span class="thumb"><img src="shots/home/beatpad.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="beatpad"></span><span class="name">Beatpad</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Nine drum pads to play with your keys, fingers or a MIDI pad: built-in kits (including a real acoustic kit), your own samples, a loop recorder and kits you can share.</span></a><a class="card" href="restore.html"><span class="thumb"><img src="shots/home/restore.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="restore"></span><span class="name">Restore</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Digitize records and tapes side by side: record from your turntable or deck, split the tracks, fix clicks, hum, hiss and speed, fill in the release and export the album.</span></a><a class="card" href="tag.html"><span class="thumb"><img src="shots/home/tag.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="tag"></span><span class="name">Tag</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Fill in everything distributors ask for (titles, credits, ISRC, UPC, cover art) without touching the audio, one song or a whole album, with a player so you can listen as you go.</span></a></div></section>
+<section class="group"><div class="ghead"><div><div class="gr-kicker">ENCORE.</div><h2>Learn</h2><p class="sub">Understand what you play, and get better at it.</p></div></div><div class="cards"><a class="card" href="chords.html"><span class="thumb"><img src="shots/home/chords.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="chords"></span><span class="name">Chords</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Put notes on a guitar neck or piano and it names the chord, sharp or flat. Then build progressions with every move explained, so you learn why it works.</span></a><a class="card" href="scales.html"><span class="thumb"><img src="shots/home/scales.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="scales"></span><span class="name">Scales</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">47 scales on any neck or piano, which ones fit your chords, how the modes relate, and practice with the mic following along.</span></a><a class="card" href="voice.html"><span class="thumb"><img src="shots/home/voice.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="voice"></span><span class="name">Voice</span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">A voice coach that listens: find your range, warm up, match pitches, hold steady notes, sing back tunes and find the right key for any song.</span></a></div></section>
+<section class="group"><div class="ghead"><div><div class="gr-kicker">ENCORE.</div><h2>On your computer</h2><p class="sub">The studio and plugins, free.</p></div></div><div class="cards"><a class="card wide" href="basement.html"><span class="thumb"><img src="shots/home/basement.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="basement"></span><span class="name">Basement Studio <span class="tag desk">DESKTOP APP</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">The free ENCORE. studio for your computer: record the whole band, edit, mix with the ENCORE. plugins built in, and send finished songs to ENCORE.</span></a><a class="card wide" href="vst.html"><span class="thumb"><img src="shots/home/vst.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('none')"></span><span class="top"><span class="ic" data-icon="vst"></span><span class="name">ENCORE. VST <span class="tag desk">PLUGINS</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Vox, Verb, Equalize, Master and Strum for any DAW that runs VST3 plugins. One installer: tick the ones you want.</span></a></div></section>
+<section class="group"><div class="ghead"><div><div class="gr-kicker">ENCORE.</div><h2>Playground</h2><p class="sub">New tools we're still testing. Try them early and tell us what's missing.</p></div></div><div class="cards"><a class="card wide" href="playground.html"><span class="top"><span class="ic" data-icon="playground"></span><span class="name">Playground <span class="tag test">TESTING</span></span><span class="go" aria-hidden="true">&rarr;</span></span><span class="what">Slowed + reverb edits, a practice slow-downer, choir learning tracks, set lists, folk tune books, kalimba tabs, an ear trainer, a drum programmer, chiptune, sound effects, cassette planning, a sample chopper and your own singing voicebank.</span></a></div></section>
+<footer class="foot"><span>ENCORE. Green Room, free tools for musicians.</span><span>Nothing you open here leaves your device.</span></footer>
 </main>
+<script type="module">
+import { icon, openLauncher } from "./gr-shell.js";
+for (const el of document.querySelectorAll("[data-icon]")) el.innerHTML = icon(el.dataset.icon);
+document.getElementById("allTools").addEventListener("click", () => openLauncher());
+if (/Mac|iPhone|iPad/.test(navigator.platform)) document.querySelector("#allTools kbd").textContent = "\u2318K";
+</script>
 </body>
 </html>

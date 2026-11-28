@@ -81,9 +81,9 @@
   .transport .go { min-width: 130px; min-height: 50px; font-size: 17px; }
   button.small.on { border-color: #ff3b00; color: #ff3b00; }
   .presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
-  .presets button { font-size: 13px; font-weight: 700; color: var(--text); background: var(--bg-subtle-default); border: 1px solid var(--divider-strong); border-radius: 10px; padding: 9px 4px; min-height: 44px; line-height: 1.15; }
-  .presets button:hover { border-color: var(--soft); }
-  .presets button.on { border-color: #ff3b00; background: rgb(255 59 0 / .12); color: #fff; }
+  .presets button { font-size: 13px; font-weight: 700; color: var(--text); background: var(--gr-raise-2); border: 1px solid var(--gr-line-strong); border-radius: 12px; padding: 9px 4px; min-height: 44px; line-height: 1.15; box-shadow: var(--gr-hi); }
+  .presets button:hover { border-color: rgb(255 59 0 / .45); background: var(--gr-raise-3); }
+  .presets button.on { border-color: rgb(255 59 0 / .75); background: linear-gradient(180deg, rgb(255 59 0 / .22), rgb(255 59 0 / .1)); color: #fff; box-shadow: var(--gr-hi), 0 6px 18px -10px rgb(255 59 0 / .8); }
   .sl { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 0 10px; margin: 8px 0 2px; }
   .sl > span { font-size: 13px; color: var(--soft); }
   .sl > output { font-family: var(--family-mono); font-size: 13px; color: var(--text); }
@@ -107,9 +107,18 @@
   .help p, .help li { font-size: 14px; color: var(--soft); }
   .help ul { padding-left: 18px; margin: 0 0 10px; }
   @media (min-width: 1000px) { .wave { height: 210px; } }
+  @media (min-width: 1000px) {
+    .layout.pgFill #waveBox:not(.hidden) { flex: 1; display: flex; flex-direction: column; min-height: 210px; }
+    .layout.pgFill #waveBox .wave { flex: 1; height: auto; min-height: 210px; }
+    .layout.pgFill .transport { margin-top: 14px; }
+  }
+  .wave { background: linear-gradient(180deg, #0f0c0b, #151110); border: 1px solid var(--gr-line); border-radius: 14px; }
+  .times { padding: 0 2px; }
   @media (max-width: 600px) { .presets { grid-template-columns: repeat(2, minmax(0, 1fr)); } .wave { height: 120px; } }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<link rel="stylesheet" href="playground-tools.css">
+<script type="module" src="gr-shell.js"></script>
 </head>
 <body>
 <div class="bar">
@@ -119,7 +128,7 @@
 </div>
 
 <main>
-<div class="layout">
+<div class="layout pgFill">
   <section class="panel" aria-label="Slowed + Reverb">
     <div class="toolName"><b>Slowed + Reverb</b><span class="pgchip">PLAYGROUND</span><a class="back" href="playground.html">&larr; Playground</a></div>
     <div class="song">
@@ -127,11 +136,14 @@
       <div class="songMeta" id="songMeta"></div>
     </div>
     <div class="drop" id="drop">
+      <span class="emptyIc" data-icon="slowed" aria-hidden="true"></span>
+      <h2 class="emptyH">Make a slowed + reverb edit</h2>
+      <p class="emptyP">Drop in any song, pick a preset and tweak it while it plays. Export the whole thing with no watermark.</p>
       <div class="row">
         <button class="go" id="openBtn">Choose a song</button>
         <button class="small" id="demoBtn">Try a demo beat</button>
       </div>
-      <p>Or drop an audio file here. MP3, WAV, FLAC, M4A, OGG and more. It never leaves your device.</p>
+      <p class="fine">Or drop an audio file here. MP3, WAV, FLAC, M4A, OGG and more. It never leaves your device.</p>
       <input type="file" id="file" class="hidden" aria-label="Choose a song">
     </div>
     <div class="waveBox hidden" id="waveBox">
@@ -209,5 +221,6 @@
 </div>
 </main>
 <script type="module" src="slowed.js"></script>
+<script type="module">import { icon } from "./gr-shell.js"; for (const el of document.querySelectorAll(".emptyIc[data-icon]")) el.innerHTML = icon(el.dataset.icon);</script>
 </body>
 </html>

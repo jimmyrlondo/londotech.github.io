@@ -220,6 +220,132 @@
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #2c2723; border: 1px solid var(--divider-strong); color: var(--text); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 60; max-width: calc(100vw - 32px); }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
+<style id="grRevamp">
+/* 2026-11 Green Room revamp: loads after gr.css, so it refines the shared layer for this page */
+  main { max-width: 1400px; padding: 20px clamp(16px, 2vw, 28px) 28px; }
+  .layout { gap: 18px; }
+  @media (min-width: 1000px) {
+    .layout { align-items: stretch; }
+    .layout > .panel, .layout > .tabsBox { min-height: calc(100vh - 108px); min-height: calc(100dvh - 108px); }
+    .layout > .panel { display: flex; flex-direction: column; justify-content: center; }
+    .tabBody { max-height: calc(100vh - 176px); max-height: calc(100dvh - 176px); }
+  }
+  .panel, .tabsBox { border-radius: 18px; }
+  .panel { padding: 20px 24px 22px; overflow: hidden;
+    background-image: radial-gradient(520px 300px at 50% 64%, rgb(255 59 0 / .075), transparent 70%), linear-gradient(180deg, rgb(255 255 255 / .02), transparent 160px); }
+
+  /* the look picker: a pill segmented control */
+  .panel .viewPick { align-self: center; display: inline-flex; max-width: 100%; margin: 0 auto 16px; padding: 4px; gap: 2px;
+    background: var(--gr-raise-2); border: 1px solid var(--gr-line); border-radius: 999px; box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); }
+  .panel .viewPick > :first-child, .panel .viewPick > :last-child { margin: 0; }
+  .panel .viewPick button { border: 0; border-radius: 999px; padding: 0 15px; min-height: 32px; font-size: 13px; font-weight: 700; color: var(--soft); }
+  .panel .viewPick button:hover { color: var(--text); background: var(--gr-raise-3); }
+  .panel .viewPick button.on { color: #fff; background: var(--gr-grad); box-shadow: var(--gr-hi), 0 4px 14px -6px rgb(255 59 0 / .7); }
+  @media (max-width: 420px) { .panel .viewPick button { padding: 0 9px; font-size: 12px; } }
+  .viewBox { margin: 0 0 14px; }
+
+  /* the beats: grouped tiles with an underline per group, so the feel reads at a glance */
+  .beats { gap: 12px 20px; margin: 4px 0 10px; }
+  .grp { gap: 6px; padding-bottom: 10px; position: relative; }
+  .grp::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: 0; height: 3px; border-radius: 3px; background: rgb(242 239 232 / .13); }
+  .beats .grp:only-child::after, .grp:has(> .beat:only-child)::after { display: none; }
+  .beat { border-radius: 12px; border: 1px solid var(--gr-line-strong); background: linear-gradient(180deg, #221d1a, #171311);
+    box-shadow: var(--gr-hi), 0 6px 14px -10px rgb(0 0 0 / .8); transition: transform .08s var(--gr-ease), box-shadow .12s, border-color .12s; }
+  .beat:hover { border-color: rgb(242 239 232 / .28); }
+  .beat .fill { background: linear-gradient(180deg, #554c45, #3d3631); }
+  .beat[data-level="3"] .fill { background: linear-gradient(180deg, rgb(255 90 31 / .62), rgb(232 52 0 / .42)); }
+  .beat[data-level="1"] .fill { background: linear-gradient(180deg, #3f3833, #302a26); }
+  .beat[data-level="0"] { border-style: dashed; background: transparent; box-shadow: none; }
+  .beat .num { font-family: var(--family-mono); font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 700; color: var(--text); }
+  .beat.now { transform: translateY(-2px); border-color: #f2efe8; background: #2c2723; box-shadow: 0 0 0 2px rgb(242 239 232 / .2), 0 10px 22px -8px rgb(242 239 232 / .35); }
+  .beat.now .fill { background: linear-gradient(180deg, #fffaf2, #e3ddd3); }
+  .beat.now .num { color: #fff; }
+  .beat.now[data-level="3"] { border-color: #ff7a45; box-shadow: 0 0 0 2px rgb(255 59 0 / .35), 0 12px 28px -8px rgb(255 59 0 / .8); }
+  .beat.now[data-level="3"] .fill { background: var(--gr-grad); }
+  .beat.now[data-level="3"] .num { color: #fff; }
+  .beat.now[data-level="1"] .fill { background: linear-gradient(180deg, #cfc6ba, #a99f93); }
+  .beat.now[data-level="0"] { transform: none; box-shadow: none; }
+  .beat .dots { bottom: 7px; }
+  .beat .dots i { background: rgb(242 239 232 / .3); }
+  .beat.now .dots i { background: rgb(18 15 13 / .3); }
+  .beat.now .dots i.now { background: #120f0d; }
+  .beat.now[data-level="3"] .dots i { background: rgb(255 255 255 / .35); }
+  .beat.now[data-level="3"] .dots i.now { background: #fff; }
+  .panel.withView .beat { height: 54px; }
+  .beatHint { font-size: 12.5px; margin: 0 0 6px; }
+  #polyCanvas { margin: 6px 0 4px; height: 60px; border-radius: 12px; background: rgb(0 0 0 / .22); box-shadow: inset 0 1px 2px rgb(0 0 0 / .4); }
+
+  /* tempo */
+  .tempoRow { gap: clamp(12px, 3vw, 40px); margin-top: 6px; }
+  .step { width: 60px; height: 60px; font-size: 28px; color: var(--text); background: linear-gradient(180deg, #25201d, #1a1614);
+    border: 1px solid var(--gr-line-strong); box-shadow: var(--gr-hi), 0 8px 18px -10px rgb(0 0 0 / .9); }
+  .step:hover { border-color: rgb(255 59 0 / .55); }
+  .bpm { font-size: clamp(76px, 22vw, 136px); letter-spacing: -0.045em; background: linear-gradient(180deg, #fffaf2 35%, #cfc6ba); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bpmLabel { font-size: 13px; letter-spacing: .02em; margin-top: 6px; }
+  .bpmLabel b { color: var(--gr-orange-2); }
+  #tempoSlider { max-width: 520px; margin: 18px auto 0; }
+  .mainButtons { gap: 14px; margin-top: 20px; }
+  .mainButtons .go { min-width: min(170px, 36vw); min-height: 60px; font-size: 19px; }
+  .mainButtons .small { min-height: 52px; min-width: min(96px, 22vw); font-size: 15px; background: linear-gradient(180deg, #221d1a, #1a1614); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi), 0 8px 18px -12px rgb(0 0 0 / .9); }
+  .mainButtons .small:hover { border-color: rgb(255 59 0 / .55); }
+  .counter { margin-top: 16px; min-height: 22px; font-size: 12.5px; letter-spacing: .08em; color: var(--soft); font-variant-numeric: tabular-nums; }
+
+  /* settings: pill tab track, kicker headings, 36px controls */
+  .tabBar { margin: 12px 12px 0; padding: 4px; gap: 2px; border: 1px solid var(--gr-line); border-radius: 999px; background: var(--gr-raise-2); box-shadow: inset 0 1px 2px rgb(0 0 0 / .35); }
+  .tabBar button { border-radius: 999px; padding: 0 14px; min-height: 34px; font-size: 13.5px; }
+  .tabBar button:hover:not(.on) { background: var(--gr-raise-3); }
+  .tabBody { padding: 8px 24px 24px; }
+  .tabBody > section { padding-top: 18px; }
+  .tabBody > section.show ~ section.show { border-top-color: var(--gr-line); margin-top: 24px; padding-top: 22px; }
+  .card h2 { font-size: 11.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gr-orange-2); margin-bottom: 14px; }
+  label { font-size: 12px; font-weight: 600; color: var(--soft); gap: 6px; }
+  .stack { gap: 16px; }
+  .grid2 { gap: 16px 14px; }
+  select, input[type=number], input[type=text] { min-height: 38px; border-radius: 10px; padding: 7px 11px; }
+  button.small { min-height: 36px; padding: 6px 14px; font-weight: 600; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  button.small:hover:not(:disabled) { background: var(--gr-raise-3); border-color: rgb(242 239 232 / .26); }
+  .row { gap: 8px; }
+  .seg { border-radius: 999px; padding: 4px; }
+  .seg button { border-radius: 999px; min-height: 32px; padding: 0 10px; }
+  .seg button:hover:not(.on) { color: var(--text); background: var(--gr-raise-3); }
+  .toggle { font-size: 14px; min-height: 36px; font-weight: 500; color: var(--text); }
+  .sub { font-weight: 500; font-family: var(--family-mono); font-size: 11.5px; }
+  .tip { font-size: 12.5px; line-height: 1.55; }
+  .vol { grid-template-columns: 100px 1fr 44px; }
+  .vol span:last-child, .lat, .stats { font-variant-numeric: tabular-nums; }
+  .tcStep { border-color: var(--gr-line); border-radius: 14px; background: var(--gr-raise-2); box-shadow: var(--gr-hi); padding: 14px 16px; }
+  .tcStep h3 { font-size: 13.5px; }
+  .tapPad { border-radius: 16px; min-height: 132px; border-color: rgb(255 106 43 / .35); background: radial-gradient(400px 140px at 50% 0, rgb(255 59 0 / .09), transparent 70%), var(--gr-raise-2); }
+  .tapPad:hover { border-color: var(--gr-orange); }
+  .bpmCard .found #findBpm { font-family: var(--family-mono); font-variant-numeric: tabular-nums; font-size: 48px; letter-spacing: -0.04em; }
+  .song .load { border-radius: 12px; background: var(--gr-raise-2); border-color: var(--gr-line-strong); box-shadow: var(--gr-hi); }
+  .song .mini { border-radius: 10px; background: var(--gr-raise-2); }
+  .keys { gap: 10px 14px; align-items: center; }
+  kbd { background: var(--gr-raise-2); border-color: var(--gr-line-strong); padding: 3px 8px; border-radius: 7px; }
+  .toast { border-radius: 12px; background: var(--gr-raise-3); box-shadow: var(--gr-shadow); }
+  label:has(> .sub) { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 10px; }
+  label:has(> .sub) > .sub { text-align: right; }
+  label:has(> .sub) > input { grid-column: 1 / -1; }
+  @media (min-width: 1000px) {
+    .viewBox { height: clamp(150px, calc(100vh - 640px), 360px); height: clamp(150px, calc(100dvh - 640px), 360px); }
+    .panel.withView.withPoly .viewBox { height: clamp(130px, calc(100vh - 710px), 300px); height: clamp(130px, calc(100dvh - 710px), 300px); }
+  }
+  @media (min-width: 1000px) and (max-height: 860px) {
+    main { padding-top: 14px; padding-bottom: 14px; }
+    .layout > .panel, .layout > .tabsBox { min-height: calc(100vh - 88px); min-height: calc(100dvh - 88px); }
+    .panel { padding: 14px 20px 14px; }
+    .panel .viewPick { margin-bottom: 10px; }
+    .viewBox { margin-bottom: 10px; }
+    .bpm { font-size: 112px; }
+    .step { width: 52px; height: 52px; }
+    #tempoSlider { margin-top: 12px; }
+    .mainButtons { margin-top: 12px; }
+    .mainButtons .go { min-height: 54px; }
+    .mainButtons .small { min-height: 48px; }
+    .counter { margin-top: 8px; }
+  }
+</style>
+<script type="module" src="gr-shell.js"></script>
 </head>
 <body>
 <div class="bar">
