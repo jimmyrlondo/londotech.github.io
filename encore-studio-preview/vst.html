@@ -129,6 +129,23 @@
   .lineup small { font: 700 10.5px/1 var(--family-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
   .plug h2 { font-size: clamp(34px, 3.6vw, 48px); text-transform: uppercase; letter-spacing: -0.02em; }
   .plug { scroll-margin-top: 90px; }
+
+  /* coming next: plugins in testing, not in the download yet */
+  .next { margin: 0 0 40px; scroll-margin-top: 90px; }
+  .next .sectionHead { margin-bottom: 28px; max-width: 860px; }
+  .testing { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font: 700 11px/1 var(--family-mono); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--soft); border: 1px solid var(--gr-line-strong); background: var(--gr-raise-2); border-radius: 999px; padding: 7px 12px; }
+  .testing::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--gr-orange); box-shadow: 0 0 0 3px rgb(255 59 0 / .2); }
+  .nextGroup { margin: 34px 0 0; }
+  .nextGroup > h3 { margin: 0 0 14px; font: 800 11.5px/1 var(--family-sans, inherit); letter-spacing: .16em; text-transform: uppercase; color: var(--gr-orange-2); }
+  .nextGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .nx { display: flex; flex-direction: column; background: var(--gr-raise-1); border: 1px solid var(--gr-line); border-radius: 18px; overflow: hidden; box-shadow: var(--gr-hi), var(--gr-shadow); }
+  .nx a.pic { display: block; padding: 10px 10px 0; cursor: zoom-in; }
+  .nx img { display: block; width: 100%; height: auto !important; aspect-ratio: 16 / 10 !important; object-fit: cover; object-position: top left; border-radius: 10px; border: 1px solid var(--gr-line); background: #0d0b0a; }
+  .nx div { padding: 14px 16px 18px; }
+  .nx h4 { margin: 0 0 6px; font-size: 16.5px; letter-spacing: -0.01em; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .nx h4 small { font: 700 10.5px/1 var(--family-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
+  .nx p { margin: 0; color: var(--soft); font-size: 14px; line-height: 1.55; }
 </style>
 <link rel="stylesheet" href="suite-nav.css">
 <script type="module" src="gr-shell.js"></script>
@@ -201,7 +218,40 @@
     </div>
   </section>
 
-  <section class="foot panelBox">
+  <section class="next" id="next" aria-label="Coming next">
+  <div class="sectionHead">
+    <div class="kicker">Coming next</div>
+    <h2>Sixteen more plugins, and 185 EQ presets</h2>
+    <p>Built and being tested now. They are not in the download yet, and will join it in a future version.</p>
+    <span class="testing">In testing</span>
+  </div>
+  <div class="nextGroup"><h3>Vocals</h3><div class="nextGrid">
+    <article class="nx"><a class="pic" href="shots/next/tune.png" target="_blank" rel="noopener"><img src="shots/next/tune.jpg" alt="ENCORE. Tune" loading="lazy" width="960" height="600"></a><div><h4>Tune<small>Pitch</small></h4><p>Pitch correction from gentle to tight, in your song's key or scale. It follows vibrato and slides instead of flattening them.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/harmony.png" target="_blank" rel="noopener"><img src="shots/next/harmony.jpg" alt="ENCORE. Harmony" loading="lazy" width="960" height="600"></a><div><h4>Harmony<small>Harmony</small></h4><p>Up to eight harmony voices from one vocal, following the key, MIDI notes or a MIDI chord, each with its own timing and tone.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/ride.png" target="_blank" rel="noopener"><img src="shots/next/ride.jpg" alt="ENCORE. Ride" loading="lazy" width="960" height="600"></a><div><h4>Ride<small>Level</small></h4><p>Rides the vocal level for you, and can write its moves into your DAW as automation.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/deess.png" target="_blank" rel="noopener"><img src="shots/next/deess.jpg" alt="ENCORE. De-Ess" loading="lazy" width="960" height="600"></a><div><h4>De-Ess<small>Sibilance</small></h4><p>Tames harsh S and T sounds without dulling the rest of the voice.</p></div></article>
+  </div></div>
+  <div class="nextGroup"><h3>Mixing</h3><div class="nextGrid">
+    <article class="nx"><a class="pic" href="shots/next/compression.png" target="_blank" rel="noopener"><img src="shots/next/compression.jpg" alt="ENCORE. Compression" loading="lazy" width="960" height="600"></a><div><h4>Compression<small>Dynamics</small></h4><p>Four characters, Clean, Smooth, Punch and Glue, with a side-chain input for ducking.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/gate.png" target="_blank" rel="noopener"><img src="shots/next/gate.jpg" alt="ENCORE. Gate" loading="lazy" width="960" height="600"></a><div><h4>Gate<small>Noise</small></h4><p>Cuts noise and bleed between notes, with look-ahead so attacks stay sharp, and side-chain ducking.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/limiter.png" target="_blank" rel="noopener"><img src="shots/next/limiter.jpg" alt="ENCORE. Limiter" loading="lazy" width="960" height="600"></a><div><h4>Limiter<small>Loudness</small></h4><p>A true-peak limiter with loudness readouts, and a button to hear exactly what it takes off.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/delay.png" target="_blank" rel="noopener"><img src="shots/next/delay.jpg" alt="ENCORE. Delay" loading="lazy" width="960" height="600"></a><div><h4>Delay<small>Echo</small></h4><p>Tape, Analog and Digital echoes, in stereo, ping-pong or mono, with ducking and freeze.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/tape.png" target="_blank" rel="noopener"><img src="shots/next/tape.jpg" alt="ENCORE. Tape" loading="lazy" width="960" height="600"></a><div><h4>Tape<small>Saturation</small></h4><p>Reel and cassette machines: warmth, wow and flutter, hiss and the gentle squash of tape.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/lofi.png" target="_blank" rel="noopener"><img src="shots/next/lofi.jpg" alt="ENCORE. Lo-Fi" loading="lazy" width="960" height="600"></a><div><h4>Lo-Fi<small>Character</small></h4><p>Vinyl, cassette, radio, phone, old sampler and bitcrush, from a touch of age to fully wrecked.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/meter.png" target="_blank" rel="noopener"><img src="shots/next/meter.jpg" alt="ENCORE. Meter" loading="lazy" width="960" height="600"></a><div><h4>Meter<small>Metering</small></h4><p>Loudness against streaming targets, true peak, stereo width, and an A/B with a reference track.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/eqpresets.png" target="_blank" rel="noopener"><img src="shots/next/eqpresets.jpg" alt="ENCORE. Equalize presets" loading="lazy" width="960" height="600"></a><div><h4>Equalize presets<small>185 presets</small></h4><p>Starting points by instrument, style and situation, from kick drum to podcast voice, with search and a note on each.</p></div></article>
+  </div></div>
+  <div class="nextGroup"><h3>Guitar</h3><div class="nextGrid">
+    <article class="nx"><a class="pic" href="shots/next/amp.png" target="_blank" rel="noopener"><img src="shots/next/amp.jpg" alt="ENCORE. Amp" loading="lazy" width="960" height="600"></a><div><h4>Amp<small>Amp</small></h4><p>Four amp voicings, American, British, modern and bass, with six speaker cabinets or your own cabinet file.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/pedalstudio.png" target="_blank" rel="noopener"><img src="shots/next/pedalstudio.jpg" alt="ENCORE. Pedal Studio" loading="lazy" width="960" height="600"></a><div><h4>Pedal Studio<small>Pedals</small></h4><p>Build your own pedals from 18 effects, design how they look, then play a board of eight live with scenes, a tuner and MIDI.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/looper.png" target="_blank" rel="noopener"><img src="shots/next/looper.jpg" alt="ENCORE. Looper" loading="lazy" width="960" height="600"></a><div><h4>Looper<small>Loops</small></h4><p>Five synced loop tracks with overdub, two levels of undo, reverse and half speed, all from one footswitch.</p></div></article>
+  </div></div>
+  <div class="nextGroup"><h3>Drums and synths</h3><div class="nextGrid">
+    <article class="nx"><a class="pic" href="shots/next/percussionpro.png" target="_blank" rel="noopener"><img src="shots/next/percussionpro.jpg" alt="ENCORE. Percussion Pro" loading="lazy" width="960" height="600"></a><div><h4>Percussion Pro<small>Drums</small></h4><p>One on each drum track. Tell it what the drum is, let it listen, and it builds the gate, EQ, compression and shaping, with a view of the whole kit.</p></div></article>
+    <article class="nx"><a class="pic" href="shots/next/chip.png" target="_blank" rel="noopener"><img src="shots/next/chip.jpg" alt="ENCORE. Chip" loading="lazy" width="960" height="600"></a><div><h4>Chip<small>Synth</small></h4><p>An 8-bit synth you play with MIDI: pulse, triangle and noise voices, arpeggios and 24 presets.</p></div></article>
+  </div></div>
+</section>
+<section class="foot panelBox">
     <div>
       <h2>Free. The same plugins are built into ENCORE. Basement Studio.</h2>
       <p>Presets: each plugin has factory presets, and saves yours in your Documents folder, under ENCORE\&lt;Plugin&gt;\Presets.</p>
